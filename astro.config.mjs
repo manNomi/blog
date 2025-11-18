@@ -8,7 +8,7 @@ export default defineConfig({
   site: "https://yourblog.com",
   output: "hybrid",
   adapter: vercel({
-    runtime: 'nodejs22',
+    runtime: "nodejs20",
   }),
   integrations: [react(), sitemap()],
   markdown: {
