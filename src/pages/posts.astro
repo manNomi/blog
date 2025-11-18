@@ -1,0 +1,166 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import PostCard from '../components/PostCard.astro';
+
+const allPosts = (await getCollection('blog')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+
+const allTags = [...new Set(allPosts.flatMap(post => post.data.tags || []))];
+---
+
+<BaseLayout title="전체 글 목록 - manNomi" description="모든 기술 블로그 글을 확인하세요">
+  <Header />
+
+  <main class="main">
+    <div class="container">
+      <div class="page-header">
+        <h1 class="page-title">전체 글</h1>
+        <p class="page-description">총 {allPosts.length}개의 글</p>
+      </div>
+
+      {allTags.length > 0 && (
+        <div class="filter-section">
+          <div class="tags">
+            <button class="tag-filter active" data-tag="all">전체</button>
+            {allTags.map(tag => (
+              <button class="tag-filter" data-tag={tag}>{tag}</button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div class="posts-grid">
+        {allPosts.map(post => (
+          <div class="post-item" data-tags={JSON.stringify(post.data.tags || [])}>
+            <PostCard
+              title={post.data.title}
+              description={post.data.description}
+              slug={post.slug}
+              pubDate={post.data.pubDate}
+              heroImage={post.data.heroImage}
+              tags={post.data.tags}
+            />
+          </div>
+        ))}
+      </div>
+
+      {allPosts.length === 0 && (
+        <div class="empty-state">
+          <p>아직 작성된 글이 없습니다.</p>
+        </div>
+      )}
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  .main {
+    padding-top: calc(var(--header-height) + var(--space-2xl));
+    padding-bottom: var(--space-3xl);
+    min-height: 100vh;
+  }
+
+  .page-header {
+    margin-bottom: var(--space-2xl);
+  }
+
+  .page-title {
+    font-size: var(--text-3xl);
+    margin-bottom: var(--space-sm);
+    color: var(--text-primary);
+  }
+
+  .page-description {
+    font-size: var(--text-base);
+    color: var(--text-secondary);
+  }
+
+  .filter-section {
+    margin-bottom: var(--space-2xl);
+    padding-bottom: var(--space-xl);
+    border-bottom: 1px solid var(--border-primary);
+  }
+
+  .tags {
+    display: flex;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+  }
+
+  .tag-filter {
+    padding: var(--space-sm) var(--space-lg);
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+
+  .tag-filter:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
+
+  .tag-filter.active {
+    background-color: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: white;
+  }
+
+  .posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-xl);
+  }
+
+  .post-item {
+    transition: opacity 0.2s;
+  }
+
+  .post-item.hidden {
+    display: none;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: var(--space-3xl) 0;
+    color: var(--text-tertiary);
+  }
+
+  @media (max-width: 768px) {
+    .posts-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  const tagFilters = document.querySelectorAll('.tag-filter');
+  const postItems = document.querySelectorAll('.post-item');
+
+  tagFilters.forEach(button => {
+    button.addEventListener('click', () => {
+      const selectedTag = button.getAttribute('data-tag');
+
+      // Update active state
+      tagFilters.forEach(btn => btn.classList.remove('active'));
+      button.classList.add('active');
+
+      // Filter posts
+      postItems.forEach(item => {
+        const postTags = JSON.parse(item.getAttribute('data-tags') || '[]');
+
+        if (selectedTag === 'all' || postTags.includes(selectedTag)) {
+          item.classList.remove('hidden');
+        } else {
+          item.classList.add('hidden');
+        }
+      });
+    });
+  });
+</script>
