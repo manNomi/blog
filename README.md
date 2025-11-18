@@ -14,6 +14,8 @@ Notion을 CMS로 활용한 정적 기술 블로그입니다.
 - 이미지 자동 다운로드
 - 핀 게시물 기능
 - 태그 필터링
+- 조회수 카운터
+- 댓글 (Giscus)
 - 크림 색상 테마
 
 ## 설정
@@ -38,6 +40,15 @@ Notion을 CMS로 활용한 정적 기술 블로그입니다.
 NOTION_TOKEN=your_token
 NOTION_DATABASE_ID=your_database_id
 ```
+
+### Giscus 댓글 설정
+
+1. GitHub 저장소 Discussions 활성화
+2. https://giscus.app 에서 설정
+3. `src/components/Comments.tsx` 파일에서 설정값 수정:
+   - data-repo
+   - data-repo-id
+   - data-category-id
 
 ## 개발
 
