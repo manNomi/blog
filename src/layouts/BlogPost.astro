@@ -16,7 +16,12 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
 }).format(pubDate);
 ---
 
-<BaseLayout title={`${title} - manNomi`} description={description}>
+<BaseLayout
+  title={`${title} - manNomi`}
+  description={description}
+  image={heroImage}
+  canonicalURL={`/blog/${slug}`}
+>
   <Header />
 
   <main class="main">
