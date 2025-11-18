@@ -5,9 +5,9 @@ import Header from '../components/Header.astro';
 import ViewCounter from '../components/ViewCounter';
 import Comments from '../components/Comments';
 
-type Props = CollectionEntry<'blog'>['data'] & { slug: string };
+type Props = CollectionEntry<'blog'>['data'] & { slug: string; readingTime: number };
 
-const { title, description, pubDate, updatedDate, heroImage, tags, slug } = Astro.props;
+const { title, description, pubDate, updatedDate, heroImage, tags, slug, readingTime } = Astro.props;
 
 const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   year: 'numeric',
@@ -33,6 +33,13 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
 
           <div class="article-meta">
             <time datetime={pubDate.toISOString()}>{formattedDate}</time>
+            <span class="reading-time">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+              <span>{readingTime}분</span>
+            </span>
             <ViewCounter client:load slug={slug} />
             {updatedDate && (
               <span class="updated">
@@ -117,6 +124,17 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
     margin-bottom: var(--space-lg);
     font-size: var(--text-sm);
     color: var(--text-tertiary);
+  }
+
+  .article-meta .reading-time {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+
+  .article-meta .reading-time::before {
+    content: '•';
+    margin-right: var(--space-sm);
   }
 
   .article-meta :global(.view-counter) {
