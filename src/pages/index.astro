@@ -1,115 +1,200 @@
 ---
 import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import PostCard from '../components/PostCard.astro';
 
-const posts = (await getCollection('blog')).sort(
+const allPosts = (await getCollection('blog')).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
+
+const pinnedPosts = allPosts.filter(post => post.data.pinned).slice(0, 3);
+const recentPosts = allPosts.slice(0, 5);
 ---
 
-<html lang="ko">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>기술 블로그</title>
-  </head>
-  <body>
-    <main>
-      <h1>기술 블로그</h1>
-      <section>
-        {posts.map((post) => (
-          <article>
-            <a href={`/blog/${post.slug}/`}>
-              {post.data.heroImage && (
-                <img src={post.data.heroImage} alt="" />
-              )}
-              <h2>{post.data.title}</h2>
-              <time>{post.data.pubDate.toLocaleDateString('ko-KR')}</time>
-              {post.data.description && <p>{post.data.description}</p>}
-              {post.data.tags && (
-                <div class="tags">
-                  {post.data.tags.map(tag => (
-                    <span class="tag">{tag}</span>
-                  ))}
-                </div>
-              )}
-            </a>
-          </article>
-        ))}
+<BaseLayout title="manNomi 기술 블로그" description="개발 경험과 기술을 기록합니다">
+  <Header />
+
+  <main class="main">
+    <section class="hero">
+      <div class="container">
+        <div class="hero-content">
+          <h1 class="hero-title">마법을 믿지 않는 개발자</h1>
+          <p class="hero-description">
+            웹 프론트엔드 개발자로 무엇이 어떻게 왜 작동하는지 철저히 탐구합니다.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    {pinnedPosts.length > 0 && (
+      <section class="section">
+        <div class="container">
+          <h2 class="section-title">주요 글</h2>
+          <div class="grid">
+            {pinnedPosts.map(post => (
+              <PostCard
+                title={post.data.title}
+                description={post.data.description}
+                slug={post.slug}
+                pubDate={post.data.pubDate}
+                heroImage={post.data.heroImage}
+                tags={post.data.tags}
+                pinned={true}
+              />
+            ))}
+          </div>
+        </div>
       </section>
-    </main>
-  </body>
-</html>
+    )}
+
+    <section class="section">
+      <div class="container">
+        <h2 class="section-title">최신 글</h2>
+        <div class="recent-list">
+          {recentPosts.map(post => (
+            <article class="recent-item">
+              <a href={`/blog/${post.slug}`} class="recent-link">
+                {post.data.heroImage && (
+                  <div class="recent-thumb">
+                    <img src={post.data.heroImage} alt={post.data.title} loading="lazy" />
+                  </div>
+                )}
+                <div class="recent-info">
+                  <h3 class="recent-title">{post.data.title}</h3>
+                  <time class="recent-date">
+                    {new Intl.DateTimeFormat('ko-KR', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    }).format(post.data.pubDate)}
+                  </time>
+                </div>
+              </a>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
 
 <style>
-  main {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
+  .main {
+    padding-top: var(--header-height);
   }
 
-  h1 {
-    font-size: 3rem;
-    margin-bottom: 2rem;
+  .hero {
+    padding: var(--space-3xl) 0;
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-hover) 100%);
   }
 
-  section {
+  .hero-content {
+    max-width: 600px;
+  }
+
+  .hero-title {
+    font-size: var(--text-4xl);
+    margin-bottom: var(--space-lg);
+    color: var(--text-primary);
+  }
+
+  .hero-description {
+    font-size: var(--text-lg);
+    color: var(--text-secondary);
+    line-height: 1.8;
+  }
+
+  .section {
+    padding: var(--space-3xl) 0;
+  }
+
+  .section-title {
+    font-size: var(--text-2xl);
+    margin-bottom: var(--space-xl);
+    color: var(--text-primary);
+  }
+
+  .grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 2rem;
+    gap: var(--space-xl);
   }
 
-  article {
-    border: 1px solid #ddd;
-    border-radius: 8px;
+  .recent-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+  }
+
+  .recent-item {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
     overflow: hidden;
-    transition: transform 0.2s;
+    transition: all 0.2s;
   }
 
-  article:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  .recent-item:hover {
+    border-color: var(--border-secondary);
+    box-shadow: var(--shadow-sm);
   }
 
-  article a {
-    text-decoration: none;
-    color: inherit;
-    display: block;
+  .recent-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+    padding: var(--space-lg);
   }
 
-  article img {
+  .recent-thumb {
+    flex-shrink: 0;
+    width: 120px;
+    height: 80px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background-color: var(--bg-hover);
+  }
+
+  .recent-thumb img {
     width: 100%;
-    height: 200px;
+    height: 100%;
     object-fit: cover;
   }
 
-  article h2 {
-    font-size: 1.5rem;
-    margin: 1rem;
+  .recent-info {
+    flex: 1;
   }
 
-  article time {
-    color: #666;
-    font-size: 0.9rem;
-    margin: 0 1rem;
+  .recent-title {
+    font-size: var(--text-lg);
+    font-weight: 600;
+    margin-bottom: var(--space-sm);
+    color: var(--text-primary);
   }
 
-  article p {
-    margin: 1rem;
-    color: #555;
+  .recent-date {
+    font-size: var(--text-sm);
+    color: var(--text-tertiary);
   }
 
-  .tags {
-    display: flex;
-    gap: 0.5rem;
-    margin: 1rem;
-    flex-wrap: wrap;
-  }
+  @media (max-width: 768px) {
+    .hero {
+      padding: var(--space-2xl) 0;
+    }
 
-  .tag {
-    background: #f0f0f0;
-    padding: 0.25rem 0.75rem;
-    border-radius: 4px;
-    font-size: 0.85rem;
+    .grid {
+      grid-template-columns: 1fr;
+    }
+
+    .recent-link {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .recent-thumb {
+      width: 100%;
+      height: 180px;
+    }
   }
 </style>
