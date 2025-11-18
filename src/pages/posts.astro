@@ -10,6 +10,12 @@ const allPosts = (await getCollection('blog')).sort(
 );
 
 const allTags = [...new Set(allPosts.flatMap(post => post.data.tags || []))];
+
+// 태그별 글 개수 계산
+const tagCounts = allTags.reduce((acc, tag) => {
+  acc[tag] = allPosts.filter(post => post.data.tags?.includes(tag)).length;
+  return acc;
+}, {} as Record<string, number>);
 ---
 
 <BaseLayout title="전체 글 목록 - manNomi" description="모든 기술 블로그 글을 확인하세요">
@@ -24,10 +30,17 @@ const allTags = [...new Set(allPosts.flatMap(post => post.data.tags || []))];
 
       {allTags.length > 0 && (
         <div class="filter-section">
+          <h2 class="filter-title">태그로 찾기</h2>
           <div class="tags">
-            <button class="tag-filter active" data-tag="all">전체</button>
+            <button class="tag-filter active" data-tag="all">
+              <span class="tag-name">전체</span>
+              <span class="tag-count">{allPosts.length}</span>
+            </button>
             {allTags.map(tag => (
-              <button class="tag-filter" data-tag={tag}>{tag}</button>
+              <button class="tag-filter" data-tag={tag}>
+                <span class="tag-name">{tag}</span>
+                <span class="tag-count">{tagCounts[tag]}</span>
+              </button>
             ))}
           </div>
         </div>
@@ -83,50 +96,100 @@ const allTags = [...new Set(allPosts.flatMap(post => post.data.tags || []))];
 
   .filter-section {
     margin-bottom: var(--space-2xl);
-    padding-bottom: var(--space-xl);
-    border-bottom: 1px solid var(--border-primary);
+    padding: var(--space-xl);
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-primary);
+  }
+
+  .filter-title {
+    font-size: var(--text-lg);
+    font-weight: 600;
+    margin-bottom: var(--space-lg);
+    color: var(--text-primary);
   }
 
   .tags {
     display: flex;
-    gap: var(--space-sm);
+    gap: var(--space-md);
     flex-wrap: wrap;
   }
 
   .tag-filter {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
     padding: var(--space-sm) var(--space-lg);
-    background-color: var(--bg-secondary);
+    background-color: var(--bg-primary);
     border: 1px solid var(--border-primary);
     border-radius: var(--radius-md);
     font-size: var(--text-sm);
     color: var(--text-secondary);
-    transition: all 0.2s;
+    transition: all 0.3s ease;
     cursor: pointer;
   }
 
   .tag-filter:hover {
     border-color: var(--accent-primary);
-    color: var(--accent-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   }
 
   .tag-filter.active {
     background-color: var(--accent-primary);
     border-color: var(--accent-primary);
     color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(139, 115, 85, 0.3);
+  }
+
+  .tag-name {
+    font-weight: 500;
+  }
+
+  .tag-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 var(--space-xs);
+    background-color: var(--bg-hover);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-xs);
+    font-weight: 600;
+  }
+
+  .tag-filter.active .tag-count {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
   }
 
   .posts-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: var(--space-xl);
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: var(--space-2xl);
   }
 
   .post-item {
-    transition: opacity 0.2s;
+    opacity: 1;
+    animation: fadeIn 0.4s ease;
+    transition: all 0.3s ease;
   }
 
   .post-item.hidden {
     display: none;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   .empty-state {
@@ -154,12 +217,14 @@ const allTags = [...new Set(allPosts.flatMap(post => post.data.tags || []))];
       tagFilters.forEach(btn => btn.classList.remove('active'));
       button.classList.add('active');
 
-      // Filter posts
-      postItems.forEach(item => {
+      // Filter posts with animation
+      postItems.forEach((item, index) => {
         const postTags = JSON.parse(item.getAttribute('data-tags') || '[]');
 
         if (selectedTag === 'all' || postTags.includes(selectedTag)) {
           item.classList.remove('hidden');
+          // Stagger animation
+          (item as HTMLElement).style.animationDelay = `${index * 0.05}s`;
         } else {
           item.classList.add('hidden');
         }
