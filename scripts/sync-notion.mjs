@@ -4,6 +4,10 @@ import fs from 'fs';
 import path from 'path';
 import https from 'https';
 import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+
+// .env 파일 로드
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -105,11 +109,16 @@ function getPageProperty(page, propertyName) {
     case 'date':
       return property.date?.start || null;
     case 'multi_select':
-      return property.multi_select.map(item => item.name);
+      // multi_select가 배열인지 확인하고 안전하게 처리
+      if (Array.isArray(property.multi_select)) {
+        return property.multi_select.map(item => item.name);
+      }
+      return [];
     case 'select':
       return property.select?.name || null;
     case 'checkbox':
-      return property.checkbox || false;
+      // checkbox는 boolean 값이므로 명시적으로 처리
+      return property.checkbox === true;
     case 'files':
       return property.files[0]?.file?.url || property.files[0]?.external?.url || null;
     default:
@@ -122,6 +131,31 @@ async function syncNotion() {
   try {
     console.log('🚀 Notion 동기화 시작...\n');
     console.log(`📋 Database ID: ${DATABASE_ID.substring(0, 8)}...\n`);
+
+    // 먼저 필터 없이 모든 항목 조회 (디버깅용)
+    const allResponse = await notion.databases.query({
+      database_id: DATABASE_ID,
+    });
+    
+    console.log(`📊 전체 항목 수: ${allResponse.results.length}개\n`);
+    
+    // Status 속성 확인
+    if (allResponse.results.length > 0) {
+      const firstPage = allResponse.results[0];
+      const statusProp = firstPage.properties.Status || firstPage.properties.status;
+      if (statusProp) {
+        console.log(`📋 Status 속성 타입: ${statusProp.type}`);
+        if (statusProp.type === 'select' && statusProp.select) {
+          console.log(`📋 현재 Status 값: "${statusProp.select.name}"`);
+        }
+        // 데이터베이스의 모든 Status 옵션 확인
+        const dbInfo = await notion.databases.retrieve({ database_id: DATABASE_ID });
+        const statusProperty = dbInfo.properties.Status || dbInfo.properties.status;
+        if (statusProperty && statusProperty.type === 'select') {
+          console.log(`📋 사용 가능한 Status 옵션: ${statusProperty.select.options.map(o => o.name).join(', ')}\n`);
+        }
+      }
+    }
 
     // Notion 데이터베이스에서 페이지 가져오기
     const response = await notion.databases.query({
@@ -140,15 +174,20 @@ async function syncNotion() {
       ]
     });
 
-    console.log(`📄 ${response.results.length}개의 게시물을 찾았습니다.\n`);
+    console.log(`📄 Published 상태 게시물: ${response.results.length}개\n`);
 
     for (const page of response.results) {
       const title = getPageProperty(page, 'Name') || getPageProperty(page, 'Title');
       const description = getPageProperty(page, 'Description');
       const pubDate = getPageProperty(page, 'Created') || new Date().toISOString();
-      const tags = getPageProperty(page, 'Tags') || [];
+      // Tags 속성 안전하게 처리
+      let tags = getPageProperty(page, 'Tags');
+      if (!Array.isArray(tags)) {
+        tags = [];
+      }
       const heroImageUrl = getPageProperty(page, 'Cover');
-      const pinned = getPageProperty(page, 'Pinned') || false;
+      // Pinned 속성 안전하게 처리 (checkbox 타입)
+      const pinned = getPageProperty(page, 'Pinned') === true;
 
       console.log(`📝 처리 중: ${title}`);
 
