@@ -1,0 +1,115 @@
+---
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+---
+
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>기술 블로그</title>
+  </head>
+  <body>
+    <main>
+      <h1>기술 블로그</h1>
+      <section>
+        {posts.map((post) => (
+          <article>
+            <a href={`/blog/${post.slug}/`}>
+              {post.data.heroImage && (
+                <img src={post.data.heroImage} alt="" />
+              )}
+              <h2>{post.data.title}</h2>
+              <time>{post.data.pubDate.toLocaleDateString('ko-KR')}</time>
+              {post.data.description && <p>{post.data.description}</p>}
+              {post.data.tags && (
+                <div class="tags">
+                  {post.data.tags.map(tag => (
+                    <span class="tag">{tag}</span>
+                  ))}
+                </div>
+              )}
+            </a>
+          </article>
+        ))}
+      </section>
+    </main>
+  </body>
+</html>
+
+<style>
+  main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  h1 {
+    font-size: 3rem;
+    margin-bottom: 2rem;
+  }
+
+  section {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+  }
+
+  article {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.2s;
+  }
+
+  article:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  article a {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+
+  article img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+  }
+
+  article h2 {
+    font-size: 1.5rem;
+    margin: 1rem;
+  }
+
+  article time {
+    color: #666;
+    font-size: 0.9rem;
+    margin: 0 1rem;
+  }
+
+  article p {
+    margin: 1rem;
+    color: #555;
+  }
+
+  .tags {
+    display: flex;
+    gap: 0.5rem;
+    margin: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    background: #f0f0f0;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+  }
+</style>
