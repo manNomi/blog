@@ -2,10 +2,11 @@
 import type { CollectionEntry } from 'astro:content';
 import BaseLayout from './BaseLayout.astro';
 import Header from '../components/Header.astro';
+import ViewCounter from '../components/ViewCounter';
 
-type Props = CollectionEntry<'blog'>['data'];
+type Props = CollectionEntry<'blog'>['data'] & { slug: string };
 
-const { title, description, pubDate, updatedDate, heroImage, tags } = Astro.props;
+const { title, description, pubDate, updatedDate, heroImage, tags, slug } = Astro.props;
 
 const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   year: 'numeric',
@@ -31,6 +32,7 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
 
           <div class="article-meta">
             <time datetime={pubDate.toISOString()}>{formattedDate}</time>
+            <ViewCounter client:load slug={slug} />
             {updatedDate && (
               <span class="updated">
                 수정됨 {new Intl.DateTimeFormat('ko-KR', {
@@ -110,6 +112,17 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
     margin-bottom: var(--space-lg);
     font-size: var(--text-sm);
     color: var(--text-tertiary);
+  }
+
+  .article-meta :global(.view-counter) {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+
+  .article-meta :global(.view-counter)::before {
+    content: '•';
+    margin-right: var(--space-sm);
   }
 
   .updated::before {
