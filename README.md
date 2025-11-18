@@ -15,7 +15,10 @@ Notion을 CMS로 활용한 정적 기술 블로그입니다.
 - 핀 게시물 기능
 - 태그 필터링
 - 조회수 카운터
+- 읽기 시간 표시
 - 댓글 (Giscus)
+- 공유 기능 (SNS, 링크 복사)
+- SEO 최적화 (Open Graph, Sitemap)
 - 크림 색상 테마
 
 ## 설정
@@ -63,4 +66,39 @@ npm run dev
 ```bash
 npm run sync:notion
 npm run build
+```
+
+## 프로젝트 구조
+
+```
+blog/
+├── public/
+│   ├── favicon.svg
+│   └── robots.txt
+├── scripts/
+│   └── sync-notion.mjs
+├── src/
+│   ├── components/
+│   │   ├── Header.astro
+│   │   ├── PostCard.astro
+│   │   ├── ViewCounter.tsx
+│   │   ├── Comments.tsx
+│   │   └── ShareButtons.astro
+│   ├── layouts/
+│   │   ├── BaseLayout.astro
+│   │   └── BlogPost.astro
+│   ├── pages/
+│   │   ├── index.astro
+│   │   ├── posts.astro
+│   │   ├── blog/[...slug].astro
+│   │   └── api/views/[slug].ts
+│   ├── styles/
+│   │   └── global.css
+│   ├── utils/
+│   │   └── readingTime.ts
+│   └── content/
+│       ├── config.ts
+│       └── blog/
+├── astro.config.mjs
+└── package.json
 ```
