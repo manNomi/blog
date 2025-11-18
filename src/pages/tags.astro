@@ -1,0 +1,304 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import PostCard from '../components/PostCard.astro';
+import Footer from '../components/Footer.astro';
+
+const allPosts = (await getCollection('blog')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+
+const allTags = [...new Set(allPosts.flatMap(post => post.data.tags || []))].sort();
+
+// 태그별 글 개수 계산
+const tagCounts = allTags.reduce((acc, tag) => {
+  acc[tag] = allPosts.filter(post => post.data.tags?.includes(tag)).length;
+  return acc;
+}, {} as Record<string, number>);
+---
+
+<BaseLayout title="태그별 글 보기 - manNomi" description="태그별로 분류된 기술 블로그 글을 확인하세요">
+  <Header />
+
+  <main class="main">
+    <div class="container">
+      <div class="page-header">
+        <h1 class="page-title">태그별 글 보기</h1>
+        <p class="page-description">관심있는 태그를 선택하여 글을 찾아보세요</p>
+      </div>
+
+      <div class="tags-section">
+        <div class="tags-list">
+          <button class="tag-tab active" data-tag="all">
+            <span class="tag-name">전체</span>
+            <span class="tag-count">{allPosts.length}</span>
+          </button>
+          {allTags.map(tag => (
+            <button class="tag-tab" data-tag={tag}>
+              <span class="tag-name">{tag}</span>
+              <span class="tag-count">{tagCounts[tag]}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div class="posts-section">
+        <div class="section-header">
+          <h2 class="section-title">
+            <span class="current-tag">전체</span>
+            <span class="post-count">({allPosts.length}개의 글)</span>
+          </h2>
+        </div>
+
+        <div class="posts-grid">
+          {allPosts.map(post => (
+            <div class="post-item" data-tags={JSON.stringify(post.data.tags || [])}>
+              <PostCard
+                title={post.data.title}
+                description={post.data.description}
+                slug={post.slug}
+                pubDate={post.data.pubDate}
+                heroImage={post.data.heroImage}
+                tags={post.data.tags}
+              />
+            </div>
+          ))}
+        </div>
+
+        {allPosts.length === 0 && (
+          <div class="empty-state">
+            <p>아직 작성된 글이 없습니다.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  .main {
+    padding-top: calc(var(--header-height) + var(--space-2xl));
+    padding-bottom: var(--space-3xl);
+    min-height: 100vh;
+  }
+
+  .page-header {
+    margin-bottom: var(--space-2xl);
+    text-align: center;
+  }
+
+  .page-title {
+    font-size: var(--text-4xl);
+    font-weight: 700;
+    margin-bottom: var(--space-sm);
+    color: var(--text-primary);
+  }
+
+  .page-description {
+    font-size: var(--text-lg);
+    color: var(--text-secondary);
+  }
+
+  .tags-section {
+    margin-bottom: var(--space-3xl);
+    padding: var(--space-2xl);
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-primary);
+  }
+
+  .tags-list {
+    display: flex;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .tag-tab {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-md) var(--space-xl);
+    background-color: var(--bg-primary);
+    border: 2px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    font-size: var(--text-base);
+    color: var(--text-secondary);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .tag-tab:hover {
+    border-color: var(--accent-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  .tag-tab.active {
+    background-color: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(139, 115, 85, 0.3);
+  }
+
+  .tag-name {
+    font-weight: 600;
+    font-size: var(--text-base);
+  }
+
+  .tag-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 var(--space-sm);
+    background-color: var(--bg-hover);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-sm);
+    font-weight: 700;
+  }
+
+  .tag-tab.active .tag-count {
+    background-color: rgba(255, 255, 255, 0.25);
+    color: white;
+  }
+
+  .posts-section {
+    margin-top: var(--space-2xl);
+  }
+
+  .section-header {
+    margin-bottom: var(--space-xl);
+    padding-bottom: var(--space-lg);
+    border-bottom: 2px solid var(--border-primary);
+  }
+
+  .section-title {
+    font-size: var(--text-2xl);
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-sm);
+  }
+
+  .current-tag {
+    color: var(--accent-primary);
+  }
+
+  .post-count {
+    font-size: var(--text-base);
+    font-weight: 400;
+    color: var(--text-tertiary);
+  }
+
+  .posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: var(--space-2xl);
+  }
+
+  .post-item {
+    opacity: 1;
+    animation: fadeIn 0.4s ease;
+    transition: all 0.3s ease;
+  }
+
+  .post-item.hidden {
+    display: none;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: var(--space-3xl) 0;
+    color: var(--text-tertiary);
+    font-size: var(--text-lg);
+  }
+
+  @media (max-width: 768px) {
+    .page-title {
+      font-size: var(--text-3xl);
+    }
+
+    .tags-section {
+      padding: var(--space-lg);
+    }
+
+    .tags-list {
+      justify-content: flex-start;
+    }
+
+    .tag-tab {
+      padding: var(--space-sm) var(--space-lg);
+      font-size: var(--text-sm);
+    }
+
+    .posts-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  const tagTabs = document.querySelectorAll('.tag-tab');
+  const postItems = document.querySelectorAll('.post-item');
+  const currentTagElement = document.querySelector('.current-tag');
+  const postCountElement = document.querySelector('.post-count');
+
+  tagTabs.forEach(button => {
+    button.addEventListener('click', () => {
+      const selectedTag = button.getAttribute('data-tag');
+      const tagName = button.querySelector('.tag-name')?.textContent || '전체';
+
+      // Update active state
+      tagTabs.forEach(btn => btn.classList.remove('active'));
+      button.classList.add('active');
+
+      // Filter posts with animation
+      let visibleCount = 0;
+      postItems.forEach((item, index) => {
+        const postTags = JSON.parse(item.getAttribute('data-tags') || '[]');
+
+        if (selectedTag === 'all' || postTags.includes(selectedTag)) {
+          item.classList.remove('hidden');
+          // Stagger animation
+          (item as HTMLElement).style.animationDelay = `${index * 0.05}s`;
+          visibleCount++;
+        } else {
+          item.classList.add('hidden');
+        }
+      });
+
+      // Update section title
+      if (currentTagElement) {
+        currentTagElement.textContent = tagName;
+      }
+      if (postCountElement) {
+        postCountElement.textContent = `(${visibleCount}개의 글)`;
+      }
+
+      // Smooth scroll to posts section
+      document.querySelector('.posts-section')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    });
+  });
+</script>
