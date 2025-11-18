@@ -3,6 +3,7 @@ import type { CollectionEntry } from 'astro:content';
 import BaseLayout from './BaseLayout.astro';
 import Header from '../components/Header.astro';
 import ViewCounter from '../components/ViewCounter';
+import Comments from '../components/Comments';
 
 type Props = CollectionEntry<'blog'>['data'] & { slug: string };
 
@@ -55,6 +56,10 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
 
         <div class="article-body">
           <slot />
+        </div>
+
+        <div class="comments-section">
+          <Comments client:load />
         </div>
       </div>
     </article>
@@ -234,6 +239,12 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   .article-body :global(hr) {
     margin: var(--space-2xl) 0;
     border: none;
+    border-top: 1px solid var(--border-primary);
+  }
+
+  .comments-section {
+    margin-top: var(--space-3xl);
+    padding-top: var(--space-2xl);
     border-top: 1px solid var(--border-primary);
   }
 
