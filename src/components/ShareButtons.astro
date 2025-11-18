@@ -1,0 +1,92 @@
+---
+interface Props {
+  title: string;
+  url: string;
+}
+
+const { title, url } = Astro.props;
+---
+
+<div class="share-buttons">
+  <button class="share-btn" data-type="twitter" data-title={title} data-url={url}>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z" />
+    </svg>
+  </button>
+
+  <button class="share-btn" data-type="facebook" data-title={title} data-url={url}>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" />
+    </svg>
+  </button>
+
+  <button class="share-btn" data-type="copy" data-url={url}>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
+      <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
+    </svg>
+  </button>
+</div>
+
+<style>
+  .share-buttons {
+    display: flex;
+    gap: var(--space-sm);
+  }
+
+  .share-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--bg-hover);
+    border: 1px solid var(--border-primary);
+    color: var(--text-secondary);
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+
+  .share-btn:hover {
+    background-color: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: white;
+  }
+</style>
+
+<script>
+  const shareButtons = document.querySelectorAll('.share-btn');
+
+  shareButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const type = button.getAttribute('data-type');
+      const title = button.getAttribute('data-title') || '';
+      const url = button.getAttribute('data-url') || window.location.href;
+
+      switch (type) {
+        case 'twitter':
+          window.open(
+            `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
+            '_blank',
+            'width=550,height=420'
+          );
+          break;
+
+        case 'facebook':
+          window.open(
+            `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+            '_blank',
+            'width=550,height=420'
+          );
+          break;
+
+        case 'copy':
+          navigator.clipboard.writeText(url).then(() => {
+            alert('링크가 복사되었습니다');
+          });
+          break;
+      }
+    });
+  });
+</script>

@@ -4,6 +4,7 @@ import BaseLayout from './BaseLayout.astro';
 import Header from '../components/Header.astro';
 import ViewCounter from '../components/ViewCounter';
 import Comments from '../components/Comments';
+import ShareButtons from '../components/ShareButtons.astro';
 
 type Props = CollectionEntry<'blog'>['data'] & { slug: string; readingTime: number };
 
@@ -68,6 +69,10 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
 
         <div class="article-body">
           <slot />
+        </div>
+
+        <div class="share-section">
+          <ShareButtons title={title} url={`/blog/${slug}`} />
         </div>
 
         <div class="comments-section">
@@ -265,10 +270,17 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
     border-top: 1px solid var(--border-primary);
   }
 
-  .comments-section {
-    margin-top: var(--space-3xl);
+  .share-section {
+    margin-top: var(--space-2xl);
     padding-top: var(--space-2xl);
     border-top: 1px solid var(--border-primary);
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .comments-section {
+    margin-top: var(--space-2xl);
+    padding-top: var(--space-2xl);
   }
 
   @media (max-width: 768px) {
