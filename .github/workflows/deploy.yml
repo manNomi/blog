@@ -36,6 +36,10 @@ jobs:
         run: npm run sync:notion
 
       - name: Build Astro site
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+          SKIP_SYNC: 'true'
         run: npm run build
 
       # Vercel 배포 예시 (Vercel CLI 사용)
