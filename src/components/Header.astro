@@ -1,0 +1,148 @@
+---
+---
+
+<header class="header">
+  <div class="container">
+    <div class="header-content">
+      <a href="/" class="logo">
+        <span class="logo-text">manNomi</span>
+      </a>
+
+      <button class="menu-button" aria-label="메뉴 열기" id="menuButton">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <nav class="nav-menu" id="navMenu">
+    <div class="nav-content">
+      <button class="close-button" aria-label="메뉴 닫기" id="closeButton">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+
+      <ul class="nav-list">
+        <li><a href="/">홈</a></li>
+        <li><a href="/posts">글 목록</a></li>
+      </ul>
+    </div>
+  </nav>
+</header>
+
+<style>
+  .header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--header-height);
+    background-color: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-primary);
+    z-index: 100;
+  }
+
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: var(--header-height);
+  }
+
+  .logo-text {
+    font-size: var(--text-xl);
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .menu-button {
+    padding: var(--space-sm);
+    color: var(--text-primary);
+    transition: color 0.2s;
+  }
+
+  .menu-button:hover {
+    color: var(--accent-primary);
+  }
+
+  .nav-menu {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 100%;
+    max-width: 320px;
+    height: 100vh;
+    background-color: var(--bg-secondary);
+    box-shadow: var(--shadow-lg);
+    transition: right 0.3s ease;
+    z-index: 101;
+  }
+
+  .nav-menu.active {
+    right: 0;
+  }
+
+  .nav-content {
+    padding: var(--space-xl);
+  }
+
+  .close-button {
+    padding: var(--space-sm);
+    margin-bottom: var(--space-xl);
+    color: var(--text-primary);
+  }
+
+  .close-button:hover {
+    color: var(--accent-primary);
+  }
+
+  .nav-list {
+    list-style: none;
+  }
+
+  .nav-list li {
+    margin-bottom: var(--space-lg);
+  }
+
+  .nav-list a {
+    font-size: var(--text-lg);
+    font-weight: 500;
+    display: block;
+    padding: var(--space-sm) 0;
+  }
+
+  @media (min-width: 768px) {
+    .nav-menu {
+      max-width: 400px;
+    }
+  }
+</style>
+
+<script>
+  const menuButton = document.getElementById('menuButton');
+  const closeButton = document.getElementById('closeButton');
+  const navMenu = document.getElementById('navMenu');
+
+  menuButton?.addEventListener('click', () => {
+    navMenu?.classList.add('active');
+  });
+
+  closeButton?.addEventListener('click', () => {
+    navMenu?.classList.remove('active');
+  });
+
+  // 메뉴 외부 클릭 시 닫기
+  document.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    if (navMenu?.classList.contains('active') &&
+        !navMenu.contains(target) &&
+        !menuButton?.contains(target)) {
+      navMenu.classList.remove('active');
+    }
+  });
+</script>

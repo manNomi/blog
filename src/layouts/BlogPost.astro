@@ -1,69 +1,298 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import BaseLayout from './BaseLayout.astro';
+import Header from '../components/Header.astro';
+import ViewCounter from '../components/ViewCounter';
+import Comments from '../components/Comments';
+import ShareButtons from '../components/ShareButtons.astro';
+import Footer from '../components/Footer.astro';
 
-type Props = CollectionEntry<'blog'>['data'];
+type Props = CollectionEntry<'blog'>['data'] & { slug: string; readingTime: number };
 
-const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
+const { title, description, pubDate, updatedDate, heroImage, tags, slug, readingTime } = Astro.props;
+
+const formattedDate = new Intl.DateTimeFormat('ko-KR', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric'
+}).format(pubDate);
 ---
 
-<html lang="ko">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="generator" content={Astro.generator} />
-    <title>{title}</title>
-    <meta name="description" content={description} />
-  </head>
-  <body>
-    <main>
-      <article>
-        {heroImage && <img width={720} height={360} src={heroImage} alt="" />}
-        <h1>{title}</h1>
-        <time>{pubDate.toLocaleDateString('ko-KR')}</time>
-        {updatedDate && (
-          <div>
-            마지막 수정: <time>{updatedDate.toLocaleDateString('ko-KR')}</time>
+<BaseLayout
+  title={`${title} - manNomi`}
+  description={description}
+  image={heroImage}
+  canonicalURL={`/blog/${slug}`}
+>
+  <Header />
+
+  <main class="main">
+    <article class="article">
+      {heroImage && (
+        <div class="hero-image">
+          <img src={heroImage} alt={title} />
+        </div>
+      )}
+
+      <div class="content">
+        <header class="article-header">
+          <h1 class="article-title">{title}</h1>
+
+          <div class="article-meta">
+            <time datetime={pubDate.toISOString()}>{formattedDate}</time>
+            <span class="reading-time">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+              <span>{readingTime}분</span>
+            </span>
+            <ViewCounter client:load slug={slug} />
+            {updatedDate && (
+              <span class="updated">
+                수정됨 {new Intl.DateTimeFormat('ko-KR', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                }).format(updatedDate)}
+              </span>
+            )}
           </div>
-        )}
-        <hr />
-        <slot />
-      </article>
-    </main>
-  </body>
-</html>
+
+          {tags && tags.length > 0 && (
+            <div class="tags">
+              {tags.map(tag => (
+                <a href={`/posts?tag=${tag}`} class="tag">{tag}</a>
+              ))}
+            </div>
+          )}
+        </header>
+
+        <div class="article-body">
+          <slot />
+        </div>
+
+        <div class="share-section">
+          <ShareButtons title={title} url={`/blog/${slug}`} />
+        </div>
+
+        <div class="comments-section">
+          <Comments client:load />
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <Footer />
+</BaseLayout>
 
 <style>
-  main {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 2rem;
+  .main {
+    padding-top: var(--header-height);
+    padding-bottom: var(--space-3xl);
   }
 
-  article {
-    line-height: 1.6;
+  .article {
+    max-width: 100%;
   }
 
-  h1 {
-    font-size: 2.5rem;
-    margin: 1rem 0;
-  }
-
-  time {
-    color: #666;
-    font-size: 0.9rem;
-  }
-
-  img {
+  .hero-image {
     width: 100%;
-    height: auto;
-    border-radius: 8px;
-    margin-bottom: 1rem;
+    max-width: 1200px;
+    margin: 0 auto var(--space-2xl);
+    aspect-ratio: 2 / 1;
+    overflow: hidden;
+    background-color: var(--bg-hover);
   }
 
-  hr {
-    margin: 2rem 0;
+  .hero-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .content {
+    max-width: var(--content-width);
+    margin: 0 auto;
+    padding: 0 var(--space-lg);
+  }
+
+  .article-header {
+    margin-bottom: var(--space-2xl);
+    padding-bottom: var(--space-xl);
+    border-bottom: 1px solid var(--border-primary);
+  }
+
+  .article-title {
+    font-size: var(--text-4xl);
+    line-height: 1.2;
+    margin-bottom: var(--space-lg);
+    color: var(--text-primary);
+  }
+
+  .article-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+    font-size: var(--text-sm);
+    color: var(--text-tertiary);
+  }
+
+  .article-meta .reading-time {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+
+  .article-meta .reading-time::before {
+    content: '•';
+    margin-right: var(--space-sm);
+  }
+
+  .article-meta :global(.view-counter) {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+
+  .article-meta :global(.view-counter)::before {
+    content: '•';
+    margin-right: var(--space-sm);
+  }
+
+  .updated::before {
+    content: '•';
+    margin-right: var(--space-md);
+  }
+
+  .tags {
+    display: flex;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    padding: var(--space-xs) var(--space-md);
+    background-color: var(--bg-hover);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .tag:hover {
+    background-color: var(--accent-primary);
+    color: white;
+  }
+
+  .article-body {
+    font-size: var(--text-base);
+    line-height: 1.8;
+    color: var(--text-primary);
+  }
+
+  /* Markdown Styles */
+  .article-body :global(h2) {
+    font-size: var(--text-2xl);
+    margin-top: var(--space-2xl);
+    margin-bottom: var(--space-lg);
+    color: var(--text-primary);
+  }
+
+  .article-body :global(h3) {
+    font-size: var(--text-xl);
+    margin-top: var(--space-xl);
+    margin-bottom: var(--space-md);
+    color: var(--text-primary);
+  }
+
+  .article-body :global(p) {
+    margin-bottom: var(--space-lg);
+  }
+
+  .article-body :global(a) {
+    color: var(--accent-primary);
+    text-decoration: underline;
+  }
+
+  .article-body :global(a:hover) {
+    color: var(--accent-hover);
+  }
+
+  .article-body :global(ul),
+  .article-body :global(ol) {
+    margin-bottom: var(--space-lg);
+    padding-left: var(--space-xl);
+  }
+
+  .article-body :global(li) {
+    margin-bottom: var(--space-sm);
+  }
+
+  .article-body :global(code) {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    background-color: var(--bg-hover);
+    padding: 0.2em 0.4em;
+    border-radius: var(--radius-sm);
+  }
+
+  .article-body :global(pre) {
+    margin: var(--space-lg) 0;
+    padding: var(--space-lg);
+    background-color: var(--bg-hover);
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+  }
+
+  .article-body :global(pre code) {
+    background-color: transparent;
+    padding: 0;
+  }
+
+  .article-body :global(blockquote) {
+    margin: var(--space-lg) 0;
+    padding-left: var(--space-lg);
+    border-left: 3px solid var(--accent-primary);
+    color: var(--text-secondary);
+    font-style: italic;
+  }
+
+  .article-body :global(img) {
+    max-width: 100%;
+    height: auto;
+    margin: var(--space-xl) 0;
+    border-radius: var(--radius-md);
+  }
+
+  .article-body :global(hr) {
+    margin: var(--space-2xl) 0;
     border: none;
-    border-top: 1px solid #ddd;
+    border-top: 1px solid var(--border-primary);
+  }
+
+  .share-section {
+    margin-top: var(--space-2xl);
+    padding-top: var(--space-2xl);
+    border-top: 1px solid var(--border-primary);
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .comments-section {
+    margin-top: var(--space-2xl);
+    padding-top: var(--space-2xl);
+  }
+
+  @media (max-width: 768px) {
+    .article-title {
+      font-size: var(--text-3xl);
+    }
+
+    .hero-image {
+      aspect-ratio: 16 / 9;
+    }
   }
 </style>

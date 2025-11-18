@@ -68,6 +68,8 @@ function getPageProperty(page, propertyName) {
       return property.multi_select.map(item => item.name);
     case 'select':
       return property.select?.name || null;
+    case 'checkbox':
+      return property.checkbox || false;
     case 'files':
       return property.files[0]?.file?.url || property.files[0]?.external?.url || null;
     default:
@@ -105,6 +107,7 @@ async function syncNotion() {
       const pubDate = getPageProperty(page, 'Created') || new Date().toISOString();
       const tags = getPageProperty(page, 'Tags') || [];
       const heroImageUrl = getPageProperty(page, 'Cover');
+      const pinned = getPageProperty(page, 'Pinned') || false;
 
       console.log(`📝 처리 중: ${title}`);
 
@@ -158,6 +161,7 @@ async function syncNotion() {
         `pubDate: ${new Date(pubDate).toISOString()}`,
         heroImage ? `heroImage: "${heroImage}"` : '',
         tags.length > 0 ? `tags: [${tags.map(t => `"${t}"`).join(', ')}]` : '',
+        pinned ? `pinned: true` : '',
         `notionId: "${page.id}"`,
         '---',
         ''

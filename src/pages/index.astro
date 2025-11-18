@@ -1,115 +1,427 @@
 ---
 import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import PostCard from '../components/PostCard.astro';
+import Footer from '../components/Footer.astro';
 
-const posts = (await getCollection('blog')).sort(
+const allPosts = (await getCollection('blog')).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
+
+const pinnedPosts = allPosts.filter(post => post.data.pinned).slice(0, 3);
+const recentPosts = allPosts.slice(0, 5);
 ---
 
-<html lang="ko">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>기술 블로그</title>
-  </head>
-  <body>
-    <main>
-      <h1>기술 블로그</h1>
-      <section>
-        {posts.map((post) => (
-          <article>
-            <a href={`/blog/${post.slug}/`}>
-              {post.data.heroImage && (
-                <img src={post.data.heroImage} alt="" />
-              )}
-              <h2>{post.data.title}</h2>
-              <time>{post.data.pubDate.toLocaleDateString('ko-KR')}</time>
-              {post.data.description && <p>{post.data.description}</p>}
-              {post.data.tags && (
-                <div class="tags">
-                  {post.data.tags.map(tag => (
-                    <span class="tag">{tag}</span>
-                  ))}
-                </div>
-              )}
-            </a>
-          </article>
-        ))}
+<BaseLayout title="manNomi 기술 블로그" description="개발 경험과 기술을 기록합니다">
+  <Header />
+
+  <main class="main">
+    <section class="hero">
+      <div class="container">
+        <div class="hero-content fade-in">
+          <div class="hero-badge">Frontend Developer</div>
+          <h1 class="hero-title">
+            <span class="gradient-text">마법을 믿지 않는</span>
+            <br />
+            개발자
+          </h1>
+          <p class="hero-description">
+            웹 프론트엔드 개발자로 무엇이 어떻게 왜 작동하는지 철저히 탐구합니다.
+          </p>
+          <div class="hero-stats">
+            <div class="stat-item">
+              <div class="stat-value">{allPosts.length}</div>
+              <div class="stat-label">글</div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+              <div class="stat-value">{new Set(allPosts.flatMap(p => p.data.tags || [])).size}</div>
+              <div class="stat-label">주제</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-bg"></div>
+    </section>
+
+    {pinnedPosts.length > 0 && (
+      <section class="section fade-in-up">
+        <div class="container">
+          <div class="section-header">
+            <h2 class="section-title">주요 글</h2>
+            <p class="section-subtitle">중요한 글들을 모았습니다</p>
+          </div>
+          <div class="grid">
+            {pinnedPosts.map((post, index) => (
+              <div class="card-wrapper" style={`animation-delay: ${index * 0.1}s`}>
+                <PostCard
+                  title={post.data.title}
+                  description={post.data.description}
+                  slug={post.slug}
+                  pubDate={post.data.pubDate}
+                  heroImage={post.data.heroImage}
+                  tags={post.data.tags}
+                  pinned={true}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
-    </main>
-  </body>
-</html>
+    )}
+
+    <section class="section section-alt fade-in-up">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">최신 글</h2>
+          <a href="/posts" class="view-all">
+            전체 보기
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </a>
+        </div>
+        <div class="recent-list">
+          {recentPosts.map((post, index) => (
+            <article class="recent-item" style={`animation-delay: ${index * 0.1}s`}>
+              <a href={`/blog/${post.slug}`} class="recent-link">
+                {post.data.heroImage && (
+                  <div class="recent-thumb">
+                    <img src={post.data.heroImage} alt={post.data.title} loading="lazy" />
+                  </div>
+                )}
+                <div class="recent-info">
+                  <h3 class="recent-title">{post.data.title}</h3>
+                  {post.data.description && (
+                    <p class="recent-description">{post.data.description}</p>
+                  )}
+                  <div class="recent-meta">
+                    <time class="recent-date">
+                      {new Intl.DateTimeFormat('ko-KR', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      }).format(post.data.pubDate)}
+                    </time>
+                    {post.data.tags && post.data.tags.length > 0 && (
+                      <div class="recent-tags">
+                        {post.data.tags.slice(0, 2).map(tag => (
+                          <span class="tag-mini">{tag}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </a>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</BaseLayout>
 
 <style>
-  main {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
+  .main {
+    padding-top: var(--header-height);
   }
 
-  h1 {
-    font-size: 3rem;
-    margin-bottom: 2rem;
+  /* Hero Section */
+  .hero {
+    position: relative;
+    padding: calc(var(--space-3xl) * 2) 0 var(--space-3xl);
+    overflow: hidden;
   }
 
-  section {
+  .hero-bg {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(135deg, transparent 0%, var(--bg-hover) 100%);
+    opacity: 0.5;
+    z-index: 0;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 700px;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    padding: var(--space-sm) var(--space-lg);
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 100px;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--accent-primary);
+    margin-bottom: var(--space-xl);
+  }
+
+  .hero-title {
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    margin-bottom: var(--space-xl);
+    color: var(--text-primary);
+    line-height: 1.2;
+    font-weight: 800;
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-hover) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-description {
+    font-size: var(--text-xl);
+    color: var(--text-secondary);
+    line-height: 1.8;
+    margin-bottom: var(--space-2xl);
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: var(--space-xl);
+    align-items: center;
+  }
+
+  .stat-item {
+    text-align: center;
+  }
+
+  .stat-value {
+    font-size: var(--text-3xl);
+    font-weight: 700;
+    color: var(--accent-primary);
+    margin-bottom: var(--space-xs);
+  }
+
+  .stat-label {
+    font-size: var(--text-sm);
+    color: var(--text-tertiary);
+  }
+
+  .stat-divider {
+    width: 1px;
+    height: 40px;
+    background-color: var(--border-primary);
+  }
+
+  /* Section */
+  .section {
+    padding: var(--space-3xl) 0;
+  }
+
+  .section-alt {
+    background-color: var(--bg-secondary);
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-2xl);
+  }
+
+  .section-title {
+    font-size: var(--text-3xl);
+    color: var(--text-primary);
+    font-weight: 700;
+  }
+
+  .section-subtitle {
+    font-size: var(--text-base);
+    color: var(--text-secondary);
+    margin-top: var(--space-xs);
+  }
+
+  .view-all {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    color: var(--accent-primary);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    transition: gap 0.3s ease;
+  }
+
+  .view-all:hover {
+    gap: var(--space-sm);
+  }
+
+  /* Grid */
+  .grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 2rem;
+    gap: var(--space-xl);
   }
 
-  article {
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    overflow: hidden;
-    transition: transform 0.2s;
+  .card-wrapper {
+    animation: fadeInUp 0.6s ease forwards;
+    opacity: 0;
   }
 
-  article:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
-
-  article a {
-    text-decoration: none;
-    color: inherit;
-    display: block;
-  }
-
-  article img {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-  }
-
-  article h2 {
-    font-size: 1.5rem;
-    margin: 1rem;
-  }
-
-  article time {
-    color: #666;
-    font-size: 0.9rem;
-    margin: 0 1rem;
-  }
-
-  article p {
-    margin: 1rem;
-    color: #555;
-  }
-
-  .tags {
+  /* Recent List */
+  .recent-list {
     display: flex;
-    gap: 0.5rem;
-    margin: 1rem;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: var(--space-lg);
   }
 
-  .tag {
-    background: #f0f0f0;
-    padding: 0.25rem 0.75rem;
-    border-radius: 4px;
-    font-size: 0.85rem;
+  .recent-item {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.6s ease forwards;
+    opacity: 0;
+  }
+
+  .recent-item:hover {
+    border-color: var(--accent-primary);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+
+  .recent-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xl);
+    padding: var(--space-xl);
+  }
+
+  .recent-thumb {
+    flex-shrink: 0;
+    width: 160px;
+    height: 120px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background-color: var(--bg-hover);
+  }
+
+  .recent-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .recent-item:hover .recent-thumb img {
+    transform: scale(1.05);
+  }
+
+  .recent-info {
+    flex: 1;
+  }
+
+  .recent-title {
+    font-size: var(--text-xl);
+    font-weight: 700;
+    margin-bottom: var(--space-sm);
+    color: var(--text-primary);
+  }
+
+  .recent-description {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-md);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .recent-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+  }
+
+  .recent-date {
+    font-size: var(--text-sm);
+    color: var(--text-tertiary);
+  }
+
+  .recent-tags {
+    display: flex;
+    gap: var(--space-sm);
+  }
+
+  .tag-mini {
+    padding: var(--space-xs) var(--space-sm);
+    background-color: var(--bg-hover);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-xs);
+    color: var(--text-secondary);
+  }
+
+  /* Animations */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .fade-in {
+    animation: fadeIn 1s ease forwards;
+  }
+
+  .fade-in-up {
+    animation: fadeInUp 0.8s ease forwards;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .hero {
+      padding: var(--space-3xl) 0 var(--space-2xl);
+    }
+
+    .hero-title {
+      font-size: 2.5rem;
+    }
+
+    .section-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-md);
+    }
+
+    .grid {
+      grid-template-columns: 1fr;
+    }
+
+    .recent-link {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-md);
+    }
+
+    .recent-thumb {
+      width: 100%;
+      height: 200px;
+    }
   }
 </style>
