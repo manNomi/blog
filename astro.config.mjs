@@ -7,7 +7,9 @@ import vercel from "@astrojs/vercel/serverless";
 export default defineConfig({
   site: "https://yourblog.com",
   output: "hybrid",
-  adapter: vercel(),
+  adapter: vercel({
+    runtime: 'nodejs22',
+  }),
   integrations: [react(), sitemap()],
   markdown: {
     shikiConfig: {
