@@ -1,5 +1,7 @@
 import type { APIRoute } from 'astro';
 
+export const prerender = false;
+
 // 간단한 인메모리 저장소 (실제로는 Redis나 DB 사용 권장)
 const viewCounts = new Map<string, number>();
 
