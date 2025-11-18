@@ -8,12 +8,52 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// 환경 변수 검증
+if (!process.env.NOTION_TOKEN) {
+  console.error('❌ 오류: NOTION_TOKEN 환경 변수가 설정되지 않았습니다.');
+  process.exit(1);
+}
+
 // Notion 클라이언트 초기화
 const notion = new Client({ auth: process.env.NOTION_TOKEN });
 const n2m = new NotionToMarkdown({ notionClient: notion });
 
 // 설정
-const DATABASE_ID = process.env.NOTION_DATABASE_ID;
+let DATABASE_ID = process.env.NOTION_DATABASE_ID;
+
+if (!DATABASE_ID) {
+  console.error('❌ 오류: NOTION_DATABASE_ID 환경 변수가 설정되지 않았습니다.');
+  process.exit(1);
+}
+
+// DATABASE_ID가 URL 형식인 경우 UUID만 추출
+// Notion URL 형식: https://www.notion.so/workspace/DATABASE_ID 또는 https://www.notion.so/DATABASE_ID
+if (DATABASE_ID.includes('notion.so') || DATABASE_ID.includes('http')) {
+  try {
+    const url = new URL(DATABASE_ID);
+    const pathParts = url.pathname.split('/').filter(Boolean);
+    // 마지막 부분이 database ID
+    const lastPart = pathParts[pathParts.length - 1];
+    
+    // 하이픈 없는 32자리 UUID인 경우 하이픈 추가
+    if (lastPart && lastPart.length === 32 && !lastPart.includes('-')) {
+      DATABASE_ID = `${lastPart.slice(0, 8)}-${lastPart.slice(8, 12)}-${lastPart.slice(12, 16)}-${lastPart.slice(16, 20)}-${lastPart.slice(20, 32)}`;
+    } else if (lastPart && lastPart.length === 36) {
+      // 이미 하이픈이 있는 UUID 형식
+      DATABASE_ID = lastPart;
+    } else {
+      DATABASE_ID = lastPart;
+    }
+  } catch (e) {
+    // URL 파싱 실패 시 UUID 패턴으로 추출 시도
+    const uuidRegex = /([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i;
+    const match = DATABASE_ID.match(uuidRegex);
+    if (match) {
+      DATABASE_ID = match[1];
+    }
+  }
+}
+
 const CONTENT_DIR = path.join(__dirname, '../src/content/blog');
 const IMAGES_DIR = path.join(__dirname, '../public/images');
 
@@ -81,6 +121,7 @@ function getPageProperty(page, propertyName) {
 async function syncNotion() {
   try {
     console.log('🚀 Notion 동기화 시작...\n');
+    console.log(`📋 Database ID: ${DATABASE_ID.substring(0, 8)}...\n`);
 
     // Notion 데이터베이스에서 페이지 가져오기
     const response = await notion.databases.query({
@@ -178,6 +219,23 @@ async function syncNotion() {
     console.log('✨ 동기화 완료!\n');
   } catch (error) {
     console.error('❌ 오류 발생:', error);
+    
+    // 더 자세한 에러 정보 출력
+    if (error.code === 'invalid_request_url') {
+      console.error('\n💡 해결 방법:');
+      console.error('   - NOTION_DATABASE_ID가 올바른 UUID 형식인지 확인하세요.');
+      console.error('   - URL 형식인 경우, 스크립트가 자동으로 UUID를 추출합니다.');
+      console.error(`   - 현재 DATABASE_ID: ${DATABASE_ID}`);
+    } else if (error.status === 401) {
+      console.error('\n💡 해결 방법:');
+      console.error('   - NOTION_TOKEN이 유효한지 확인하세요.');
+      console.error('   - Notion Integration이 데이터베이스에 연결되어 있는지 확인하세요.');
+    } else if (error.status === 404) {
+      console.error('\n💡 해결 방법:');
+      console.error('   - NOTION_DATABASE_ID가 올바른지 확인하세요.');
+      console.error('   - 데이터베이스가 존재하는지 확인하세요.');
+    }
+    
     process.exit(1);
   }
 }
