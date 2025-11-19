@@ -1,10 +1,7 @@
 import type { APIRoute } from 'astro';
+import { kv } from '@vercel/kv';
 
 export const prerender = false;
-
-// 간단한 인메모리 저장소 (실제로는 Redis나 DB 사용 권장)
-const likeCounts = new Map<string, number>();
-const userLikes = new Map<string, Set<string>>(); // slug -> Set of user IPs/IDs
 
 export const GET: APIRoute = async ({ params, request }) => {
   const { slug } = params;
@@ -16,16 +13,33 @@ export const GET: APIRoute = async ({ params, request }) => {
     });
   }
 
-  const likes = likeCounts.get(slug) || 0;
+  try {
+    const likeKey = `likes:${slug}`;
+    const userKey = `likes:${slug}:users`;
+    const clientIP = request.headers.get('x-forwarded-for') || 'unknown';
 
-  // 사용자가 이미 좋아요를 눌렀는지 확인 (IP 기반)
-  const clientIP = request.headers.get('x-forwarded-for') || 'unknown';
-  const hasLiked = userLikes.get(slug)?.has(clientIP) || false;
+    // 좋아요 수 가져오기
+    const likes = (await kv.get<number>(likeKey)) || 0;
 
-  return new Response(JSON.stringify({ likes, hasLiked }), {
-    status: 200,
-    headers: { 'Content-Type': 'application/json' }
-  });
+    // 사용자가 이미 좋아요를 눌렀는지 확인
+    const hasLiked = (await kv.sismember(userKey, clientIP)) === 1;
+
+    return new Response(JSON.stringify({ likes, hasLiked }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
+      }
+    });
+  } catch (error) {
+    console.error('Failed to fetch likes:', error);
+
+    // KV 오류시 기본값 반환
+    return new Response(JSON.stringify({ likes: 0, hasLiked: false }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
 };
 
 export const POST: APIRoute = async ({ params, request }) => {
@@ -38,36 +52,46 @@ export const POST: APIRoute = async ({ params, request }) => {
     });
   }
 
-  const clientIP = request.headers.get('x-forwarded-for') || 'unknown';
+  try {
+    const likeKey = `likes:${slug}`;
+    const userKey = `likes:${slug}:users`;
+    const clientIP = request.headers.get('x-forwarded-for') || 'unknown';
 
-  // 사용자별 좋아요 저장소 초기화
-  if (!userLikes.has(slug)) {
-    userLikes.set(slug, new Set());
+    // 사용자가 이미 좋아요를 눌렀는지 확인
+    const hasLiked = (await kv.sismember(userKey, clientIP)) === 1;
+
+    let newLikes: number;
+    let newHasLiked: boolean;
+
+    if (hasLiked) {
+      // 좋아요 취소
+      await kv.srem(userKey, clientIP);
+      newLikes = await kv.decr(likeKey);
+      newLikes = Math.max(0, newLikes); // 음수 방지
+      if (newLikes === 0) {
+        await kv.del(likeKey);
+      }
+      newHasLiked = false;
+    } else {
+      // 좋아요 추가
+      await kv.sadd(userKey, clientIP);
+      newLikes = await kv.incr(likeKey);
+      newHasLiked = true;
+    }
+
+    return new Response(JSON.stringify({ likes: newLikes, hasLiked: newHasLiked }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
+      }
+    });
+  } catch (error) {
+    console.error('Failed to toggle like:', error);
+
+    return new Response(JSON.stringify({ error: 'Failed to toggle like' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
-
-  const slugLikes = userLikes.get(slug)!;
-  const currentLikes = likeCounts.get(slug) || 0;
-
-  // 이미 좋아요를 눌렀다면 취소, 아니면 추가
-  let newLikes: number;
-  let hasLiked: boolean;
-
-  if (slugLikes.has(clientIP)) {
-    // 좋아요 취소
-    slugLikes.delete(clientIP);
-    newLikes = Math.max(0, currentLikes - 1);
-    hasLiked = false;
-  } else {
-    // 좋아요 추가
-    slugLikes.add(clientIP);
-    newLikes = currentLikes + 1;
-    hasLiked = true;
-  }
-
-  likeCounts.set(slug, newLikes);
-
-  return new Response(JSON.stringify({ likes: newLikes, hasLiked }), {
-    status: 200,
-    headers: { 'Content-Type': 'application/json' }
-  });
 };
