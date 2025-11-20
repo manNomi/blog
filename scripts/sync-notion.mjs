@@ -22,6 +22,24 @@ if (!process.env.NOTION_TOKEN) {
 const notion = new Client({ auth: process.env.NOTION_TOKEN });
 const n2m = new NotionToMarkdown({ notionClient: notion });
 
+// 커스텀 변환기 설정 - URL 멘션/북마크 블록 지원
+n2m.setCustomTransformer('bookmark', async (block) => {
+  const url = block.bookmark?.url || '';
+  const caption = block.bookmark?.caption?.[0]?.plain_text || url;
+  return `[${caption}](${url})`;
+});
+
+n2m.setCustomTransformer('link_preview', async (block) => {
+  const url = block.link_preview?.url || '';
+  return `[${url}](${url})`;
+});
+
+n2m.setCustomTransformer('embed', async (block) => {
+  const url = block.embed?.url || '';
+  const caption = block.embed?.caption?.[0]?.plain_text || url;
+  return `[${caption}](${url})`;
+});
+
 // 설정
 let DATABASE_ID = process.env.NOTION_DATABASE_ID;
 
@@ -69,22 +87,43 @@ if (!fs.existsSync(IMAGES_DIR)) {
   fs.mkdirSync(IMAGES_DIR, { recursive: true });
 }
 
-// 이미지 다운로드 함수
-async function downloadImage(url, filepath) {
-  return new Promise((resolve, reject) => {
-    https.get(url, (response) => {
-      if (response.statusCode === 200) {
-        const fileStream = fs.createWriteStream(filepath);
-        response.pipe(fileStream);
-        fileStream.on('finish', () => {
-          fileStream.close();
-          resolve(filepath);
-        });
-      } else {
-        reject(new Error(`Failed to download image: ${response.statusCode}`));
+// 이미지 다운로드 함수 (재시도 로직 포함)
+async function downloadImage(url, filepath, retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      await new Promise((resolve, reject) => {
+        https.get(url, (response) => {
+          // 리다이렉트 처리
+          if (response.statusCode === 301 || response.statusCode === 302) {
+            const redirectUrl = response.headers.location;
+            if (redirectUrl) {
+              downloadImage(redirectUrl, filepath, retries - 1).then(resolve).catch(reject);
+              return;
+            }
+          }
+
+          if (response.statusCode === 200) {
+            const fileStream = fs.createWriteStream(filepath);
+            response.pipe(fileStream);
+            fileStream.on('finish', () => {
+              fileStream.close();
+              resolve(filepath);
+            });
+            fileStream.on('error', reject);
+          } else {
+            reject(new Error(`HTTP ${response.statusCode}`));
+          }
+        }).on('error', reject);
+      });
+      return filepath; // 성공 시 반환
+    } catch (error) {
+      if (i === retries - 1) {
+        throw error; // 마지막 재시도 실패 시 에러 던지기
       }
-    }).on('error', reject);
-  });
+      // 재시도 전 대기 (exponential backoff)
+      await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+    }
+  }
 }
 
 // 파일명 안전하게 변환
@@ -198,39 +237,65 @@ async function syncNotion() {
       // 이미지 처리
       let heroImage = '';
       if (heroImageUrl) {
-        const imageExt = path.extname(new URL(heroImageUrl).pathname) || '.jpg';
-        const imageName = `${sanitizeFilename(title)}-hero${imageExt}`;
-        const imagePath = path.join(IMAGES_DIR, imageName);
-
         try {
+          const parsedUrl = new URL(heroImageUrl);
+          // 파일 확장자 추출 (쿼리 파라미터 제거)
+          let imageExt = path.extname(parsedUrl.pathname).split('?')[0];
+          // 확장자가 없거나 너무 긴 경우 기본값 사용
+          if (!imageExt || imageExt.length > 5) {
+            imageExt = '.jpg';
+          }
+          const imageName = `${sanitizeFilename(title)}-hero${imageExt}`;
+          const imagePath = path.join(IMAGES_DIR, imageName);
+
           await downloadImage(heroImageUrl, imagePath);
           heroImage = `/images/${imageName}`;
           console.log(`  ✓ 커버 이미지 다운로드: ${imageName}`);
         } catch (error) {
-          console.log(`  ⚠ 이미지 다운로드 실패: ${error.message}`);
+          console.log(`  ⚠ 커버 이미지 다운로드 실패: ${error.message}`);
         }
       }
 
       // 본문 내 이미지 URL 처리
-      // Notion 이미지는 만료되지 않는 URL로 유지되거나, 다운로드하여 로컬에 저장
-      const imageRegex = /!\[.*?\]\((https:\/\/.*?)\)/g;
+      // Notion 이미지는 만료되는 signed URL이므로 로컬에 다운로드
+      // 더 견고한 정규식: http/https 모두 지원, 괄호 안의 전체 URL 캡처
+      const imageRegex = /!\[(.*?)\]\((https?:\/\/[^\s)]+)\)/g;
       let imageMatch;
       let imageIndex = 0;
+      const replacements = [];
 
+      // 먼저 모든 이미지를 찾아서 다운로드
       while ((imageMatch = imageRegex.exec(mdString.parent)) !== null) {
-        const imageUrl = imageMatch[1];
-        const imageExt = path.extname(new URL(imageUrl).pathname) || '.jpg';
-        const imageName = `${sanitizeFilename(title)}-${imageIndex}${imageExt}`;
-        const imagePath = path.join(IMAGES_DIR, imageName);
+        const altText = imageMatch[1];
+        const imageUrl = imageMatch[2];
 
         try {
+          const parsedUrl = new URL(imageUrl);
+          // 파일 확장자 추출 (쿼리 파라미터 제거)
+          let imageExt = path.extname(parsedUrl.pathname).split('?')[0];
+          // 확장자가 없거나 너무 긴 경우 기본값 사용
+          if (!imageExt || imageExt.length > 5) {
+            // Content-Type에서 추출 시도하거나 기본값 사용
+            imageExt = '.jpg';
+          }
+          const imageName = `${sanitizeFilename(title)}-${imageIndex}${imageExt}`;
+          const imagePath = path.join(IMAGES_DIR, imageName);
+
           await downloadImage(imageUrl, imagePath);
-          mdString.parent = mdString.parent.replace(imageUrl, `/images/${imageName}`);
+          replacements.push({
+            original: `![${altText}](${imageUrl})`,
+            replacement: `![${altText}](/images/${imageName})`
+          });
           console.log(`  ✓ 본문 이미지 다운로드: ${imageName}`);
           imageIndex++;
         } catch (error) {
-          console.log(`  ⚠ 본문 이미지 다운로드 실패: ${error.message}`);
+          console.log(`  ⚠ 본문 이미지 다운로드 실패 (${imageUrl}): ${error.message}`);
         }
+      }
+
+      // 모든 이미지 URL을 로컬 경로로 변경
+      for (const { original, replacement } of replacements) {
+        mdString.parent = mdString.parent.replace(original, replacement);
       }
 
       // Frontmatter 생성
