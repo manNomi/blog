@@ -135,6 +135,19 @@ function sanitizeFilename(name) {
     .replace(/^-|-$/g, '');
 }
 
+// HTML 엔티티 디코딩 함수
+function decodeHtmlEntities(text) {
+  const entities = {
+    '&amp;': '&',
+    '&lt;': '<',
+    '&gt;': '>',
+    '&quot;': '"',
+    '&#39;': "'",
+    '&apos;': "'"
+  };
+  return text.replace(/&[#\w]+;/g, (entity) => entities[entity] || entity);
+}
+
 // Notion 페이지 속성 추출
 function getPageProperty(page, propertyName) {
   const property = page.properties[propertyName];
@@ -299,13 +312,24 @@ async function syncNotion() {
       }
 
       // HTML <img> 태그 처리 (Notion에서 복사-붙여넣기 등으로 생성된 경우)
-      const htmlImageRegex = /<img[^>]+src=["']([^"']+)["'][^>]*alt=["']([^"']*)["'][^>]*>/gi;
+      // 더 견고한 정규식: src만 필수, alt는 선택적
+      const htmlImageRegex = /<img[^>]*\ssrc=["']([^"']+)["'][^>]*>/gi;
       let htmlImageMatch;
       const htmlReplacements = [];
 
       while ((htmlImageMatch = htmlImageRegex.exec(mdString.parent)) !== null) {
-        const imageUrl = htmlImageMatch[1];
-        const altText = decodeURIComponent(htmlImageMatch[2] || '');
+        const fullTag = htmlImageMatch[0];
+        let imageUrl = htmlImageMatch[1];
+
+        // HTML 엔티티 디코딩 (&amp; → &)
+        imageUrl = decodeHtmlEntities(imageUrl);
+
+        // alt 속성 추출 (있으면)
+        const altMatch = fullTag.match(/alt=["']([^"']*)["']/i);
+        let altText = '';
+        if (altMatch) {
+          altText = decodeURIComponent(altMatch[1] || '').replace(/%20/g, ' ');
+        }
 
         try {
           const parsedUrl = new URL(imageUrl);
@@ -318,7 +342,7 @@ async function syncNotion() {
 
           await downloadImage(imageUrl, imagePath);
           htmlReplacements.push({
-            original: htmlImageMatch[0],
+            original: fullTag,
             replacement: `![${altText}](/images/${imageName})`
           });
           console.log(`  ✓ HTML 이미지 다운로드: ${imageName}`);
