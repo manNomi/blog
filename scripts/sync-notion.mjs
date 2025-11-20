@@ -298,6 +298,41 @@ async function syncNotion() {
         mdString.parent = mdString.parent.replace(original, replacement);
       }
 
+      // HTML <img> 태그 처리 (Notion에서 복사-붙여넣기 등으로 생성된 경우)
+      const htmlImageRegex = /<img[^>]+src=["']([^"']+)["'][^>]*alt=["']([^"']*)["'][^>]*>/gi;
+      let htmlImageMatch;
+      const htmlReplacements = [];
+
+      while ((htmlImageMatch = htmlImageRegex.exec(mdString.parent)) !== null) {
+        const imageUrl = htmlImageMatch[1];
+        const altText = decodeURIComponent(htmlImageMatch[2] || '');
+
+        try {
+          const parsedUrl = new URL(imageUrl);
+          let imageExt = path.extname(parsedUrl.pathname).split('?')[0];
+          if (!imageExt || imageExt.length > 5) {
+            imageExt = '.jpg';
+          }
+          const imageName = `${sanitizeFilename(title)}-${imageIndex}${imageExt}`;
+          const imagePath = path.join(IMAGES_DIR, imageName);
+
+          await downloadImage(imageUrl, imagePath);
+          htmlReplacements.push({
+            original: htmlImageMatch[0],
+            replacement: `![${altText}](/images/${imageName})`
+          });
+          console.log(`  ✓ HTML 이미지 다운로드: ${imageName}`);
+          imageIndex++;
+        } catch (error) {
+          console.log(`  ⚠ HTML 이미지 다운로드 실패 (${imageUrl}): ${error.message}`);
+        }
+      }
+
+      // HTML 이미지를 마크다운으로 변환
+      for (const { original, replacement } of htmlReplacements) {
+        mdString.parent = mdString.parent.replace(original, replacement);
+      }
+
       // Frontmatter 생성
       const frontmatter = [
         '---',
