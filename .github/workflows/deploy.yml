@@ -47,7 +47,7 @@ jobs:
 
       - name: Build Astro site
         # 이미 동기화된 파일로 빌드만 실행 (sync 제외)
-        run: astro check && astro build
+        run: npx astro check && npx astro build
 
       # Vercel 배포 예시 (Vercel CLI 사용)
       # - name: Deploy to Vercel
