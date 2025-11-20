@@ -19,6 +19,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -35,10 +38,16 @@ jobs:
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
         run: npm run sync:notion
 
+      - name: Commit and push synced content
+        run: |
+          git config --local user.email "hanmw110@naver.com"
+          git config --local user.name "manNomi"
+          git add src/content/blog/ public/images/
+          git diff --staged --quiet || (git commit -m "chore: sync content from Notion" && git push)
+
       - name: Build Astro site
+        # 이미 동기화된 파일로 빌드만 실행
         env:
-          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
-          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
           SKIP_SYNC: 'true'
         run: npm run build
 
