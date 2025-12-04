@@ -27,15 +27,15 @@ Notion을 CMS로 활용한 정적 기술 블로그입니다.
 
 ### Notion 데이터베이스 속성
 
-| 속성 | 타입 | 필수 |
-|------|------|------|
-| Name | Title | 필수 |
-| Status | Select | 필수 |
-| Created | Date | 필수 |
-| Description | Text | 선택 |
-| Tags | Multi-select | 선택 |
-| Cover | Files | 선택 |
-| Pinned | Checkbox | 선택 |
+| 속성        | 타입         | 필수 |
+| ----------- | ------------ | ---- |
+| Name        | Title        | 필수 |
+| Status      | Select       | 필수 |
+| Created     | Date         | 필수 |
+| Description | Text         | 선택 |
+| Tags        | Multi-select | 선택 |
+| Cover       | Files        | 선택 |
+| Pinned      | Checkbox     | 선택 |
 
 ### 환경 변수
 
