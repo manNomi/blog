@@ -8,19 +8,13 @@ const { title, url } = Astro.props;
 ---
 
 <div class="share-buttons">
-  <button class="share-btn" data-type="twitter" data-title={title} data-url={url}>
+  <a href="https://github.com/manNomi/" target="_blank" rel="noopener noreferrer" class="share-btn" title="GitHub">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z" />
+      <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
     </svg>
-  </button>
+  </a>
 
-  <button class="share-btn" data-type="facebook" data-title={title} data-url={url}>
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" />
-    </svg>
-  </button>
-
-  <button class="share-btn" data-type="copy" data-url={url}>
+  <button class="share-btn" data-type="copy" data-url={url} title="링크 복사">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
       <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
@@ -46,6 +40,7 @@ const { title, url } = Astro.props;
     color: var(--text-secondary);
     transition: all 0.2s;
     cursor: pointer;
+    text-decoration: none;
   }
 
   .share-btn:hover {
@@ -56,37 +51,14 @@ const { title, url } = Astro.props;
 </style>
 
 <script>
-  const shareButtons = document.querySelectorAll('.share-btn');
+  const copyButton = document.querySelector('.share-btn[data-type="copy"]');
 
-  shareButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      const type = button.getAttribute('data-type');
-      const title = button.getAttribute('data-title') || '';
-      const url = button.getAttribute('data-url') || window.location.href;
-
-      switch (type) {
-        case 'twitter':
-          window.open(
-            `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
-            '_blank',
-            'width=550,height=420'
-          );
-          break;
-
-        case 'facebook':
-          window.open(
-            `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
-            '_blank',
-            'width=550,height=420'
-          );
-          break;
-
-        case 'copy':
-          navigator.clipboard.writeText(url).then(() => {
-            alert('링크가 복사되었습니다');
-          });
-          break;
-      }
+  if (copyButton) {
+    copyButton.addEventListener('click', () => {
+      const url = copyButton.getAttribute('data-url') || window.location.href;
+      navigator.clipboard.writeText(url).then(() => {
+        alert('링크가 복사되었습니다');
+      });
     });
-  });
+  }
 </script>
