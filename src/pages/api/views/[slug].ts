@@ -1,9 +1,7 @@
 import type { APIRoute } from 'astro';
+import { kv } from '@vercel/kv';
 
 export const prerender = false;
-
-// 간단한 인메모리 저장소 (실제로는 Redis나 DB 사용 권장)
-const viewCounts = new Map<string, number>();
 
 export const GET: APIRoute = async ({ params }) => {
   const { slug } = params;
@@ -15,13 +13,28 @@ export const GET: APIRoute = async ({ params }) => {
     });
   }
 
-  // 조회수 증가
-  const currentViews = viewCounts.get(slug) || 0;
-  const newViews = currentViews + 1;
-  viewCounts.set(slug, newViews);
+  try {
+    // Vercel KV에서 조회수 가져오기
+    const key = `views:${slug}`;
+    const currentViews = (await kv.get<number>(key)) || 0;
+    
+    // 조회수 증가
+    const newViews = currentViews + 1;
+    await kv.set(key, newViews);
 
-  return new Response(JSON.stringify({ views: newViews }), {
-    status: 200,
-    headers: { 'Content-Type': 'application/json' }
-  });
+    return new Response(JSON.stringify({ views: newViews }), {
+      status: 200,
+      headers: { 
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache'
+      }
+    });
+  } catch (error) {
+    console.error('Error updating view count:', error);
+    // 에러 발생 시에도 기본값 반환
+    return new Response(JSON.stringify({ views: 0 }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
 };
