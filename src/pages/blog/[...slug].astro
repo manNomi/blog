@@ -2,6 +2,7 @@
 import { type CollectionEntry, getCollection } from 'astro:content';
 import BlogPost from '../../layouts/BlogPost.astro';
 import { calculateReadingTime } from '../../utils/readingTime';
+import { extractFirstImage } from '../../utils/extractFirstImage';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
@@ -16,8 +17,11 @@ type Props = CollectionEntry<'blog'>;
 const post = Astro.props;
 const { Content } = await post.render();
 const readingTime = calculateReadingTime(post.body);
+
+// heroImage가 없으면 본문에서 첫 번째 이미지 추출
+const heroImage = post.data.heroImage || extractFirstImage(post.body);
 ---
 
-<BlogPost {...post.data} slug={post.slug} readingTime={readingTime}>
+<BlogPost {...post.data} heroImage={heroImage} slug={post.slug} readingTime={readingTime}>
   <Content />
 </BlogPost>
