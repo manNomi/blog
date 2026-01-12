@@ -1,6 +1,6 @@
 ---
 title: "React Compiler 도입"
-pubDate: 2026-01-11T16:10:43.299Z
+pubDate: 2026-01-12T14:12:14.207Z
 notionId: "2cd7cf19-a364-802f-b3b7-f410efbd3024"
 ---
 ![1*s2DJaXzcBACanvz9jzzJkA.png](https://cdn-images-1.medium.com/max/1600/1*s2DJaXzcBACanvz9jzzJkA.png)

@@ -1,6 +1,6 @@
 ---
 title: "복잡한 UI 데이터를 안전하게 PDF로 변환하는 방법"
-pubDate: 2026-01-11T16:10:25.571Z
+pubDate: 2026-01-12T14:12:06.879Z
 notionId: "2cd7cf19-a364-8028-8ea0-c734baebfa3e"
 ---
 ![1*gQJrNzm1oApK8t2asjS8rw.png](https://cdn-images-1.medium.com/max/1600/1*gQJrNzm1oApK8t2asjS8rw.png)
