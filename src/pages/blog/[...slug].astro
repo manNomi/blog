@@ -19,7 +19,7 @@ const { Content } = await post.render();
 const readingTime = calculateReadingTime(post.body);
 
 // heroImage가 없으면 본문에서 첫 번째 이미지 추출
-const heroImage = post.data.heroImage || extractFirstImage(post.body);
+const heroImage = post.data.heroImage || extractFirstImage(post.body) || undefined;
 ---
 
 <BlogPost {...post.data} heroImage={heroImage} slug={post.slug} readingTime={readingTime}>
