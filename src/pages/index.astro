@@ -161,115 +161,96 @@ const recentPosts = allPosts.slice(0, 5);
 <style>
   .main {
     padding-top: var(--header-height);
+    background: linear-gradient(180deg, #ffffff 0%, #fcfcfb 100%);
   }
 
-  /* Hero Section */
   .hero {
     position: relative;
-    padding: calc(var(--space-3xl) * 2) 0 var(--space-3xl);
+    padding: 4.5rem 0 2.5rem;
     overflow: hidden;
+    border-bottom: 1px solid var(--border-primary);
   }
 
   .hero-bg {
     position: absolute;
-    top: 0;
+    top: -20%;
     right: 0;
-    width: 50%;
-    height: 100%;
-    background: linear-gradient(135deg, transparent 0%, var(--bg-hover) 100%);
-    opacity: 0.5;
+    width: 48%;
+    height: 130%;
+    background: radial-gradient(circle at 30% 40%, rgba(11, 110, 153, 0.08), transparent 68%);
+    opacity: 1;
     z-index: 0;
+    pointer-events: none;
   }
 
   .hero-content {
     position: relative;
     z-index: 1;
-    max-width: 700px;
+    max-width: 760px;
   }
 
   .hero-badge {
     display: inline-block;
-    padding: var(--space-sm) var(--space-lg);
+    padding: 0.2rem 0.55rem;
     background-color: var(--bg-secondary);
     border: 1px solid var(--border-primary);
-    border-radius: 100px;
-    font-size: var(--text-sm);
-    font-weight: 600;
-    color: var(--accent-primary);
-    margin-bottom: var(--space-xl);
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 0.9rem;
+    letter-spacing: 0.01em;
   }
 
   .hero-title {
-    font-size: clamp(2.5rem, 6vw, 4rem);
-    margin-bottom: var(--space-xl);
+    font-size: clamp(2.2rem, 5vw, 3.5rem);
+    margin-bottom: 0.85rem;
     color: var(--text-primary);
-    line-height: 1.2;
-    font-weight: 800;
+    line-height: 1.13;
+    font-weight: 600;
+    letter-spacing: -0.02em;
   }
 
   .gradient-text {
-    background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-hover) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--text-primary);
   }
 
   .hero-features {
     list-style: none;
     padding: 0;
-    margin: 0 0 var(--space-2xl) 0;
+    margin: 0 0 1.25rem 0;
     display: flex;
     flex-direction: column;
-    gap: var(--space-lg);
+    gap: 0.6rem;
   }
 
   .feature-item {
     display: flex;
     align-items: center;
-    gap: var(--space-md);
-    font-size: var(--text-lg);
+    gap: 0.55rem;
+    font-size: 0.95rem;
     color: var(--text-secondary);
-    line-height: 1.6;
-    padding: var(--space-md) 0;
-    animation: fadeInLeft 0.6s ease forwards;
-    opacity: 0;
-  }
-
-  .feature-item:nth-child(1) {
-    animation-delay: 0.2s;
-  }
-
-  .feature-item:nth-child(2) {
-    animation-delay: 0.4s;
-  }
-
-  .feature-item:nth-child(3) {
-    animation-delay: 0.6s;
+    line-height: 1.55;
+    padding: 0.15rem 0;
   }
 
   .feature-icon {
     flex-shrink: 0;
-    width: 24px;
-    height: 24px;
-    color: var(--accent-primary);
-    stroke-width: 2.5;
-  }
-
-  @keyframes fadeInLeft {
-    from {
-      opacity: 0;
-      transform: translateX(-20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
+    width: 18px;
+    height: 18px;
+    color: var(--text-tertiary);
+    stroke-width: 2;
   }
 
   .hero-stats {
     display: flex;
-    gap: var(--space-xl);
+    gap: 0.9rem;
     align-items: center;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    width: fit-content;
+    background-color: rgba(255, 255, 255, 0.72);
   }
 
   .stat-item {
@@ -277,82 +258,83 @@ const recentPosts = allPosts.slice(0, 5);
   }
 
   .stat-value {
-    font-size: var(--text-3xl);
-    font-weight: 700;
-    color: var(--accent-primary);
-    margin-bottom: var(--space-xs);
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0;
   }
 
   .stat-label {
-    font-size: var(--text-sm);
+    font-size: 0.75rem;
     color: var(--text-tertiary);
   }
 
   .stat-divider {
     width: 1px;
-    height: 40px;
+    height: 24px;
     background-color: var(--border-primary);
   }
 
-  /* Section */
   .section {
-    padding: var(--space-3xl) 0;
+    padding: 2.4rem 0;
   }
 
   .section-alt {
-    background-color: var(--bg-secondary);
+    background-color: #fcfcfb;
+    border-top: 1px solid var(--border-primary);
+    border-bottom: 1px solid var(--border-primary);
   }
 
   .section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: var(--space-2xl);
+    margin-bottom: 1.2rem;
   }
 
   .section-title {
-    font-size: var(--text-3xl);
+    font-size: 1.5rem;
     color: var(--text-primary);
-    font-weight: 700;
+    font-weight: 600;
+    letter-spacing: -0.01em;
   }
 
   .section-subtitle {
-    font-size: var(--text-base);
+    font-size: 0.88rem;
     color: var(--text-secondary);
-    margin-top: var(--space-xs);
+    margin-top: 0.15rem;
   }
 
   .view-all {
     display: flex;
     align-items: center;
     gap: var(--space-xs);
-    color: var(--accent-primary);
-    font-size: var(--text-sm);
-    font-weight: 600;
-    transition: gap 0.3s ease;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: color 0.15s ease, gap 0.15s ease;
   }
 
   .view-all:hover {
     gap: var(--space-sm);
+    color: var(--text-primary);
   }
 
-  /* Grid */
   .grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: var(--space-2xl);
+    gap: 1rem;
   }
 
   .card-wrapper {
-    animation: fadeInUp 0.6s ease forwards;
-    opacity: 0;
+    animation: fadeInUp 0.42s ease forwards;
+    opacity: 0.01;
   }
 
-  /* Recent List */
   .recent-list {
     display: flex;
     flex-direction: column;
-    gap: var(--space-lg);
+    gap: 0.7rem;
   }
 
   .recent-item {
@@ -360,32 +342,31 @@ const recentPosts = allPosts.slice(0, 5);
     border: 1px solid var(--border-primary);
     border-radius: var(--radius-md);
     overflow: hidden;
-    transition: all 0.3s ease;
-    animation: fadeInUp 0.6s ease forwards;
-    opacity: 0;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    animation: fadeInUp 0.42s ease forwards;
+    opacity: 0.01;
   }
 
   .recent-item:hover {
-    border-color: var(--accent-primary);
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
+    border-color: var(--border-secondary);
+    box-shadow: var(--shadow-sm);
   }
 
   .recent-link {
     display: flex;
     align-items: center;
-    gap: var(--space-xl);
-    padding: var(--space-xl);
+    gap: 0.9rem;
+    padding: 0.85rem;
   }
 
   .recent-thumb {
     flex-shrink: 0;
-    width: 200px;
-    height: 140px;
-    border-radius: var(--radius-md);
+    width: 170px;
+    height: 108px;
+    border-radius: var(--radius-sm);
     overflow: hidden;
     background-color: var(--bg-hover);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--border-primary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -395,7 +376,7 @@ const recentPosts = allPosts.slice(0, 5);
     width: 100%;
     height: 100%;
     object-fit: contain;
-    transition: transform 0.4s ease;
+    transition: transform 0.25s ease;
   }
 
   .recent-thumb img.placeholder {
@@ -403,7 +384,7 @@ const recentPosts = allPosts.slice(0, 5);
   }
 
   .recent-item:hover .recent-thumb img:not(.placeholder) {
-    transform: scale(1.08);
+    transform: scale(1.03);
   }
 
   .recent-info {
@@ -411,16 +392,17 @@ const recentPosts = allPosts.slice(0, 5);
   }
 
   .recent-title {
-    font-size: var(--text-xl);
-    font-weight: 700;
-    margin-bottom: var(--space-sm);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
     color: var(--text-primary);
+    line-height: 1.42;
   }
 
   .recent-description {
-    font-size: var(--text-sm);
+    font-size: 0.82rem;
     color: var(--text-secondary);
-    margin-bottom: var(--space-md);
+    margin-bottom: 0.45rem;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -430,25 +412,26 @@ const recentPosts = allPosts.slice(0, 5);
   .recent-meta {
     display: flex;
     align-items: center;
-    gap: var(--space-lg);
+    gap: 0.65rem;
   }
 
   .recent-date {
-    font-size: var(--text-sm);
+    font-size: 0.75rem;
     color: var(--text-tertiary);
   }
 
   .recent-tags {
     display: flex;
-    gap: var(--space-sm);
+    gap: 0.35rem;
   }
 
   .tag-mini {
-    padding: var(--space-xs) var(--space-sm);
-    background-color: var(--bg-hover);
+    padding: 0.08rem 0.4rem;
+    background-color: var(--bg-tag);
     border-radius: var(--radius-sm);
-    font-size: var(--text-xs);
+    font-size: 0.69rem;
     color: var(--text-secondary);
+    line-height: 1.5;
   }
 
   /* Animations */
@@ -483,11 +466,16 @@ const recentPosts = allPosts.slice(0, 5);
   /* Responsive */
   @media (max-width: 768px) {
     .hero {
-      padding: var(--space-3xl) 0 var(--space-2xl);
+      padding: 2.7rem 0 1.5rem;
     }
 
     .hero-title {
-      font-size: 2.5rem;
+      font-size: 2rem;
+    }
+
+    .hero-stats {
+      width: 100%;
+      justify-content: center;
     }
 
     .section-header {
@@ -503,12 +491,12 @@ const recentPosts = allPosts.slice(0, 5);
     .recent-link {
       flex-direction: column;
       align-items: flex-start;
-      gap: var(--space-md);
+      gap: 0.65rem;
     }
 
     .recent-thumb {
       width: 100%;
-      height: 200px;
+      height: 180px;
     }
   }
 </style>

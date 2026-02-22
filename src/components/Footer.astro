@@ -52,8 +52,8 @@ const socialLinks = [
 <style>
   .footer {
     margin-top: var(--space-3xl);
-    padding: var(--space-3xl) 0 var(--space-xl);
-    background-color: var(--bg-secondary);
+    padding: 2rem 0 1.25rem;
+    background-color: #fcfcfb;
     border-top: 1px solid var(--border-primary);
   }
 
@@ -61,52 +61,52 @@ const socialLinks = [
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: var(--space-xl);
+    margin-bottom: 1rem;
   }
 
   .footer-text .name {
-    font-size: var(--text-xl);
-    font-weight: 700;
+    font-size: 0.95rem;
+    font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: var(--space-xs);
+    margin-bottom: 0.18rem;
   }
 
   .footer-text .description {
-    font-size: var(--text-sm);
+    font-size: 0.8rem;
     color: var(--text-secondary);
   }
 
   .social-links {
     display: flex;
-    gap: var(--space-md);
+    gap: 0.5rem;
   }
 
   .social-link {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radius-sm);
     background-color: var(--bg-hover);
+    border: 1px solid var(--border-primary);
     color: var(--text-secondary);
-    transition: all 0.3s ease;
+    transition: background-color 0.15s ease, color 0.15s ease;
   }
 
   .social-link:hover {
-    background-color: var(--accent-primary);
-    color: white;
-    transform: translateY(-3px);
+    background-color: #edf5f8;
+    color: var(--accent-primary);
   }
 
   .footer-bottom {
     text-align: center;
-    padding-top: var(--space-xl);
+    padding-top: 0.85rem;
     border-top: 1px solid var(--border-primary);
   }
 
   .footer-bottom p {
-    font-size: var(--text-sm);
+    font-size: 0.74rem;
     color: var(--text-tertiary);
   }
 

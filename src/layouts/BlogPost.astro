@@ -90,7 +90,7 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
 
 <style>
   .main {
-    padding-top: var(--header-height);
+    padding-top: calc(var(--header-height) + 1.5rem);
     padding-bottom: var(--space-3xl);
   }
 
@@ -100,10 +100,12 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
 
   .hero-image {
     width: 100%;
-    max-width: 1200px;
-    margin: 0 auto var(--space-2xl);
+    max-width: 980px;
+    margin: 0 auto 1.8rem;
     aspect-ratio: 2 / 1;
     overflow: hidden;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-primary);
     background-color: var(--bg-hover);
     display: flex;
     align-items: center;
@@ -123,29 +125,31 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   .content {
     max-width: var(--content-width);
     margin: 0 auto;
-    padding: 0 var(--space-lg);
+    padding: 0 1rem;
   }
 
   .article-header {
-    margin-bottom: var(--space-2xl);
-    padding-bottom: var(--space-xl);
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
     border-bottom: 1px solid var(--border-primary);
   }
 
   .article-title {
-    font-size: var(--text-4xl);
+    font-size: clamp(2rem, 4vw, 2.8rem);
     line-height: 1.2;
-    margin-bottom: var(--space-lg);
+    margin-bottom: 0.8rem;
+    letter-spacing: -0.02em;
     color: var(--text-primary);
   }
 
   .article-meta {
     display: flex;
     align-items: center;
-    gap: var(--space-md);
-    margin-bottom: var(--space-lg);
-    font-size: var(--text-sm);
+    gap: 0.7rem;
+    margin-bottom: 0.8rem;
+    font-size: 0.82rem;
     color: var(--text-tertiary);
+    flex-wrap: wrap;
   }
 
   .article-meta .reading-time {
@@ -177,82 +181,88 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
 
   .tags {
     display: flex;
-    gap: var(--space-sm);
+    gap: 0.45rem;
     flex-wrap: wrap;
   }
 
   .tag {
-    padding: var(--space-xs) var(--space-md);
-    background-color: var(--bg-hover);
+    padding: 0.1rem 0.5rem;
+    background-color: var(--bg-tag);
     border-radius: var(--radius-sm);
-    font-size: var(--text-sm);
+    font-size: 0.78rem;
     color: var(--text-secondary);
     text-decoration: none;
-    transition: all 0.2s;
+    transition: background-color 0.15s ease, color 0.15s ease;
   }
 
   .tag:hover {
-    background-color: var(--accent-primary);
-    color: white;
+    background-color: #e6f3f8;
+    color: var(--accent-primary);
   }
 
   .article-body {
     font-size: var(--text-base);
-    line-height: 1.8;
+    line-height: 1.72;
     color: var(--text-primary);
+    word-break: keep-all;
   }
 
   /* Markdown Styles */
   .article-body :global(h2) {
-    font-size: var(--text-2xl);
-    margin-top: var(--space-2xl);
-    margin-bottom: var(--space-lg);
+    font-size: 1.8rem;
+    margin-top: 2.8rem;
+    margin-bottom: 0.9rem;
     color: var(--text-primary);
+    letter-spacing: -0.01em;
   }
 
   .article-body :global(h3) {
-    font-size: var(--text-xl);
-    margin-top: var(--space-xl);
-    margin-bottom: var(--space-md);
+    font-size: 1.35rem;
+    margin-top: 1.8rem;
+    margin-bottom: 0.6rem;
     color: var(--text-primary);
   }
 
   .article-body :global(p) {
-    margin-bottom: var(--space-lg);
+    margin-bottom: 0.95rem;
   }
 
   .article-body :global(a) {
     color: var(--accent-primary);
-    text-decoration: underline;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(11, 110, 153, 0.38);
   }
 
   .article-body :global(a:hover) {
     color: var(--accent-hover);
+    border-bottom-color: var(--accent-hover);
   }
 
   .article-body :global(ul),
   .article-body :global(ol) {
-    margin-bottom: var(--space-lg);
-    padding-left: var(--space-xl);
+    margin-bottom: 1rem;
+    padding-left: 1.25rem;
   }
 
   .article-body :global(li) {
-    margin-bottom: var(--space-sm);
+    margin-bottom: 0.4rem;
   }
 
   .article-body :global(code) {
     font-family: var(--font-mono);
-    font-size: 0.9em;
-    background-color: var(--bg-hover);
-    padding: 0.2em 0.4em;
+    font-size: 0.84em;
+    background-color: #f6f6f3;
+    padding: 0.12em 0.35em;
     border-radius: var(--radius-sm);
+    border: 1px solid #ecece9;
   }
 
   .article-body :global(pre) {
-    margin: var(--space-lg) 0;
-    padding: var(--space-lg);
-    background-color: var(--bg-hover);
+    margin: 1rem 0;
+    padding: 0.9rem;
+    background-color: #f7f7f5;
     border-radius: var(--radius-md);
+    border: 1px solid #ecece9;
     overflow-x: auto;
   }
 
@@ -262,38 +272,38 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   }
 
   .article-body :global(blockquote) {
-    margin: var(--space-lg) 0;
-    padding-left: var(--space-lg);
-    border-left: 3px solid var(--accent-primary);
+    margin: 1rem 0;
+    padding-left: 0.9rem;
+    border-left: 3px solid #d8d8d5;
     color: var(--text-secondary);
-    font-style: italic;
+    font-style: normal;
   }
 
   .article-body :global(img) {
     max-width: 100%;
     height: auto;
-    margin: var(--space-xl) auto;
+    margin: 1.2rem auto;
     border-radius: var(--radius-md);
     display: block;
   }
 
   .article-body :global(hr) {
-    margin: var(--space-2xl) 0;
+    margin: 2rem 0;
     border: none;
     border-top: 1px solid var(--border-primary);
   }
 
   .share-section {
-    margin-top: var(--space-2xl);
-    padding-top: var(--space-2xl);
+    margin-top: 1.6rem;
+    padding-top: 1.3rem;
     border-top: 1px solid var(--border-primary);
     display: flex;
     justify-content: flex-end;
   }
 
   .comments-section {
-    margin-top: var(--space-2xl);
-    padding-top: var(--space-2xl);
+    margin-top: 1.6rem;
+    padding-top: 1.3rem;
   }
 
   @media (max-width: 768px) {

@@ -4,10 +4,24 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import PostCard from '../components/PostCard.astro';
 import Footer from '../components/Footer.astro';
+import { extractFirstImage } from '../utils/extractFirstImage';
 
-const allPosts = (await getCollection('blog')).sort(
-  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
-);
+const allPosts = (await getCollection('blog'))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .map(post => {
+    // heroImage가 없으면 콘텐츠에서 추출
+    if (!post.data.heroImage && post.body) {
+      const extractedImage = extractFirstImage(post.body);
+      return {
+        ...post,
+        data: {
+          ...post.data,
+          heroImage: extractedImage || undefined
+        }
+      };
+    }
+    return post;
+  });
 
 const allTags = [...new Set(allPosts.flatMap(post => post.data.tags || []))];
 
@@ -74,44 +88,46 @@ const tagCounts = allTags.reduce((acc, tag) => {
 
 <style>
   .main {
-    padding-top: calc(var(--header-height) + var(--space-2xl));
+    padding-top: calc(var(--header-height) + 1.7rem);
     padding-bottom: var(--space-3xl);
     min-height: 100vh;
   }
 
   .page-header {
-    margin-bottom: var(--space-2xl);
+    margin-bottom: 1.25rem;
   }
 
   .page-title {
-    font-size: var(--text-3xl);
-    margin-bottom: var(--space-sm);
+    font-size: 2rem;
+    margin-bottom: 0.35rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
     color: var(--text-primary);
   }
 
   .page-description {
-    font-size: var(--text-base);
+    font-size: 0.9rem;
     color: var(--text-secondary);
   }
 
   .filter-section {
-    margin-bottom: var(--space-2xl);
-    padding: var(--space-xl);
+    margin-bottom: 1.2rem;
+    padding: 0.85rem;
     background-color: var(--bg-secondary);
     border-radius: var(--radius-md);
     border: 1px solid var(--border-primary);
   }
 
   .filter-title {
-    font-size: var(--text-lg);
-    font-weight: 600;
-    margin-bottom: var(--space-lg);
+    font-size: 0.84rem;
+    font-weight: 500;
+    margin-bottom: 0.6rem;
     color: var(--text-primary);
   }
 
   .tags {
     display: flex;
-    gap: var(--space-md);
+    gap: 0.45rem;
     flex-wrap: wrap;
   }
 
@@ -119,28 +135,25 @@ const tagCounts = allTags.reduce((acc, tag) => {
     display: flex;
     align-items: center;
     gap: var(--space-sm);
-    padding: var(--space-sm) var(--space-lg);
+    padding: 0.28rem 0.58rem;
     background-color: var(--bg-primary);
     border: 1px solid var(--border-primary);
-    border-radius: var(--radius-md);
-    font-size: var(--text-sm);
+    border-radius: var(--radius-sm);
+    font-size: 0.78rem;
     color: var(--text-secondary);
-    transition: all 0.3s ease;
+    transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
     cursor: pointer;
   }
 
   .tag-filter:hover {
-    border-color: var(--accent-primary);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: var(--border-secondary);
+    background-color: var(--bg-hover);
   }
 
   .tag-filter.active {
-    background-color: var(--accent-primary);
-    border-color: var(--accent-primary);
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(139, 115, 85, 0.3);
+    background-color: #edf5f8;
+    border-color: rgba(11, 110, 153, 0.28);
+    color: var(--accent-primary);
   }
 
   .tag-name {
@@ -151,30 +164,29 @@ const tagCounts = allTags.reduce((acc, tag) => {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 24px;
-    height: 24px;
-    padding: 0 var(--space-xs);
-    background-color: var(--bg-hover);
+    min-width: 18px;
+    height: 18px;
+    padding: 0 0.25rem;
+    background-color: var(--bg-tag);
     border-radius: var(--radius-sm);
-    font-size: var(--text-xs);
-    font-weight: 600;
+    font-size: 0.67rem;
+    font-weight: 500;
   }
 
   .tag-filter.active .tag-count {
-    background-color: rgba(255, 255, 255, 0.2);
-    color: white;
+    background-color: rgba(11, 110, 153, 0.12);
+    color: var(--accent-primary);
   }
 
   .posts-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: var(--space-2xl);
+    gap: 1rem;
   }
 
   .post-item {
     opacity: 1;
-    animation: fadeIn 0.4s ease;
-    transition: all 0.3s ease;
+    animation: fadeIn 0.35s ease;
   }
 
   .post-item.hidden {
