@@ -3,6 +3,7 @@ import { NotionToMarkdown } from 'notion-to-md';
 import fs from 'fs';
 import path from 'path';
 import https from 'https';
+import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 
@@ -66,7 +67,7 @@ if (DATABASE_ID.includes('notion.so') || DATABASE_ID.includes('http')) {
     } else {
       DATABASE_ID = lastPart;
     }
-  } catch (e) {
+  } catch {
     // URL 파싱 실패 시 UUID 패턴으로 추출 시도
     const uuidRegex = /([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i;
     const match = DATABASE_ID.match(uuidRegex);
@@ -78,6 +79,8 @@ if (DATABASE_ID.includes('notion.so') || DATABASE_ID.includes('http')) {
 
 const CONTENT_DIR = path.join(__dirname, '../src/content/blog');
 const IMAGES_DIR = path.join(__dirname, '../public/images');
+const MANIFEST_PATH = path.join(__dirname, '../.notion-sync-manifest.json');
+const CHECK_MODE = process.argv.includes('--check');
 
 // 디렉토리 생성
 if (!fs.existsSync(CONTENT_DIR)) {
@@ -85,6 +88,82 @@ if (!fs.existsSync(CONTENT_DIR)) {
 }
 if (!fs.existsSync(IMAGES_DIR)) {
   fs.mkdirSync(IMAGES_DIR, { recursive: true });
+}
+
+function createSnapshot(pages) {
+  const normalizedPages = pages
+    .map((page) => {
+      const title = getPageProperty(page, 'Name') || getPageProperty(page, 'Title') || '';
+      return {
+        notionId: page.id,
+        lastEditedTime: page.last_edited_time,
+        createdTime: page.created_time,
+        title
+      };
+    })
+    .sort((a, b) => a.notionId.localeCompare(b.notionId));
+
+  const hash = crypto.createHash('sha256').update(JSON.stringify(normalizedPages)).digest('hex');
+
+  return {
+    databaseId: DATABASE_ID,
+    totalPages: normalizedPages.length,
+    hash,
+    pages: normalizedPages
+  };
+}
+
+function readManifest() {
+  try {
+    if (!fs.existsSync(MANIFEST_PATH)) {
+      return null;
+    }
+    return JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8'));
+  } catch (error) {
+    console.log(`⚠ 매니페스트 읽기 실패: ${error.message}`);
+    return null;
+  }
+}
+
+function writeManifest(data) {
+  fs.writeFileSync(MANIFEST_PATH, JSON.stringify(data, null, 2));
+}
+
+function summarizeChanges(previousManifest, currentSnapshot) {
+  if (!previousManifest?.pages) {
+    return {
+      added: currentSnapshot.totalPages,
+      removed: 0,
+      updated: 0
+    };
+  }
+
+  const prevMap = new Map(previousManifest.pages.map((page) => [page.notionId, page]));
+  const currentMap = new Map(currentSnapshot.pages.map((page) => [page.notionId, page]));
+
+  let added = 0;
+  let removed = 0;
+  let updated = 0;
+
+  for (const [notionId, page] of currentMap.entries()) {
+    const previous = prevMap.get(notionId);
+    if (!previous) {
+      added++;
+      continue;
+    }
+
+    if (previous.lastEditedTime !== page.lastEditedTime || previous.title !== page.title) {
+      updated++;
+    }
+  }
+
+  for (const notionId of prevMap.keys()) {
+    if (!currentMap.has(notionId)) {
+      removed++;
+    }
+  }
+
+  return { added, removed, updated };
 }
 
 // 이미지 다운로드 함수 (재시도 로직 포함)
@@ -121,7 +200,7 @@ async function downloadImage(url, filepath, retries = 3) {
         throw error; // 마지막 재시도 실패 시 에러 던지기
       }
       // 재시도 전 대기 (exponential backoff)
-      await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+      await new Promise(resolve => setTimeout(resolve, 2 ** i * 1000));
     }
   }
 }
@@ -181,33 +260,8 @@ function getPageProperty(page, propertyName) {
 // 메인 동기화 함수
 async function syncNotion() {
   try {
-    console.log('🚀 Notion 동기화 시작...\n');
+    console.log(CHECK_MODE ? '🔎 Notion 변경 여부 확인 시작...\n' : '🚀 Notion 동기화 시작...\n');
     console.log(`📋 Database ID: ${DATABASE_ID.substring(0, 8)}...\n`);
-
-    // 먼저 필터 없이 모든 항목 조회 (디버깅용)
-    const allResponse = await notion.databases.query({
-      database_id: DATABASE_ID,
-    });
-    
-    console.log(`📊 전체 항목 수: ${allResponse.results.length}개\n`);
-    
-    // Status 속성 확인
-    if (allResponse.results.length > 0) {
-      const firstPage = allResponse.results[0];
-      const statusProp = firstPage.properties.Status || firstPage.properties.status;
-      if (statusProp) {
-        console.log(`📋 Status 속성 타입: ${statusProp.type}`);
-        if (statusProp.type === 'select' && statusProp.select) {
-          console.log(`📋 현재 Status 값: "${statusProp.select.name}"`);
-        }
-        // 데이터베이스의 모든 Status 옵션 확인
-        const dbInfo = await notion.databases.retrieve({ database_id: DATABASE_ID });
-        const statusProperty = dbInfo.properties.Status || dbInfo.properties.status;
-        if (statusProperty && statusProperty.type === 'select') {
-          console.log(`📋 사용 가능한 Status 옵션: ${statusProperty.select.options.map(o => o.name).join(', ')}\n`);
-        }
-      }
-    }
 
     // Notion 데이터베이스에서 페이지 가져오기
     const response = await notion.databases.query({
@@ -228,6 +282,36 @@ async function syncNotion() {
 
     console.log(`📄 Published 상태 게시물: ${response.results.length}개\n`);
 
+    const currentSnapshot = createSnapshot(response.results);
+    const previousManifest = readManifest();
+
+    if (CHECK_MODE) {
+      if (!previousManifest) {
+        console.log('⚠ 이전 동기화 매니페스트가 없습니다.');
+        console.log('   최초 1회 `npm run sync:notion` 실행 후부터 변경 감지가 가능합니다.\n');
+        process.exitCode = 2;
+        return;
+      }
+
+      const changeSummary = summarizeChanges(previousManifest, currentSnapshot);
+      const hasChanges = previousManifest.hash !== currentSnapshot.hash;
+
+      if (!hasChanges) {
+        console.log('✅ 변경 사항 없음: 마지막 동기화 이후 Notion 변경이 없습니다.');
+        console.log(`🕒 마지막 동기화: ${previousManifest.syncedAt || '기록 없음'}\n`);
+        return;
+      }
+
+      console.log('⚠ 변경 사항 감지됨: Notion 동기화가 필요합니다.');
+      console.log(`  - 추가: ${changeSummary.added}개`);
+      console.log(`  - 수정: ${changeSummary.updated}개`);
+      console.log(`  - 제거: ${changeSummary.removed}개\n`);
+      process.exitCode = 1;
+      return;
+    }
+
+    const syncedFiles = [];
+
     for (const page of response.results) {
       const title = getPageProperty(page, 'Name') || getPageProperty(page, 'Title');
       const description = getPageProperty(page, 'Description');
@@ -245,7 +329,7 @@ async function syncNotion() {
 
       // Markdown 변환
       const mdblocks = await n2m.pageToMarkdown(page.id);
-      let mdString = n2m.toMarkdownString(mdblocks);
+      const mdString = n2m.toMarkdownString(mdblocks);
 
       // 이미지 처리
       let heroImage = '';
@@ -273,12 +357,11 @@ async function syncNotion() {
       // Notion 이미지는 만료되는 signed URL이므로 로컬에 다운로드
       // 더 견고한 정규식: http/https 모두 지원, 괄호 안의 전체 URL 캡처
       const imageRegex = /!\[(.*?)\]\((https?:\/\/[^\s)]+)\)/g;
-      let imageMatch;
       let imageIndex = 0;
       const replacements = [];
 
       // 먼저 모든 이미지를 찾아서 다운로드
-      while ((imageMatch = imageRegex.exec(mdString.parent)) !== null) {
+      for (const imageMatch of mdString.parent.matchAll(imageRegex)) {
         const altText = imageMatch[1];
         const imageUrl = imageMatch[2];
 
@@ -314,10 +397,9 @@ async function syncNotion() {
       // HTML <img> 태그 처리 (Notion에서 복사-붙여넣기 등으로 생성된 경우)
       // 더 견고한 정규식: src만 필수, alt는 선택적
       const htmlImageRegex = /<img[^>]*\ssrc=["']([^"']+)["'][^>]*>/gi;
-      let htmlImageMatch;
       const htmlReplacements = [];
 
-      while ((htmlImageMatch = htmlImageRegex.exec(mdString.parent)) !== null) {
+      for (const htmlImageMatch of mdString.parent.matchAll(htmlImageRegex)) {
         const fullTag = htmlImageMatch[0];
         let imageUrl = htmlImageMatch[1];
 
@@ -376,8 +458,21 @@ async function syncNotion() {
       const filepath = path.join(CONTENT_DIR, filename);
 
       fs.writeFileSync(filepath, frontmatter + mdString.parent);
+      syncedFiles.push({
+        notionId: page.id,
+        filename,
+        title,
+        lastEditedTime: page.last_edited_time
+      });
       console.log(`  ✓ 저장 완료: ${filename}\n`);
     }
+
+    writeManifest({
+      ...currentSnapshot,
+      syncedAt: new Date().toISOString(),
+      files: syncedFiles
+    });
+    console.log(`📌 동기화 매니페스트 저장: ${path.basename(MANIFEST_PATH)}\n`);
 
     console.log('✨ 동기화 완료!\n');
   } catch (error) {

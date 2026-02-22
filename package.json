@@ -11,7 +11,8 @@
     "build": "node scripts/conditional-sync.mjs && astro check && astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "sync:notion": "node scripts/sync-notion.mjs"
+    "sync:notion": "node scripts/sync-notion.mjs",
+    "sync:check": "node scripts/sync-notion.mjs --check"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.0",
