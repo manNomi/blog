@@ -59,16 +59,24 @@ NOTION_DATABASE_ID=your_database_id
 
 ```bash
 npm install
+npm run sync:check  # 변경 여부만 확인 (다운로드/파일쓰기 없음)
 npm run sync:notion
 npm run dev
 ```
 
+### Notion 동기화 변경 감지
+
+- `npm run sync:check`는 Notion의 Published 페이지 스냅샷을 마지막 동기화 매니페스트(`.notion-sync-manifest.json`)와 비교합니다.
+- 변경이 없으면 동기화를 건너뛰어도 됩니다.
+- 변경이 감지되면 `npm run sync:notion`을 실행하면 됩니다.
+
 ## 배포
 
 ```bash
-npm run sync:notion
 npm run build
 ```
+
+`npm run build`는 내부적으로 `sync:check`를 먼저 실행해 변경이 있을 때만 `sync:notion`을 수행합니다.
 
 ## 프로젝트 구조
 
