@@ -4,10 +4,24 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import PostCard from '../components/PostCard.astro';
 import Footer from '../components/Footer.astro';
+import { extractFirstImage } from '../utils/extractFirstImage';
 
-const allPosts = (await getCollection('blog')).sort(
-  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
-);
+const allPosts = (await getCollection('blog'))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .map(post => {
+    // heroImage가 없으면 콘텐츠에서 추출
+    if (!post.data.heroImage && post.body) {
+      const extractedImage = extractFirstImage(post.body);
+      return {
+        ...post,
+        data: {
+          ...post.data,
+          heroImage: extractedImage || undefined
+        }
+      };
+    }
+    return post;
+  });
 
 const allTags = [...new Set(allPosts.flatMap(post => post.data.tags || []))].sort();
 
@@ -16,6 +30,11 @@ const tagCounts = allTags.reduce((acc, tag) => {
   acc[tag] = allPosts.filter(post => post.data.tags?.includes(tag)).length;
   return acc;
 }, {} as Record<string, number>);
+
+// 태그가 없으면 전체 글 목록으로 리다이렉트
+if (allTags.length === 0) {
+  return Astro.redirect('/posts');
+}
 ---
 
 <BaseLayout title="태그별 글 보기 - manNomi" description="태그별로 분류된 기술 블로그 글을 확인하세요">
@@ -80,107 +99,105 @@ const tagCounts = allTags.reduce((acc, tag) => {
 
 <style>
   .main {
-    padding-top: calc(var(--header-height) + var(--space-2xl));
+    padding-top: calc(var(--header-height) + 1.7rem);
     padding-bottom: var(--space-3xl);
     min-height: 100vh;
   }
 
   .page-header {
-    margin-bottom: var(--space-2xl);
-    text-align: center;
+    margin-bottom: 1.2rem;
+    text-align: left;
   }
 
   .page-title {
-    font-size: var(--text-4xl);
-    font-weight: 700;
-    margin-bottom: var(--space-sm);
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 0.32rem;
+    letter-spacing: -0.015em;
     color: var(--text-primary);
   }
 
   .page-description {
-    font-size: var(--text-lg);
+    font-size: 0.9rem;
     color: var(--text-secondary);
   }
 
   .tags-section {
-    margin-bottom: var(--space-3xl);
-    padding: var(--space-2xl);
+    margin-bottom: 1.2rem;
+    padding: 0.85rem;
     background-color: var(--bg-secondary);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-md);
     border: 1px solid var(--border-primary);
   }
 
   .tags-list {
     display: flex;
-    gap: var(--space-md);
+    gap: 0.45rem;
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: flex-start;
   }
 
   .tag-tab {
     display: flex;
     align-items: center;
     gap: var(--space-sm);
-    padding: var(--space-md) var(--space-xl);
+    padding: 0.3rem 0.62rem;
     background-color: var(--bg-primary);
-    border: 2px solid var(--border-primary);
-    border-radius: var(--radius-md);
-    font-size: var(--text-base);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
     color: var(--text-secondary);
-    transition: all 0.3s ease;
+    transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
     cursor: pointer;
     position: relative;
   }
 
   .tag-tab:hover {
-    border-color: var(--accent-primary);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: var(--border-secondary);
+    background-color: var(--bg-hover);
   }
 
   .tag-tab.active {
-    background-color: var(--accent-primary);
-    border-color: var(--accent-primary);
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(139, 115, 85, 0.3);
+    background-color: #edf5f8;
+    border-color: rgba(11, 110, 153, 0.28);
+    color: var(--accent-primary);
   }
 
   .tag-name {
-    font-weight: 600;
-    font-size: var(--text-base);
+    font-weight: 500;
+    font-size: 0.78rem;
   }
 
   .tag-count {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 28px;
-    height: 28px;
-    padding: 0 var(--space-sm);
-    background-color: var(--bg-hover);
+    min-width: 18px;
+    height: 18px;
+    padding: 0 0.25rem;
+    background-color: var(--bg-tag);
     border-radius: var(--radius-sm);
-    font-size: var(--text-sm);
-    font-weight: 700;
+    font-size: 0.67rem;
+    font-weight: 500;
   }
 
   .tag-tab.active .tag-count {
-    background-color: rgba(255, 255, 255, 0.25);
-    color: white;
+    background-color: rgba(11, 110, 153, 0.12);
+    color: var(--accent-primary);
   }
 
   .posts-section {
-    margin-top: var(--space-2xl);
+    margin-top: 1rem;
   }
 
   .section-header {
-    margin-bottom: var(--space-xl);
-    padding-bottom: var(--space-lg);
-    border-bottom: 2px solid var(--border-primary);
+    margin-bottom: 0.9rem;
+    padding-bottom: 0.7rem;
+    border-bottom: 1px solid var(--border-primary);
   }
 
   .section-title {
-    font-size: var(--text-2xl);
+    font-size: 1.24rem;
     font-weight: 600;
     color: var(--text-primary);
     display: flex;
@@ -189,11 +206,11 @@ const tagCounts = allTags.reduce((acc, tag) => {
   }
 
   .current-tag {
-    color: var(--accent-primary);
+    color: var(--text-primary);
   }
 
   .post-count {
-    font-size: var(--text-base);
+    font-size: 0.85rem;
     font-weight: 400;
     color: var(--text-tertiary);
   }
@@ -201,13 +218,12 @@ const tagCounts = allTags.reduce((acc, tag) => {
   .posts-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: var(--space-2xl);
+    gap: 1rem;
   }
 
   .post-item {
     opacity: 1;
-    animation: fadeIn 0.4s ease;
-    transition: all 0.3s ease;
+    animation: fadeIn 0.35s ease;
   }
 
   .post-item.hidden {
@@ -229,16 +245,16 @@ const tagCounts = allTags.reduce((acc, tag) => {
     text-align: center;
     padding: var(--space-3xl) 0;
     color: var(--text-tertiary);
-    font-size: var(--text-lg);
+    font-size: 0.95rem;
   }
 
   @media (max-width: 768px) {
     .page-title {
-      font-size: var(--text-3xl);
+      font-size: 1.65rem;
     }
 
     .tags-section {
-      padding: var(--space-lg);
+      padding: 0.72rem;
     }
 
     .tags-list {
@@ -246,8 +262,8 @@ const tagCounts = allTags.reduce((acc, tag) => {
     }
 
     .tag-tab {
-      padding: var(--space-sm) var(--space-lg);
-      font-size: var(--text-sm);
+      padding: 0.25rem 0.52rem;
+      font-size: 0.75rem;
     }
 
     .posts-grid {

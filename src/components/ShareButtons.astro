@@ -14,7 +14,7 @@ const { title, url } = Astro.props;
     </svg>
   </a>
 
-  <button class="share-btn" data-type="copy" data-url={url} title="링크 복사">
+  <button class="share-btn" data-type="copy" data-url={url} title={`${title} 링크 복사`}>
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
       <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
@@ -25,28 +25,28 @@ const { title, url } = Astro.props;
 <style>
   .share-buttons {
     display: flex;
-    gap: var(--space-sm);
+    gap: 0.38rem;
   }
 
   .share-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radius-sm);
     background-color: var(--bg-hover);
     border: 1px solid var(--border-primary);
     color: var(--text-secondary);
-    transition: all 0.2s;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
     cursor: pointer;
     text-decoration: none;
   }
 
   .share-btn:hover {
-    background-color: var(--accent-primary);
-    border-color: var(--accent-primary);
-    color: white;
+    background-color: #edf5f8;
+    border-color: rgba(11, 110, 153, 0.28);
+    color: var(--accent-primary);
   }
 </style>
 
@@ -54,10 +54,17 @@ const { title, url } = Astro.props;
   const copyButton = document.querySelector('.share-btn[data-type="copy"]');
 
   if (copyButton) {
+    copyButton.setAttribute('aria-label', `${document.title} 링크 복사`);
     copyButton.addEventListener('click', () => {
       const url = copyButton.getAttribute('data-url') || window.location.href;
       navigator.clipboard.writeText(url).then(() => {
-        alert('링크가 복사되었습니다');
+        const prevTitle = copyButton.getAttribute('title');
+        copyButton.setAttribute('title', '복사됨');
+        setTimeout(() => {
+          if (prevTitle) {
+            copyButton.setAttribute('title', prevTitle);
+          }
+        }, 1200);
       });
     });
   }

@@ -43,7 +43,8 @@
     left: 0;
     right: 0;
     height: var(--header-height);
-    background-color: var(--bg-secondary);
+    background-color: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--border-primary);
     z-index: 100;
   }
@@ -56,19 +57,26 @@
   }
 
   .logo-text {
-    font-size: var(--text-xl);
-    font-weight: 700;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
     color: var(--text-primary);
   }
 
   .menu-button {
-    padding: var(--space-sm);
-    color: var(--text-primary);
-    transition: color 0.2s;
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    transition: background-color 0.15s ease, color 0.15s ease;
   }
 
   .menu-button:hover {
-    color: var(--accent-primary);
+    color: var(--text-primary);
+    background-color: var(--bg-hover);
   }
 
   .nav-menu {
@@ -76,11 +84,12 @@
     top: 0;
     right: -100%;
     width: 100%;
-    max-width: 320px;
+    max-width: 300px;
     height: 100vh;
     background-color: var(--bg-secondary);
-    box-shadow: var(--shadow-lg);
-    transition: right 0.3s ease;
+    border-left: 1px solid var(--border-primary);
+    box-shadow: var(--shadow-md);
+    transition: right 0.2s ease;
     z-index: 101;
   }
 
@@ -89,17 +98,23 @@
   }
 
   .nav-content {
-    padding: var(--space-xl);
+    padding: 1rem;
   }
 
   .close-button {
-    padding: var(--space-sm);
-    margin-bottom: var(--space-xl);
-    color: var(--text-primary);
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 1rem;
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .close-button:hover {
-    color: var(--accent-primary);
+    color: var(--text-primary);
+    background-color: var(--bg-hover);
   }
 
   .nav-list {
@@ -107,14 +122,22 @@
   }
 
   .nav-list li {
-    margin-bottom: var(--space-lg);
+    margin-bottom: var(--space-xs);
   }
 
   .nav-list a {
-    font-size: var(--text-lg);
+    font-size: var(--text-sm);
     font-weight: 500;
     display: block;
-    padding: var(--space-sm) 0;
+    color: var(--text-secondary);
+    padding: 0.5rem 0.625rem;
+    border-radius: var(--radius-sm);
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+
+  .nav-list a:hover {
+    background-color: var(--bg-hover);
+    color: var(--text-primary);
   }
 
   @media (min-width: 768px) {
