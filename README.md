@@ -59,16 +59,24 @@ NOTION_DATABASE_ID=your_database_id
 
 ```bash
 npm install
-npm run sync:notion
+npm run sync:check  # 변경 여부만 확인 (다운로드/파일쓰기 없음)
+npm run sync:notion  # 변경된/추가된 페이지만 동기화, 삭제된 글은 로컬 파일 정리
 npm run dev
 ```
+
+### Notion 동기화 변경 감지
+
+- `npm run sync:check`는 Notion의 Published 페이지 스냅샷을 마지막 동기화 매니페스트(`.notion-sync-manifest.json`)와 비교합니다.
+- `npm run sync:notion`은 매니페스트를 기준으로 변경된/추가된 페이지만 다시 가져오고, Notion에서 삭제된 페이지의 로컬 마크다운 파일을 정리합니다.
+- 변경이 없으면 자동으로 동기화를 건너뜁니다.
 
 ## 배포
 
 ```bash
-npm run sync:notion
 npm run build
 ```
+
+`npm run build`는 내부적으로 변경 여부를 확인하고 변경된 페이지만 동기화한 뒤 빌드합니다.
 
 ## 프로젝트 구조
 

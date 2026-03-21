@@ -9,9 +9,8 @@ if (process.env.SKIP_SYNC === 'true') {
 
 // 환경 변수가 있을 때만 Notion 동기화 실행 (로컬 개발용)
 if (process.env.NOTION_TOKEN && process.env.NOTION_DATABASE_ID) {
-  console.log('🔄 Notion 동기화 실행...\n');
-  execSync('npm run sync:notion', { stdio: 'inherit' });
+  console.log('🔎 Notion 변경 여부 확인 후 필요한 페이지만 동기화합니다...\n');
+  execSync('npm run sync:notion -- --if-changed', { stdio: 'inherit' });
 } else {
   console.log('⏭️  Notion 동기화 건너뜀 (환경 변수 없음)\n');
 }
-

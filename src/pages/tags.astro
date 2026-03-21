@@ -8,8 +8,7 @@ import { extractFirstImage } from '../utils/extractFirstImage';
 
 const allPosts = (await getCollection('blog'))
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-  .map(post => {
-    // heroImage가 없으면 콘텐츠에서 추출
+  .map((post) => {
     if (!post.data.heroImage && post.body) {
       const extractedImage = extractFirstImage(post.body);
       return {
@@ -23,55 +22,85 @@ const allPosts = (await getCollection('blog'))
     return post;
   });
 
-const allTags = [...new Set(allPosts.flatMap(post => post.data.tags || []))].sort();
+const allTags = [...new Set(allPosts.flatMap((post) => post.data.tags || []))].sort();
 
-// 태그별 글 개수 계산
 const tagCounts = allTags.reduce((acc, tag) => {
-  acc[tag] = allPosts.filter(post => post.data.tags?.includes(tag)).length;
+  acc[tag] = allPosts.filter((post) => post.data.tags?.includes(tag)).length;
   return acc;
 }, {} as Record<string, number>);
 
-// 태그가 없으면 전체 글 목록으로 리다이렉트
 if (allTags.length === 0) {
   return Astro.redirect('/posts');
 }
+
+const tagButtonBaseClass =
+  'tag-tab inline-flex items-center gap-2 rounded-[var(--radius-sm)] border px-[0.62rem] py-[0.3rem] text-[0.8rem] transition-[border-color,background-color,color] duration-150';
+const tagButtonInactiveClass =
+  'border-[var(--border-primary)] bg-[var(--bg-primary)] text-[var(--text-secondary)] hover:border-[var(--border-secondary)] hover:bg-[var(--bg-hover)]';
+const tagButtonActiveClass =
+  'border-[rgba(11,110,153,0.28)] bg-[#edf5f8] text-[var(--accent-primary)]';
+
+const tagCountBaseClass =
+  'tag-count inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-[var(--radius-sm)] px-1 text-[0.67rem] font-medium';
+const tagCountInactiveClass = 'bg-[var(--bg-tag)]';
+const tagCountActiveClass = 'bg-[rgba(11,110,153,0.12)] text-[var(--accent-primary)]';
 ---
 
 <BaseLayout title="태그별 글 보기 - manNomi" description="태그별로 분류된 기술 블로그 글을 확인하세요">
   <Header />
 
-  <main class="main">
+  <main class="min-h-screen pb-[var(--space-3xl)] pt-[calc(var(--header-height)+1.7rem)]">
     <div class="container">
-      <div class="page-header">
-        <h1 class="page-title">태그별 글 보기</h1>
-        <p class="page-description">관심있는 태그를 선택하여 글을 찾아보세요</p>
+      <div class="mb-[1.2rem] text-left">
+        <h1 class="mb-[0.32rem] text-[1.65rem] font-semibold tracking-[-0.015em] text-[var(--text-primary)] md:text-[2rem]">
+          태그별 글 보기
+        </h1>
+        <p class="text-[0.9rem] text-[var(--text-secondary)]">관심있는 태그를 선택하여 글을 찾아보세요</p>
       </div>
 
-      <div class="tags-section">
-        <div class="tags-list">
-          <button class="tag-tab active" data-tag="all">
-            <span class="tag-name">전체</span>
-            <span class="tag-count">{allPosts.length}</span>
+      <div class="mb-[1.2rem] rounded-[var(--radius-md)] border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-[0.72rem] md:p-[0.85rem]">
+        <div class="flex flex-wrap justify-start gap-[0.45rem]">
+          <button
+            class={`${tagButtonBaseClass} ${tagButtonActiveClass}`}
+            data-tag="all"
+            data-base={tagButtonBaseClass}
+            data-inactive={tagButtonInactiveClass}
+            data-active-classes={tagButtonActiveClass}
+            data-count-base={tagCountBaseClass}
+            data-count-inactive={tagCountInactiveClass}
+            data-count-active={tagCountActiveClass}
+          >
+            <span class="tag-name text-[0.78rem] font-medium">전체</span>
+            <span class={`${tagCountBaseClass} ${tagCountActiveClass}`}>{allPosts.length}</span>
           </button>
-          {allTags.map(tag => (
-            <button class="tag-tab" data-tag={tag}>
-              <span class="tag-name">{tag}</span>
-              <span class="tag-count">{tagCounts[tag]}</span>
+          {allTags.map((tag) => (
+            <button
+              class={`${tagButtonBaseClass} ${tagButtonInactiveClass}`}
+              data-tag={tag}
+              data-base={tagButtonBaseClass}
+              data-inactive={tagButtonInactiveClass}
+              data-active-classes={tagButtonActiveClass}
+              data-count-base={tagCountBaseClass}
+              data-count-inactive={tagCountInactiveClass}
+              data-count-active={tagCountActiveClass}
+            >
+              <span class="tag-name text-[0.78rem] font-medium">{tag}</span>
+              <span class={`${tagCountBaseClass} ${tagCountInactiveClass}`}>{tagCounts[tag]}</span>
             </button>
           ))}
         </div>
       </div>
 
-      <div class="posts-section">
-        <div class="section-header">
-          <h2 class="section-title">
+      <div class="posts-section mt-4">
+        <div class="mb-[0.9rem] border-b border-[var(--border-primary)] pb-[0.7rem]">
+          <h2 class="flex items-baseline gap-2 text-[1.24rem] font-semibold text-[var(--text-primary)]">
             <span class="current-tag">전체</span>
-            <span class="post-count">({allPosts.length}개의 글)</span>
+            <span class="post-count text-[0.85rem] font-normal text-[var(--text-tertiary)]">({allPosts.length}개의 글)</span>
           </h2>
         </div>
 
-        <div class="posts-grid">
-          {allPosts.map(post => (
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {allPosts.map((post) => (
             <div class="post-item" data-tags={JSON.stringify(post.data.tags || [])}>
               <PostCard
                 title={post.data.title}
@@ -86,7 +115,7 @@ if (allTags.length === 0) {
         </div>
 
         {allPosts.length === 0 && (
-          <div class="empty-state">
+          <div class="py-[var(--space-3xl)] text-center text-[0.95rem] text-[var(--text-tertiary)]">
             <p>아직 작성된 글이 없습니다.</p>
           </div>
         )}
@@ -97,212 +126,56 @@ if (allTags.length === 0) {
   <Footer />
 </BaseLayout>
 
-<style>
-  .main {
-    padding-top: calc(var(--header-height) + 1.7rem);
-    padding-bottom: var(--space-3xl);
-    min-height: 100vh;
-  }
-
-  .page-header {
-    margin-bottom: 1.2rem;
-    text-align: left;
-  }
-
-  .page-title {
-    font-size: 2rem;
-    font-weight: 600;
-    margin-bottom: 0.32rem;
-    letter-spacing: -0.015em;
-    color: var(--text-primary);
-  }
-
-  .page-description {
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-  }
-
-  .tags-section {
-    margin-bottom: 1.2rem;
-    padding: 0.85rem;
-    background-color: var(--bg-secondary);
-    border-radius: var(--radius-md);
-    border: 1px solid var(--border-primary);
-  }
-
-  .tags-list {
-    display: flex;
-    gap: 0.45rem;
-    flex-wrap: wrap;
-    justify-content: flex-start;
-  }
-
-  .tag-tab {
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-    padding: 0.3rem 0.62rem;
-    background-color: var(--bg-primary);
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-sm);
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
-    cursor: pointer;
-    position: relative;
-  }
-
-  .tag-tab:hover {
-    border-color: var(--border-secondary);
-    background-color: var(--bg-hover);
-  }
-
-  .tag-tab.active {
-    background-color: #edf5f8;
-    border-color: rgba(11, 110, 153, 0.28);
-    color: var(--accent-primary);
-  }
-
-  .tag-name {
-    font-weight: 500;
-    font-size: 0.78rem;
-  }
-
-  .tag-count {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 18px;
-    height: 18px;
-    padding: 0 0.25rem;
-    background-color: var(--bg-tag);
-    border-radius: var(--radius-sm);
-    font-size: 0.67rem;
-    font-weight: 500;
-  }
-
-  .tag-tab.active .tag-count {
-    background-color: rgba(11, 110, 153, 0.12);
-    color: var(--accent-primary);
-  }
-
-  .posts-section {
-    margin-top: 1rem;
-  }
-
-  .section-header {
-    margin-bottom: 0.9rem;
-    padding-bottom: 0.7rem;
-    border-bottom: 1px solid var(--border-primary);
-  }
-
-  .section-title {
-    font-size: 1.24rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    display: flex;
-    align-items: baseline;
-    gap: var(--space-sm);
-  }
-
-  .current-tag {
-    color: var(--text-primary);
-  }
-
-  .post-count {
-    font-size: 0.85rem;
-    font-weight: 400;
-    color: var(--text-tertiary);
-  }
-
-  .posts-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 1rem;
-  }
-
-  .post-item {
-    opacity: 1;
-    animation: fadeIn 0.35s ease;
-  }
-
-  .post-item.hidden {
-    display: none;
-  }
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .empty-state {
-    text-align: center;
-    padding: var(--space-3xl) 0;
-    color: var(--text-tertiary);
-    font-size: 0.95rem;
-  }
-
-  @media (max-width: 768px) {
-    .page-title {
-      font-size: 1.65rem;
-    }
-
-    .tags-section {
-      padding: 0.72rem;
-    }
-
-    .tags-list {
-      justify-content: flex-start;
-    }
-
-    .tag-tab {
-      padding: 0.25rem 0.52rem;
-      font-size: 0.75rem;
-    }
-
-    .posts-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-</style>
-
 <script>
   const tagTabs = document.querySelectorAll('.tag-tab');
   const postItems = document.querySelectorAll('.post-item');
   const currentTagElement = document.querySelector('.current-tag');
   const postCountElement = document.querySelector('.post-count');
 
-  tagTabs.forEach(button => {
+  const updateButtonState = (button: Element, isActive: boolean) => {
+    const inactiveClasses = (button.getAttribute('data-inactive') || '').split(' ').filter(Boolean);
+    const activeClasses = (button.getAttribute('data-active-classes') || '').split(' ').filter(Boolean);
+    const countInactiveClasses = (button.getAttribute('data-count-inactive') || '').split(' ').filter(Boolean);
+    const countActiveClasses = (button.getAttribute('data-count-active') || '').split(' ').filter(Boolean);
+    const countNode = button.querySelector('.tag-count');
+
+    button.classList.remove(...inactiveClasses, ...activeClasses);
+
+    if (isActive) {
+      button.classList.add(...activeClasses);
+    } else {
+      button.classList.add(...inactiveClasses);
+    }
+
+    if (countNode) {
+      countNode.classList.remove(...countInactiveClasses, ...countActiveClasses);
+      if (isActive) {
+        countNode.classList.add(...countActiveClasses);
+      } else {
+        countNode.classList.add(...countInactiveClasses);
+      }
+    }
+  };
+
+  tagTabs.forEach((button) => {
     button.addEventListener('click', () => {
       const selectedTag = button.getAttribute('data-tag');
       const tagName = button.querySelector('.tag-name')?.textContent || '전체';
 
-      // Update active state
-      tagTabs.forEach(btn => btn.classList.remove('active'));
-      button.classList.add('active');
+      tagTabs.forEach((btn) => updateButtonState(btn, btn === button));
 
-      // Filter posts with animation
       let visibleCount = 0;
-      postItems.forEach((item, index) => {
+      postItems.forEach((item) => {
         const postTags = JSON.parse(item.getAttribute('data-tags') || '[]');
 
         if (selectedTag === 'all' || postTags.includes(selectedTag)) {
           item.classList.remove('hidden');
-          // Stagger animation
-          (item as HTMLElement).style.animationDelay = `${index * 0.05}s`;
           visibleCount++;
         } else {
           item.classList.add('hidden');
         }
       });
 
-      // Update section title
       if (currentTagElement) {
         currentTagElement.textContent = tagName;
       }
@@ -310,7 +183,6 @@ if (allTags.length === 0) {
         postCountElement.textContent = `(${visibleCount}개의 글)`;
       }
 
-      // Smooth scroll to posts section
       document.querySelector('.posts-section')?.scrollIntoView({
         behavior: 'smooth',
         block: 'start'
