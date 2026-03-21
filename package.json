@@ -20,17 +20,19 @@
     "@astrojs/rss": "^4.0.0",
     "@astrojs/sitemap": "^3.2.0",
     "@astrojs/vercel": "^7.8.0",
-    "@vercel/kv": "^1.0.0",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
+    "@vercel/kv": "^1.0.0",
     "astro": "^4.15.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "typescript": "^5.6.0"
   },
   "devDependencies": {
+    "@astrojs/tailwind": "^6.0.2",
     "@notionhq/client": "^2.2.15",
+    "dotenv": "^16.4.5",
     "notion-to-md": "^3.1.1",
-    "dotenv": "^16.4.5"
+    "tailwindcss": "^3.4.19"
   }
 }

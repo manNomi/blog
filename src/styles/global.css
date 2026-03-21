@@ -137,3 +137,6 @@ img {
     padding: 0 1rem;
   }
 }
+
+@tailwind components;
+@tailwind utilities;
