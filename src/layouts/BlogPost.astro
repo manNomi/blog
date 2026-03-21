@@ -248,7 +248,7 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
     margin-bottom: 0.4rem;
   }
 
-  .article-body :global(code) {
+  .article-body :global(:not(pre) > code) {
     font-family: var(--font-mono);
     font-size: 0.84em;
     background-color: #f6f6f3;
@@ -269,6 +269,27 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   .article-body :global(pre code) {
     background-color: transparent;
     padding: 0;
+    border: 0;
+    white-space: pre;
+    word-break: normal;
+  }
+
+  .article-body :global(pre.astro-code) {
+    background: #24292e;
+    border-color: #2f363d;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .article-body :global(pre.astro-code code) {
+    display: block;
+    min-width: max-content;
+    line-height: 1.6;
+  }
+
+  .article-body :global(pre.astro-code .line),
+  .article-body :global(pre.astro-code .line span) {
+    border: 0 !important;
+    text-decoration: none !important;
   }
 
   .article-body :global(blockquote) {

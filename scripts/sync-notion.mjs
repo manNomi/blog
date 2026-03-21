@@ -81,6 +81,8 @@ const CONTENT_DIR = path.join(__dirname, '../src/content/blog');
 const IMAGES_DIR = path.join(__dirname, '../public/images');
 const MANIFEST_PATH = path.join(__dirname, '../.notion-sync-manifest.json');
 const CHECK_MODE = process.argv.includes('--check');
+const IF_CHANGED_MODE = process.argv.includes('--if-changed');
+const FORCE_FULL_SYNC = process.argv.includes('--full');
 
 // 디렉토리 생성
 if (!fs.existsSync(CONTENT_DIR)) {
@@ -284,6 +286,9 @@ async function syncNotion() {
 
     const currentSnapshot = createSnapshot(response.results);
     const previousManifest = readManifest();
+    const previousPagesMap = new Map((previousManifest?.pages || []).map((page) => [page.notionId, page]));
+    const previousFilesMap = new Map((previousManifest?.files || []).map((file) => [file.notionId, file]));
+    const currentPagesMap = new Map(currentSnapshot.pages.map((page) => [page.notionId, page]));
 
     if (CHECK_MODE) {
       if (!previousManifest) {
@@ -310,9 +315,86 @@ async function syncNotion() {
       return;
     }
 
-    const syncedFiles = [];
+    const hasChanges = previousManifest?.hash !== currentSnapshot.hash;
+    const changeSummary = summarizeChanges(previousManifest, currentSnapshot);
+
+    if (IF_CHANGED_MODE && previousManifest && !hasChanges) {
+      console.log('✅ 변경 사항 없음: 마지막 동기화 이후 Notion 변경이 없습니다.');
+      console.log(`🕒 마지막 동기화: ${previousManifest.syncedAt || '기록 없음'}\n`);
+      return;
+    }
+
+    const removedNotionIds = [];
+
+    if (previousManifest?.pages) {
+      for (const previousPage of previousManifest.pages) {
+        if (!currentPagesMap.has(previousPage.notionId)) {
+          removedNotionIds.push(previousPage.notionId);
+        }
+      }
+    }
+
+    const pagesToSync = [];
+    const unchangedFiles = [];
 
     for (const page of response.results) {
+      if (FORCE_FULL_SYNC || !previousManifest) {
+        pagesToSync.push(page);
+        continue;
+      }
+
+      const previousPage = previousPagesMap.get(page.id);
+      const currentPage = currentPagesMap.get(page.id);
+      const previousFile = previousFilesMap.get(page.id);
+      const previousFileExists = previousFile?.filename
+        ? fs.existsSync(path.join(CONTENT_DIR, previousFile.filename))
+        : false;
+
+      const isUpdated =
+        !previousPage ||
+        previousPage.lastEditedTime !== currentPage?.lastEditedTime ||
+        previousPage.title !== currentPage?.title;
+
+      if (isUpdated || !previousFileExists) {
+        pagesToSync.push(page);
+      } else if (previousFile) {
+        unchangedFiles.push(previousFile);
+      }
+    }
+
+    if (removedNotionIds.length > 0) {
+      console.log(`🗑 삭제된 게시물 정리: ${removedNotionIds.length}개`);
+      for (const notionId of removedNotionIds) {
+        const previousFile = previousFilesMap.get(notionId);
+        if (!previousFile?.filename) {
+          continue;
+        }
+
+        const oldFilePath = path.join(CONTENT_DIR, previousFile.filename);
+        if (fs.existsSync(oldFilePath)) {
+          fs.unlinkSync(oldFilePath);
+          console.log(`  ✓ 삭제 완료: ${previousFile.filename}`);
+        }
+      }
+      console.log('');
+    }
+
+    if (!FORCE_FULL_SYNC && previousManifest) {
+      if (!hasChanges && pagesToSync.length === 0 && removedNotionIds.length === 0) {
+        console.log('✅ 변경 사항 없음: 동기화할 파일이 없습니다.\n');
+        return;
+      }
+
+      console.log('📌 변경 내용 요약');
+      console.log(`  - 추가: ${changeSummary.added}개`);
+      console.log(`  - 수정: ${changeSummary.updated}개`);
+      console.log(`  - 제거: ${changeSummary.removed}개`);
+      console.log(`  - 실제 동기화 대상: ${pagesToSync.length}개\n`);
+    }
+
+    const syncedFiles = [];
+
+    for (const page of pagesToSync) {
       const title = getPageProperty(page, 'Name') || getPageProperty(page, 'Title');
       const description = getPageProperty(page, 'Description');
       const pubDate = getPageProperty(page, 'Created') || new Date().toISOString();
@@ -457,6 +539,16 @@ async function syncNotion() {
       const filename = `${sanitizeFilename(title)}.md`;
       const filepath = path.join(CONTENT_DIR, filename);
 
+      // 제목 변경으로 파일명이 바뀌는 경우 이전 파일 정리
+      const previousFile = previousFilesMap.get(page.id);
+      if (previousFile?.filename && previousFile.filename !== filename) {
+        const oldFilepath = path.join(CONTENT_DIR, previousFile.filename);
+        if (fs.existsSync(oldFilepath)) {
+          fs.unlinkSync(oldFilepath);
+          console.log(`  ✓ 이전 파일 정리: ${previousFile.filename}`);
+        }
+      }
+
       fs.writeFileSync(filepath, frontmatter + mdString.parent);
       syncedFiles.push({
         notionId: page.id,
@@ -467,14 +559,33 @@ async function syncNotion() {
       console.log(`  ✓ 저장 완료: ${filename}\n`);
     }
 
+    const removedNotionIdSet = new Set(removedNotionIds);
+    const syncedNotionIdSet = new Set(syncedFiles.map((file) => file.notionId));
+
+    const normalizedUnchangedFiles = unchangedFiles
+      .filter((file) => !removedNotionIdSet.has(file.notionId) && !syncedNotionIdSet.has(file.notionId))
+      .map((file) => {
+        const currentPage = currentPagesMap.get(file.notionId);
+        return {
+          notionId: file.notionId,
+          filename: file.filename,
+          title: currentPage?.title || file.title || '',
+          lastEditedTime: currentPage?.lastEditedTime || file.lastEditedTime || ''
+        };
+      });
+
+    const finalFiles = [...normalizedUnchangedFiles, ...syncedFiles].sort((a, b) =>
+      a.notionId.localeCompare(b.notionId)
+    );
+
     writeManifest({
       ...currentSnapshot,
       syncedAt: new Date().toISOString(),
-      files: syncedFiles
+      files: finalFiles
     });
     console.log(`📌 동기화 매니페스트 저장: ${path.basename(MANIFEST_PATH)}\n`);
 
-    console.log('✨ 동기화 완료!\n');
+    console.log(`✨ 동기화 완료! (처리: ${pagesToSync.length}개, 유지: ${normalizedUnchangedFiles.length}개)\n`);
   } catch (error) {
     console.error('❌ 오류 발생:', error);
     
