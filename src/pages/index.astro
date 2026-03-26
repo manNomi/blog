@@ -33,33 +33,35 @@ const dateFormatter = new Intl.DateTimeFormat('ko-KR', {
 });
 ---
 
-<BaseLayout title="Nomi | 한만욱의 블로그" description="프론트엔드 실무 경험과 문제 해결 과정을 기록합니다">
+<BaseLayout title="Nomi | 한만욱의 블로그" description="자바스크립트를 극한으로 써보기 위해 노력하는 과정을 기록중이에요">
   <Header />
 
   <main class="bg-[linear-gradient(180deg,#fff_0%,#fbfbfa_100%)] pt-[calc(var(--header-height)+1.4rem)] pb-[2.2rem] md:pt-[calc(var(--header-height)+2rem)] md:pb-12">
-    <section class="container mb-8 max-w-[760px]">
-      <p class="mb-[0.35rem] text-[0.78rem] uppercase tracking-[0.12em] text-[var(--text-tertiary)]">nomi</p>
-      <h1 class="mb-[0.55rem] leading-[1.2] tracking-[-0.02em] [font-size:clamp(2rem,5vw,2.9rem)]">한만욱의 블로그</h1>
-      <p class="mb-4 text-base text-[var(--text-secondary)]">
-        프론트엔드 실무에서 부딪힌 문제와 해결 과정을 기록합니다.
-      </p>
-      <div class="mb-[0.9rem] flex flex-wrap gap-x-[0.8rem] gap-y-[0.4rem]">
-        <a
-          href="/posts"
-          class="border-b border-transparent text-[0.85rem] text-[var(--text-secondary)] transition-[color,border-color] duration-150 hover:border-[var(--border-secondary)] hover:text-[var(--text-primary)]"
-        >
-          전체 글 보기
-        </a>
-        <a
-          href="/tags"
-          class="border-b border-transparent text-[0.85rem] text-[var(--text-secondary)] transition-[color,border-color] duration-150 hover:border-[var(--border-secondary)] hover:text-[var(--text-primary)]"
-        >
-          태그 보기
-        </a>
-      </div>
-      <div class="flex flex-wrap items-center gap-x-[0.9rem] gap-y-[0.35rem] text-[0.82rem] text-[var(--text-tertiary)]">
-        <span><strong class="font-semibold text-[var(--text-primary)]">{allPosts.length}</strong> posts</span>
-        <span><strong class="font-semibold text-[var(--text-primary)]">{tagCount}</strong> tags</span>
+    <section class="container mb-8">
+      <div class="max-w-[760px] text-left">
+        <p class="mb-[0.35rem] text-[0.78rem] uppercase tracking-[0.12em] text-[var(--text-tertiary)]">nomi</p>
+        <h1 class="mb-[0.55rem] leading-[1.2] tracking-[-0.02em] [font-size:clamp(2rem,5vw,2.9rem)]">한만욱의 블로그</h1>
+        <p class="mb-4 text-base text-[var(--text-secondary)]">
+          자바스크립트를 극한으로 써보기 위해 노력하는 과정을 기록중이에요
+        </p>
+        <div class="mb-[0.9rem] flex flex-wrap gap-x-[0.8rem] gap-y-[0.4rem]">
+          <a
+            href="/posts"
+            class="border-b border-transparent text-[0.85rem] text-[var(--text-secondary)] transition-[color,border-color] duration-150 hover:border-[var(--border-secondary)] hover:text-[var(--text-primary)]"
+          >
+            전체 글 보기
+          </a>
+          <a
+            href="/tags"
+            class="border-b border-transparent text-[0.85rem] text-[var(--text-secondary)] transition-[color,border-color] duration-150 hover:border-[var(--border-secondary)] hover:text-[var(--text-primary)]"
+          >
+            태그 보기
+          </a>
+        </div>
+        <div class="flex flex-wrap items-center gap-x-[0.9rem] gap-y-[0.35rem] text-[0.82rem] text-[var(--text-tertiary)]">
+          <span><strong class="font-semibold text-[var(--text-primary)]">{allPosts.length}</strong> posts</span>
+          <span><strong class="font-semibold text-[var(--text-primary)]">{tagCount}</strong> tags</span>
+        </div>
       </div>
     </section>
 
