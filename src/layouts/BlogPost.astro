@@ -88,6 +88,48 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   <Footer />
 </BaseLayout>
 
+<script define:vars={{ heroImage }} is:inline>
+  const normalizeImagePath = (value) => {
+    if (!value) {
+      return '';
+    }
+
+    try {
+      return new URL(value, window.location.origin).pathname;
+    } catch {
+      return value;
+    }
+  };
+
+  const heroImagePath = normalizeImagePath(heroImage);
+  const articleBody = document.querySelector('.article-body');
+
+  if (heroImagePath && articleBody) {
+    const firstElement = articleBody.firstElementChild;
+    let imageNode = null;
+    let removeTarget = null;
+
+    if (firstElement?.tagName === 'IMG') {
+      imageNode = firstElement;
+      removeTarget = firstElement;
+    } else if (
+      firstElement?.tagName === 'P' &&
+      firstElement.children.length === 1 &&
+      firstElement.firstElementChild?.tagName === 'IMG'
+    ) {
+      imageNode = firstElement.firstElementChild;
+      removeTarget = firstElement;
+    }
+
+    if (imageNode && removeTarget) {
+      const firstImagePath = normalizeImagePath(imageNode.getAttribute('src') || '');
+      if (firstImagePath === heroImagePath) {
+        removeTarget.remove();
+      }
+    }
+  }
+</script>
+
 <style>
   .main {
     padding-top: calc(var(--header-height) + 1.5rem);
