@@ -229,6 +229,48 @@ function decodeHtmlEntities(text) {
   return text.replace(/&[#\w]+;/g, (entity) => entities[entity] || entity);
 }
 
+function getImageExtension(imageUrl) {
+  try {
+    const parsedUrl = new URL(imageUrl);
+    const imageExt = path.extname(parsedUrl.pathname).split('?')[0];
+    if (!imageExt || imageExt.length > 5) {
+      return '.jpg';
+    }
+    return imageExt.toLowerCase();
+  } catch {
+    return '.jpg';
+  }
+}
+
+function buildImageSourceKey(imageUrl) {
+  try {
+    const parsedUrl = new URL(imageUrl);
+    const isSignedUrlHost =
+      /amazonaws\.com$/.test(parsedUrl.hostname) ||
+      parsedUrl.hostname.includes('notion-static.com') ||
+      parsedUrl.hostname.includes('notion.so');
+
+    if (isSignedUrlHost) {
+      return `${parsedUrl.origin}${parsedUrl.pathname}`;
+    }
+
+    return `${parsedUrl.origin}${parsedUrl.pathname}${parsedUrl.search}`;
+  } catch {
+    return imageUrl;
+  }
+}
+
+function imagePublicPathToFsPath(imagePublicPath) {
+  if (!imagePublicPath) {
+    return null;
+  }
+  const imageName = path.basename(imagePublicPath);
+  if (!imageName) {
+    return null;
+  }
+  return path.join(IMAGES_DIR, imageName);
+}
+
 // Notion 페이지 속성 추출
 function getPageProperty(page, propertyName) {
   const property = page.properties[propertyName];
@@ -406,6 +448,7 @@ async function syncNotion() {
       const heroImageUrl = getPageProperty(page, 'Cover');
       // Pinned 속성 안전하게 처리 (checkbox 타입)
       const pinned = getPageProperty(page, 'Pinned') === true;
+      const previousFileEntry = previousFilesMap.get(page.id);
 
       console.log(`📝 처리 중: ${title}`);
 
@@ -413,23 +456,78 @@ async function syncNotion() {
       const mdblocks = await n2m.pageToMarkdown(page.id);
       const mdString = n2m.toMarkdownString(mdblocks);
 
+      const reusableImageMap = new Map();
+      const imageAssets = [];
+      const trackedImageAssetKeys = new Set();
+
+      const trackImageAsset = (sourceKey, localPath) => {
+        if (!sourceKey || !localPath) {
+          return;
+        }
+        const dedupeKey = `${sourceKey}|${localPath}`;
+        if (trackedImageAssetKeys.has(dedupeKey)) {
+          return;
+        }
+        trackedImageAssetKeys.add(dedupeKey);
+        imageAssets.push({ sourceKey, localPath });
+      };
+
+      const addReusableImage = (sourceKey, localPath) => {
+        if (!sourceKey || !localPath) {
+          return;
+        }
+        const localImagePath = imagePublicPathToFsPath(localPath);
+        if (localImagePath && fs.existsSync(localImagePath)) {
+          reusableImageMap.set(sourceKey, localPath);
+        }
+      };
+
+      addReusableImage(previousFileEntry?.heroImageSourceKey, previousFileEntry?.heroImage);
+      if (Array.isArray(previousFileEntry?.imageAssets)) {
+        for (const asset of previousFileEntry.imageAssets) {
+          addReusableImage(asset?.sourceKey, asset?.localPath);
+        }
+      }
+
+      const resolveImageAsset = async ({ imageUrl, fallbackImageName, label }) => {
+        const sourceKey = buildImageSourceKey(imageUrl);
+        const reusableLocalPath = reusableImageMap.get(sourceKey);
+
+        if (reusableLocalPath) {
+          trackImageAsset(sourceKey, reusableLocalPath);
+          console.log(`  ↺ ${label} 재사용: ${path.basename(reusableLocalPath)}`);
+          return {
+            sourceKey,
+            localPath: reusableLocalPath
+          };
+        }
+
+        const imagePath = path.join(IMAGES_DIR, fallbackImageName);
+        await downloadImage(imageUrl, imagePath);
+        const localPath = `/images/${fallbackImageName}`;
+        reusableImageMap.set(sourceKey, localPath);
+        trackImageAsset(sourceKey, localPath);
+        console.log(`  ✓ ${label} 다운로드: ${fallbackImageName}`);
+        return {
+          sourceKey,
+          localPath
+        };
+      };
+
       // 이미지 처리
       let heroImage = '';
+      let heroImageSourceKey = '';
       if (heroImageUrl) {
         try {
-          const parsedUrl = new URL(heroImageUrl);
-          // 파일 확장자 추출 (쿼리 파라미터 제거)
-          let imageExt = path.extname(parsedUrl.pathname).split('?')[0];
-          // 확장자가 없거나 너무 긴 경우 기본값 사용
-          if (!imageExt || imageExt.length > 5) {
-            imageExt = '.jpg';
-          }
+          const imageExt = getImageExtension(heroImageUrl);
           const imageName = `${sanitizeFilename(title)}-hero${imageExt}`;
-          const imagePath = path.join(IMAGES_DIR, imageName);
-
-          await downloadImage(heroImageUrl, imagePath);
-          heroImage = `/images/${imageName}`;
-          console.log(`  ✓ 커버 이미지 다운로드: ${imageName}`);
+          const resolvedHeroImage = await resolveImageAsset({
+            imageUrl: heroImageUrl,
+            fallbackImageName: imageName,
+            label: '커버 이미지'
+          });
+          heroImage = resolvedHeroImage.localPath;
+          heroImageSourceKey = resolvedHeroImage.sourceKey;
         } catch (error) {
           console.log(`  ⚠ 커버 이미지 다운로드 실패: ${error.message}`);
         }
@@ -448,23 +546,17 @@ async function syncNotion() {
         const imageUrl = imageMatch[2];
 
         try {
-          const parsedUrl = new URL(imageUrl);
-          // 파일 확장자 추출 (쿼리 파라미터 제거)
-          let imageExt = path.extname(parsedUrl.pathname).split('?')[0];
-          // 확장자가 없거나 너무 긴 경우 기본값 사용
-          if (!imageExt || imageExt.length > 5) {
-            // Content-Type에서 추출 시도하거나 기본값 사용
-            imageExt = '.jpg';
-          }
+          const imageExt = getImageExtension(imageUrl);
           const imageName = `${sanitizeFilename(title)}-${imageIndex}${imageExt}`;
-          const imagePath = path.join(IMAGES_DIR, imageName);
-
-          await downloadImage(imageUrl, imagePath);
+          const resolvedImage = await resolveImageAsset({
+            imageUrl,
+            fallbackImageName: imageName,
+            label: '본문 이미지'
+          });
           replacements.push({
             original: `![${altText}](${imageUrl})`,
-            replacement: `![${altText}](/images/${imageName})`
+            replacement: `![${altText}](${resolvedImage.localPath})`
           });
-          console.log(`  ✓ 본문 이미지 다운로드: ${imageName}`);
           imageIndex++;
         } catch (error) {
           console.log(`  ⚠ 본문 이미지 다운로드 실패 (${imageUrl}): ${error.message}`);
@@ -496,20 +588,17 @@ async function syncNotion() {
         }
 
         try {
-          const parsedUrl = new URL(imageUrl);
-          let imageExt = path.extname(parsedUrl.pathname).split('?')[0];
-          if (!imageExt || imageExt.length > 5) {
-            imageExt = '.jpg';
-          }
+          const imageExt = getImageExtension(imageUrl);
           const imageName = `${sanitizeFilename(title)}-${imageIndex}${imageExt}`;
-          const imagePath = path.join(IMAGES_DIR, imageName);
-
-          await downloadImage(imageUrl, imagePath);
+          const resolvedImage = await resolveImageAsset({
+            imageUrl,
+            fallbackImageName: imageName,
+            label: 'HTML 이미지'
+          });
           htmlReplacements.push({
             original: fullTag,
-            replacement: `![${altText}](/images/${imageName})`
+            replacement: `![${altText}](${resolvedImage.localPath})`
           });
-          console.log(`  ✓ HTML 이미지 다운로드: ${imageName}`);
           imageIndex++;
         } catch (error) {
           console.log(`  ⚠ HTML 이미지 다운로드 실패 (${imageUrl}): ${error.message}`);
@@ -540,12 +629,11 @@ async function syncNotion() {
       const filepath = path.join(CONTENT_DIR, filename);
 
       // 제목 변경으로 파일명이 바뀌는 경우 이전 파일 정리
-      const previousFile = previousFilesMap.get(page.id);
-      if (previousFile?.filename && previousFile.filename !== filename) {
-        const oldFilepath = path.join(CONTENT_DIR, previousFile.filename);
+      if (previousFileEntry?.filename && previousFileEntry.filename !== filename) {
+        const oldFilepath = path.join(CONTENT_DIR, previousFileEntry.filename);
         if (fs.existsSync(oldFilepath)) {
           fs.unlinkSync(oldFilepath);
-          console.log(`  ✓ 이전 파일 정리: ${previousFile.filename}`);
+          console.log(`  ✓ 이전 파일 정리: ${previousFileEntry.filename}`);
         }
       }
 
@@ -554,7 +642,10 @@ async function syncNotion() {
         notionId: page.id,
         filename,
         title,
-        lastEditedTime: page.last_edited_time
+        lastEditedTime: page.last_edited_time,
+        heroImage,
+        heroImageSourceKey,
+        imageAssets
       });
       console.log(`  ✓ 저장 완료: ${filename}\n`);
     }
@@ -567,10 +658,14 @@ async function syncNotion() {
       .map((file) => {
         const currentPage = currentPagesMap.get(file.notionId);
         return {
+          ...file,
           notionId: file.notionId,
           filename: file.filename,
           title: currentPage?.title || file.title || '',
-          lastEditedTime: currentPage?.lastEditedTime || file.lastEditedTime || ''
+          lastEditedTime: currentPage?.lastEditedTime || file.lastEditedTime || '',
+          heroImage: file.heroImage || '',
+          heroImageSourceKey: file.heroImageSourceKey || '',
+          imageAssets: Array.isArray(file.imageAssets) ? file.imageAssets : []
         };
       });
 
