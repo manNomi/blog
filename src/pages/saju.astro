@@ -1,0 +1,20 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import SajuLovePage from '../components/SajuLovePage';
+---
+
+<BaseLayout title="사주 연애운 리포트 | manNomi" description="사주 입력으로 연애운/결혼 전환/리스크를 즉시 분석하는 통합 페이지">
+  <Header />
+
+  <main class="pb-[2.4rem] pt-[calc(var(--header-height)+1.5rem)] md:pb-12 md:pt-[calc(var(--header-height)+2rem)]">
+    <section class="container">
+      <div class="mx-auto max-w-[860px]">
+        <SajuLovePage client:load />
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</BaseLayout>
