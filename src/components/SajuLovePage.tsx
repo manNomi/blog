@@ -211,7 +211,7 @@ export default function SajuLovePage() {
 
   return (
     <div className="space-y-5 saju-stage">
-      <section className="rounded-[var(--radius-lg)] border border-[var(--border-primary)] bg-[linear-gradient(150deg,#ffffff_0%,#f8fbfc_100%)] p-5 shadow-[var(--shadow-sm)] md:p-7">
+      <section className="rounded-[var(--radius-lg)] border border-[var(--border-primary)] bg-[linear-gradient(150deg,#d1cdc3_0%,#c8c4ba_100%)] p-5 shadow-[var(--shadow-sm)] md:p-7">
         <div className="mb-3 flex flex-wrap gap-2">
           {stepLabels.map((entry, index) => {
             const active = index <= currentStepIndex;
@@ -220,7 +220,7 @@ export default function SajuLovePage() {
                 key={entry.key}
                 className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[0.72rem] font-semibold transition-all duration-200 ${
                   active
-                    ? 'border-[rgba(11,110,153,0.35)] bg-[#edf5f8] text-[var(--accent-primary)]'
+                    ? 'border-[rgba(190,111,52,0.38)] bg-[rgba(231,161,106,0.2)] text-[#7b3f19]'
                     : 'border-[var(--border-primary)] bg-[var(--bg-primary)] text-[var(--text-tertiary)]'
                 }`}
               >

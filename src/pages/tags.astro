@@ -29,10 +29,6 @@ const tagCounts = allTags.reduce((acc, tag) => {
   return acc;
 }, {} as Record<string, number>);
 
-if (allTags.length === 0) {
-  return Astro.redirect('/posts');
-}
-
 const tagButtonBaseClass =
   'tag-tab inline-flex items-center gap-2 rounded-[var(--radius-sm)] border px-[0.62rem] py-[0.3rem] text-[0.8rem] transition-[border-color,background-color,color] duration-150';
 const tagButtonInactiveClass =
