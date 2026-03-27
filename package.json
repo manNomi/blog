@@ -12,6 +12,8 @@
     "preview": "astro preview",
     "astro": "astro",
     "sync:notion": "node scripts/sync-notion.mjs",
+    "sync:notion:edited": "node scripts/sync-notion.mjs --edited-only --if-changed",
+    "sync:notion:all": "node scripts/sync-notion.mjs --full",
     "sync:check": "node scripts/sync-notion.mjs --check"
   },
   "dependencies": {
