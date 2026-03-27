@@ -60,20 +60,19 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
 
 <style>
   .post-card {
-    background-color: var(--bg-secondary);
+    background-color: var(--bg-card);
     border: 1px solid var(--border-primary);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-sm);
     overflow: hidden;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
-    box-shadow: none;
+    transition: border-color 0.15s ease, transform 0.15s ease;
     display: flex;
     flex-direction: column;
     height: 100%;
   }
 
   .post-card:hover {
-    box-shadow: var(--shadow-sm);
     border-color: var(--border-secondary);
+    transform: translateY(-2px);
   }
 
   .card-link {
@@ -86,12 +85,13 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   .card-image {
     position: relative;
     width: 100%;
-    aspect-ratio: 1.92 / 1;
+    aspect-ratio: 2.1 / 1;
     overflow: hidden;
-    background-color: var(--bg-hover);
+    background-color: #c4c0b5;
     display: flex;
     align-items: center;
     justify-content: center;
+    border-bottom: 1px solid var(--divider);
   }
 
   .card-image img {
@@ -106,17 +106,17 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   }
 
   .post-card:hover .card-image img:not(.placeholder) {
-    transform: scale(1.03);
+    transform: scale(1.015);
   }
 
   .pin-badge {
     position: absolute;
-    top: var(--space-md);
-    right: var(--space-md);
-    width: 28px;
-    height: 28px;
-    background-color: #ffffff;
-    color: var(--text-secondary);
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 24px;
+    height: 24px;
+    background-color: rgba(255, 255, 255, 0.64);
+    color: var(--dot-strong);
     border: 1px solid var(--border-primary);
     border-radius: 999px;
     display: flex;
@@ -125,7 +125,7 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   }
 
   .card-content {
-    padding: 0.9rem;
+    padding: 0.8rem;
     display: flex;
     flex-direction: column;
     flex: 1;
@@ -142,16 +142,17 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
 
   .tag {
     font-size: var(--text-xs);
-    color: rgba(55, 53, 47, 0.8);
+    color: var(--text-secondary);
     padding: 0.1rem 0.5rem;
     background-color: var(--bg-tag);
-    border-radius: var(--radius-sm);
+    border: 1px solid rgba(123, 118, 109, 0.44);
+    border-radius: 999px;
     line-height: 1.5;
   }
 
   .card-title {
-    font-size: 1.12rem;
-    font-weight: 600;
+    font-size: 1.08rem;
+    font-weight: 700;
     line-height: 1.45;
     margin-bottom: 0.45rem;
     color: var(--text-primary);
@@ -164,7 +165,7 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   .card-description {
     font-size: var(--text-sm);
     color: var(--text-secondary);
-    line-height: 1.55;
+    line-height: 1.62;
     margin-bottom: 0.8rem;
     display: -webkit-box;
     -webkit-line-clamp: 3;

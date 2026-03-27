@@ -146,9 +146,9 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
     margin: 0 auto 1.8rem;
     aspect-ratio: 2 / 1;
     overflow: hidden;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-sm);
     border: 1px solid var(--border-primary);
-    background-color: var(--bg-hover);
+    background-color: #c4c0b5;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -173,12 +173,13 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   .article-header {
     margin-bottom: 1.5rem;
     padding-bottom: 1rem;
-    border-bottom: 1px solid var(--border-primary);
+    border-bottom: 1px solid var(--divider);
   }
 
   .article-title {
-    font-size: clamp(2rem, 4vw, 2.8rem);
-    line-height: 1.2;
+    font-family: var(--font-serif);
+    font-size: clamp(2.05rem, 4vw, 2.9rem);
+    line-height: 1.25;
     margin-bottom: 0.8rem;
     letter-spacing: -0.02em;
     color: var(--text-primary);
@@ -230,7 +231,8 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   .tag {
     padding: 0.1rem 0.5rem;
     background-color: var(--bg-tag);
-    border-radius: var(--radius-sm);
+    border: 1px solid rgba(123, 118, 109, 0.44);
+    border-radius: 999px;
     font-size: 0.78rem;
     color: var(--text-secondary);
     text-decoration: none;
@@ -243,15 +245,16 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   }
 
   .article-body {
-    font-size: var(--text-base);
-    line-height: 1.72;
+    font-size: 1.08rem;
+    line-height: 1.84;
     color: var(--text-primary);
     word-break: keep-all;
   }
 
   /* Markdown Styles */
   .article-body :global(h2) {
-    font-size: 1.8rem;
+    font-family: var(--font-serif);
+    font-size: 1.92rem;
     margin-top: 2.8rem;
     margin-bottom: 0.9rem;
     color: var(--text-primary);
@@ -259,7 +262,8 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   }
 
   .article-body :global(h3) {
-    font-size: 1.35rem;
+    font-family: var(--font-serif);
+    font-size: 1.46rem;
     margin-top: 1.8rem;
     margin-bottom: 0.6rem;
     color: var(--text-primary);
@@ -270,14 +274,14 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   }
 
   .article-body :global(a) {
-    color: var(--accent-primary);
+    color: #7f3f17;
     text-decoration: none;
-    border-bottom: 1px solid rgba(11, 110, 153, 0.38);
+    border-bottom: 1px solid rgba(127, 63, 23, 0.42);
   }
 
   .article-body :global(a:hover) {
-    color: var(--accent-hover);
-    border-bottom-color: var(--accent-hover);
+    color: #5e2d11;
+    border-bottom-color: #5e2d11;
   }
 
   .article-body :global(ul),
@@ -293,18 +297,18 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   .article-body :global(:not(pre) > code) {
     font-family: var(--font-mono);
     font-size: 0.84em;
-    background-color: #f6f6f3;
+    background-color: #c8c4ba;
     padding: 0.12em 0.35em;
     border-radius: var(--radius-sm);
-    border: 1px solid #ecece9;
+    border: 1px solid #8f8a80;
   }
 
   .article-body :global(pre) {
     margin: 1rem 0;
-    padding: 0.9rem;
-    background-color: #f7f7f5;
-    border-radius: var(--radius-md);
-    border: 1px solid #ecece9;
+    padding: 0.95rem;
+    background-color: #151311;
+    border-radius: var(--radius-sm);
+    border: 1px solid #4f4942;
     overflow-x: auto;
   }
 
@@ -317,8 +321,8 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   }
 
   .article-body :global(pre.astro-code) {
-    background: #24292e;
-    border-color: #2f363d;
+    background: #151311;
+    border-color: #4f4942;
     -webkit-overflow-scrolling: touch;
   }
 
@@ -337,7 +341,7 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   .article-body :global(blockquote) {
     margin: 1rem 0;
     padding-left: 0.9rem;
-    border-left: 3px solid #d8d8d5;
+    border-left: 3px solid #8f8a80;
     color: var(--text-secondary);
     font-style: normal;
   }
@@ -346,20 +350,20 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
     max-width: 100%;
     height: auto;
     margin: 1.2rem auto;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-sm);
     display: block;
   }
 
   .article-body :global(hr) {
     margin: 2rem 0;
     border: none;
-    border-top: 1px solid var(--border-primary);
+    border-top: 1px solid var(--divider);
   }
 
   .share-section {
     margin-top: 1.6rem;
     padding-top: 1.3rem;
-    border-top: 1px solid var(--border-primary);
+    border-top: 1px solid var(--divider);
     display: flex;
     justify-content: flex-end;
   }
