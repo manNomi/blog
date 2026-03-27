@@ -7,7 +7,7 @@ export const GET: APIRoute = async ({ params }) => {
   const { slug } = params;
 
   if (!slug) {
-    return new Response(JSON.stringify({ error: 'Slug is required' }), {
+    return new Response(JSON.stringify({ error: '글월 고리값이 필요하옵니다.' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' }
     });
@@ -30,7 +30,7 @@ export const GET: APIRoute = async ({ params }) => {
       }
     });
   } catch (error) {
-    console.error('Error updating view count:', error);
+    console.error('조회수 고침 중 허물:', error);
     // 에러 발생 시에도 기본값 반환
     return new Response(JSON.stringify({ views: 0 }), {
       status: 200,

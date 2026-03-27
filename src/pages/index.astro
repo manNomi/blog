@@ -35,14 +35,15 @@ const dateFormatter = new Intl.DateTimeFormat('ko-KR', {
 const paperDate = dateFormatter.format(new Date());
 const frontNotes = recentPosts.slice(0, 6);
 const opinionNotes = allPosts.slice(6, 12);
+const mastPhoto = '/images/newspaper-press-room.png';
 
-const headline = featuredPost?.data.title || '노미신문 기술 특집';
+const headline = featuredPost?.data.title || '노미신문 기술 별호';
 const dek =
   featuredPost?.data.description ||
-  '프론트엔드 실무에서 부딪힌 문제를 기록하고, 실제 개선 흐름을 기사 구조로 정리합니다.';
+  '누리집을 지새우며 마주본 그대 문제가 아니 풀릴지언정 기사와 함께하면 어떨지어니';
 ---
 
-<BaseLayout title="Nomi | 한만욱의 누리집" description="자바스크립트를 극한으로 사용하고자 노력중입니다.">
+<BaseLayout title="노미 | 한만욱의 누리집" description="자바스크립트를 극진히 쓰고자 늘 힘쓰고 있사옵니다.">
   <Header />
 
   <main class="homepage pt-[calc(var(--header-height)+1.2rem)] pb-[2.2rem] md:pt-[calc(var(--header-height)+1.9rem)] md:pb-12">
@@ -50,20 +51,26 @@ const dek =
       <article class="frontpage paper-panel">
         <div class="folio">
           <span>88</span>
-          <p>노미신문 · {paperDate} · 기술 아카이브 특집</p>
+          <p>노미신문 · {paperDate} · 기술 기록 별호</p>
           <span>93</span>
         </div>
         <div class="paper-rule" />
 
+        <p class="breaking-tag">(속보)</p>
         <h1 class="headline">{headline}</h1>
         <p class="subhead">{dek}</p>
 
+        <figure class="main-photo">
+          <img src={mastPhoto} alt="유니폼 프레스 작업 현장" loading="lazy" />
+          <figcaption>△ 선수 유니폼 찍어내는 마당을 갈무리한 기록이옵니다.</figcaption>
+        </figure>
+
         <div class="under-fold">
           <div class="story-col">
-            <h2>오늘의 편집</h2>
+            <h2>오늘 엮은 글월</h2>
             <p>
-              메인 지면은 썸네일 없이 제목과 문장으로만 구성했습니다. 시선을 분산시키는 이미지 블록을 제거해 90년대 신문처럼 텍스트
-              위계가 먼저 읽히도록 정리했습니다.
+              으뜸 지면은 그림 썸네일을 걷어내고, 머리글과 문장으로만 짜 놓았사옵니다. 눈길을 흩뜨리는 그림 칸을 덜어 내어, 옛
+              신문마냥 글줄의 위계가 먼저 읽히도록 다듬었사옵니다.
             </p>
             <ul>
               {frontNotes.map((post) => (
@@ -76,13 +83,13 @@ const dek =
               ))}
             </ul>
             <p class="meta-text">
-              총 {allPosts.length}개 기사 · {tagCount}개 태그 ·
-              <a href="/posts"> 전체 기사 보기</a>
+              도합 {allPosts.length}편 기사 · 갈래말 {tagCount}벌 ·
+              <a href="/posts"> 모든 기사 보기</a>
             </p>
           </div>
 
           <aside class="photo-col">
-            <h3>사설 · 기획</h3>
+            <h3>사설 · 기별</h3>
             <ul>
               {opinionNotes.map((post) => (
                 <li>
@@ -92,7 +99,8 @@ const dek =
               ))}
             </ul>
             <p>
-              자바스크립트를 극한으로 사용하고자 노력중입니다. 프론트엔드 실무에서 맞닥뜨린 문제를 해결한 과정을 꾸준히 기록합니다.
+              자바스크립트를 극진히 쓰고자 늘 힘쓰고 있사옵니다. 프론트엔드 일터에서 맞닥뜨린 난제를 풀어 간 자취를 부지런히 적어
+              두고 있사옵니다.
             </p>
           </aside>
         </div>
@@ -101,8 +109,8 @@ const dek =
 
     <section class="container mt-5 reveal" data-reveal>
       <div class="paper-panel section-head section-head-split">
-        <h2>최신 기사</h2>
-        <a href="/posts">전체 보기</a>
+        <h2>새 기사</h2>
+        <a href="/posts">모두 보기</a>
       </div>
 
       <ul class="latest-list paper-panel">
@@ -193,6 +201,19 @@ const dek =
     margin-top: 0.62rem;
   }
 
+  .breaking-tag {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 0.5rem;
+    padding: 0.14rem 0.45rem;
+    border: 1px solid var(--divider);
+    background: rgba(184, 123, 81, 0.2);
+    color: #5a2112;
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
   .subhead {
     margin-top: 0.55rem;
     font-size: 1.22rem;
@@ -201,6 +222,28 @@ const dek =
     border-top: 1px solid var(--divider);
     border-bottom: 1px solid var(--divider);
     padding: 0.45rem 0;
+  }
+
+  .main-photo {
+    margin-top: 0.52rem;
+    border: 1px solid var(--divider);
+    background: #bdb8ae;
+  }
+
+  .main-photo img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    filter: grayscale(100%) contrast(1.1) saturate(0.35);
+    mix-blend-mode: multiply;
+  }
+
+  .main-photo figcaption {
+    font-size: 0.83rem;
+    color: var(--text-secondary);
+    border-top: 1px solid var(--divider);
+    padding: 0.35rem 0.5rem;
+    font-weight: 700;
   }
 
   .under-fold {

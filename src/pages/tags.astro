@@ -42,16 +42,16 @@ const tagCountInactiveClass = 'bg-[var(--bg-tag)]';
 const tagCountActiveClass = 'bg-[rgba(11,110,153,0.12)] text-[var(--accent-primary)]';
 ---
 
-<BaseLayout title="태그별 글 보기 - manNomi" description="태그별로 분류된 기술 누리집 글을 확인하세요">
+<BaseLayout title="갈래말 따라 글월 보기 - 한만욱" description="갈래말로 나뉜 기술 누리집 글월을 살펴보시옵소서">
   <Header />
 
   <main class="min-h-screen pb-[var(--space-3xl)] pt-[calc(var(--header-height)+1.7rem)]">
     <div class="container">
       <div class="mb-[1.2rem] text-left">
         <h1 class="mb-[0.32rem] text-[1.65rem] font-semibold tracking-[-0.015em] text-[var(--text-primary)] md:text-[2rem]">
-          태그별 글 보기
+          갈래말 따라 글월 보기
         </h1>
-        <p class="text-[0.9rem] text-[var(--text-secondary)]">관심있는 태그를 선택하여 글을 찾아보세요</p>
+        <p class="text-[0.9rem] text-[var(--text-secondary)]">마음 두신 갈래말을 고르시면 글월을 찾을 수 있사옵니다</p>
       </div>
 
       <div class="mb-[1.2rem] rounded-[var(--radius-md)] border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-[0.72rem] md:p-[0.85rem]">
@@ -66,7 +66,7 @@ const tagCountActiveClass = 'bg-[rgba(11,110,153,0.12)] text-[var(--accent-prima
             data-count-inactive={tagCountInactiveClass}
             data-count-active={tagCountActiveClass}
           >
-            <span class="tag-name text-[0.78rem] font-medium">전체</span>
+            <span class="tag-name text-[0.78rem] font-medium">모두</span>
             <span class={`${tagCountBaseClass} ${tagCountActiveClass}`}>{allPosts.length}</span>
           </button>
           {allTags.map((tag) => (
@@ -90,8 +90,8 @@ const tagCountActiveClass = 'bg-[rgba(11,110,153,0.12)] text-[var(--accent-prima
       <div class="posts-section mt-4">
         <div class="mb-[0.9rem] border-b border-[var(--border-primary)] pb-[0.7rem]">
           <h2 class="flex items-baseline gap-2 text-[1.24rem] font-semibold text-[var(--text-primary)]">
-            <span class="current-tag">전체</span>
-            <span class="post-count text-[0.85rem] font-normal text-[var(--text-tertiary)]">({allPosts.length}개의 글)</span>
+            <span class="current-tag">모두</span>
+            <span class="post-count text-[0.85rem] font-normal text-[var(--text-tertiary)]">({allPosts.length}편 글월)</span>
           </h2>
         </div>
 
@@ -112,7 +112,7 @@ const tagCountActiveClass = 'bg-[rgba(11,110,153,0.12)] text-[var(--accent-prima
 
         {allPosts.length === 0 && (
           <div class="py-[var(--space-3xl)] text-center text-[0.95rem] text-[var(--text-tertiary)]">
-            <p>아직 작성된 글이 없습니다.</p>
+            <p>아직 적힌 글월이 없사옵니다.</p>
           </div>
         )}
       </div>
@@ -156,7 +156,7 @@ const tagCountActiveClass = 'bg-[rgba(11,110,153,0.12)] text-[var(--accent-prima
   tagTabs.forEach((button) => {
     button.addEventListener('click', () => {
       const selectedTag = button.getAttribute('data-tag');
-      const tagName = button.querySelector('.tag-name')?.textContent || '전체';
+      const tagName = button.querySelector('.tag-name')?.textContent || '모두';
 
       tagTabs.forEach((btn) => updateButtonState(btn, btn === button));
 
@@ -176,7 +176,7 @@ const tagCountActiveClass = 'bg-[rgba(11,110,153,0.12)] text-[var(--accent-prima
         currentTagElement.textContent = tagName;
       }
       if (postCountElement) {
-        postCountElement.textContent = `(${visibleCount}개의 글)`;
+        postCountElement.textContent = `(${visibleCount}편 글월)`;
       }
 
       document.querySelector('.posts-section')?.scrollIntoView({

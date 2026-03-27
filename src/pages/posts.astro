@@ -42,19 +42,19 @@ const tagCountInactiveClass = 'bg-[var(--bg-tag)]';
 const tagCountActiveClass = 'bg-[rgba(11,110,153,0.12)] text-[var(--accent-primary)]';
 ---
 
-<BaseLayout title="전체 글 목록 - manNomi" description="모든 기술 누리집 글을 확인하세요">
+<BaseLayout title="글월 모두 모음 - 한만욱" description="기술 누리집에 실린 모든 글월을 살펴보시옵소서">
   <Header />
 
   <main class="min-h-screen pb-[var(--space-3xl)] pt-[calc(var(--header-height)+1.7rem)]">
     <div class="container">
       <div class="mb-5">
-        <h1 class="mb-[0.35rem] text-[2rem] font-semibold tracking-[-0.015em] text-[var(--text-primary)]">전체 글</h1>
-        <p class="text-[0.9rem] text-[var(--text-secondary)]">총 {allPosts.length}개의 글</p>
+        <h1 class="mb-[0.35rem] text-[2rem] font-semibold tracking-[-0.015em] text-[var(--text-primary)]">모든 글월</h1>
+        <p class="text-[0.9rem] text-[var(--text-secondary)]">도합 {allPosts.length}편 글월</p>
       </div>
 
       {allTags.length > 0 && (
         <div class="mb-[1.2rem] rounded-[var(--radius-md)] border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-[0.85rem]">
-          <h2 class="mb-[0.6rem] text-[0.84rem] font-medium text-[var(--text-primary)]">태그로 찾기</h2>
+          <h2 class="mb-[0.6rem] text-[0.84rem] font-medium text-[var(--text-primary)]">갈래말로 찾기</h2>
           <div class="flex flex-wrap gap-[0.45rem]">
             <button
               class={`${tagButtonBaseClass} ${tagButtonActiveClass}`}
@@ -67,7 +67,7 @@ const tagCountActiveClass = 'bg-[rgba(11,110,153,0.12)] text-[var(--accent-prima
               data-count-inactive={tagCountInactiveClass}
               data-count-active={tagCountActiveClass}
             >
-              <span class="tag-name font-medium">전체</span>
+              <span class="tag-name font-medium">모두</span>
               <span class={`${tagCountBaseClass} ${tagCountActiveClass}`}>{allPosts.length}</span>
             </button>
             {allTags.map((tag) => (
@@ -106,7 +106,7 @@ const tagCountActiveClass = 'bg-[rgba(11,110,153,0.12)] text-[var(--accent-prima
 
       {allPosts.length === 0 && (
         <div class="py-[var(--space-3xl)] text-center text-[var(--text-tertiary)]">
-          <p>아직 작성된 글이 없습니다.</p>
+          <p>아직 적힌 글월이 없사옵니다.</p>
         </div>
       )}
     </div>

@@ -5,18 +5,18 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { LoveJobPublic } from '../lib/saju/love-job-types';
 
 const requestFormSchema = z.object({
-  name: z.string().trim().min(2, '이름은 2자 이상 입력해 주세요.').max(30, '이름은 30자 이하로 입력해 주세요.'),
-  email: z.string().trim().email('올바른 이메일 형식을 입력해 주세요.'),
+  name: z.string().trim().min(2, '이름은 두 자 이상 적어 주시옵소서.').max(30, '이름은 서른 자 안으로 적어 주시옵소서.'),
+  email: z.string().trim().email('옳은 전자우편 꼴을 적어 주시옵소서.'),
   gender: z.enum(['female', 'male']),
   calendarType: z.enum(['solar', 'lunar']),
-  birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '생년월일을 입력해 주세요.'),
-  birthTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, '출생 시간을 입력해 주세요.'),
-  birthPlace: z.string().trim().min(2, '출생지는 2자 이상 입력해 주세요.').max(50, '출생지는 50자 이하로 입력해 주세요.')
+  birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '태어난 날을 적어 주시옵소서.'),
+  birthTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, '태어난 시각을 적어 주시옵소서.'),
+  birthPlace: z.string().trim().min(2, '태어난 고장은 두 자 이상 적어 주시옵소서.').max(50, '태어난 고장은 쉰 자 안으로 적어 주시옵소서.')
 });
 
 const statusLookupSchema = z.object({
-  requestId: z.string().trim().min(1, '요청 ID를 입력해 주세요.'),
-  accessToken: z.string().trim().min(1, '조회 키(token)를 입력해 주세요.')
+  requestId: z.string().trim().min(1, '청원 식별값을 적어 주시옵소서.'),
+  accessToken: z.string().trim().min(1, '살핌 열쇠를 적어 주시옵소서.')
 });
 
 type RequestFormValues = z.infer<typeof requestFormSchema>;
@@ -33,7 +33,7 @@ type CreateResponse = {
 async function parseJson<T>(response: Response): Promise<T> {
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const message = typeof payload?.error === 'string' ? payload.error : '요청 처리 중 오류가 발생했어요.';
+    const message = typeof payload?.error === 'string' ? payload.error : '청원 다스림 중 허물이 생겼사옵니다.';
     throw new Error(message);
   }
   return payload as T;
@@ -42,22 +42,22 @@ async function parseJson<T>(response: Response): Promise<T> {
 function statusText(status: LoveJobPublic['status']) {
   switch (status) {
     case 'queued':
-      return '대기 중';
+      return '기다림';
     case 'processing':
-      return '분석 중';
+      return '헤아리는 중';
     case 'completed':
-      return '완료';
+      return '마침';
     case 'failed':
-      return '실패';
+      return '그르침';
     default:
       return status;
   }
 }
 
 const stepLabels: Array<{ key: Step; label: string }> = [
-  { key: 'landing', label: '안내' },
-  { key: 'input', label: '필수 입력' },
-  { key: 'submitted', label: '접수 완료' }
+  { key: 'landing', label: '알림' },
+  { key: 'input', label: '반드시 적기' },
+  { key: 'submitted', label: '접수 마침' }
 ];
 
 export default function SajuLovePage() {
@@ -129,14 +129,14 @@ export default function SajuLovePage() {
 
       setRequestState(created.request);
       setStep('submitted');
-      setNotice('요청이 접수되었습니다. 분석이 완료되면 이메일로 결과를 보내드릴게요.');
+      setNotice('청원이 접수되었사옵니다. 헤아림이 마치면 전자우편으로 풀이를 올려 드리겠사옵니다.');
 
       statusForm.reset({
         requestId: created.requestId,
         accessToken: created.accessToken
       });
     } catch (requestError) {
-      setApiError(requestError instanceof Error ? requestError.message : '요청 등록에 실패했어요.');
+      setApiError(requestError instanceof Error ? requestError.message : '청원 올리기에 그르쳤사옵니다.');
     }
   });
 
@@ -156,12 +156,12 @@ export default function SajuLovePage() {
       setRequestState(payload.request);
 
       if (payload.request.status === 'completed' && payload.request.email.sent) {
-        setNotice('분석 완료 + 이메일 발송까지 끝났습니다. 메일함과 스팸함을 확인해 주세요.');
+        setNotice('헤아림과 전자우편 보냄이 모두 마쳤사옵니다. 편지함과 잡편함을 살펴 주시옵소서.');
       } else {
-        setNotice(`현재 상태: ${statusText(payload.request.status)}`);
+        setNotice(`이제 형편: ${statusText(payload.request.status)}`);
       }
     } catch (requestError) {
-      setApiError(requestError instanceof Error ? requestError.message : '상태 조회에 실패했어요.');
+      setApiError(requestError instanceof Error ? requestError.message : '형편 살피기에 그르쳤사옵니다.');
     } finally {
       setIsChecking(false);
     }
@@ -182,10 +182,10 @@ export default function SajuLovePage() {
         })
       );
 
-      setNotice(`처리 트리거 완료: ${payload.processed}건 처리되었습니다.`);
+      setNotice(`다스림 깨우기 마침: ${payload.processed}건을 다스렸사옵니다.`);
       await checkStatus();
     } catch (requestError) {
-      setApiError(requestError instanceof Error ? requestError.message : '처리 트리거 호출에 실패했어요.');
+      setApiError(requestError instanceof Error ? requestError.message : '다스림 깨우기 부름에 그르쳤사옵니다.');
     } finally {
       setIsTriggering(false);
     }
@@ -231,22 +231,22 @@ export default function SajuLovePage() {
           })}
         </div>
 
-        <h1 className="text-[1.55rem] font-semibold tracking-[-0.02em] text-[var(--text-primary)] md:text-[2rem]">사주 연애운 이메일 리포트</h1>
+        <h1 className="text-[1.55rem] font-semibold tracking-[-0.02em] text-[var(--text-primary)] md:text-[2rem]">사주 연정 전자우편 풀이</h1>
         <p className="mt-2 max-w-[700px] text-[0.92rem] leading-[1.65] text-[var(--text-secondary)]">
-          결과를 즉시 노출하지 않고 요청을 큐에 등록한 뒤 비동기 처리합니다. 처리가 끝나면 이메일로 결과를 발송합니다.
+          결과를 곧바로 드러내지 아니하고 청원을 줄에 올린 뒤 비동기로 다스리옵니다. 마치면 전자우편으로 풀이를 보내옵니다.
         </p>
       </section>
 
       {step === 'landing' && (
         <section className="saju-hover-card rounded-[var(--radius-lg)] border border-[var(--border-primary)] bg-[var(--bg-primary)] p-6 text-center shadow-[var(--shadow-sm)]">
-          <h2 className="text-[1.25rem] font-semibold text-[var(--text-primary)]">필수 정보 입력 후 메일 수령</h2>
-          <p className="mt-2 text-[0.9rem] text-[var(--text-secondary)]">이름, 이메일, 생년월일, 출생시간, 출생지를 포함해 필수값을 모두 입력해야 요청이 등록됩니다.</p>
+          <h2 className="text-[1.25rem] font-semibold text-[var(--text-primary)]">긴요한 정보를 적은 뒤 편지를 받으소서</h2>
+          <p className="mt-2 text-[0.9rem] text-[var(--text-secondary)]">이름, 전자우편, 태어난 날과 시각, 태어난 고장을 빠짐없이 적어야 청원이 올라가옵니다.</p>
           <button
             type="button"
             onClick={() => setStep('input')}
             className="mt-4 inline-flex h-10 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--accent-primary)] px-4 text-[0.84rem] font-semibold text-white transition-all duration-200 hover:-translate-y-[1px] hover:bg-[var(--accent-hover)]"
           >
-            요청 시작하기
+            청원 올리기
           </button>
         </section>
       )}
@@ -254,13 +254,13 @@ export default function SajuLovePage() {
       {step === 'input' && (
         <section className="saju-hover-card rounded-[var(--radius-lg)] border border-[var(--border-primary)] bg-[var(--bg-primary)] p-5 shadow-[var(--shadow-sm)] md:p-7">
           <div className="mb-4 rounded-[var(--radius-md)] border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-[0.8rem] text-[var(--text-secondary)]">
-            필수 항목 진행률: <strong className="text-[var(--text-primary)]">{completionCount}/7</strong>
+            긴요한 항목 채움새: <strong className="text-[var(--text-primary)]">{completionCount}/7</strong>
           </div>
 
           <form className="space-y-4" onSubmit={submitRequest}>
             <div className="grid gap-4 md:grid-cols-2">
               <label className="text-[0.82rem] text-[var(--text-secondary)]">
-                이름 *
+                성명 *
                 <input
                   type="text"
                   placeholder="홍길동"
@@ -273,10 +273,10 @@ export default function SajuLovePage() {
               </label>
 
               <label className="text-[0.82rem] text-[var(--text-secondary)]">
-                이메일 *
+                전자우편 *
                 <input
                   type="email"
-                  placeholder="you@example.com"
+                  placeholder="이름@본보기.한국"
                   {...requestForm.register('email')}
                   className="mt-1.5 h-11 w-full rounded-[var(--radius-sm)] border border-[var(--border-primary)] bg-[var(--bg-primary)] px-3 text-[0.9rem] text-[var(--text-primary)] transition-colors focus:border-[var(--accent-primary)] focus:outline-none"
                 />
@@ -286,7 +286,7 @@ export default function SajuLovePage() {
               </label>
 
               <label className="text-[0.82rem] text-[var(--text-secondary)]">
-                생년월일 *
+                태어난 날 *
                 <input
                   type="date"
                   {...requestForm.register('birthDate')}
@@ -298,7 +298,7 @@ export default function SajuLovePage() {
               </label>
 
               <label className="text-[0.82rem] text-[var(--text-secondary)]">
-                출생 시간 *
+                태어난 시각 *
                 <input
                   type="time"
                   {...requestForm.register('birthTime')}
@@ -310,29 +310,29 @@ export default function SajuLovePage() {
               </label>
 
               <label className="text-[0.82rem] text-[var(--text-secondary)]">
-                성별 *
+                남녀 *
                 <select
                   {...requestForm.register('gender')}
                   className="mt-1.5 h-11 w-full rounded-[var(--radius-sm)] border border-[var(--border-primary)] bg-[var(--bg-primary)] px-3 text-[0.9rem] text-[var(--text-primary)] transition-colors focus:border-[var(--accent-primary)] focus:outline-none"
                 >
-                  <option value="female">여성</option>
-                  <option value="male">남성</option>
+                  <option value="female">여인</option>
+                  <option value="male">사내</option>
                 </select>
               </label>
 
               <label className="text-[0.82rem] text-[var(--text-secondary)]">
-                달력 *
+                역법 *
                 <select
                   {...requestForm.register('calendarType')}
                   className="mt-1.5 h-11 w-full rounded-[var(--radius-sm)] border border-[var(--border-primary)] bg-[var(--bg-primary)] px-3 text-[0.9rem] text-[var(--text-primary)] transition-colors focus:border-[var(--accent-primary)] focus:outline-none"
                 >
-                  <option value="solar">양력</option>
-                  <option value="lunar">음력</option>
+                  <option value="solar">해력</option>
+                  <option value="lunar">태음력</option>
                 </select>
               </label>
 
               <label className="text-[0.82rem] text-[var(--text-secondary)] md:col-span-2">
-                출생지 *
+                태어난 고장 *
                 <input
                   type="text"
                   placeholder="서울"
@@ -353,14 +353,14 @@ export default function SajuLovePage() {
                 disabled={requestForm.formState.isSubmitting}
                 className="inline-flex h-10 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--accent-primary)] px-4 text-[0.84rem] font-semibold text-white transition-all duration-200 hover:-translate-y-[1px] hover:bg-[var(--accent-hover)] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {requestForm.formState.isSubmitting ? '등록 중...' : '요청 등록'}
+                {requestForm.formState.isSubmitting ? '올리는 중...' : '청원 올리기'}
               </button>
               <button
                 type="button"
                 onClick={() => setStep('landing')}
                 className="inline-flex h-10 items-center justify-center rounded-[var(--radius-sm)] border border-[var(--border-primary)] bg-[var(--bg-primary)] px-4 text-[0.82rem] text-[var(--text-secondary)] transition-all duration-200 hover:-translate-y-[1px] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
               >
-                뒤로가기
+                뒤로 물림
               </button>
             </div>
           </form>
@@ -370,24 +370,24 @@ export default function SajuLovePage() {
       {step === 'submitted' && (
         <section className="saju-hover-card space-y-4 rounded-[var(--radius-lg)] border border-[var(--border-primary)] bg-[var(--bg-primary)] p-5 shadow-[var(--shadow-sm)] md:p-7">
           <article className="rounded-[var(--radius-md)] border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-4">
-            <h2 className="text-[1.05rem] font-semibold text-[var(--text-primary)]">요청이 접수되었습니다</h2>
-            <p className="mt-2 text-[0.88rem] text-[var(--text-secondary)]">비동기 분석 완료 후 이메일로 결과를 발송합니다.</p>
+            <h2 className="text-[1.05rem] font-semibold text-[var(--text-primary)]">청원이 접수되었사옵니다</h2>
+            <p className="mt-2 text-[0.88rem] text-[var(--text-secondary)]">비동기 헤아림이 마치면 전자우편으로 풀이를 보내옵니다.</p>
 
             <div className="mt-3 space-y-2 rounded-[var(--radius-sm)] border border-[var(--border-primary)] bg-[var(--bg-primary)] p-3">
-              <p className="text-[0.78rem] text-[var(--text-tertiary)]">요청 ID</p>
+              <p className="text-[0.78rem] text-[var(--text-tertiary)]">청원 식별값</p>
               <p className="break-all font-mono text-[0.82rem] text-[var(--text-primary)]">{statusForm.watch('requestId')}</p>
-              <p className="mt-2 text-[0.78rem] text-[var(--text-tertiary)]">조회 키 (token)</p>
+              <p className="mt-2 text-[0.78rem] text-[var(--text-tertiary)]">살핌 열쇠</p>
               <p className="break-all font-mono text-[0.82rem] text-[var(--text-primary)]">{statusForm.watch('accessToken')}</p>
             </div>
           </article>
 
           <article className="rounded-[var(--radius-md)] border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-4">
-            <h3 className="text-[0.95rem] font-semibold text-[var(--text-primary)]">상태 조회</h3>
+            <h3 className="text-[0.95rem] font-semibold text-[var(--text-primary)]">형편 살피기</h3>
             <form className="mt-3 grid gap-3 md:grid-cols-2" onSubmit={checkStatus}>
               <div>
                 <input
                   type="text"
-                  placeholder="요청 ID"
+                  placeholder="청원 식별값"
                   {...statusForm.register('requestId')}
                   className="h-10 w-full rounded-[var(--radius-sm)] border border-[var(--border-primary)] bg-[var(--bg-primary)] px-3 text-[0.84rem] transition-colors focus:border-[var(--accent-primary)] focus:outline-none"
                 />
@@ -399,7 +399,7 @@ export default function SajuLovePage() {
               <div>
                 <input
                   type="text"
-                  placeholder="조회 키(token)"
+                  placeholder="살핌 열쇠"
                   {...statusForm.register('accessToken')}
                   className="h-10 w-full rounded-[var(--radius-sm)] border border-[var(--border-primary)] bg-[var(--bg-primary)] px-3 text-[0.84rem] transition-colors focus:border-[var(--accent-primary)] focus:outline-none"
                 />
@@ -419,7 +419,7 @@ export default function SajuLovePage() {
                 className="inline-flex h-10 items-center gap-2 rounded-[var(--radius-sm)] bg-[var(--accent-primary)] px-4 text-[0.82rem] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isChecking && <span className="saju-status-dot" />}
-                {isChecking ? '조회 중...' : '상태 확인'}
+                {isChecking ? '살피는 중...' : '형편 살피기'}
               </button>
               <button
                 type="button"
@@ -428,27 +428,27 @@ export default function SajuLovePage() {
                 className="inline-flex h-10 items-center gap-2 rounded-[var(--radius-sm)] border border-[var(--border-primary)] bg-[var(--bg-primary)] px-4 text-[0.82rem] text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-hover)] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isTriggering && <span className="saju-status-dot" />}
-                {isTriggering ? '처리 요청 중...' : '처리 트리거'}
+                {isTriggering ? '다스림 청하는 중...' : '다스림 깨우기'}
               </button>
               <button
                 type="button"
                 onClick={resetForNewRequest}
                 className="inline-flex h-10 items-center justify-center rounded-[var(--radius-sm)] border border-[var(--border-primary)] bg-[var(--bg-primary)] px-4 text-[0.82rem] text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-hover)]"
               >
-                새 요청 만들기
+                새 청원 올리기
               </button>
             </div>
 
             {requestState && (
               <div className="mt-3 rounded-[var(--radius-sm)] border border-[var(--border-primary)] bg-[var(--bg-primary)] p-3 text-[0.82rem] text-[var(--text-secondary)]">
                 <p>
-                  현재 상태: <strong className="text-[var(--text-primary)]">{statusText(requestState.status)}</strong>
+                  이제 형편: <strong className="text-[var(--text-primary)]">{statusText(requestState.status)}</strong>
                 </p>
-                <p className="mt-1">메일 발송: {requestState.email.sent ? '완료' : '대기/실패'}</p>
+                <p className="mt-1">편지 보냄: {requestState.email.sent ? '마침' : '기다림/그르침'}</p>
                 {requestState.email.sentAt && (
-                  <p className="mt-1">발송 시각: {new Date(requestState.email.sentAt).toLocaleString('ko-KR')}</p>
+                  <p className="mt-1">보낸 시각: {new Date(requestState.email.sentAt).toLocaleString('ko-KR')}</p>
                 )}
-                {requestState.error && <p className="mt-1 text-[#ba3b2a]">오류: {requestState.error}</p>}
+                {requestState.error && <p className="mt-1 text-[#ba3b2a]">허물: {requestState.error}</p>}
               </div>
             )}
 

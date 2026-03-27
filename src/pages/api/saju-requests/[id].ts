@@ -16,23 +16,23 @@ export const GET: APIRoute = async ({ request, params }) => {
   const token = new URL(request.url).searchParams.get('token')?.trim() ?? '';
 
   if (!id) {
-    return json({ error: '요청 ID가 필요해요.' }, 400);
+    return json({ error: '청원 식별값이 필요하옵니다.' }, 400);
   }
 
   if (!token) {
-    return json({ error: '조회 키(token)가 필요해요.' }, 400);
+    return json({ error: '살핌 열쇠가 필요하옵니다.' }, 400);
   }
 
   try {
     const job = await getAuthorizedLoveJob(id, token);
     if (!job) {
-      return json({ error: '요청 정보를 찾지 못했어요.' }, 404);
+      return json({ error: '청원 내력을 찾지 못하였사옵니다.' }, 404);
     }
 
     return json({ request: sanitizeLoveJob(job) });
   } catch (error) {
     if (error instanceof Error && error.message === 'job_access_denied') {
-      return json({ error: '조회 권한이 없어요. 요청 ID/조회 키를 확인해 주세요.' }, 403);
+      return json({ error: '살필 권한이 없사오니, 청원 식별값과 살핌 열쇠를 다시 살펴 주시옵소서.' }, 403);
     }
 
     logEvent('error', 'saju_request_get_failed', {
@@ -40,6 +40,6 @@ export const GET: APIRoute = async ({ request, params }) => {
       message: error instanceof Error ? error.message : 'unknown'
     });
 
-    return json({ error: '결과 조회 중 오류가 발생했어요.' }, 500);
+    return json({ error: '결과를 살피는 동안 허물이 생겼사옵니다.' }, 500);
   }
 };

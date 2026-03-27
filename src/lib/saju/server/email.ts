@@ -56,7 +56,7 @@ function createEmailHtml(payload: EmailSendPayload) {
   return `
   <div style="font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; line-height: 1.55; color: #111827;">
     <h2 style="margin:0 0 12px;">${payload.name || "고객"}님의 연애운 분석 결과</h2>
-    <p style="margin:0 0 10px;">요청 ID: <b>${payload.requestId}</b></p>
+    <p style="margin:0 0 10px;">청원 식별값: <b>${payload.requestId}</b></p>
     <p style="margin:0 0 10px;">핵심 요약: ${payload.result.summary}</p>
     <p style="margin:0 0 10px;">좋은 흐름: ${payload.result.highlight}</p>
     <p style="margin:0 0 10px;">주의 포인트: ${payload.result.caution}</p>
@@ -64,7 +64,7 @@ function createEmailHtml(payload: EmailSendPayload) {
     ${sectionHtml}
     ${yearGuideHtml}
     <hr style="margin:18px 0;border:none;border-top:1px solid #e5e7eb;" />
-    <p style="margin:0;color:#6b7280;font-size:12px;">본 결과는 참고용 콘텐츠입니다.</p>
+    <p style="margin:0;color:#6b7280;font-size:12px;">이 결과는 참고용 글월이옵니다.</p>
   </div>`;
 }
 
@@ -88,7 +88,7 @@ function createEmailText(payload: EmailSendPayload) {
 
   return [
     `${payload.name || "고객"}님의 연애운 분석 결과`,
-    `요청 ID: ${payload.requestId}`,
+    `청원 식별값: ${payload.requestId}`,
     `핵심 요약: ${payload.result.summary}`,
     `좋은 흐름: ${payload.result.highlight}`,
     `주의 포인트: ${payload.result.caution}`,
@@ -96,7 +96,7 @@ function createEmailText(payload: EmailSendPayload) {
     sectionText,
     yearGuideText,
     "",
-    "본 결과는 참고용 콘텐츠입니다.",
+    "이 결과는 참고용 글월이옵니다.",
   ].join("\n");
 }
 
@@ -118,7 +118,7 @@ async function sendWithResend(payload: EmailSendPayload): Promise<EmailSendResul
     body: JSON.stringify({
       from,
       to: [payload.to],
-      subject: "[사주 결과] 요청하신 연애운 리포트가 도착했습니다",
+      subject: "[사주 결과] 청하신 연애운 풀이 글월이 도착했사옵니다",
       text: createEmailText(payload),
       html: createEmailHtml(payload),
     }),
@@ -147,14 +147,14 @@ function createAdminSummaryText(payload: AdminSummaryPayload) {
 
   return [
     `[관리자 요약] 사주 처리 ${statusLabel}`,
-    `요청 ID: ${payload.requestId}`,
+    `청원 식별값: ${payload.requestId}`,
     `이름: ${payload.requesterName || "(미입력)"}`,
     `신청 이메일: ${payload.requesterEmail || "(없음)"}`,
     `결과 상태: ${statusLabel}`,
     `처리 경로: ${payload.source}`,
     `점수: ${scoreText}`,
     `오류: ${payload.error ?? "없음"}`,
-    `모델 버전: ${payload.result?.modelVersion ?? "-"}`,
+    `모형 판본: ${payload.result?.modelVersion ?? "-"}`,
   ].join("\n");
 }
 
@@ -168,14 +168,14 @@ function createAdminSummaryHtml(payload: AdminSummaryPayload) {
   return `
   <div style="font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; line-height: 1.55; color: #111827;">
     <h2 style="margin:0 0 12px;">[관리자 요약] 사주 처리 ${statusLabel}</h2>
-    <p style="margin:0 0 8px;">요청 ID: <b>${payload.requestId}</b></p>
+    <p style="margin:0 0 8px;">청원 식별값: <b>${payload.requestId}</b></p>
     <p style="margin:0 0 8px;">이름: <b>${payload.requesterName || "(미입력)"}</b></p>
     <p style="margin:0 0 8px;">신청 이메일: <b>${payload.requesterEmail || "(없음)"}</b></p>
     <p style="margin:0 0 8px;">처리 경로: <b>${payload.source}</b></p>
     <p style="margin:0 0 8px;">결과 상태: <b style="color:${statusColor};">${statusLabel}</b></p>
     <p style="margin:0 0 8px;">점수(연애/결혼/리스크): <b>${scores}</b></p>
     <p style="margin:0 0 8px;">오류: <b>${payload.error ?? "없음"}</b></p>
-    <p style="margin:0 0 8px;">모델 버전: <b>${payload.result?.modelVersion ?? "-"}</b></p>
+    <p style="margin:0 0 8px;">모형 판본: <b>${payload.result?.modelVersion ?? "-"}</b></p>
   </div>`;
 }
 

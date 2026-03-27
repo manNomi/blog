@@ -16,7 +16,7 @@ export const POST: APIRoute = async ({ request }) => {
   const incoming = request.headers.get('x-job-processor-secret')?.trim();
 
   if (expected && incoming !== expected) {
-    return json({ error: 'forbidden' }, 403);
+    return json({ error: '다스림 권한이 없사옵니다.' }, 403);
   }
 
   try {
@@ -32,6 +32,6 @@ export const POST: APIRoute = async ({ request }) => {
       message: error instanceof Error ? error.message : 'unknown'
     });
 
-    return json({ error: 'batch_process_failed' }, 500);
+    return json({ error: '묶음 다스림에 그르쳤사옵니다.' }, 500);
   }
 };

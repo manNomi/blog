@@ -19,7 +19,7 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
 ---
 
 <BaseLayout
-  title={`${title} - manNomi`}
+  title={`${title} - 한만욱`}
   description={description}
   image={heroImage}
   canonicalURL={`/blog/${slug}`}
@@ -28,14 +28,6 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
 
   <main class="main">
     <article class="article">
-      <div class="hero-image">
-        <img
-          src={heroImage || '/images/placeholder.svg'}
-          alt={title}
-          class:list={[{ 'placeholder': !heroImage }]}
-        />
-      </div>
-
       <div class="content">
         <header class="article-header">
           <h1 class="article-title">{title}</h1>
@@ -47,12 +39,12 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
                 <circle cx="12" cy="12" r="10" />
                 <polyline points="12 6 12 12 16 14" />
               </svg>
-              <span>{readingTime}분</span>
+              <span>{readingTime}분 남짓</span>
             </span>
             <ViewCounter client:load slug={slug} />
             {updatedDate && (
               <span class="updated">
-                수정됨 {new Intl.DateTimeFormat('ko-KR', {
+                고침 {new Intl.DateTimeFormat('ko-KR', {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric'
@@ -88,44 +80,176 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   <Footer />
 </BaseLayout>
 
-<script define:vars={{ heroImage }} is:inline>
-  const normalizeImagePath = (value) => {
-    if (!value) {
-      return '';
-    }
-
+<script is:inline>
+  const parseUrl = (value) => {
     try {
-      return new URL(value, window.location.origin).pathname;
+      return new URL(value);
     } catch {
-      return value;
+      return null;
     }
   };
 
-  const heroImagePath = normalizeImagePath(heroImage);
-  const articleBody = document.querySelector('.article-body');
-
-  if (heroImagePath && articleBody) {
-    const firstElement = articleBody.firstElementChild;
-    let imageNode = null;
-    let removeTarget = null;
-
-    if (firstElement?.tagName === 'IMG') {
-      imageNode = firstElement;
-      removeTarget = firstElement;
-    } else if (
-      firstElement?.tagName === 'P' &&
-      firstElement.children.length === 1 &&
-      firstElement.firstElementChild?.tagName === 'IMG'
-    ) {
-      imageNode = firstElement.firstElementChild;
-      removeTarget = firstElement;
+  const getVideoEmbedUrl = (href) => {
+    const parsed = parseUrl(href);
+    if (!parsed) {
+      return '';
     }
 
-    if (imageNode && removeTarget) {
-      const firstImagePath = normalizeImagePath(imageNode.getAttribute('src') || '');
-      if (firstImagePath === heroImagePath) {
-        removeTarget.remove();
+    const host = parsed.hostname.replace(/^www\./, '');
+
+    if (host === 'youtu.be') {
+      const videoId = parsed.pathname.split('/').filter(Boolean)[0];
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : '';
+    }
+
+    if (host === 'youtube.com' || host.endsWith('.youtube.com')) {
+      if (parsed.pathname === '/watch') {
+        const videoId = parsed.searchParams.get('v');
+        return videoId ? `https://www.youtube.com/embed/${videoId}` : '';
       }
+      if (parsed.pathname.startsWith('/shorts/')) {
+        const videoId = parsed.pathname.split('/').filter(Boolean)[1];
+        return videoId ? `https://www.youtube.com/embed/${videoId}` : '';
+      }
+      if (parsed.pathname.startsWith('/embed/')) {
+        const videoId = parsed.pathname.split('/').filter(Boolean)[1];
+        return videoId ? `https://www.youtube.com/embed/${videoId}` : '';
+      }
+    }
+
+    if (host === 'vimeo.com' || host.endsWith('.vimeo.com')) {
+      const videoId = parsed.pathname.split('/').filter(Boolean)[0];
+      if (videoId && /^\d+$/.test(videoId)) {
+        return `https://player.vimeo.com/video/${videoId}`;
+      }
+    }
+
+    return '';
+  };
+
+  const isStandaloneExternalLinkParagraph = (paragraph) => {
+    if (!paragraph || paragraph.tagName !== 'P') {
+      return false;
+    }
+
+    if (paragraph.closest('li, blockquote, td, th')) {
+      return false;
+    }
+
+    if (paragraph.children.length !== 1 || paragraph.firstElementChild?.tagName !== 'A') {
+      return false;
+    }
+
+    const inlineText = Array.from(paragraph.childNodes)
+      .filter((node) => node.nodeType === Node.TEXT_NODE)
+      .map((node) => node.textContent || '')
+      .join('')
+      .trim();
+
+    if (inlineText) {
+      return false;
+    }
+
+    const href = paragraph.firstElementChild.getAttribute('href') || '';
+    return /^https?:\/\//.test(href);
+  };
+
+  const articleBody = document.querySelector('.article-body');
+
+  if (articleBody) {
+    for (const table of articleBody.querySelectorAll('table')) {
+      if (table.parentElement?.classList.contains('table-scroll')) {
+        continue;
+      }
+      const wrapper = document.createElement('div');
+      wrapper.className = 'table-scroll';
+      table.parentNode?.insertBefore(wrapper, table);
+      wrapper.appendChild(table);
+    }
+
+    for (const paragraph of articleBody.querySelectorAll('p')) {
+      if (!isStandaloneExternalLinkParagraph(paragraph)) {
+        continue;
+      }
+
+      const anchor = paragraph.firstElementChild;
+      const href = anchor?.getAttribute('href')?.trim() || '';
+      if (!href) {
+        continue;
+      }
+
+      const embedUrl = getVideoEmbedUrl(href);
+      if (embedUrl) {
+        const frame = document.createElement('iframe');
+        frame.src = embedUrl;
+        frame.loading = 'lazy';
+        frame.allowFullscreen = true;
+        frame.referrerPolicy = 'strict-origin-when-cross-origin';
+        frame.title = anchor?.textContent?.trim() || '삽입된 영상';
+
+        const wrapper = document.createElement('figure');
+        wrapper.className = 'notion-video-embed';
+        wrapper.appendChild(frame);
+        paragraph.replaceWith(wrapper);
+        continue;
+      }
+
+      const parsed = parseUrl(href);
+      const domain = parsed?.hostname?.replace(/^www\./, '') || href;
+
+      const card = document.createElement('a');
+      card.className = 'notion-link-card';
+      card.href = href;
+      card.target = '_blank';
+      card.rel = 'noopener noreferrer';
+
+      const title = document.createElement('span');
+      title.className = 'notion-link-card-title';
+      title.textContent = anchor?.textContent?.trim() || href;
+
+      const meta = document.createElement('span');
+      meta.className = 'notion-link-card-meta';
+      meta.textContent = domain;
+
+      card.appendChild(title);
+      card.appendChild(meta);
+      paragraph.replaceWith(card);
+    }
+
+    const mermaidCodeBlocks = Array.from(articleBody.querySelectorAll('pre code.language-mermaid'));
+    if (mermaidCodeBlocks.length > 0) {
+      import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs')
+        .then(({ default: mermaid }) => {
+          const nodes = [];
+
+          for (const code of mermaidCodeBlocks) {
+            const pre = code.closest('pre');
+            if (!pre) {
+              continue;
+            }
+
+            const diagram = document.createElement('div');
+            diagram.className = 'mermaid';
+            diagram.textContent = code.textContent || '';
+            pre.replaceWith(diagram);
+            nodes.push(diagram);
+          }
+
+          if (nodes.length === 0) {
+            return;
+          }
+
+          mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: 'loose',
+            theme: 'neutral'
+          });
+
+          mermaid.run({ nodes });
+        })
+        .catch(() => {
+          // Mermaid 로딩 실패 시 기존 코드 블록 유지
+        });
     }
   }
 </script>
@@ -138,30 +262,6 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
 
   .article {
     max-width: 100%;
-  }
-
-  .hero-image {
-    width: 100%;
-    max-width: 980px;
-    margin: 0 auto 1.8rem;
-    aspect-ratio: 2 / 1;
-    overflow: hidden;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border-primary);
-    background-color: #c4c0b5;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .hero-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-  }
-
-  .hero-image img.placeholder {
-    opacity: 0.5;
   }
 
   .content {
@@ -252,6 +352,16 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   }
 
   /* Markdown Styles */
+  .article-body :global(h1) {
+    font-family: var(--font-serif);
+    font-size: 2.2rem;
+    margin-top: 2.8rem;
+    margin-bottom: 1rem;
+    line-height: 1.3;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+  }
+
   .article-body :global(h2) {
     font-family: var(--font-serif);
     font-size: 1.92rem;
@@ -266,6 +376,23 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
     font-size: 1.46rem;
     margin-top: 1.8rem;
     margin-bottom: 0.6rem;
+    color: var(--text-primary);
+  }
+
+  .article-body :global(h4) {
+    font-family: var(--font-serif);
+    font-size: 1.2rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+  }
+
+  .article-body :global(h5),
+  .article-body :global(h6) {
+    font-family: var(--font-serif);
+    font-size: 1.05rem;
+    margin-top: 1.2rem;
+    margin-bottom: 0.4rem;
     color: var(--text-primary);
   }
 
@@ -292,6 +419,55 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
 
   .article-body :global(li) {
     margin-bottom: 0.4rem;
+  }
+
+  .article-body :global(.contains-task-list) {
+    list-style: none;
+    padding-left: 0.2rem;
+  }
+
+  .article-body :global(.task-list-item) {
+    list-style: none;
+  }
+
+  .article-body :global(.task-list-item input[type='checkbox']) {
+    margin-right: 0.5rem;
+    accent-color: #7f3f17;
+    transform: translateY(1px);
+  }
+
+  .article-body :global(details) {
+    margin: 1rem 0;
+    border: 1px solid var(--divider);
+    border-radius: var(--radius-sm);
+    background: #f8f5ed;
+    padding: 0.45rem 0.75rem;
+  }
+
+  .article-body :global(details > summary) {
+    cursor: pointer;
+    font-weight: 700;
+    color: #5e2d11;
+    list-style: none;
+  }
+
+  .article-body :global(details > summary::-webkit-details-marker) {
+    display: none;
+  }
+
+  .article-body :global(details > summary::before) {
+    content: '▸';
+    display: inline-block;
+    margin-right: 0.4rem;
+    transition: transform 0.15s ease;
+  }
+
+  .article-body :global(details[open] > summary::before) {
+    transform: rotate(90deg);
+  }
+
+  .article-body :global(details > *:not(summary)) {
+    margin-top: 0.6rem;
   }
 
   .article-body :global(:not(pre) > code) {
@@ -346,6 +522,105 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
     font-style: normal;
   }
 
+  .article-body :global(.table-scroll) {
+    margin: 1.2rem 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--divider);
+    border-radius: var(--radius-sm);
+    background: #fff;
+  }
+
+  .article-body :global(.table-scroll table) {
+    margin: 0;
+    min-width: 100%;
+    width: max-content;
+    border-collapse: collapse;
+    line-height: 1.5;
+    font-size: 0.92rem;
+  }
+
+  .article-body :global(.table-scroll th),
+  .article-body :global(.table-scroll td) {
+    border: 1px solid var(--divider);
+    padding: 0.52rem 0.72rem;
+    text-align: left;
+    vertical-align: top;
+    word-break: break-word;
+    white-space: normal;
+  }
+
+  .article-body :global(.table-scroll th) {
+    background-color: #efeadf;
+    font-weight: 700;
+  }
+
+  .article-body :global(.table-scroll tbody tr:nth-child(even) td) {
+    background-color: #faf7f0;
+  }
+
+  .article-body :global(a.notion-link-card) {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin: 1rem 0;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--divider);
+    border-radius: var(--radius-sm);
+    background: #fbf8f1;
+    color: var(--text-primary);
+    text-decoration: none;
+    border-bottom: 1px solid var(--divider);
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+  }
+
+  .article-body :global(a.notion-link-card:hover) {
+    border-color: #c7bcab;
+    background: #f5efe2;
+    color: var(--text-primary);
+  }
+
+  .article-body :global(.notion-link-card-title) {
+    font-weight: 700;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+
+  .article-body :global(.notion-link-card-meta) {
+    font-size: 0.82rem;
+    color: var(--text-tertiary);
+    overflow-wrap: anywhere;
+  }
+
+  .article-body :global(.notion-video-embed) {
+    margin: 1.2rem 0;
+    border: 1px solid var(--divider);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background: #111;
+  }
+
+  .article-body :global(.notion-video-embed iframe) {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border: 0;
+  }
+
+  .article-body :global(.mermaid) {
+    margin: 1rem 0;
+    padding: 0.75rem;
+    border: 1px solid var(--divider);
+    border-radius: var(--radius-sm);
+    background: #fff;
+    overflow-x: auto;
+  }
+
+  .article-body :global(.mermaid svg) {
+    max-width: 100%;
+    height: auto;
+  }
+
   .article-body :global(img) {
     max-width: 100%;
     height: auto;
@@ -376,10 +651,6 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   @media (max-width: 768px) {
     .article-title {
       font-size: var(--text-3xl);
-    }
-
-    .hero-image {
-      aspect-ratio: 16 / 9;
     }
   }
 </style>
