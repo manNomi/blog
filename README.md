@@ -20,6 +20,7 @@ Notion을 CMS로 활용한 정적 기술 블로그입니다.
 - 읽기 시간 표시
 - 댓글 (Giscus)
 - 공유 기능 (SNS, 링크 복사)
+- 사주 연애운 이메일 리포트 (요청 큐/비동기 처리)
 - SEO 최적화 (Open Graph, Sitemap)
 - 크림 색상 테마
 
@@ -45,7 +46,30 @@ Notion을 CMS로 활용한 정적 기술 블로그입니다.
 ```
 NOTION_TOKEN=your_token
 NOTION_DATABASE_ID=your_database_id
+
+# Saju (email queue flow)
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+FIREBASE_ADMIN_PROJECT_ID=
+FIREBASE_ADMIN_CLIENT_EMAIL=
+FIREBASE_ADMIN_PRIVATE_KEY=
+FIREBASE_SERVER_FALLBACK_PUBLIC=true
+EMAIL_PROVIDER=console
+RESEND_API_KEY=
+EMAIL_FROM=
+TURNSTILE_SECRET_KEY=
+JOB_PROCESSOR_SECRET=
 ```
+
+### 사주 처리 플로우
+
+- `/saju`에서 요청 등록 → `POST /api/saju-requests`
+- 워커/크론이 `POST /api/saju-requests/process` 호출하여 queued 요청 처리
+- 처리 완료 시 이메일 발송, 상태 조회는 `GET /api/saju-requests/:id?token=...`
 
 ### Giscus 댓글 설정
 
