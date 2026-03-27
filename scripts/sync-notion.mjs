@@ -23,21 +23,161 @@ if (!process.env.NOTION_TOKEN) {
 const notion = new Client({ auth: process.env.NOTION_TOKEN });
 const n2m = new NotionToMarkdown({ notionClient: notion });
 
+async function listAllBlockChildren(blockId) {
+  const results = [];
+  let nextCursor;
+
+  do {
+    const response = await notion.blocks.children.list({
+      block_id: blockId,
+      page_size: 100,
+      ...(nextCursor ? { start_cursor: nextCursor } : {})
+    });
+
+    results.push(...response.results);
+    nextCursor = response.has_more ? response.next_cursor : null;
+  } while (nextCursor);
+
+  return results;
+}
+
+async function richTextToMarkdown(richText = []) {
+  const text = await n2m.blockToMarkdown({
+    type: 'paragraph',
+    paragraph: { rich_text: Array.isArray(richText) ? richText : [] }
+  });
+  return text.trim();
+}
+
+function richTextToPlainText(richText = []) {
+  if (!Array.isArray(richText)) {
+    return '';
+  }
+  return richText
+    .map((item) => item?.plain_text || '')
+    .join('')
+    .trim();
+}
+
+function normalizeExternalUrl(url) {
+  if (typeof url !== 'string') {
+    return '';
+  }
+  return url.trim();
+}
+
+function escapeTableCell(text) {
+  if (!text) {
+    return ' ';
+  }
+
+  return text
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .replace(/\|/g, '\\|')
+    .replace(/\n/g, '<br />')
+    .trim() || ' ';
+}
+
+function normalizeTableRows(rows, expectedWidth) {
+  const maxWidth = Math.max(
+    Number.isInteger(expectedWidth) && expectedWidth > 0 ? expectedWidth : 0,
+    ...rows.map((row) => row.length),
+    1
+  );
+
+  return rows.map((row) => {
+    const normalized = [...row];
+    while (normalized.length < maxWidth) {
+      normalized.push(' ');
+    }
+    return normalized.slice(0, maxWidth).map((cell) => cell || ' ');
+  });
+}
+
+function createMarkdownTable(rows, { hasColumnHeader, expectedWidth }) {
+  if (!Array.isArray(rows) || rows.length === 0) {
+    return '';
+  }
+
+  const normalizedRows = normalizeTableRows(rows, expectedWidth);
+  const columnCount = normalizedRows[0].length;
+
+  const header = hasColumnHeader
+    ? normalizedRows[0]
+    : Array.from({ length: columnCount }, () => ' ');
+
+  const body = hasColumnHeader ? normalizedRows.slice(1) : normalizedRows;
+  const divider = Array.from({ length: columnCount }, () => '---');
+
+  const lines = [
+    `| ${header.join(' | ')} |`,
+    `| ${divider.join(' | ')} |`,
+    ...body.map((row) => `| ${row.join(' | ')} |`)
+  ];
+
+  return lines.join('\n');
+}
+
+// 커스텀 변환기 설정 - URL 멘션/북마크/표 블록 지원
+n2m.setCustomTransformer('table', async (block) => {
+  if (!block?.id || block?.type !== 'table') {
+    return false;
+  }
+
+  if (!block.has_children) {
+    return '';
+  }
+
+  const tableRows = await listAllBlockChildren(block.id);
+  const parsedRows = [];
+
+  for (const row of tableRows) {
+    if (row.type !== 'table_row') {
+      continue;
+    }
+
+    const cells = Array.isArray(row.table_row?.cells) ? row.table_row.cells : [];
+    const parsedRow = [];
+
+    for (const cell of cells) {
+      const markdownCell = await richTextToMarkdown(cell);
+      parsedRow.push(escapeTableCell(markdownCell));
+    }
+
+    parsedRows.push(parsedRow);
+  }
+
+  return createMarkdownTable(parsedRows, {
+    hasColumnHeader: block.table?.has_column_header === true,
+    expectedWidth: block.table?.table_width
+  });
+});
+
 // 커스텀 변환기 설정 - URL 멘션/북마크 블록 지원
 n2m.setCustomTransformer('bookmark', async (block) => {
-  const url = block.bookmark?.url || '';
-  const caption = block.bookmark?.caption?.[0]?.plain_text || url;
+  const url = normalizeExternalUrl(block.bookmark?.url);
+  if (!url) {
+    return '';
+  }
+  const caption = richTextToPlainText(block.bookmark?.caption) || url;
   return `[${caption}](${url})`;
 });
 
 n2m.setCustomTransformer('link_preview', async (block) => {
-  const url = block.link_preview?.url || '';
+  const url = normalizeExternalUrl(block.link_preview?.url);
+  if (!url) {
+    return '';
+  }
   return `[${url}](${url})`;
 });
 
 n2m.setCustomTransformer('embed', async (block) => {
-  const url = block.embed?.url || '';
-  const caption = block.embed?.caption?.[0]?.plain_text || url;
+  const url = normalizeExternalUrl(block.embed?.url);
+  if (!url) {
+    return '';
+  }
+  const caption = richTextToPlainText(block.embed?.caption) || url;
   return `[${caption}](${url})`;
 });
 

@@ -4,25 +4,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import PostCard from '../components/PostCard.astro';
 import Footer from '../components/Footer.astro';
-import { extractFirstImage } from '../utils/extractFirstImage';
 
 const allPosts = (await getCollection('blog'))
-  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-  .map((post) => {
-    if (!post.data.heroImage && post.body) {
-      const extractedImage = extractFirstImage(post.body);
-      return {
-        ...post,
-        data: {
-          ...post.data,
-          heroImage: extractedImage || undefined
-        }
-      };
-    }
-    return post;
-  });
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
-const allTags = [...new Set(allPosts.flatMap((post) => post.data.tags || []))];
+const allTags = [...new Set(allPosts.flatMap((post) => post.data.tags || []))].sort((a, b) => a.localeCompare(b, 'ko-KR'));
 
 const tagCounts = allTags.reduce((acc, tag) => {
   acc[tag] = allPosts.filter((post) => post.data.tags?.includes(tag)).length;
@@ -42,19 +28,19 @@ const tagCountInactiveClass = 'bg-[var(--bg-tag)]';
 const tagCountActiveClass = 'bg-[rgba(11,110,153,0.12)] text-[var(--accent-primary)]';
 ---
 
-<BaseLayout title="전체 글 목록 - manNomi" description="모든 기술 블로그 글을 확인하세요">
+<BaseLayout title="글월 모두 모음 - 한만욱" description="기술 누리집에 실린 모든 글월을 살펴보시옵소서">
   <Header />
 
   <main class="min-h-screen pb-[var(--space-3xl)] pt-[calc(var(--header-height)+1.7rem)]">
     <div class="container">
       <div class="mb-5">
-        <h1 class="mb-[0.35rem] text-[2rem] font-semibold tracking-[-0.015em] text-[var(--text-primary)]">전체 글</h1>
-        <p class="text-[0.9rem] text-[var(--text-secondary)]">총 {allPosts.length}개의 글</p>
+        <h1 class="mb-[0.35rem] text-[2rem] font-semibold tracking-[-0.015em] text-[var(--text-primary)]">모든 글월</h1>
+        <p class="text-[0.9rem] text-[var(--text-secondary)]">도합 {allPosts.length}편 글월</p>
       </div>
 
       {allTags.length > 0 && (
         <div class="mb-[1.2rem] rounded-[var(--radius-md)] border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-[0.85rem]">
-          <h2 class="mb-[0.6rem] text-[0.84rem] font-medium text-[var(--text-primary)]">태그로 찾기</h2>
+          <h2 class="mb-[0.6rem] text-[0.84rem] font-medium text-[var(--text-primary)]">갈래말로 찾기</h2>
           <div class="flex flex-wrap gap-[0.45rem]">
             <button
               class={`${tagButtonBaseClass} ${tagButtonActiveClass}`}
@@ -67,7 +53,7 @@ const tagCountActiveClass = 'bg-[rgba(11,110,153,0.12)] text-[var(--accent-prima
               data-count-inactive={tagCountInactiveClass}
               data-count-active={tagCountActiveClass}
             >
-              <span class="tag-name font-medium">전체</span>
+              <span class="tag-name font-medium">모두</span>
               <span class={`${tagCountBaseClass} ${tagCountActiveClass}`}>{allPosts.length}</span>
             </button>
             {allTags.map((tag) => (
@@ -89,7 +75,7 @@ const tagCountActiveClass = 'bg-[rgba(11,110,153,0.12)] text-[var(--accent-prima
         </div>
       )}
 
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div class="post-list space-y-3">
         {allPosts.map((post) => (
           <div class="post-item" data-tags={JSON.stringify(post.data.tags || [])}>
             <PostCard
@@ -97,8 +83,8 @@ const tagCountActiveClass = 'bg-[rgba(11,110,153,0.12)] text-[var(--accent-prima
               description={post.data.description}
               slug={post.slug}
               pubDate={post.data.pubDate}
-              heroImage={post.data.heroImage}
               tags={post.data.tags}
+              pinned={post.data.pinned}
             />
           </div>
         ))}
@@ -106,7 +92,7 @@ const tagCountActiveClass = 'bg-[rgba(11,110,153,0.12)] text-[var(--accent-prima
 
       {allPosts.length === 0 && (
         <div class="py-[var(--space-3xl)] text-center text-[var(--text-tertiary)]">
-          <p>아직 작성된 글이 없습니다.</p>
+          <p>아직 적힌 글월이 없사옵니다.</p>
         </div>
       )}
     </div>
@@ -116,8 +102,8 @@ const tagCountActiveClass = 'bg-[rgba(11,110,153,0.12)] text-[var(--accent-prima
 </BaseLayout>
 
 <script>
-  const tagFilters = document.querySelectorAll('.tag-filter');
-  const postItems = document.querySelectorAll('.post-item');
+  const tagFilters = Array.from(document.querySelectorAll('.tag-filter'));
+  const postItems = Array.from(document.querySelectorAll('.post-item'));
 
   const updateButtonState = (button: Element, isActive: boolean) => {
     const inactiveClasses = (button.getAttribute('data-inactive') || '').split(' ').filter(Boolean);
@@ -144,20 +130,56 @@ const tagCountActiveClass = 'bg-[rgba(11,110,153,0.12)] text-[var(--accent-prima
     }
   };
 
+  const parsePostTags = (item: Element) => {
+    try {
+      return JSON.parse(item.getAttribute('data-tags') || '[]');
+    } catch {
+      return [];
+    }
+  };
+
+  const resolveTag = (tag: string | null) => {
+    if (!tag) return 'all';
+    return tagFilters.some((button) => button.getAttribute('data-tag') === tag) ? tag : 'all';
+  };
+
+  const syncTagQuery = (tag: string) => {
+    const url = new URL(window.location.href);
+    if (tag === 'all') {
+      url.searchParams.delete('tag');
+    } else {
+      url.searchParams.set('tag', tag);
+    }
+    window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+  };
+
+  const applyFilter = (tag: string, options: { syncUrl?: boolean } = {}) => {
+    const selectedTag = resolveTag(tag);
+    const activeButton =
+      tagFilters.find((button) => button.getAttribute('data-tag') === selectedTag) || tagFilters[0];
+
+    tagFilters.forEach((button) => updateButtonState(button, button === activeButton));
+
+    postItems.forEach((item) => {
+      const postTags = parsePostTags(item);
+      if (selectedTag === 'all' || postTags.includes(selectedTag)) {
+        item.classList.remove('hidden');
+      } else {
+        item.classList.add('hidden');
+      }
+    });
+
+    if (options.syncUrl !== false) {
+      syncTagQuery(selectedTag);
+    }
+  };
+
   tagFilters.forEach((button) => {
     button.addEventListener('click', () => {
-      const selectedTag = button.getAttribute('data-tag');
-
-      tagFilters.forEach((btn) => updateButtonState(btn, btn === button));
-
-      postItems.forEach((item) => {
-        const postTags = JSON.parse(item.getAttribute('data-tags') || '[]');
-        if (selectedTag === 'all' || postTags.includes(selectedTag)) {
-          item.classList.remove('hidden');
-        } else {
-          item.classList.add('hidden');
-        }
-      });
+      applyFilter(button.getAttribute('data-tag') || 'all');
     });
   });
+
+  const initialTag = new URLSearchParams(window.location.search).get('tag');
+  applyFilter(initialTag || 'all', { syncUrl: false });
 </script>

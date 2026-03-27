@@ -4,23 +4,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import PostCard from '../components/PostCard.astro';
 import Footer from '../components/Footer.astro';
-import { extractFirstImage } from '../utils/extractFirstImage';
 
 const allPosts = (await getCollection('blog'))
-  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-  .map((post) => {
-    if (!post.data.heroImage && post.body) {
-      const extractedImage = extractFirstImage(post.body);
-      return {
-        ...post,
-        data: {
-          ...post.data,
-          heroImage: extractedImage || undefined
-        }
-      };
-    }
-    return post;
-  });
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
 const allTags = [...new Set(allPosts.flatMap((post) => post.data.tags || []))].sort();
 
@@ -28,10 +14,6 @@ const tagCounts = allTags.reduce((acc, tag) => {
   acc[tag] = allPosts.filter((post) => post.data.tags?.includes(tag)).length;
   return acc;
 }, {} as Record<string, number>);
-
-if (allTags.length === 0) {
-  return Astro.redirect('/posts');
-}
 
 const tagButtonBaseClass =
   'tag-tab inline-flex items-center gap-2 rounded-[var(--radius-sm)] border px-[0.62rem] py-[0.3rem] text-[0.8rem] transition-[border-color,background-color,color] duration-150';
@@ -46,16 +28,16 @@ const tagCountInactiveClass = 'bg-[var(--bg-tag)]';
 const tagCountActiveClass = 'bg-[rgba(11,110,153,0.12)] text-[var(--accent-primary)]';
 ---
 
-<BaseLayout title="태그별 글 보기 - manNomi" description="태그별로 분류된 기술 블로그 글을 확인하세요">
+<BaseLayout title="갈래말 따라 글월 보기 - 한만욱" description="갈래말로 나뉜 기술 누리집 글월을 살펴보시옵소서">
   <Header />
 
   <main class="min-h-screen pb-[var(--space-3xl)] pt-[calc(var(--header-height)+1.7rem)]">
     <div class="container">
       <div class="mb-[1.2rem] text-left">
         <h1 class="mb-[0.32rem] text-[1.65rem] font-semibold tracking-[-0.015em] text-[var(--text-primary)] md:text-[2rem]">
-          태그별 글 보기
+          갈래말 따라 글월 보기
         </h1>
-        <p class="text-[0.9rem] text-[var(--text-secondary)]">관심있는 태그를 선택하여 글을 찾아보세요</p>
+        <p class="text-[0.9rem] text-[var(--text-secondary)]">마음 두신 갈래말을 고르시면 글월을 찾을 수 있사옵니다</p>
       </div>
 
       <div class="mb-[1.2rem] rounded-[var(--radius-md)] border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-[0.72rem] md:p-[0.85rem]">
@@ -70,7 +52,7 @@ const tagCountActiveClass = 'bg-[rgba(11,110,153,0.12)] text-[var(--accent-prima
             data-count-inactive={tagCountInactiveClass}
             data-count-active={tagCountActiveClass}
           >
-            <span class="tag-name text-[0.78rem] font-medium">전체</span>
+            <span class="tag-name text-[0.78rem] font-medium">모두</span>
             <span class={`${tagCountBaseClass} ${tagCountActiveClass}`}>{allPosts.length}</span>
           </button>
           {allTags.map((tag) => (
@@ -94,12 +76,12 @@ const tagCountActiveClass = 'bg-[rgba(11,110,153,0.12)] text-[var(--accent-prima
       <div class="posts-section mt-4">
         <div class="mb-[0.9rem] border-b border-[var(--border-primary)] pb-[0.7rem]">
           <h2 class="flex items-baseline gap-2 text-[1.24rem] font-semibold text-[var(--text-primary)]">
-            <span class="current-tag">전체</span>
-            <span class="post-count text-[0.85rem] font-normal text-[var(--text-tertiary)]">({allPosts.length}개의 글)</span>
+            <span class="current-tag">모두</span>
+            <span class="post-count text-[0.85rem] font-normal text-[var(--text-tertiary)]">({allPosts.length}편 글월)</span>
           </h2>
         </div>
 
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div class="post-list space-y-3">
           {allPosts.map((post) => (
             <div class="post-item" data-tags={JSON.stringify(post.data.tags || [])}>
               <PostCard
@@ -107,8 +89,8 @@ const tagCountActiveClass = 'bg-[rgba(11,110,153,0.12)] text-[var(--accent-prima
                 description={post.data.description}
                 slug={post.slug}
                 pubDate={post.data.pubDate}
-                heroImage={post.data.heroImage}
                 tags={post.data.tags}
+                pinned={post.data.pinned}
               />
             </div>
           ))}
@@ -116,7 +98,7 @@ const tagCountActiveClass = 'bg-[rgba(11,110,153,0.12)] text-[var(--accent-prima
 
         {allPosts.length === 0 && (
           <div class="py-[var(--space-3xl)] text-center text-[0.95rem] text-[var(--text-tertiary)]">
-            <p>아직 작성된 글이 없습니다.</p>
+            <p>아직 적힌 글월이 없사옵니다.</p>
           </div>
         )}
       </div>
@@ -127,8 +109,8 @@ const tagCountActiveClass = 'bg-[rgba(11,110,153,0.12)] text-[var(--accent-prima
 </BaseLayout>
 
 <script>
-  const tagTabs = document.querySelectorAll('.tag-tab');
-  const postItems = document.querySelectorAll('.post-item');
+  const tagTabs = Array.from(document.querySelectorAll('.tag-tab'));
+  const postItems = Array.from(document.querySelectorAll('.post-item'));
   const currentTagElement = document.querySelector('.current-tag');
   const postCountElement = document.querySelector('.post-count');
 
@@ -157,36 +139,73 @@ const tagCountActiveClass = 'bg-[rgba(11,110,153,0.12)] text-[var(--accent-prima
     }
   };
 
-  tagTabs.forEach((button) => {
-    button.addEventListener('click', () => {
-      const selectedTag = button.getAttribute('data-tag');
-      const tagName = button.querySelector('.tag-name')?.textContent || '전체';
+  const parsePostTags = (item: Element) => {
+    try {
+      return JSON.parse(item.getAttribute('data-tags') || '[]');
+    } catch {
+      return [];
+    }
+  };
 
-      tagTabs.forEach((btn) => updateButtonState(btn, btn === button));
+  const resolveTag = (tag: string | null) => {
+    if (!tag) return 'all';
+    return tagTabs.some((button) => button.getAttribute('data-tag') === tag) ? tag : 'all';
+  };
 
-      let visibleCount = 0;
-      postItems.forEach((item) => {
-        const postTags = JSON.parse(item.getAttribute('data-tags') || '[]');
+  const syncTagQuery = (tag: string) => {
+    const url = new URL(window.location.href);
+    if (tag === 'all') {
+      url.searchParams.delete('tag');
+    } else {
+      url.searchParams.set('tag', tag);
+    }
+    window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+  };
 
-        if (selectedTag === 'all' || postTags.includes(selectedTag)) {
-          item.classList.remove('hidden');
-          visibleCount++;
-        } else {
-          item.classList.add('hidden');
-        }
-      });
+  const applyFilter = (tag: string, options: { scroll?: boolean; syncUrl?: boolean } = {}) => {
+    const selectedTag = resolveTag(tag);
+    const activeButton =
+      tagTabs.find((button) => button.getAttribute('data-tag') === selectedTag) || tagTabs[0];
+    const tagName = activeButton?.querySelector('.tag-name')?.textContent || '모두';
 
-      if (currentTagElement) {
-        currentTagElement.textContent = tagName;
+    tagTabs.forEach((button) => updateButtonState(button, button === activeButton));
+
+    let visibleCount = 0;
+    postItems.forEach((item) => {
+      const postTags = parsePostTags(item);
+      if (selectedTag === 'all' || postTags.includes(selectedTag)) {
+        item.classList.remove('hidden');
+        visibleCount++;
+      } else {
+        item.classList.add('hidden');
       }
-      if (postCountElement) {
-        postCountElement.textContent = `(${visibleCount}개의 글)`;
-      }
+    });
 
+    if (currentTagElement) {
+      currentTagElement.textContent = tagName;
+    }
+    if (postCountElement) {
+      postCountElement.textContent = `(${visibleCount}편 글월)`;
+    }
+
+    if (options.syncUrl !== false) {
+      syncTagQuery(selectedTag);
+    }
+
+    if (options.scroll) {
       document.querySelector('.posts-section')?.scrollIntoView({
         behavior: 'smooth',
         block: 'start'
       });
+    }
+  };
+
+  tagTabs.forEach((button) => {
+    button.addEventListener('click', () => {
+      applyFilter(button.getAttribute('data-tag') || 'all', { scroll: true });
     });
   });
+
+  const initialTag = new URLSearchParams(window.location.search).get('tag');
+  applyFilter(initialTag || 'all', { syncUrl: false });
 </script>

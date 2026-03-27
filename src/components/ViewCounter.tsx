@@ -14,7 +14,7 @@ export default function ViewCounter({ slug }: Props) {
         const data = await response.json();
         setViews(data.views);
       } catch (error) {
-        console.error('Failed to fetch views:', error);
+        console.error('조회수를 가져오지 못하였사옵니다:', error);
       }
     };
 

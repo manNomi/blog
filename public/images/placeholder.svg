@@ -1,9 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="600" viewBox="0 0 1200 600">
-  <rect fill="#F5F2EB" width="1200" height="600"/>
-  <g transform="translate(600, 300)">
-    <rect x="-80" y="-60" width="160" height="120" rx="8" fill="none" stroke="#8B7355" stroke-width="3" opacity="0.3"/>
-    <circle cx="-40" cy="-20" r="15" fill="#8B7355" opacity="0.3"/>
-    <path d="M -60 40 L -20 0 L 20 20 L 60 -10" fill="none" stroke="#8B7355" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"/>
-  </g>
-  <text x="600" y="380" font-family="system-ui, -apple-system, sans-serif" font-size="18" fill="#8B7355" opacity="0.4" text-anchor="middle">No Image</text>
+  <rect width="1200" height="600" fill="#d3cec4" />
+  <rect x="18" y="18" width="1164" height="564" fill="#c9c4b9" stroke="#8f8a80" stroke-width="2" />
+
+  <rect x="44" y="44" width="1112" height="76" fill="#d0cbc1" stroke="#8f8a80" stroke-width="1" />
+  <text x="60" y="86" fill="#1b1814" font-family="'ChosunCentennial','Noto Serif KR',serif" font-size="38" font-weight="700">노미신문</text>
+  <text x="60" y="108" fill="#4c473f" font-family="'ChosunCentennial','Noto Serif KR',serif" font-size="14">사진 자료가 갖추어질 때까지 신문 모양 임시 지면을 띄웁니다</text>
+
+  <rect x="44" y="138" width="740" height="178" fill="#cfcabf" stroke="#8f8a80" stroke-width="1" />
+  <text x="60" y="178" fill="#1c1915" font-family="'ChosunCentennial','Noto Serif KR',serif" font-size="30" font-weight="700">이미지 준비중</text>
+  <text x="60" y="208" fill="#3d3831" font-family="'ChosunCentennial','Noto Serif KR',serif" font-size="16">시각 자료가 없어도 읽기 흐름이 이어지도록 꾸민 글칸입니다.</text>
+  <text x="60" y="232" fill="#3d3831" font-family="'ChosunCentennial','Noto Serif KR',serif" font-size="16">글의 핵심은 제목과 본문 읽기 쉬움에 있사옵니다.</text>
+
+  <rect x="796" y="138" width="360" height="178" fill="#ccc7bc" stroke="#8f8a80" stroke-width="1" />
+  <text x="814" y="176" fill="#1c1915" font-family="'ChosunCentennial','Noto Serif KR',serif" font-size="22" font-weight="700">사진 없음</text>
+  <text x="814" y="204" fill="#3d3831" font-family="'ChosunCentennial','Noto Serif KR',serif" font-size="14">그림 자산 없음</text>
+
+  <rect x="44" y="330" width="1112" height="226" fill="#cbc6bb" stroke="#8f8a80" stroke-width="1" />
+  <line x1="44" y1="374" x2="1156" y2="374" stroke="#9b968c" stroke-width="1" />
+  <line x1="44" y1="418" x2="1156" y2="418" stroke="#9b968c" stroke-width="1" />
+  <line x1="44" y1="462" x2="1156" y2="462" stroke="#9b968c" stroke-width="1" />
+  <line x1="44" y1="506" x2="1156" y2="506" stroke="#9b968c" stroke-width="1" />
+
+  <circle cx="1094" cy="88" r="8" fill="#c6783e" opacity="0.8" />
+  <circle cx="1120" cy="88" r="6" fill="#d99662" opacity="0.9" />
 </svg>

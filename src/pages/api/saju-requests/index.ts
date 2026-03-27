@@ -18,21 +18,21 @@ function json(body: unknown, status = 200) {
 function mapCreateErrorToMessage(code: string) {
   switch (code) {
     case 'name_required':
-      return '이름은 필수입니다.';
+      return '이름은 반드시 적어야 하옵니다.';
     case 'birth_date_required':
-      return '생년월일은 필수입니다.';
+      return '태어난 날은 반드시 적어야 하옵니다.';
     case 'birth_time_required':
-      return '출생 시간은 필수입니다.';
+      return '태어난 시각은 반드시 적어야 하옵니다.';
     case 'birth_place_required':
-      return '출생지는 필수입니다.';
+      return '태어난 고장은 반드시 적어야 하옵니다.';
     case 'email_invalid':
-      return '올바른 이메일을 입력해 주세요.';
+      return '옳은 전자우편을 적어 주시옵소서.';
     case 'gender_invalid':
-      return '성별 값이 올바르지 않습니다.';
+      return '남녀 값이 바르지 아니하옵니다.';
     case 'calendar_type_invalid':
-      return '달력 값이 올바르지 않습니다.';
+      return '역법 값이 바르지 아니하옵니다.';
     case 'input_length_invalid':
-      return '입력값 길이를 확인해 주세요.';
+      return '적은 값의 길이를 살펴 주시옵소서.';
     default:
       return null;
   }
@@ -50,7 +50,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   const rate = consumeRateLimit(`saju:create:${ip}`, 10, 60_000);
 
   if (!rate.allowed) {
-    return json({ error: '요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.' }, 429);
+    return json({ error: '청원이 몹시 많사오니, 잠시 뒤 다시 청해 주시옵소서.' }, 429);
   }
 
   try {
@@ -60,12 +60,12 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     };
 
     if (!body.input) {
-      return json({ error: '입력값이 필요해요.' }, 400);
+      return json({ error: '적어 올릴 값이 필요하옵니다.' }, 400);
     }
 
     const captcha = await verifyTurnstileToken(body.captchaToken ?? null, ip);
     if (!captcha.success) {
-      return json({ error: '캡차 검증에 실패했어요.' }, 400);
+      return json({ error: '사람 확인 표지 살핌에 그르쳤사옵니다.' }, 400);
     }
 
     const created = await createLoveJobWithToken({
@@ -97,6 +97,6 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
       message: error instanceof Error ? error.message : 'unknown'
     });
 
-    return json({ error: '요청 생성 중 오류가 발생했어요. 다시 시도해 주세요.' }, 500);
+    return json({ error: '청원을 세우는 동안 허물이 생겼사오니, 다시 청해 주시옵소서.' }, 500);
   }
 };
