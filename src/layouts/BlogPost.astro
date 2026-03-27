@@ -53,6 +53,12 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
             )}
           </div>
 
+          <div class="font-toggle-row">
+            <button type="button" class="font-toggle-button" data-font-toggle aria-pressed="false">
+              신문체 끄기
+            </button>
+          </div>
+
           {tags && tags.length > 0 && (
             <div class="tags">
               {tags.map(tag => (
@@ -155,6 +161,45 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   };
 
   const articleBody = document.querySelector('.article-body');
+  const articleRoot = document.querySelector('.article');
+  const fontToggleButton = document.querySelector('[data-font-toggle]');
+  const FONT_MODE_KEY = 'blog_detail_font_mode';
+
+  const applyFontMode = (mode) => {
+    if (!articleRoot || !fontToggleButton) {
+      return;
+    }
+
+    const useBasicFont = mode === 'basic';
+    articleRoot.classList.toggle('font-basic', useBasicFont);
+    fontToggleButton.setAttribute('aria-pressed', useBasicFont ? 'true' : 'false');
+    fontToggleButton.textContent = useBasicFont ? '신문체 켜기' : '신문체 끄기';
+  };
+
+  const readSavedFontMode = () => {
+    try {
+      const saved = window.localStorage.getItem(FONT_MODE_KEY);
+      return saved === 'basic' ? 'basic' : 'newspaper';
+    } catch {
+      return 'newspaper';
+    }
+  };
+
+  const saveFontMode = (mode) => {
+    try {
+      window.localStorage.setItem(FONT_MODE_KEY, mode);
+    } catch {
+      // 저장 실패 시 조용히 무시
+    }
+  };
+
+  applyFontMode(readSavedFontMode());
+
+  fontToggleButton?.addEventListener('click', () => {
+    const nextMode = articleRoot?.classList.contains('font-basic') ? 'newspaper' : 'basic';
+    applyFontMode(nextMode);
+    saveFontMode(nextMode);
+  });
 
   if (articleBody) {
     for (const table of articleBody.querySelectorAll('table')) {
@@ -262,6 +307,13 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
 
   .article {
     max-width: 100%;
+    --detail-font-serif: var(--font-serif);
+    --detail-font-body: var(--font-sans);
+  }
+
+  .article.font-basic {
+    --detail-font-serif: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    --detail-font-body: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   }
 
   .content {
@@ -277,12 +329,44 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   }
 
   .article-title {
-    font-family: var(--font-serif);
+    font-family: var(--detail-font-serif);
     font-size: clamp(2.05rem, 4vw, 2.9rem);
     line-height: 1.25;
     margin-bottom: 0.8rem;
     letter-spacing: -0.02em;
     color: var(--text-primary);
+  }
+
+  .font-toggle-row {
+    margin-bottom: 0.75rem;
+  }
+
+  .font-toggle-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    padding: 0 0.7rem;
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-size: 0.76rem;
+    font-weight: 700;
+    line-height: 1;
+    transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+  }
+
+  .font-toggle-button:hover {
+    border-color: var(--border-secondary);
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+
+  .font-toggle-button[aria-pressed='true'] {
+    border-color: rgba(11, 110, 153, 0.28);
+    background: #edf5f8;
+    color: var(--accent-primary);
   }
 
   .article-meta {
@@ -345,6 +429,7 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   }
 
   .article-body {
+    font-family: var(--detail-font-body);
     font-size: 1.08rem;
     line-height: 1.84;
     color: var(--text-primary);
@@ -353,7 +438,7 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
 
   /* Markdown Styles */
   .article-body :global(h1) {
-    font-family: var(--font-serif);
+    font-family: var(--detail-font-serif);
     font-size: 2.2rem;
     margin-top: 2.8rem;
     margin-bottom: 1rem;
@@ -363,7 +448,7 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   }
 
   .article-body :global(h2) {
-    font-family: var(--font-serif);
+    font-family: var(--detail-font-serif);
     font-size: 1.92rem;
     margin-top: 2.8rem;
     margin-bottom: 0.9rem;
@@ -372,7 +457,7 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   }
 
   .article-body :global(h3) {
-    font-family: var(--font-serif);
+    font-family: var(--detail-font-serif);
     font-size: 1.46rem;
     margin-top: 1.8rem;
     margin-bottom: 0.6rem;
@@ -380,7 +465,7 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   }
 
   .article-body :global(h4) {
-    font-family: var(--font-serif);
+    font-family: var(--detail-font-serif);
     font-size: 1.2rem;
     margin-top: 1.5rem;
     margin-bottom: 0.5rem;
@@ -389,7 +474,7 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
 
   .article-body :global(h5),
   .article-body :global(h6) {
-    font-family: var(--font-serif);
+    font-family: var(--detail-font-serif);
     font-size: 1.05rem;
     margin-top: 1.2rem;
     margin-bottom: 0.4rem;

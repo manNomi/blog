@@ -4,23 +4,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import PostCard from '../components/PostCard.astro';
 import Footer from '../components/Footer.astro';
-import { extractFirstImage } from '../utils/extractFirstImage';
 
 const allPosts = (await getCollection('blog'))
-  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-  .map((post) => {
-    if (!post.data.heroImage && post.body) {
-      const extractedImage = extractFirstImage(post.body);
-      return {
-        ...post,
-        data: {
-          ...post.data,
-          heroImage: extractedImage || undefined
-        }
-      };
-    }
-    return post;
-  });
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
 const allTags = [...new Set(allPosts.flatMap((post) => post.data.tags || []))].sort();
 
@@ -95,7 +81,7 @@ const tagCountActiveClass = 'bg-[rgba(11,110,153,0.12)] text-[var(--accent-prima
           </h2>
         </div>
 
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div class="post-list space-y-3">
           {allPosts.map((post) => (
             <div class="post-item" data-tags={JSON.stringify(post.data.tags || [])}>
               <PostCard
@@ -103,8 +89,8 @@ const tagCountActiveClass = 'bg-[rgba(11,110,153,0.12)] text-[var(--accent-prima
                 description={post.data.description}
                 slug={post.slug}
                 pubDate={post.data.pubDate}
-                heroImage={post.data.heroImage}
                 tags={post.data.tags}
+                pinned={post.data.pinned}
               />
             </div>
           ))}
@@ -123,8 +109,8 @@ const tagCountActiveClass = 'bg-[rgba(11,110,153,0.12)] text-[var(--accent-prima
 </BaseLayout>
 
 <script>
-  const tagTabs = document.querySelectorAll('.tag-tab');
-  const postItems = document.querySelectorAll('.post-item');
+  const tagTabs = Array.from(document.querySelectorAll('.tag-tab'));
+  const postItems = Array.from(document.querySelectorAll('.post-item'));
   const currentTagElement = document.querySelector('.current-tag');
   const postCountElement = document.querySelector('.post-count');
 
@@ -153,36 +139,73 @@ const tagCountActiveClass = 'bg-[rgba(11,110,153,0.12)] text-[var(--accent-prima
     }
   };
 
-  tagTabs.forEach((button) => {
-    button.addEventListener('click', () => {
-      const selectedTag = button.getAttribute('data-tag');
-      const tagName = button.querySelector('.tag-name')?.textContent || '모두';
+  const parsePostTags = (item: Element) => {
+    try {
+      return JSON.parse(item.getAttribute('data-tags') || '[]');
+    } catch {
+      return [];
+    }
+  };
 
-      tagTabs.forEach((btn) => updateButtonState(btn, btn === button));
+  const resolveTag = (tag: string | null) => {
+    if (!tag) return 'all';
+    return tagTabs.some((button) => button.getAttribute('data-tag') === tag) ? tag : 'all';
+  };
 
-      let visibleCount = 0;
-      postItems.forEach((item) => {
-        const postTags = JSON.parse(item.getAttribute('data-tags') || '[]');
+  const syncTagQuery = (tag: string) => {
+    const url = new URL(window.location.href);
+    if (tag === 'all') {
+      url.searchParams.delete('tag');
+    } else {
+      url.searchParams.set('tag', tag);
+    }
+    window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+  };
 
-        if (selectedTag === 'all' || postTags.includes(selectedTag)) {
-          item.classList.remove('hidden');
-          visibleCount++;
-        } else {
-          item.classList.add('hidden');
-        }
-      });
+  const applyFilter = (tag: string, options: { scroll?: boolean; syncUrl?: boolean } = {}) => {
+    const selectedTag = resolveTag(tag);
+    const activeButton =
+      tagTabs.find((button) => button.getAttribute('data-tag') === selectedTag) || tagTabs[0];
+    const tagName = activeButton?.querySelector('.tag-name')?.textContent || '모두';
 
-      if (currentTagElement) {
-        currentTagElement.textContent = tagName;
+    tagTabs.forEach((button) => updateButtonState(button, button === activeButton));
+
+    let visibleCount = 0;
+    postItems.forEach((item) => {
+      const postTags = parsePostTags(item);
+      if (selectedTag === 'all' || postTags.includes(selectedTag)) {
+        item.classList.remove('hidden');
+        visibleCount++;
+      } else {
+        item.classList.add('hidden');
       }
-      if (postCountElement) {
-        postCountElement.textContent = `(${visibleCount}편 글월)`;
-      }
+    });
 
+    if (currentTagElement) {
+      currentTagElement.textContent = tagName;
+    }
+    if (postCountElement) {
+      postCountElement.textContent = `(${visibleCount}편 글월)`;
+    }
+
+    if (options.syncUrl !== false) {
+      syncTagQuery(selectedTag);
+    }
+
+    if (options.scroll) {
       document.querySelector('.posts-section')?.scrollIntoView({
         behavior: 'smooth',
         block: 'start'
       });
+    }
+  };
+
+  tagTabs.forEach((button) => {
+    button.addEventListener('click', () => {
+      applyFilter(button.getAttribute('data-tag') || 'all', { scroll: true });
     });
   });
+
+  const initialTag = new URLSearchParams(window.location.search).get('tag');
+  applyFilter(initialTag || 'all', { syncUrl: false });
 </script>

@@ -56,14 +56,20 @@ const dek =
         </div>
         <div class="paper-rule" />
 
-        <p class="breaking-tag">(속보)</p>
-        <h1 class="headline">{headline}</h1>
-        <p class="subhead">{dek}</p>
+        <div class="lead-band">
+          <div class="lead-copy">
+            <h1 class="headline">
+              <span>{headline}</span>
+              <span class="headline-breaking">(속보)</span>
+            </h1>
+            <p class="subhead">{dek}</p>
+          </div>
 
-        <figure class="main-photo">
-          <img src={mastPhoto} alt="유니폼 프레스 작업 현장" loading="lazy" />
-          <figcaption>△ 선수 유니폼 찍어내는 마당을 갈무리한 기록이옵니다.</figcaption>
-        </figure>
+          <figure class="main-photo">
+            <img src={mastPhoto} alt="유니폼 프레스 작업 현장" loading="lazy" />
+            <figcaption>△ 선수 유니폼 찍어내는 마당을 갈무리한 기록이옵니다.</figcaption>
+          </figure>
+        </div>
 
         <div class="under-fold">
           <div class="story-col">
@@ -198,24 +204,39 @@ const dek =
     font-size: clamp(2.35rem, 7.4vw, 4.9rem);
     line-height: 1.06;
     letter-spacing: -0.03em;
-    margin-top: 0.62rem;
+    margin-top: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.45rem;
   }
 
-  .breaking-tag {
-    display: inline-flex;
-    align-items: center;
-    margin-top: 0.5rem;
-    padding: 0.14rem 0.45rem;
+  .headline-breaking {
+    font-family: var(--font-sans);
+    font-size: clamp(0.82rem, 1.7vw, 1rem);
+    line-height: 1;
+    color: #6b2e1a;
+    letter-spacing: 0.04em;
+    padding-bottom: 0.28rem;
+    white-space: nowrap;
+  }
+
+  .lead-band {
+    margin-top: 0.56rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.62rem;
+    align-items: stretch;
+  }
+
+  .lead-copy {
     border: 1px solid var(--divider);
-    background: rgba(184, 123, 81, 0.2);
-    color: #5a2112;
-    font-size: 0.74rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
+    background: rgba(204, 200, 190, 0.45);
+    padding: 0.5rem 0.56rem;
   }
 
   .subhead {
-    margin-top: 0.55rem;
+    margin-top: 0.44rem;
     font-size: 1.22rem;
     line-height: 1.36;
     font-weight: 700;
@@ -225,9 +246,10 @@ const dek =
   }
 
   .main-photo {
-    margin-top: 0.52rem;
     border: 1px solid var(--divider);
     background: #bdb8ae;
+    margin-top: 0;
+    height: 100%;
   }
 
   .main-photo img {
@@ -411,8 +433,17 @@ const dek =
       line-height: 1.1;
     }
 
+    .headline-breaking {
+      font-size: 0.86rem;
+      padding-bottom: 0.16rem;
+    }
+
     .subhead {
       font-size: 1rem;
+    }
+
+    .lead-band {
+      grid-template-columns: 1fr;
     }
 
     .under-fold {
