@@ -83,6 +83,9 @@ const MANIFEST_PATH = path.join(__dirname, '../.notion-sync-manifest.json');
 const CHECK_MODE = process.argv.includes('--check');
 const IF_CHANGED_MODE = process.argv.includes('--if-changed');
 const FORCE_FULL_SYNC = process.argv.includes('--full');
+const EDITED_ONLY_MODE = process.argv.includes('--edited-only');
+const EDIT_PROPERTY = process.env.NOTION_EDIT_PROPERTY || 'edit';
+const PARTIAL_SYNC_MODE = EDITED_ONLY_MODE;
 
 // 디렉토리 생성
 if (!fs.existsSync(CONTENT_DIR)) {
@@ -306,16 +309,34 @@ async function syncNotion() {
   try {
     console.log(CHECK_MODE ? '🔎 Notion 변경 여부 확인 시작...\n' : '🚀 Notion 동기화 시작...\n');
     console.log(`📋 Database ID: ${DATABASE_ID.substring(0, 8)}...\n`);
+    if (EDITED_ONLY_MODE) {
+      console.log(`🎯 edit 체크(${EDIT_PROPERTY}=true)된 게시물만 동기화합니다.\n`);
+    }
 
-    // Notion 데이터베이스에서 페이지 가져오기
-    const response = await notion.databases.query({
-      database_id: DATABASE_ID,
-      filter: {
+    const filters = [
+      {
         property: 'Status',
         select: {
           equals: 'Published'
         }
-      },
+      }
+    ];
+
+    if (EDITED_ONLY_MODE) {
+      filters.push({
+        property: EDIT_PROPERTY,
+        checkbox: {
+          equals: true
+        }
+      });
+    }
+
+    const notionFilter = filters.length === 1 ? filters[0] : { and: filters };
+
+    // Notion 데이터베이스에서 페이지 가져오기
+    const response = await notion.databases.query({
+      database_id: DATABASE_ID,
+      filter: notionFilter,
       sorts: [
         {
           property: 'Created',
@@ -324,7 +345,7 @@ async function syncNotion() {
       ]
     });
 
-    console.log(`📄 Published 상태 게시물: ${response.results.length}개\n`);
+    console.log(`📄 조회된 게시물: ${response.results.length}개\n`);
 
     const currentSnapshot = createSnapshot(response.results);
     const previousManifest = readManifest();
@@ -357,10 +378,12 @@ async function syncNotion() {
       return;
     }
 
-    const hasChanges = previousManifest?.hash !== currentSnapshot.hash;
-    const changeSummary = summarizeChanges(previousManifest, currentSnapshot);
+    const hasChanges = PARTIAL_SYNC_MODE ? true : previousManifest?.hash !== currentSnapshot.hash;
+    const changeSummary = PARTIAL_SYNC_MODE
+      ? { added: 0, updated: 0, removed: 0 }
+      : summarizeChanges(previousManifest, currentSnapshot);
 
-    if (IF_CHANGED_MODE && previousManifest && !hasChanges) {
+    if (!PARTIAL_SYNC_MODE && IF_CHANGED_MODE && previousManifest && !hasChanges) {
       console.log('✅ 변경 사항 없음: 마지막 동기화 이후 Notion 변경이 없습니다.');
       console.log(`🕒 마지막 동기화: ${previousManifest.syncedAt || '기록 없음'}\n`);
       return;
@@ -368,7 +391,7 @@ async function syncNotion() {
 
     const removedNotionIds = [];
 
-    if (previousManifest?.pages) {
+    if (!PARTIAL_SYNC_MODE && previousManifest?.pages) {
       for (const previousPage of previousManifest.pages) {
         if (!currentPagesMap.has(previousPage.notionId)) {
           removedNotionIds.push(previousPage.notionId);
@@ -378,6 +401,8 @@ async function syncNotion() {
 
     const pagesToSync = [];
     const unchangedFiles = [];
+
+    const queriedNotionIdSet = new Set(response.results.map((page) => page.id));
 
     for (const page of response.results) {
       if (FORCE_FULL_SYNC || !previousManifest) {
@@ -404,6 +429,14 @@ async function syncNotion() {
       }
     }
 
+    if (PARTIAL_SYNC_MODE && previousManifest?.files) {
+      for (const previousFile of previousManifest.files) {
+        if (!queriedNotionIdSet.has(previousFile.notionId)) {
+          unchangedFiles.push(previousFile);
+        }
+      }
+    }
+
     if (removedNotionIds.length > 0) {
       console.log(`🗑 삭제된 게시물 정리: ${removedNotionIds.length}개`);
       for (const notionId of removedNotionIds) {
@@ -422,16 +455,27 @@ async function syncNotion() {
     }
 
     if (!FORCE_FULL_SYNC && previousManifest) {
-      if (!hasChanges && pagesToSync.length === 0 && removedNotionIds.length === 0) {
+      if (PARTIAL_SYNC_MODE && IF_CHANGED_MODE && pagesToSync.length === 0) {
         console.log('✅ 변경 사항 없음: 동기화할 파일이 없습니다.\n');
         return;
       }
 
-      console.log('📌 변경 내용 요약');
-      console.log(`  - 추가: ${changeSummary.added}개`);
-      console.log(`  - 수정: ${changeSummary.updated}개`);
-      console.log(`  - 제거: ${changeSummary.removed}개`);
-      console.log(`  - 실제 동기화 대상: ${pagesToSync.length}개\n`);
+      if (!PARTIAL_SYNC_MODE && !hasChanges && pagesToSync.length === 0 && removedNotionIds.length === 0) {
+        console.log('✅ 변경 사항 없음: 동기화할 파일이 없습니다.\n');
+        return;
+      }
+
+      if (PARTIAL_SYNC_MODE) {
+        console.log('📌 edit 대상 동기화 요약');
+        console.log(`  - 조회 대상: ${response.results.length}개`);
+        console.log(`  - 실제 동기화 대상: ${pagesToSync.length}개\n`);
+      } else {
+        console.log('📌 변경 내용 요약');
+        console.log(`  - 추가: ${changeSummary.added}개`);
+        console.log(`  - 수정: ${changeSummary.updated}개`);
+        console.log(`  - 제거: ${changeSummary.removed}개`);
+        console.log(`  - 실제 동기화 대상: ${pagesToSync.length}개\n`);
+      }
     }
 
     const syncedFiles = [];
@@ -673,8 +717,24 @@ async function syncNotion() {
       a.notionId.localeCompare(b.notionId)
     );
 
+    const mergedPagesMap = new Map((previousManifest?.pages || []).map((page) => [page.notionId, page]));
+    for (const page of currentSnapshot.pages) {
+      mergedPagesMap.set(page.notionId, page);
+    }
+
+    const finalPages = (
+      PARTIAL_SYNC_MODE
+        ? Array.from(mergedPagesMap.values())
+        : currentSnapshot.pages
+    ).sort((a, b) => a.notionId.localeCompare(b.notionId));
+
+    const finalHash = crypto.createHash('sha256').update(JSON.stringify(finalPages)).digest('hex');
+
     writeManifest({
-      ...currentSnapshot,
+      databaseId: DATABASE_ID,
+      totalPages: finalPages.length,
+      hash: finalHash,
+      pages: finalPages,
       syncedAt: new Date().toISOString(),
       files: finalFiles
     });
