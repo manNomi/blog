@@ -32,20 +32,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Sync from Notion
-        timeout-minutes: 20
-        env:
-          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
-          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
-        run: npm run sync:notion -- --if-changed
-
-      - name: Commit and push synced content
-        run: |
-          git config --local user.email "hanmw110@naver.com"
-          git config --local user.name "manNomi"
-          git add src/content/blog/ public/images/ .notion-sync-manifest.json
-          git diff --staged --quiet || (git commit -m "chore: sync content from Notion [skip ci]" && git push)
-
       - name: Build Astro site
         # 이미 동기화된 파일로 빌드만 실행 (sync 제외)
         run: npx astro check && npx astro build

@@ -36,6 +36,7 @@ Notion을 CMS로 활용한 정적 기술 블로그입니다.
 | Tags        | Multi-select | 선택 |
 | Cover       | Files        | 선택 |
 | Pinned      | Checkbox     | 선택 |
+| edit        | Checkbox     | 선택 |
 
 ### 환경 변수
 
@@ -60,15 +61,24 @@ NOTION_DATABASE_ID=your_database_id
 ```bash
 npm install
 npm run sync:check  # 변경 여부만 확인 (다운로드/파일쓰기 없음)
-npm run sync:notion  # 변경된/추가된 페이지만 동기화, 삭제된 글은 로컬 파일 정리
+npm run sync:notion:edited  # edit=true인 글 중 변경된 글만 동기화
+npm run sync:notion:all  # Published 글 전체 강제 동기화
 npm run dev
 ```
 
 ### Notion 동기화 변경 감지
 
 - `npm run sync:check`는 Notion의 Published 페이지 스냅샷을 마지막 동기화 매니페스트(`.notion-sync-manifest.json`)와 비교합니다.
-- `npm run sync:notion`은 매니페스트를 기준으로 변경된/추가된 페이지만 다시 가져오고, Notion에서 삭제된 페이지의 로컬 마크다운 파일을 정리합니다.
+- `npm run sync:notion:edited`는 `Status=Published AND edit=true` 조건의 페이지만 대상으로 변경분을 동기화합니다.
+- `npm run sync:notion:all`은 Published 전체를 강제로 다시 동기화합니다.
 - 변경이 없으면 자동으로 동기화를 건너뜁니다.
+
+### GitHub Actions 동기화
+
+- `Deploy to Production` 워크플로우는 빌드/배포만 수행합니다.
+- `Sync Notion Content (Manual)` 워크플로우를 수동 실행해서 동기화합니다.
+  - 기본: edit 체크된 글만 동기화
+  - `full_sync=true`: Published 전체 동기화
 
 ## 배포
 
