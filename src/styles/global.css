@@ -126,6 +126,52 @@ img {
   background-color: rgba(35, 131, 226, 0.28);
 }
 
+@keyframes saju-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes saju-soft-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.65;
+  }
+  50% {
+    transform: scale(1.25);
+    opacity: 1;
+  }
+}
+
+.saju-stage {
+  animation: saju-fade-up 0.45s ease both;
+}
+
+.saju-hover-card {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.saju-hover-card:hover {
+  border-color: var(--border-secondary);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.saju-status-dot {
+  display: inline-flex;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--accent-primary);
+  animation: saju-soft-pulse 1.6s ease-in-out infinite;
+}
+
 @media (max-width: 768px) {
   :root {
     --text-4xl: 2.2rem;
