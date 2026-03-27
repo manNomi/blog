@@ -17,7 +17,7 @@ function defaultInput(input: LoveJobInput): LoveJobInput {
     ...input,
     name: input.name?.trim() ?? "",
     email: input.email?.trim().toLowerCase() ?? "",
-    birthPlace: input.birthPlace?.trim() || "대한민국",
+    birthPlace: input.birthPlace?.trim() ?? "",
     birthTime: input.birthTime?.trim() || "",
   };
 }
@@ -40,8 +40,20 @@ function normalizeNameForJobId(name: string) {
 }
 
 export function validateLoveInput(input: LoveJobInput) {
+  if (!input.name) {
+    throw new Error("name_required");
+  }
+
   if (!input.birthDate) {
     throw new Error("birth_date_required");
+  }
+
+  if (!input.birthTime) {
+    throw new Error("birth_time_required");
+  }
+
+  if (!input.birthPlace) {
+    throw new Error("birth_place_required");
   }
 
   if (!isValidEmail(input.email)) {
