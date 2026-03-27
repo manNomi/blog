@@ -1,5 +1,5 @@
 import { analyzeLoveFortune, toKoreanElementName } from './saju-love-engine';
-import type { LoveJobInput, LoveJobResult } from './love-types';
+import type { LoveJobInput, LoveJobResult } from './love-job-types';
 
 const OPTIMISTIC_PROMO_DATE_KST = "2026-03-15";
 
