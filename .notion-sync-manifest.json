@@ -1,7 +1,7 @@
 {
   "databaseId": "2af7cf19a36480648f08f4072d1246c5",
-  "totalPages": 24,
-  "hash": "986be109a8cd503339636fed43da51b1f518528f62101d70b89878a795f53da4",
+  "totalPages": 26,
+  "hash": "a5ff8489d9c42a95de47a257cccfd94e3c053a30a2143b2d5ba9979ae25e9ebc",
   "pages": [
     {
       "notionId": "2af7cf19-a364-8004-a41a-dc5735d98b2b",
@@ -146,9 +146,21 @@
       "lastEditedTime": "2026-03-26T16:22:00.000Z",
       "createdTime": "2026-03-26T15:59:00.000Z",
       "title": "alias로 번들 사이즈 조금이라두 챙겨보기 "
+    },
+    {
+      "notionId": "3307cf19-a364-8008-b795-e6aa1582d2c7",
+      "lastEditedTime": "2026-03-27T18:05:00.000Z",
+      "createdTime": "2026-03-27T08:25:00.000Z",
+      "title": "AI 토큰을 낭비하지 않는 삶 "
+    },
+    {
+      "notionId": "3307cf19-a364-80b8-90a4-f2291f81b15f",
+      "lastEditedTime": "2026-03-27T18:05:00.000Z",
+      "createdTime": "2026-03-27T09:36:00.000Z",
+      "title": "QA를 필요한 사람이 하게 하자 "
     }
   ],
-  "syncedAt": "2026-03-27T07:34:36.240Z",
+  "syncedAt": "2026-03-27T18:05:23.990Z",
   "files": [
     {
       "notionId": "2af7cf19-a364-8004-a41a-dc5735d98b2b",
@@ -591,6 +603,29 @@
       "filename": "alias로-번들-사이즈-조금이라두-챙겨보기.md",
       "title": "alias로 번들 사이즈 조금이라두 챙겨보기 ",
       "lastEditedTime": "2026-03-26T16:22:00.000Z",
+      "heroImage": "",
+      "heroImageSourceKey": "",
+      "imageAssets": []
+    },
+    {
+      "notionId": "3307cf19-a364-8008-b795-e6aa1582d2c7",
+      "filename": "ai-토큰을-낭비하지-않는-삶.md",
+      "title": "AI 토큰을 낭비하지 않는 삶 ",
+      "lastEditedTime": "2026-03-27T18:05:00.000Z",
+      "heroImage": "",
+      "heroImageSourceKey": "",
+      "imageAssets": [
+        {
+          "sourceKey": "https://prod-files-secure.s3.us-west-2.amazonaws.com/010ca544-7c43-45a2-9139-842dd522bfa6/b21e78f3-2f17-406c-bb9b-262b4c8ce289/%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA_2026-03-27_%E1%84%8B%E1%85%A9%E1%84%92%E1%85%AE_6.58.14.png",
+          "localPath": "/images/ai-토큰을-낭비하지-않는-삶-0.png"
+        }
+      ]
+    },
+    {
+      "notionId": "3307cf19-a364-80b8-90a4-f2291f81b15f",
+      "filename": "qa를-필요한-사람이-하게-하자.md",
+      "title": "QA를 필요한 사람이 하게 하자 ",
+      "lastEditedTime": "2026-03-27T18:05:00.000Z",
       "heroImage": "",
       "heroImageSourceKey": "",
       "imageAssets": []
