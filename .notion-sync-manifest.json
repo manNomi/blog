@@ -1,7 +1,7 @@
 {
   "databaseId": "2af7cf19a36480648f08f4072d1246c5",
   "totalPages": 26,
-  "hash": "ff53ee47c3a8a2859e31b05e0e05f0528b2a3d377c3374c7a7b29ea82ac4cab9",
+  "hash": "ecf296852e545f0b168026a3acec6b1ab8ee7adef9558efd8e1622c68e6816d4",
   "pages": [
     {
       "notionId": "2af7cf19-a364-8004-a41a-dc5735d98b2b",
@@ -149,18 +149,18 @@
     },
     {
       "notionId": "3307cf19-a364-8008-b795-e6aa1582d2c7",
-      "lastEditedTime": "2026-03-27T18:08:00.000Z",
+      "lastEditedTime": "2026-03-30T05:39:00.000Z",
       "createdTime": "2026-03-27T08:25:00.000Z",
       "title": "AI 토큰을 낭비하지 않는 삶 "
     },
     {
       "notionId": "3307cf19-a364-80b8-90a4-f2291f81b15f",
-      "lastEditedTime": "2026-03-27T18:05:00.000Z",
+      "lastEditedTime": "2026-03-30T05:44:00.000Z",
       "createdTime": "2026-03-27T09:36:00.000Z",
       "title": "QA를 필요한 사람이 하게 하자 "
     }
   ],
-  "syncedAt": "2026-03-27T18:09:26.917Z",
+  "syncedAt": "2026-03-30T05:44:46.324Z",
   "files": [
     {
       "notionId": "2af7cf19-a364-8004-a41a-dc5735d98b2b",
@@ -611,7 +611,7 @@
       "notionId": "3307cf19-a364-8008-b795-e6aa1582d2c7",
       "filename": "ai-토큰을-낭비하지-않는-삶.md",
       "title": "AI 토큰을 낭비하지 않는 삶 ",
-      "lastEditedTime": "2026-03-27T18:08:00.000Z",
+      "lastEditedTime": "2026-03-30T05:39:00.000Z",
       "heroImage": "",
       "heroImageSourceKey": "",
       "imageAssets": [
@@ -625,10 +625,15 @@
       "notionId": "3307cf19-a364-80b8-90a4-f2291f81b15f",
       "filename": "qa를-필요한-사람이-하게-하자.md",
       "title": "QA를 필요한 사람이 하게 하자 ",
-      "lastEditedTime": "2026-03-27T18:05:00.000Z",
+      "lastEditedTime": "2026-03-30T05:44:00.000Z",
       "heroImage": "",
       "heroImageSourceKey": "",
-      "imageAssets": []
+      "imageAssets": [
+        {
+          "sourceKey": "https://prod-files-secure.s3.us-west-2.amazonaws.com/010ca544-7c43-45a2-9139-842dd522bfa6/8b3779ca-16eb-488e-ad6c-446c74a49ec7/2026-03-27_6.31.25.gif",
+          "localPath": "/images/qa를-필요한-사람이-하게-하자-0.gif"
+        }
+      ]
     }
   ]
 }
