@@ -1,6 +1,6 @@
 ---
 title: "AI 토큰을 낭비하지 않는 삶 "
-pubDate: 2026-03-27T18:05:22.002Z
+pubDate: 2026-03-28T00:00:00.000Z
 notionId: "3307cf19-a364-8008-b795-e6aa1582d2c7"
 ---
 # “토큰을 태우자”로 시작, 운영 구조의 인사이트를 얻었다!
@@ -203,5 +203,5 @@ Perplexity 리서치 기반으로 표현을 계속 다듬었고,
 ![%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA_2026-03-27_%E1%84%8B%E1%85%A9%E1%84%92%E1%85%AE_6.58.14.png](/images/ai-토큰을-낭비하지-않는-삶-0.png)
 
 
-연애 결과를 보고 싶다면 [https://saju-liart.vercel.app/](https://saju-liart.vercel.app/) 여기서 받아보시길 바랍니다~!!!
+연애 결과를 보고 싶다면 [https://blog-c1szxts44-mannomis-projects.vercel.app/saju](https://blog-c1szxts44-mannomis-projects.vercel.app/saju) 여기서 받아보시길 바랍니다~!!!
 
