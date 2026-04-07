@@ -23,7 +23,6 @@ const allPosts = (await getCollection('blog'))
   });
 
 const tagCount = new Set(allPosts.flatMap((post) => post.data.tags || [])).size;
-const featuredPost = allPosts.find((post) => post.data.pinned) || allPosts[0];
 const recentPosts = allPosts.slice(0, 8);
 
 const dateFormatter = new Intl.DateTimeFormat('ko-KR', {
@@ -37,10 +36,8 @@ const frontNotes = recentPosts.slice(0, 6);
 const opinionNotes = allPosts.slice(6, 12);
 const mastPhoto = '/images/newspaper-press-room.png';
 
-const headline = featuredPost?.data.title || '노미신문 기술 별호';
-const dek =
-  featuredPost?.data.description ||
-  '누리집을 지새우며 마주본 그대 문제가 아니 풀릴지언정 기사와 함께하면 어떨지어니';
+const headline = '노미 신문';
+const dek = '느낀점을 기록하고 있습니다';
 ---
 
 <BaseLayout title="노미 | 한만욱의 누리집" description="자바스크립트를 극진히 쓰고자 늘 힘쓰고 있사옵니다.">
