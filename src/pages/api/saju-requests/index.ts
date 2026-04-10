@@ -26,7 +26,7 @@ function mapCreateErrorToMessage(code: string) {
     case 'birth_place_required':
       return '태어난 고장은 반드시 적어야 하옵니다.';
     case 'email_invalid':
-      return '옳은 전자우편을 적어 주시옵소서.';
+      return '옳은 전자우편 (이메일)을 적어 주시옵소서.';
     case 'gender_invalid':
       return '남녀 값이 바르지 아니하옵니다.';
     case 'calendar_type_invalid':
