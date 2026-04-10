@@ -27,7 +27,7 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   <Header />
 
   <main class="main">
-    <article class="article">
+    <article class="article font-basic">
       <div class="content">
         <header class="article-header">
           <h1 class="article-title">{title}</h1>
@@ -54,8 +54,8 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
           </div>
 
           <div class="font-toggle-row">
-            <button type="button" class="font-toggle-button" data-font-toggle aria-pressed="false">
-              신문체 끄기
+            <button type="button" class="font-toggle-button" data-font-toggle aria-pressed="true">
+              신문체 켜기
             </button>
           </div>
 
@@ -179,9 +179,9 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   const readSavedFontMode = () => {
     try {
       const saved = window.localStorage.getItem(FONT_MODE_KEY);
-      return saved === 'basic' ? 'basic' : 'newspaper';
+      return saved === 'newspaper' ? 'newspaper' : 'basic';
     } catch {
-      return 'newspaper';
+      return 'basic';
     }
   };
 
