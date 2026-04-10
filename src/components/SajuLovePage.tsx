@@ -6,7 +6,7 @@ import type { LoveJobPublic } from '../lib/saju/love-job-types';
 
 const requestFormSchema = z.object({
   name: z.string().trim().min(2, '이름은 두 자 이상 적어 주시옵소서.').max(30, '이름은 서른 자 안으로 적어 주시옵소서.'),
-  email: z.string().trim().email('옳은 전자우편 꼴을 적어 주시옵소서.'),
+  email: z.string().trim().email('옳은 전자우편 (이메일) 꼴을 적어 주시옵소서.'),
   gender: z.enum(['female', 'male']),
   calendarType: z.enum(['solar', 'lunar']),
   birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '태어난 날을 적어 주시옵소서.'),
@@ -129,7 +129,7 @@ export default function SajuLovePage() {
 
       setRequestState(created.request);
       setStep('submitted');
-      setNotice('청원이 접수되었사옵니다. 헤아림이 마치면 전자우편으로 풀이를 올려 드리겠사옵니다.');
+      setNotice('청원이 접수되었사옵니다. 헤아림이 마치면 전자우편 (이메일)으로 풀이를 올려 드리겠사옵니다.');
 
       statusForm.reset({
         requestId: created.requestId,
@@ -156,7 +156,7 @@ export default function SajuLovePage() {
       setRequestState(payload.request);
 
       if (payload.request.status === 'completed' && payload.request.email.sent) {
-        setNotice('헤아림과 전자우편 보냄이 모두 마쳤사옵니다. 편지함과 잡편함을 살펴 주시옵소서.');
+        setNotice('헤아림과 전자우편 (이메일) 보냄이 모두 마쳤사옵니다. 편지함과 잡편함을 살펴 주시옵소서.');
       } else {
         setNotice(`이제 형편: ${statusText(payload.request.status)}`);
       }
@@ -211,19 +211,18 @@ export default function SajuLovePage() {
 
   return (
     <div className="space-y-5 saju-stage">
-      <section className="rounded-[var(--radius-lg)] border border-[var(--border-primary)] bg-[linear-gradient(150deg,#d1cdc3_0%,#c8c4ba_100%)] p-5 shadow-[var(--shadow-sm)] md:p-7">
-        <div className="mb-3 flex flex-wrap gap-2">
+      <section className="saju-mast rounded-[var(--radius-lg)] border p-5 shadow-[var(--shadow-sm)] md:p-7">
+        <div className="saju-mast-folio">
+          <span>연정 별호</span>
+          <span>노미신문 사주 특집</span>
+          <span>비동기 청원판</span>
+        </div>
+        <div className="paper-rule mb-3" />
+        <div className="mb-3 flex flex-wrap gap-2 saju-step-strip">
           {stepLabels.map((entry, index) => {
             const active = index <= currentStepIndex;
             return (
-              <span
-                key={entry.key}
-                className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[0.72rem] font-semibold transition-all duration-200 ${
-                  active
-                    ? 'border-[rgba(190,111,52,0.38)] bg-[rgba(231,161,106,0.2)] text-[#7b3f19]'
-                    : 'border-[var(--border-primary)] bg-[var(--bg-primary)] text-[var(--text-tertiary)]'
-                }`}
-              >
+              <span key={entry.key} className={`saju-step-pill ${active ? 'is-active' : ''}`}>
                 {active && <span className="saju-status-dot" />}
                 {entry.label}
               </span>
@@ -231,29 +230,25 @@ export default function SajuLovePage() {
           })}
         </div>
 
-        <h1 className="text-[1.55rem] font-semibold tracking-[-0.02em] text-[var(--text-primary)] md:text-[2rem]">사주 연정 전자우편 풀이</h1>
-        <p className="mt-2 max-w-[700px] text-[0.92rem] leading-[1.65] text-[var(--text-secondary)]">
-          결과를 곧바로 드러내지 아니하고 청원을 줄에 올린 뒤 비동기로 다스리옵니다. 마치면 전자우편으로 풀이를 보내옵니다.
+        <h1 className="text-[1.6rem] font-semibold tracking-[-0.02em] text-[var(--text-primary)] md:text-[2.15rem]">사주 연정 전자우편 (이메일) 풀이</h1>
+        <p className="mt-2 max-w-[700px] text-[0.9rem] leading-[1.7] text-[var(--text-secondary)]">
+          결과를 곧바로 드러내지 아니하고 청원을 줄에 올린 뒤 비동기로 다스리옵니다. 마치면 전자우편 (이메일)으로 풀이를 보내옵니다.
         </p>
       </section>
 
       {step === 'landing' && (
-        <section className="saju-hover-card rounded-[var(--radius-lg)] border border-[var(--border-primary)] bg-[var(--bg-primary)] p-6 text-center shadow-[var(--shadow-sm)]">
+        <section className="saju-hover-card saju-news-card rounded-[var(--radius-lg)] border p-6 text-center shadow-[var(--shadow-sm)]">
           <h2 className="text-[1.25rem] font-semibold text-[var(--text-primary)]">긴요한 정보를 적은 뒤 편지를 받으소서</h2>
-          <p className="mt-2 text-[0.9rem] text-[var(--text-secondary)]">이름, 전자우편, 태어난 날과 시각, 태어난 고장을 빠짐없이 적어야 청원이 올라가옵니다.</p>
-          <button
-            type="button"
-            onClick={() => setStep('input')}
-            className="mt-4 inline-flex h-10 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--accent-primary)] px-4 text-[0.84rem] font-semibold text-white transition-all duration-200 hover:-translate-y-[1px] hover:bg-[var(--accent-hover)]"
-          >
+          <p className="mt-2 text-[0.9rem] text-[var(--text-secondary)]">이름, 전자우편 (이메일), 태어난 날과 시각, 태어난 고장을 빠짐없이 적어야 청원이 올라가옵니다.</p>
+          <button type="button" onClick={() => setStep('input')} className="saju-btn saju-btn-primary mt-4">
             청원 올리기
           </button>
         </section>
       )}
 
       {step === 'input' && (
-        <section className="saju-hover-card rounded-[var(--radius-lg)] border border-[var(--border-primary)] bg-[var(--bg-primary)] p-5 shadow-[var(--shadow-sm)] md:p-7">
-          <div className="mb-4 rounded-[var(--radius-md)] border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-[0.8rem] text-[var(--text-secondary)]">
+        <section className="saju-hover-card saju-news-card rounded-[var(--radius-lg)] border p-5 shadow-[var(--shadow-sm)] md:p-7">
+          <div className="saju-completion mb-4 rounded-[var(--radius-md)] px-3 py-2 text-[0.8rem] text-[var(--text-secondary)]">
             긴요한 항목 채움새: <strong className="text-[var(--text-primary)]">{completionCount}/7</strong>
           </div>
 
@@ -268,12 +263,12 @@ export default function SajuLovePage() {
                   className="mt-1.5 h-11 w-full rounded-[var(--radius-sm)] border border-[var(--border-primary)] bg-[var(--bg-primary)] px-3 text-[0.9rem] text-[var(--text-primary)] transition-colors focus:border-[var(--accent-primary)] focus:outline-none"
                 />
                 {requestForm.formState.errors.name && (
-                  <span className="mt-1 block text-[0.76rem] text-[#ba3b2a]">{requestForm.formState.errors.name.message}</span>
+                  <span className="mt-1 block text-[0.76rem] text-[var(--saju-error-text)]">{requestForm.formState.errors.name.message}</span>
                 )}
               </label>
 
               <label className="text-[0.82rem] text-[var(--text-secondary)]">
-                전자우편 *
+                전자우편 (이메일) *
                 <input
                   type="email"
                   placeholder="이름@본보기.한국"
@@ -281,7 +276,7 @@ export default function SajuLovePage() {
                   className="mt-1.5 h-11 w-full rounded-[var(--radius-sm)] border border-[var(--border-primary)] bg-[var(--bg-primary)] px-3 text-[0.9rem] text-[var(--text-primary)] transition-colors focus:border-[var(--accent-primary)] focus:outline-none"
                 />
                 {requestForm.formState.errors.email && (
-                  <span className="mt-1 block text-[0.76rem] text-[#ba3b2a]">{requestForm.formState.errors.email.message}</span>
+                  <span className="mt-1 block text-[0.76rem] text-[var(--saju-error-text)]">{requestForm.formState.errors.email.message}</span>
                 )}
               </label>
 
@@ -293,7 +288,7 @@ export default function SajuLovePage() {
                   className="mt-1.5 h-11 w-full rounded-[var(--radius-sm)] border border-[var(--border-primary)] bg-[var(--bg-primary)] px-3 text-[0.9rem] text-[var(--text-primary)] transition-colors focus:border-[var(--accent-primary)] focus:outline-none"
                 />
                 {requestForm.formState.errors.birthDate && (
-                  <span className="mt-1 block text-[0.76rem] text-[#ba3b2a]">{requestForm.formState.errors.birthDate.message}</span>
+                  <span className="mt-1 block text-[0.76rem] text-[var(--saju-error-text)]">{requestForm.formState.errors.birthDate.message}</span>
                 )}
               </label>
 
@@ -305,7 +300,7 @@ export default function SajuLovePage() {
                   className="mt-1.5 h-11 w-full rounded-[var(--radius-sm)] border border-[var(--border-primary)] bg-[var(--bg-primary)] px-3 text-[0.9rem] text-[var(--text-primary)] transition-colors focus:border-[var(--accent-primary)] focus:outline-none"
                 />
                 {requestForm.formState.errors.birthTime && (
-                  <span className="mt-1 block text-[0.76rem] text-[#ba3b2a]">{requestForm.formState.errors.birthTime.message}</span>
+                  <span className="mt-1 block text-[0.76rem] text-[var(--saju-error-text)]">{requestForm.formState.errors.birthTime.message}</span>
                 )}
               </label>
 
@@ -340,26 +335,18 @@ export default function SajuLovePage() {
                   className="mt-1.5 h-11 w-full rounded-[var(--radius-sm)] border border-[var(--border-primary)] bg-[var(--bg-primary)] px-3 text-[0.9rem] text-[var(--text-primary)] transition-colors focus:border-[var(--accent-primary)] focus:outline-none"
                 />
                 {requestForm.formState.errors.birthPlace && (
-                  <span className="mt-1 block text-[0.76rem] text-[#ba3b2a]">{requestForm.formState.errors.birthPlace.message}</span>
+                  <span className="mt-1 block text-[0.76rem] text-[var(--saju-error-text)]">{requestForm.formState.errors.birthPlace.message}</span>
                 )}
               </label>
             </div>
 
-            {apiError && <p className="rounded-[var(--radius-sm)] bg-[#fff2ef] px-3 py-2 text-[0.82rem] text-[#ba3b2a]">{apiError}</p>}
+            {apiError && <p className="saju-alert is-error rounded-[var(--radius-sm)] px-3 py-2 text-[0.82rem]">{apiError}</p>}
 
             <div className="flex flex-wrap gap-2 pt-1">
-              <button
-                type="submit"
-                disabled={requestForm.formState.isSubmitting}
-                className="inline-flex h-10 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--accent-primary)] px-4 text-[0.84rem] font-semibold text-white transition-all duration-200 hover:-translate-y-[1px] hover:bg-[var(--accent-hover)] disabled:cursor-not-allowed disabled:opacity-60"
-              >
+              <button type="submit" disabled={requestForm.formState.isSubmitting} className="saju-btn saju-btn-primary disabled:cursor-not-allowed disabled:opacity-60">
                 {requestForm.formState.isSubmitting ? '올리는 중...' : '청원 올리기'}
               </button>
-              <button
-                type="button"
-                onClick={() => setStep('landing')}
-                className="inline-flex h-10 items-center justify-center rounded-[var(--radius-sm)] border border-[var(--border-primary)] bg-[var(--bg-primary)] px-4 text-[0.82rem] text-[var(--text-secondary)] transition-all duration-200 hover:-translate-y-[1px] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
-              >
+              <button type="button" onClick={() => setStep('landing')} className="saju-btn saju-btn-secondary">
                 뒤로 물림
               </button>
             </div>
@@ -368,12 +355,12 @@ export default function SajuLovePage() {
       )}
 
       {step === 'submitted' && (
-        <section className="saju-hover-card space-y-4 rounded-[var(--radius-lg)] border border-[var(--border-primary)] bg-[var(--bg-primary)] p-5 shadow-[var(--shadow-sm)] md:p-7">
-          <article className="rounded-[var(--radius-md)] border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-4">
+        <section className="saju-hover-card saju-news-card space-y-4 rounded-[var(--radius-lg)] border p-5 shadow-[var(--shadow-sm)] md:p-7">
+          <article className="saju-news-pane rounded-[var(--radius-md)] border p-4">
             <h2 className="text-[1.05rem] font-semibold text-[var(--text-primary)]">청원이 접수되었사옵니다</h2>
-            <p className="mt-2 text-[0.88rem] text-[var(--text-secondary)]">비동기 헤아림이 마치면 전자우편으로 풀이를 보내옵니다.</p>
+            <p className="mt-2 text-[0.88rem] text-[var(--text-secondary)]">비동기 헤아림이 마치면 전자우편 (이메일)으로 풀이를 보내옵니다.</p>
 
-            <div className="mt-3 space-y-2 rounded-[var(--radius-sm)] border border-[var(--border-primary)] bg-[var(--bg-primary)] p-3">
+            <div className="saju-token-box mt-3 space-y-2 rounded-[var(--radius-sm)] border p-3">
               <p className="text-[0.78rem] text-[var(--text-tertiary)]">청원 식별값</p>
               <p className="break-all font-mono text-[0.82rem] text-[var(--text-primary)]">{statusForm.watch('requestId')}</p>
               <p className="mt-2 text-[0.78rem] text-[var(--text-tertiary)]">살핌 열쇠</p>
@@ -381,7 +368,7 @@ export default function SajuLovePage() {
             </div>
           </article>
 
-          <article className="rounded-[var(--radius-md)] border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-4">
+          <article className="saju-news-pane rounded-[var(--radius-md)] border p-4">
             <h3 className="text-[0.95rem] font-semibold text-[var(--text-primary)]">형편 살피기</h3>
             <form className="mt-3 grid gap-3 md:grid-cols-2" onSubmit={checkStatus}>
               <div>
@@ -392,7 +379,7 @@ export default function SajuLovePage() {
                   className="h-10 w-full rounded-[var(--radius-sm)] border border-[var(--border-primary)] bg-[var(--bg-primary)] px-3 text-[0.84rem] transition-colors focus:border-[var(--accent-primary)] focus:outline-none"
                 />
                 {statusForm.formState.errors.requestId && (
-                  <span className="mt-1 block text-[0.76rem] text-[#ba3b2a]">{statusForm.formState.errors.requestId.message}</span>
+                  <span className="mt-1 block text-[0.76rem] text-[var(--saju-error-text)]">{statusForm.formState.errors.requestId.message}</span>
                 )}
               </div>
 
@@ -404,7 +391,7 @@ export default function SajuLovePage() {
                   className="h-10 w-full rounded-[var(--radius-sm)] border border-[var(--border-primary)] bg-[var(--bg-primary)] px-3 text-[0.84rem] transition-colors focus:border-[var(--accent-primary)] focus:outline-none"
                 />
                 {statusForm.formState.errors.accessToken && (
-                  <span className="mt-1 block text-[0.76rem] text-[#ba3b2a]">{statusForm.formState.errors.accessToken.message}</span>
+                  <span className="mt-1 block text-[0.76rem] text-[var(--saju-error-text)]">{statusForm.formState.errors.accessToken.message}</span>
                 )}
               </div>
 
@@ -416,7 +403,7 @@ export default function SajuLovePage() {
                 type="button"
                 onClick={checkStatus}
                 disabled={isChecking}
-                className="inline-flex h-10 items-center gap-2 rounded-[var(--radius-sm)] bg-[var(--accent-primary)] px-4 text-[0.82rem] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+                className="saju-btn saju-btn-primary gap-2 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isChecking && <span className="saju-status-dot" />}
                 {isChecking ? '살피는 중...' : '형편 살피기'}
@@ -425,22 +412,18 @@ export default function SajuLovePage() {
                 type="button"
                 onClick={triggerProcessor}
                 disabled={isTriggering}
-                className="inline-flex h-10 items-center gap-2 rounded-[var(--radius-sm)] border border-[var(--border-primary)] bg-[var(--bg-primary)] px-4 text-[0.82rem] text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+                className="saju-btn saju-btn-secondary gap-2 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isTriggering && <span className="saju-status-dot" />}
                 {isTriggering ? '다스림 청하는 중...' : '다스림 깨우기'}
               </button>
-              <button
-                type="button"
-                onClick={resetForNewRequest}
-                className="inline-flex h-10 items-center justify-center rounded-[var(--radius-sm)] border border-[var(--border-primary)] bg-[var(--bg-primary)] px-4 text-[0.82rem] text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-hover)]"
-              >
+              <button type="button" onClick={resetForNewRequest} className="saju-btn saju-btn-secondary">
                 새 청원 올리기
               </button>
             </div>
 
             {requestState && (
-              <div className="mt-3 rounded-[var(--radius-sm)] border border-[var(--border-primary)] bg-[var(--bg-primary)] p-3 text-[0.82rem] text-[var(--text-secondary)]">
+              <div className="saju-token-box mt-3 rounded-[var(--radius-sm)] border p-3 text-[0.82rem] text-[var(--text-secondary)]">
                 <p>
                   이제 형편: <strong className="text-[var(--text-primary)]">{statusText(requestState.status)}</strong>
                 </p>
@@ -448,12 +431,12 @@ export default function SajuLovePage() {
                 {requestState.email.sentAt && (
                   <p className="mt-1">보낸 시각: {new Date(requestState.email.sentAt).toLocaleString('ko-KR')}</p>
                 )}
-                {requestState.error && <p className="mt-1 text-[#ba3b2a]">허물: {requestState.error}</p>}
+                {requestState.error && <p className="mt-1 text-[var(--saju-error-text)]">허물: {requestState.error}</p>}
               </div>
             )}
 
-            {notice && <p className="mt-3 rounded-[var(--radius-sm)] bg-[#edf5f8] px-3 py-2 text-[0.82rem] text-[var(--accent-primary)]">{notice}</p>}
-            {apiError && <p className="mt-2 rounded-[var(--radius-sm)] bg-[#fff2ef] px-3 py-2 text-[0.82rem] text-[#ba3b2a]">{apiError}</p>}
+            {notice && <p className="saju-alert is-info mt-3 rounded-[var(--radius-sm)] px-3 py-2 text-[0.82rem]">{notice}</p>}
+            {apiError && <p className="saju-alert is-error mt-2 rounded-[var(--radius-sm)] px-3 py-2 text-[0.82rem]">{apiError}</p>}
           </article>
         </section>
       )}
