@@ -14,7 +14,10 @@
     "sync:notion": "node scripts/sync-notion.mjs",
     "sync:notion:edited": "node scripts/sync-notion.mjs --edited-only --if-changed",
     "sync:notion:all": "node scripts/sync-notion.mjs --full",
-    "sync:check": "node scripts/sync-notion.mjs --check"
+    "sync:check": "node scripts/sync-notion.mjs --check",
+    "trend:once": "node scripts/sync-hada-trends.mjs",
+    "trend:once:heuristic": "node scripts/sync-hada-trends.mjs --analysis=heuristic",
+    "trend:once:codex": "node scripts/sync-hada-trends.mjs --analysis=codex"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.0",

@@ -1,0 +1,346 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import trendData from '../data/trends/hada-today.json';
+
+const trendAnalysis = trendData?.analysis;
+const trendList = Array.isArray(trendAnalysis?.trends) ? trendAnalysis.trends : [];
+const watchPoints = Array.isArray(trendAnalysis?.watchPoints) ? trendAnalysis.watchPoints : [];
+const signals = Array.isArray(trendAnalysis?.signals) ? trendAnalysis.signals : [];
+const sourceItems = Array.isArray(trendData?.items) ? trendData.items : [];
+
+const publishedFormatter = new Intl.DateTimeFormat('ko-KR', {
+  timeZone: 'Asia/Seoul',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false
+});
+---
+
+<BaseLayout title="오늘의 개발 판세 | 노미신문" description="news.hada.io 갈래를 모아 오늘의 개발 판세를 갈무리한 면입니다.">
+  <Header />
+
+  <main class="trend-page pt-[calc(var(--header-height)+1.2rem)] pb-[2.2rem] md:pt-[calc(var(--header-height)+1.8rem)] md:pb-12">
+    <section class="container">
+      <article class="trend-sheet paper-panel">
+        <div class="trend-folio">
+          <span>별호</span>
+          <p>노미신문 · 오늘의 개발 판세</p>
+          <span>{trendData.analysisMode === 'codex' ? 'AI 풀이' : '규칙 풀이'}</span>
+        </div>
+        <div class="paper-rule" />
+
+        <header class="trend-head">
+          <h1>{trendAnalysis?.headline || '오늘의 개발 판세'}</h1>
+          <p class="trend-summary">
+            {trendAnalysis?.summary || '오늘 판세를 아직 엮지 못했사오니, 잠시 뒤 다시 살펴 주시옵소서.'}
+          </p>
+          <p class="trend-meta">
+            갈무리 시각: {trendData.generatedAtKst || '-'} · 수집 갈래: {trendData.itemCount || 0}건 · 곳간:
+            <a href={trendData.source?.siteUrl || 'https://news.hada.io'} target="_blank" rel="noreferrer noopener">
+              {trendData.source?.name || 'GeekNews'}
+            </a>
+          </p>
+        </header>
+
+        <section class="trend-grid">
+          <div class="trend-block">
+            <h2>오늘 두드러진 갈래</h2>
+            {trendList.length > 0 ? (
+              <ul class="trend-items">
+                {trendList.map((trend) => (
+                  <li>
+                    <div class="trend-title">
+                      <strong>{trend.name}</strong>
+                      <span>{trend.count}건</span>
+                    </div>
+                    <p>{trend.why}</p>
+                    {Array.isArray(trend.examples) && trend.examples.length > 0 && (
+                      <div class="trend-examples">
+                        {trend.examples.map((example) => (
+                          <small>{example}</small>
+                        ))}
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p class="empty-note">아직 갈래를 엮지 못했사옵니다.</p>
+            )}
+          </div>
+
+          <aside class="trend-side">
+            <div class="trend-panel">
+              <h3>살필 거리</h3>
+              {watchPoints.length > 0 ? (
+                <ul>
+                  {watchPoints.map((point) => (
+                    <li>{point}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p class="empty-note">오늘 살필 거리가 비어 있사옵니다.</p>
+              )}
+            </div>
+
+            <div class="trend-panel">
+              <h3>빠른 징후</h3>
+              {signals.length > 0 ? (
+                <ul>
+                  {signals.map((signal) => (
+                    <li>{signal}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p class="empty-note">징후를 모으는 중이옵니다.</p>
+              )}
+            </div>
+          </aside>
+        </section>
+      </article>
+    </section>
+
+    <section class="container mt-5">
+      <div class="paper-panel trend-source-head">
+        <h2>원문 가름줄</h2>
+        <a href={trendData.source?.feedUrl || 'https://news.hada.io/rss/news'} target="_blank" rel="noreferrer noopener">피드 보기</a>
+      </div>
+
+      <ol class="paper-panel source-list">
+        {sourceItems.length > 0 ? (
+          sourceItems.map((item, index) => (
+            <li class="source-row">
+              <a href={item.url} target="_blank" rel="noreferrer noopener">
+                <span class="source-index">{index + 1}</span>
+                <div class="source-copy">
+                  <strong>{item.title}</strong>
+                  {item.summary && <p>{item.summary}</p>}
+                  <div class="source-meta">
+                    <span>{item.author || '이름 미상'}</span>
+                    <time>{item.publishedAt ? publishedFormatter.format(new Date(item.publishedAt)) : '-'}</time>
+                  </div>
+                </div>
+              </a>
+            </li>
+          ))
+        ) : (
+          <li class="source-row empty">아직 불러온 원문이 없사옵니다.</li>
+        )}
+      </ol>
+    </section>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  .trend-sheet {
+    padding: 0.85rem;
+  }
+
+  .trend-folio {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.76rem;
+    color: var(--text-tertiary);
+  }
+
+  .trend-folio p {
+    text-align: center;
+    letter-spacing: 0.02em;
+  }
+
+  .trend-head {
+    margin-top: 0.6rem;
+    border: 1px solid var(--divider);
+    background: rgba(204, 200, 190, 0.58);
+    padding: 0.6rem;
+  }
+
+  .trend-head h1 {
+    font-size: clamp(1.8rem, 5.4vw, 2.85rem);
+    line-height: 1.14;
+    letter-spacing: -0.02em;
+  }
+
+  .trend-summary {
+    margin-top: 0.48rem;
+    border-top: 1px solid var(--divider);
+    border-bottom: 1px solid var(--divider);
+    padding: 0.45rem 0;
+    font-size: 0.98rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+  }
+
+  .trend-meta {
+    margin-top: 0.4rem;
+    font-size: 0.78rem;
+    color: var(--text-tertiary);
+  }
+
+  .trend-meta a {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .trend-grid {
+    margin-top: 0.62rem;
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 0.62rem;
+  }
+
+  .trend-block,
+  .trend-panel {
+    border: 1px solid var(--divider);
+    background: rgba(204, 200, 190, 0.62);
+    padding: 0.55rem;
+  }
+
+  .trend-block h2,
+  .trend-panel h3 {
+    font-size: 1rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .trend-items,
+  .trend-panel ul {
+    list-style: none;
+    border-top: 1px solid var(--divider);
+    padding-top: 0.35rem;
+  }
+
+  .trend-items li + li,
+  .trend-panel li + li {
+    margin-top: 0.34rem;
+  }
+
+  .trend-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+  }
+
+  .trend-title strong {
+    font-size: 0.9rem;
+  }
+
+  .trend-title span {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+  }
+
+  .trend-items p,
+  .trend-panel li {
+    margin-top: 0.2rem;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.56;
+  }
+
+  .trend-examples {
+    margin-top: 0.18rem;
+    display: grid;
+    gap: 0.08rem;
+  }
+
+  .trend-examples small {
+    font-size: 0.74rem;
+    color: var(--text-tertiary);
+  }
+
+  .empty-note {
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+  }
+
+  .trend-source-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.48rem 0.75rem;
+    margin-bottom: 0.62rem;
+  }
+
+  .trend-source-head h2 {
+    font-size: 1rem;
+    line-height: 1.3;
+  }
+
+  .trend-source-head a {
+    font-size: 0.76rem;
+    color: var(--text-secondary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .source-list {
+    list-style: none;
+  }
+
+  .source-row + .source-row {
+    border-top: 1px solid var(--divider);
+  }
+
+  .source-row a {
+    display: grid;
+    grid-template-columns: 32px 1fr;
+    gap: 0.55rem;
+    padding: 0.72rem 0.75rem;
+  }
+
+  .source-index {
+    font-size: 0.76rem;
+    color: var(--text-tertiary);
+    padding-top: 0.2rem;
+  }
+
+  .source-copy strong {
+    display: block;
+    font-size: 0.92rem;
+    line-height: 1.5;
+    color: var(--text-primary);
+  }
+
+  .source-copy p {
+    margin-top: 0.2rem;
+    font-size: 0.8rem;
+    line-height: 1.56;
+    color: var(--text-secondary);
+  }
+
+  .source-meta {
+    margin-top: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-size: 0.72rem;
+    color: var(--text-tertiary);
+  }
+
+  .source-row.empty {
+    padding: 0.8rem;
+    font-size: 0.82rem;
+    color: var(--text-tertiary);
+  }
+
+  @media (max-width: 920px) {
+    .trend-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .source-row a {
+      grid-template-columns: 1fr;
+      gap: 0.22rem;
+    }
+  }
+</style>
