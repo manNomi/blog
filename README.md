@@ -21,6 +21,7 @@ Notion을 CMS로 활용한 정적 기술 블로그입니다.
 - 댓글 (Giscus)
 - 공유 기능 (SNS, 링크 복사)
 - 사주 연애운 이메일 리포트 (요청 큐/비동기 처리)
+- 오늘의 개발 판세 자동 갈무리 (`news.hada.io` 피드 기반)
 - SEO 최적화 (Open Graph, Sitemap)
 - 크림 색상 테마
 
@@ -63,6 +64,9 @@ RESEND_API_KEY=
 EMAIL_FROM=
 TURNSTILE_SECRET_KEY=
 JOB_PROCESSOR_SECRET=
+
+# Trend (Codex analysis optional)
+CODEX_MODEL=
 ```
 
 ### 사주 처리 플로우
@@ -87,7 +91,25 @@ npm install
 npm run sync:check  # 변경 여부만 확인 (다운로드/파일쓰기 없음)
 npm run sync:notion:edited  # edit=true인 글 중 변경된 글만 동기화
 npm run sync:notion:all  # Published 글 전체 강제 동기화
+npm run trend:once  # news.hada.io 피드 수집 + Codex 분석(실패 시 폴백)
+npm run trend:once:heuristic  # 규칙 기반 분석만 사용
+npm run trend:once:codex  # Codex 분석 강제(실패 시 에러)
 npm run dev
+```
+
+### 오늘의 개발 판세 (/trends)
+
+- 수집원: `https://news.hada.io/rss/news`
+- 결과 파일: `src/data/trends/hada-today.json`
+- 페이지: `/trends`
+- `trend:once` 실행 시 Codex CLI 분석을 우선 시도하고, 실패하면 규칙 기반 분석으로 자동 폴백합니다.
+
+### Codex Automation 실행 예시
+
+- 자동화 작업에서 아래 한 줄만 실행하면 됩니다.
+
+```bash
+npm run trend:once
 ```
 
 ### Notion 동기화 변경 감지
