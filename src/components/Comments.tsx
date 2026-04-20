@@ -15,7 +15,7 @@ export default function Comments() {
     const script = document.createElement('script');
     script.src = 'https://giscus.app/client.js';
     script.setAttribute('data-repo', 'manNomi/blog');
-    // TODO: GISCUS_SETUP.md를 참고하여 Giscus에서 생성한 실제 값으로 교체하세요
+    // TODO: Giscus 설정 화면에서 생성한 실제 값으로 교체하세요.
     script.setAttribute('data-repo-id', 'YOUR_REPO_ID'); // Giscus 설정에서 확인 필요
     script.setAttribute('data-category', 'Comments');
     script.setAttribute('data-category-id', 'YOUR_CATEGORY_ID'); // Giscus 설정에서 확인 필요
