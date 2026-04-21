@@ -56,7 +56,7 @@ function statusText(status: LoveJobPublic['status']) {
 
 const stepLabels: Array<{ key: Step; label: string }> = [
   { key: 'landing', label: '알림' },
-  { key: 'input', label: '반드시 적기' },
+  { key: 'input', label: '필수 입력' },
   { key: 'submitted', label: '접수 마침' }
 ];
 
@@ -210,144 +210,153 @@ export default function SajuLovePage() {
   const currentStepIndex = stepLabels.findIndex((entry) => entry.key === step);
 
   return (
-    <div className="space-y-5 saju-stage">
-      <section className="saju-mast rounded-[var(--radius-lg)] border p-5 shadow-[var(--shadow-sm)] md:p-7">
-        <div className="saju-mast-folio">
-          <span>연정 별호</span>
-          <span>노미신문 사주 특집</span>
-          <span>비동기 청원판</span>
-        </div>
-        <div className="paper-rule mb-3" />
-        <div className="mb-3 flex flex-wrap gap-2 saju-step-strip">
+    <div className="space-y-5">
+      <section className="rounded-[12px] border border-[var(--line-default)] bg-[var(--bg-surface)] p-5 shadow-[var(--shadow-card)] md:p-7">
+        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-faint)]">Saju Atelier</p>
+        <h1 className="mt-3 text-[2.1rem] font-bold leading-[1.08] tracking-[-0.03em] text-[var(--text-strong)] md:text-[2.9rem]">사주 풀이 요청</h1>
+        <p className="mt-2 text-[0.95rem] leading-[1.6] text-[var(--text-muted)]">입력 후 비동기 처리되며 결과는 이메일로 전달됩니다.</p>
+
+        <div className="mt-4 flex flex-wrap gap-2">
           {stepLabels.map((entry, index) => {
             const active = index <= currentStepIndex;
             return (
-              <span key={entry.key} className={`saju-step-pill ${active ? 'is-active' : ''}`}>
-                {active && <span className="saju-status-dot" />}
+              <span
+                key={entry.key}
+                className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs ${
+                  active
+                    ? 'border-[#111] bg-[#111] text-white'
+                    : 'border-[var(--line-default)] bg-[var(--bg-soft)] text-[var(--text-muted)]'
+                }`}
+              >
                 {entry.label}
               </span>
             );
           })}
         </div>
-
-        <h1 className="text-[1.6rem] font-semibold tracking-[-0.02em] text-[var(--text-primary)] md:text-[2.15rem]">사주 연정 전자우편 (이메일) 풀이</h1>
-        <p className="mt-2 max-w-[700px] text-[0.9rem] leading-[1.7] text-[var(--text-secondary)]">
-          결과를 곧바로 드러내지 아니하고 청원을 줄에 올린 뒤 비동기로 다스리옵니다. 마치면 전자우편 (이메일)으로 풀이를 보내옵니다.
-        </p>
       </section>
 
       {step === 'landing' && (
-        <section className="saju-hover-card saju-news-card rounded-[var(--radius-lg)] border p-6 text-center shadow-[var(--shadow-sm)]">
-          <h2 className="text-[1.25rem] font-semibold text-[var(--text-primary)]">긴요한 정보를 적은 뒤 편지를 받으소서</h2>
-          <p className="mt-2 text-[0.9rem] text-[var(--text-secondary)]">이름, 전자우편 (이메일), 태어난 날과 시각, 태어난 고장을 빠짐없이 적어야 청원이 올라가옵니다.</p>
-          <button type="button" onClick={() => setStep('input')} className="saju-btn saju-btn-primary mt-4">
-            청원 올리기
+        <section className="rounded-[12px] border border-[var(--line-default)] bg-[var(--bg-surface)] p-6 shadow-[var(--shadow-soft)]">
+          <h2 className="text-[1.15rem] font-semibold text-[var(--text-strong)] md:text-[1.3rem]">필수 입력을 먼저 채워 주세요</h2>
+          <p className="mt-2 text-[0.9rem] text-[var(--text-muted)]">이름, 전자우편 (이메일), 태어난 날과 시각, 태어난 고장을 반드시 입력해야 요청이 접수됩니다.</p>
+          <button
+            type="button"
+            onClick={() => setStep('input')}
+            className="mt-4 inline-flex h-11 items-center rounded-full bg-[#111] px-5 text-sm font-medium text-white"
+          >
+            요청 접수
           </button>
         </section>
       )}
 
       {step === 'input' && (
-        <section className="saju-hover-card saju-news-card rounded-[var(--radius-lg)] border p-5 shadow-[var(--shadow-sm)] md:p-7">
-          <div className="saju-completion mb-4 rounded-[var(--radius-md)] px-3 py-2 text-[0.8rem] text-[var(--text-secondary)]">
-            긴요한 항목 채움새: <strong className="text-[var(--text-primary)]">{completionCount}/7</strong>
-          </div>
+        <section className="rounded-[12px] border border-[var(--line-default)] bg-[var(--bg-surface)] p-5 shadow-[var(--shadow-soft)] md:p-7">
+          <p className="mb-4 text-sm text-[var(--text-muted)]">
+            입력 진행률: <strong className="text-[var(--text-strong)]">{completionCount}/7</strong>
+          </p>
 
           <form className="space-y-4" onSubmit={submitRequest}>
             <div className="grid gap-4 md:grid-cols-2">
-              <label className="text-[0.82rem] text-[var(--text-secondary)]">
+              <label className="text-sm text-[var(--text-muted)]">
                 성명 *
                 <input
                   type="text"
                   placeholder="홍길동"
                   {...requestForm.register('name')}
-                  className="mt-1.5 h-11 w-full rounded-[var(--radius-sm)] border border-[var(--border-primary)] bg-[var(--bg-primary)] px-3 text-[0.9rem] text-[var(--text-primary)] transition-colors focus:border-[var(--accent-primary)] focus:outline-none"
+                  className="mt-1.5 h-11 w-full rounded-[8px] border border-[var(--line-default)] bg-[var(--bg-soft)] px-3 text-sm text-[var(--text-strong)]"
                 />
                 {requestForm.formState.errors.name && (
-                  <span className="mt-1 block text-[0.76rem] text-[var(--saju-error-text)]">{requestForm.formState.errors.name.message}</span>
+                  <span className="mt-1 block text-xs text-[#b34131]">{requestForm.formState.errors.name.message}</span>
                 )}
               </label>
 
-              <label className="text-[0.82rem] text-[var(--text-secondary)]">
+              <label className="text-sm text-[var(--text-muted)]">
                 전자우편 (이메일) *
                 <input
                   type="email"
-                  placeholder="이름@본보기.한국"
+                  placeholder="name@example.com"
                   {...requestForm.register('email')}
-                  className="mt-1.5 h-11 w-full rounded-[var(--radius-sm)] border border-[var(--border-primary)] bg-[var(--bg-primary)] px-3 text-[0.9rem] text-[var(--text-primary)] transition-colors focus:border-[var(--accent-primary)] focus:outline-none"
+                  className="mt-1.5 h-11 w-full rounded-[8px] border border-[var(--line-default)] bg-[var(--bg-soft)] px-3 text-sm text-[var(--text-strong)]"
                 />
                 {requestForm.formState.errors.email && (
-                  <span className="mt-1 block text-[0.76rem] text-[var(--saju-error-text)]">{requestForm.formState.errors.email.message}</span>
+                  <span className="mt-1 block text-xs text-[#b34131]">{requestForm.formState.errors.email.message}</span>
                 )}
               </label>
 
-              <label className="text-[0.82rem] text-[var(--text-secondary)]">
+              <label className="text-sm text-[var(--text-muted)]">
                 태어난 날 *
                 <input
                   type="date"
                   {...requestForm.register('birthDate')}
-                  className="mt-1.5 h-11 w-full rounded-[var(--radius-sm)] border border-[var(--border-primary)] bg-[var(--bg-primary)] px-3 text-[0.9rem] text-[var(--text-primary)] transition-colors focus:border-[var(--accent-primary)] focus:outline-none"
+                  className="mt-1.5 h-11 w-full rounded-[8px] border border-[var(--line-default)] bg-[var(--bg-soft)] px-3 text-sm text-[var(--text-strong)]"
                 />
                 {requestForm.formState.errors.birthDate && (
-                  <span className="mt-1 block text-[0.76rem] text-[var(--saju-error-text)]">{requestForm.formState.errors.birthDate.message}</span>
+                  <span className="mt-1 block text-xs text-[#b34131]">{requestForm.formState.errors.birthDate.message}</span>
                 )}
               </label>
 
-              <label className="text-[0.82rem] text-[var(--text-secondary)]">
+              <label className="text-sm text-[var(--text-muted)]">
                 태어난 시각 *
                 <input
                   type="time"
                   {...requestForm.register('birthTime')}
-                  className="mt-1.5 h-11 w-full rounded-[var(--radius-sm)] border border-[var(--border-primary)] bg-[var(--bg-primary)] px-3 text-[0.9rem] text-[var(--text-primary)] transition-colors focus:border-[var(--accent-primary)] focus:outline-none"
+                  className="mt-1.5 h-11 w-full rounded-[8px] border border-[var(--line-default)] bg-[var(--bg-soft)] px-3 text-sm text-[var(--text-strong)]"
                 />
                 {requestForm.formState.errors.birthTime && (
-                  <span className="mt-1 block text-[0.76rem] text-[var(--saju-error-text)]">{requestForm.formState.errors.birthTime.message}</span>
+                  <span className="mt-1 block text-xs text-[#b34131]">{requestForm.formState.errors.birthTime.message}</span>
                 )}
               </label>
 
-              <label className="text-[0.82rem] text-[var(--text-secondary)]">
+              <label className="text-sm text-[var(--text-muted)]">
                 남녀 *
                 <select
                   {...requestForm.register('gender')}
-                  className="mt-1.5 h-11 w-full rounded-[var(--radius-sm)] border border-[var(--border-primary)] bg-[var(--bg-primary)] px-3 text-[0.9rem] text-[var(--text-primary)] transition-colors focus:border-[var(--accent-primary)] focus:outline-none"
+                  className="mt-1.5 h-11 w-full rounded-[8px] border border-[var(--line-default)] bg-[var(--bg-soft)] px-3 text-sm text-[var(--text-strong)]"
                 >
                   <option value="female">여인</option>
                   <option value="male">사내</option>
                 </select>
               </label>
 
-              <label className="text-[0.82rem] text-[var(--text-secondary)]">
+              <label className="text-sm text-[var(--text-muted)]">
                 역법 *
                 <select
                   {...requestForm.register('calendarType')}
-                  className="mt-1.5 h-11 w-full rounded-[var(--radius-sm)] border border-[var(--border-primary)] bg-[var(--bg-primary)] px-3 text-[0.9rem] text-[var(--text-primary)] transition-colors focus:border-[var(--accent-primary)] focus:outline-none"
+                  className="mt-1.5 h-11 w-full rounded-[8px] border border-[var(--line-default)] bg-[var(--bg-soft)] px-3 text-sm text-[var(--text-strong)]"
                 >
-                  <option value="solar">해력</option>
-                  <option value="lunar">태음력</option>
+                  <option value="solar">양력</option>
+                  <option value="lunar">음력</option>
                 </select>
-              </label>
-
-              <label className="text-[0.82rem] text-[var(--text-secondary)] md:col-span-2">
-                태어난 고장 *
-                <input
-                  type="text"
-                  placeholder="서울"
-                  {...requestForm.register('birthPlace')}
-                  className="mt-1.5 h-11 w-full rounded-[var(--radius-sm)] border border-[var(--border-primary)] bg-[var(--bg-primary)] px-3 text-[0.9rem] text-[var(--text-primary)] transition-colors focus:border-[var(--accent-primary)] focus:outline-none"
-                />
-                {requestForm.formState.errors.birthPlace && (
-                  <span className="mt-1 block text-[0.76rem] text-[var(--saju-error-text)]">{requestForm.formState.errors.birthPlace.message}</span>
-                )}
               </label>
             </div>
 
-            {apiError && <p className="saju-alert is-error rounded-[var(--radius-sm)] px-3 py-2 text-[0.82rem]">{apiError}</p>}
+            <label className="block text-sm text-[var(--text-muted)]">
+              태어난 고장 *
+              <input
+                type="text"
+                placeholder="서울특별시"
+                {...requestForm.register('birthPlace')}
+                className="mt-1.5 h-11 w-full rounded-[8px] border border-[var(--line-default)] bg-[var(--bg-soft)] px-3 text-sm text-[var(--text-strong)]"
+              />
+              {requestForm.formState.errors.birthPlace && (
+                <span className="mt-1 block text-xs text-[#b34131]">{requestForm.formState.errors.birthPlace.message}</span>
+              )}
+            </label>
 
-            <div className="flex flex-wrap gap-2 pt-1">
-              <button type="submit" disabled={requestForm.formState.isSubmitting} className="saju-btn saju-btn-primary disabled:cursor-not-allowed disabled:opacity-60">
-                {requestForm.formState.isSubmitting ? '올리는 중...' : '청원 올리기'}
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="submit"
+                disabled={requestForm.formState.isSubmitting}
+                className="inline-flex h-11 items-center rounded-full bg-[#111] px-5 text-sm font-medium text-white disabled:opacity-60"
+              >
+                {requestForm.formState.isSubmitting ? '접수 중…' : '요청 접수'}
               </button>
-              <button type="button" onClick={() => setStep('landing')} className="saju-btn saju-btn-secondary">
-                뒤로 물림
+              <button
+                type="button"
+                onClick={() => setStep('landing')}
+                className="inline-flex h-11 items-center rounded-full border border-[var(--line-default)] bg-[var(--bg-soft)] px-5 text-sm text-[var(--text-body)]"
+              >
+                뒤로
               </button>
             </div>
           </form>
@@ -355,91 +364,104 @@ export default function SajuLovePage() {
       )}
 
       {step === 'submitted' && (
-        <section className="saju-hover-card saju-news-card space-y-4 rounded-[var(--radius-lg)] border p-5 shadow-[var(--shadow-sm)] md:p-7">
-          <article className="saju-news-pane rounded-[var(--radius-md)] border p-4">
-            <h2 className="text-[1.05rem] font-semibold text-[var(--text-primary)]">청원이 접수되었사옵니다</h2>
-            <p className="mt-2 text-[0.88rem] text-[var(--text-secondary)]">비동기 헤아림이 마치면 전자우편 (이메일)으로 풀이를 보내옵니다.</p>
-
-            <div className="saju-token-box mt-3 space-y-2 rounded-[var(--radius-sm)] border p-3">
-              <p className="text-[0.78rem] text-[var(--text-tertiary)]">청원 식별값</p>
-              <p className="break-all font-mono text-[0.82rem] text-[var(--text-primary)]">{statusForm.watch('requestId')}</p>
-              <p className="mt-2 text-[0.78rem] text-[var(--text-tertiary)]">살핌 열쇠</p>
-              <p className="break-all font-mono text-[0.82rem] text-[var(--text-primary)]">{statusForm.watch('accessToken')}</p>
-            </div>
-          </article>
-
-          <article className="saju-news-pane rounded-[var(--radius-md)] border p-4">
-            <h3 className="text-[0.95rem] font-semibold text-[var(--text-primary)]">형편 살피기</h3>
-            <form className="mt-3 grid gap-3 md:grid-cols-2" onSubmit={checkStatus}>
+        <section className="space-y-4">
+          <div className="rounded-[12px] border border-[var(--line-default)] bg-[var(--bg-surface)] p-5 shadow-[var(--shadow-soft)] md:p-6">
+            <h2 className="text-[1.1rem] font-semibold text-[var(--text-strong)]">접수 정보</h2>
+            <dl className="mt-3 grid gap-3 text-sm">
               <div>
+                <dt className="text-[var(--text-muted)]">요청 식별값</dt>
+                <dd className="mt-1 break-all rounded-[8px] border border-[var(--line-default)] bg-[var(--bg-soft)] px-3 py-2 font-mono text-xs text-[var(--text-strong)]">
+                  {statusForm.watch('requestId') || '-'}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-[var(--text-muted)]">접근 열쇠</dt>
+                <dd className="mt-1 break-all rounded-[8px] border border-[var(--line-default)] bg-[var(--bg-soft)] px-3 py-2 font-mono text-xs text-[var(--text-strong)]">
+                  {statusForm.watch('accessToken') || '-'}
+                </dd>
+              </div>
+            </dl>
+          </div>
+
+          <form className="rounded-[12px] border border-[var(--line-default)] bg-[var(--bg-surface)] p-5 shadow-[var(--shadow-soft)] md:p-6" onSubmit={checkStatus}>
+            <h3 className="text-[1.02rem] font-semibold text-[var(--text-strong)]">처리 상태 조회</h3>
+            <div className="mt-3 grid gap-3 md:grid-cols-2">
+              <label className="text-sm text-[var(--text-muted)]">
+                요청 식별값
                 <input
                   type="text"
-                  placeholder="청원 식별값"
                   {...statusForm.register('requestId')}
-                  className="h-10 w-full rounded-[var(--radius-sm)] border border-[var(--border-primary)] bg-[var(--bg-primary)] px-3 text-[0.84rem] transition-colors focus:border-[var(--accent-primary)] focus:outline-none"
+                  className="mt-1.5 h-11 w-full rounded-[8px] border border-[var(--line-default)] bg-[var(--bg-soft)] px-3 text-sm text-[var(--text-strong)]"
                 />
                 {statusForm.formState.errors.requestId && (
-                  <span className="mt-1 block text-[0.76rem] text-[var(--saju-error-text)]">{statusForm.formState.errors.requestId.message}</span>
+                  <span className="mt-1 block text-xs text-[#b34131]">{statusForm.formState.errors.requestId.message}</span>
                 )}
-              </div>
+              </label>
 
-              <div>
+              <label className="text-sm text-[var(--text-muted)]">
+                접근 열쇠
                 <input
                   type="text"
-                  placeholder="살핌 열쇠"
                   {...statusForm.register('accessToken')}
-                  className="h-10 w-full rounded-[var(--radius-sm)] border border-[var(--border-primary)] bg-[var(--bg-primary)] px-3 text-[0.84rem] transition-colors focus:border-[var(--accent-primary)] focus:outline-none"
+                  className="mt-1.5 h-11 w-full rounded-[8px] border border-[var(--line-default)] bg-[var(--bg-soft)] px-3 text-sm text-[var(--text-strong)]"
                 />
                 {statusForm.formState.errors.accessToken && (
-                  <span className="mt-1 block text-[0.76rem] text-[var(--saju-error-text)]">{statusForm.formState.errors.accessToken.message}</span>
+                  <span className="mt-1 block text-xs text-[#b34131]">{statusForm.formState.errors.accessToken.message}</span>
                 )}
-              </div>
+              </label>
+            </div>
 
-              <button type="submit" className="hidden" aria-hidden="true" />
-            </form>
-
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="mt-4 flex flex-wrap gap-2">
               <button
-                type="button"
-                onClick={checkStatus}
+                type="submit"
                 disabled={isChecking}
-                className="saju-btn saju-btn-primary gap-2 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex h-11 items-center rounded-full bg-[#111] px-5 text-sm font-medium text-white disabled:opacity-60"
               >
-                {isChecking && <span className="saju-status-dot" />}
-                {isChecking ? '살피는 중...' : '형편 살피기'}
+                {isChecking ? '조회 중…' : '상태 조회'}
               </button>
               <button
                 type="button"
                 onClick={triggerProcessor}
                 disabled={isTriggering}
-                className="saju-btn saju-btn-secondary gap-2 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex h-11 items-center rounded-full border border-[var(--line-default)] bg-[var(--bg-soft)] px-5 text-sm text-[var(--text-body)] disabled:opacity-60"
               >
-                {isTriggering && <span className="saju-status-dot" />}
-                {isTriggering ? '다스림 청하는 중...' : '다스림 깨우기'}
+                {isTriggering ? '처리 요청 중…' : '처리 트리거'}
               </button>
-              <button type="button" onClick={resetForNewRequest} className="saju-btn saju-btn-secondary">
-                새 청원 올리기
+              <button
+                type="button"
+                onClick={resetForNewRequest}
+                className="inline-flex h-11 items-center rounded-full border border-[var(--line-default)] bg-[var(--bg-soft)] px-5 text-sm text-[var(--text-body)]"
+              >
+                새 요청 작성
               </button>
             </div>
 
             {requestState && (
-              <div className="saju-token-box mt-3 rounded-[var(--radius-sm)] border p-3 text-[0.82rem] text-[var(--text-secondary)]">
-                <p>
-                  이제 형편: <strong className="text-[var(--text-primary)]">{statusText(requestState.status)}</strong>
-                </p>
-                <p className="mt-1">편지 보냄: {requestState.email.sent ? '마침' : '기다림/그르침'}</p>
-                {requestState.email.sentAt && (
-                  <p className="mt-1">보낸 시각: {new Date(requestState.email.sentAt).toLocaleString('ko-KR')}</p>
-                )}
-                {requestState.error && <p className="mt-1 text-[var(--saju-error-text)]">허물: {requestState.error}</p>}
-              </div>
+              <p className="mt-4 text-sm text-[var(--text-muted)]">
+                현재 상태: <strong className="text-[var(--text-strong)]">{statusText(requestState.status)}</strong>
+              </p>
             )}
-
-            {notice && <p className="saju-alert is-info mt-3 rounded-[var(--radius-sm)] px-3 py-2 text-[0.82rem]">{notice}</p>}
-            {apiError && <p className="saju-alert is-error mt-2 rounded-[var(--radius-sm)] px-3 py-2 text-[0.82rem]">{apiError}</p>}
-          </article>
+          </form>
         </section>
       )}
+
+      {notice && (
+        <div className="rounded-[12px] border border-[#bfd4bf] bg-[#edf7ed] px-4 py-3 text-sm text-[#245524]">
+          {notice}
+        </div>
+      )}
+
+      {apiError && (
+        <div className="rounded-[12px] border border-[#e3b9b3] bg-[#f9eceb] px-4 py-3 text-sm text-[#8a2f23]">
+          {apiError}
+        </div>
+      )}
+
+      <section className="rounded-[12px] border border-[var(--line-default)] bg-[var(--bg-soft)] px-4 py-3 text-xs text-[var(--text-muted)]">
+        상태: queued · processing · completed · failed
+        <br />
+        개인정보 유의사항: 민감정보 최소 수집, 처리 완료 후 보관 정책 적용
+      </section>
     </div>
   );
 }

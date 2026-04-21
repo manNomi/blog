@@ -2,184 +2,88 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
-import PostCard from '../components/PostCard.astro';
 import Footer from '../components/Footer.astro';
+import PostCard from '../components/PostCard.astro';
 
-const allPosts = (await getCollection('blog'))
-  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
-
-const allTags = [...new Set(allPosts.flatMap((post) => post.data.tags || []))].sort((a, b) => a.localeCompare(b, 'ko-KR'));
-
-const tagCounts = allTags.reduce((acc, tag) => {
-  acc[tag] = allPosts.filter((post) => post.data.tags?.includes(tag)).length;
-  return acc;
-}, {} as Record<string, number>);
-
-const tagButtonBaseClass =
-  'tag-filter inline-flex items-center gap-2 rounded-[var(--radius-sm)] border px-[0.58rem] py-[0.28rem] text-[0.78rem] transition-[border-color,background-color,color] duration-150';
-const tagButtonInactiveClass =
-  'border-[var(--border-primary)] bg-[var(--bg-primary)] text-[var(--text-secondary)] hover:border-[var(--border-secondary)] hover:bg-[var(--bg-hover)]';
-const tagButtonActiveClass =
-  'border-[rgba(11,110,153,0.28)] bg-[#edf5f8] text-[var(--accent-primary)]';
-
-const tagCountBaseClass =
-  'tag-count inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-[var(--radius-sm)] px-1 text-[0.67rem] font-medium';
-const tagCountInactiveClass = 'bg-[var(--bg-tag)]';
-const tagCountActiveClass = 'bg-[rgba(11,110,153,0.12)] text-[var(--accent-primary)]';
+const allPosts = (await getCollection('blog')).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 ---
 
-<BaseLayout title="글월 모두 모음 - 한만욱" description="기술 누리집에 실린 모든 글월을 살펴보시옵소서">
+<BaseLayout title="All Posts | Nomi Journal" description="Browse all published stories and concise engineering notes.">
   <Header />
 
-  <main class="min-h-screen pb-[var(--space-3xl)] pt-[calc(var(--header-height)+1.7rem)]">
-    <div class="container">
-      <div class="mb-5">
-        <h1 class="mb-[0.35rem] text-[2rem] font-semibold tracking-[-0.015em] text-[var(--text-primary)]">모든 글월</h1>
-        <p class="text-[0.9rem] text-[var(--text-secondary)]">도합 {allPosts.length}편 글월</p>
-      </div>
+  <main class="main-shell posts-page">
+    <section class="container">
+      <header class="posts-head">
+        <p class="kicker">Archive</p>
+        <h1>All Posts</h1>
+        <p>{allPosts.length} published stories.</p>
+      </header>
 
-      {allTags.length > 0 && (
-        <div class="mb-[1.2rem] rounded-[var(--radius-md)] border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-[0.85rem]">
-          <h2 class="mb-[0.6rem] text-[0.84rem] font-medium text-[var(--text-primary)]">갈래말로 찾기</h2>
-          <div class="flex flex-wrap gap-[0.45rem]">
-            <button
-              class={`${tagButtonBaseClass} ${tagButtonActiveClass}`}
-              data-tag="all"
-              data-active="true"
-              data-base={tagButtonBaseClass}
-              data-inactive={tagButtonInactiveClass}
-              data-active-classes={tagButtonActiveClass}
-              data-count-base={tagCountBaseClass}
-              data-count-inactive={tagCountInactiveClass}
-              data-count-active={tagCountActiveClass}
-            >
-              <span class="tag-name font-medium">모두</span>
-              <span class={`${tagCountBaseClass} ${tagCountActiveClass}`}>{allPosts.length}</span>
-            </button>
-            {allTags.map((tag) => (
-              <button
-                class={`${tagButtonBaseClass} ${tagButtonInactiveClass}`}
-                data-tag={tag}
-                data-base={tagButtonBaseClass}
-                data-inactive={tagButtonInactiveClass}
-                data-active-classes={tagButtonActiveClass}
-                data-count-base={tagCountBaseClass}
-                data-count-inactive={tagCountInactiveClass}
-                data-count-active={tagCountActiveClass}
-              >
-                <span class="tag-name font-medium">{tag}</span>
-                <span class={`${tagCountBaseClass} ${tagCountInactiveClass}`}>{tagCounts[tag]}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div class="post-list space-y-3">
+      <section class="posts-list" aria-label="All posts list">
         {allPosts.map((post) => (
-          <div class="post-item" data-tags={JSON.stringify(post.data.tags || [])}>
-            <PostCard
-              title={post.data.title}
-              description={post.data.description}
-              slug={post.slug}
-              pubDate={post.data.pubDate}
-              tags={post.data.tags}
-              pinned={post.data.pinned}
-            />
-          </div>
+          <PostCard
+            title={post.data.title}
+            description={post.data.description}
+            slug={post.slug}
+            pubDate={post.data.pubDate}
+            tags={post.data.tags}
+            pinned={post.data.pinned}
+            variant="compact"
+          />
         ))}
-      </div>
-
-      {allPosts.length === 0 && (
-        <div class="py-[var(--space-3xl)] text-center text-[var(--text-tertiary)]">
-          <p>아직 적힌 글월이 없사옵니다.</p>
-        </div>
-      )}
-    </div>
+      </section>
+    </section>
   </main>
 
   <Footer />
 </BaseLayout>
 
-<script>
-  const tagFilters = Array.from(document.querySelectorAll('.tag-filter'));
-  const postItems = Array.from(document.querySelectorAll('.post-item'));
+<style>
+  .posts-head {
+    border-bottom: 1px solid var(--line-default);
+    padding-bottom: 16px;
+  }
 
-  const updateButtonState = (button: Element, isActive: boolean) => {
-    const inactiveClasses = (button.getAttribute('data-inactive') || '').split(' ').filter(Boolean);
-    const activeClasses = (button.getAttribute('data-active-classes') || '').split(' ').filter(Boolean);
-    const countInactiveClasses = (button.getAttribute('data-count-inactive') || '').split(' ').filter(Boolean);
-    const countActiveClasses = (button.getAttribute('data-count-active') || '').split(' ').filter(Boolean);
-    const countNode = button.querySelector('.tag-count');
+  .posts-head h1 {
+    margin-top: 8px;
+    color: var(--text-strong);
+    font-size: clamp(58px, 6vw, 78px);
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
 
-    button.classList.remove(...inactiveClasses, ...activeClasses);
+  .posts-head p:last-child {
+    margin-top: 10px;
+    color: #575757;
+    font-size: 30px;
+    line-height: 1.3;
+  }
 
-    if (isActive) {
-      button.classList.add(...activeClasses);
-    } else {
-      button.classList.add(...inactiveClasses);
+  .posts-list {
+    margin-top: 18px;
+    display: grid;
+    gap: 10px;
+  }
+
+  @media (max-width: 768px) {
+    .posts-head {
+      padding-bottom: 12px;
     }
 
-    if (countNode) {
-      countNode.classList.remove(...countInactiveClasses, ...countActiveClasses);
-      if (isActive) {
-        countNode.classList.add(...countActiveClasses);
-      } else {
-        countNode.classList.add(...countInactiveClasses);
-      }
+    .posts-head h1 {
+      margin-top: 6px;
+      font-size: 46px;
     }
-  };
 
-  const parsePostTags = (item: Element) => {
-    try {
-      return JSON.parse(item.getAttribute('data-tags') || '[]');
-    } catch {
-      return [];
+    .posts-head p:last-child {
+      margin-top: 8px;
+      font-size: 16px;
+      line-height: 1.45;
     }
-  };
 
-  const resolveTag = (tag: string | null) => {
-    if (!tag) return 'all';
-    return tagFilters.some((button) => button.getAttribute('data-tag') === tag) ? tag : 'all';
-  };
-
-  const syncTagQuery = (tag: string) => {
-    const url = new URL(window.location.href);
-    if (tag === 'all') {
-      url.searchParams.delete('tag');
-    } else {
-      url.searchParams.set('tag', tag);
+    .posts-list {
+      margin-top: 12px;
+      gap: 8px;
     }
-    window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
-  };
-
-  const applyFilter = (tag: string, options: { syncUrl?: boolean } = {}) => {
-    const selectedTag = resolveTag(tag);
-    const activeButton =
-      tagFilters.find((button) => button.getAttribute('data-tag') === selectedTag) || tagFilters[0];
-
-    tagFilters.forEach((button) => updateButtonState(button, button === activeButton));
-
-    postItems.forEach((item) => {
-      const postTags = parsePostTags(item);
-      if (selectedTag === 'all' || postTags.includes(selectedTag)) {
-        item.classList.remove('hidden');
-      } else {
-        item.classList.add('hidden');
-      }
-    });
-
-    if (options.syncUrl !== false) {
-      syncTagQuery(selectedTag);
-    }
-  };
-
-  tagFilters.forEach((button) => {
-    button.addEventListener('click', () => {
-      applyFilter(button.getAttribute('data-tag') || 'all');
-    });
-  });
-
-  const initialTag = new URLSearchParams(window.location.search).get('tag');
-  applyFilter(initialTag || 'all', { syncUrl: false });
-</script>
+  }
+</style>
