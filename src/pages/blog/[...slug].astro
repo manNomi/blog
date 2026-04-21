@@ -4,24 +4,72 @@ import BlogPost from '../../layouts/BlogPost.astro';
 import { calculateReadingTime } from '../../utils/readingTime';
 import { extractFirstImage } from '../../utils/extractFirstImage';
 
+type NavPost = { title: string; slug: string };
+type RelatedPost = { title: string; slug: string; description?: string };
+
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
-  return posts.map((post) => ({
-    params: { slug: post.slug },
-    props: post,
-  }));
+  const sortedPosts = [...posts].sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+  return sortedPosts.map((post, index) => {
+    const previous = sortedPosts[index + 1];
+    const next = sortedPosts[index - 1];
+
+    const currentTags = new Set(post.data.tags || []);
+
+    const relatedPosts: RelatedPost[] = sortedPosts
+      .filter((candidate) => candidate.slug !== post.slug)
+      .map((candidate) => {
+        const sharedTags = (candidate.data.tags || []).filter((tag) => currentTags.has(tag)).length;
+        return {
+          candidate,
+          sharedTags
+        };
+      })
+      .sort((a, b) => {
+        if (b.sharedTags !== a.sharedTags) return b.sharedTags - a.sharedTags;
+        return b.candidate.data.pubDate.valueOf() - a.candidate.data.pubDate.valueOf();
+      })
+      .slice(0, 3)
+      .map(({ candidate }) => ({
+        title: candidate.data.title,
+        slug: candidate.slug,
+        description: candidate.data.description
+      }));
+
+    return {
+      params: { slug: post.slug },
+      props: {
+        post,
+        previousPost: previous ? ({ title: previous.data.title, slug: previous.slug } satisfies NavPost) : null,
+        nextPost: next ? ({ title: next.data.title, slug: next.slug } satisfies NavPost) : null,
+        relatedPosts
+      }
+    };
+  });
 }
 
-type Props = CollectionEntry<'blog'>;
+type PageProps = {
+  post: CollectionEntry<'blog'>;
+  previousPost?: NavPost | null;
+  nextPost?: NavPost | null;
+  relatedPosts?: RelatedPost[];
+};
 
-const post = Astro.props;
+const { post, previousPost, nextPost, relatedPosts = [] } = Astro.props as PageProps;
 const { Content } = await post.render();
 const readingTime = calculateReadingTime(post.body);
-
-// heroImage가 없으면 본문에서 첫 번째 이미지 추출
 const heroImage = post.data.heroImage || extractFirstImage(post.body) || undefined;
 ---
 
-<BlogPost {...post.data} heroImage={heroImage} slug={post.slug} readingTime={readingTime}>
+<BlogPost
+  {...post.data}
+  heroImage={heroImage}
+  slug={post.slug}
+  readingTime={readingTime}
+  previousPost={previousPost}
+  nextPost={nextPost}
+  relatedPosts={relatedPosts}
+>
   <Content />
 </BlogPost>

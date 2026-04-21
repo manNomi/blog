@@ -22,434 +22,404 @@ const allPosts = (await getCollection('blog'))
     return post;
   });
 
-const tagCount = new Set(allPosts.flatMap((post) => post.data.tags || [])).size;
-const recentPosts = allPosts.slice(0, 8);
+const featuredPosts = allPosts.slice(0, 4);
 
-const dateFormatter = new Intl.DateTimeFormat('ko-KR', {
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit'
-});
+const valueCards = [
+  {
+    title: 'Rapid Setup',
+    description: 'Get projects running quickly with a calm, dependable baseline.'
+  },
+  {
+    title: 'Editorial Flow',
+    description: 'Structure content with restrained rhythm and clear visual hierarchy.'
+  },
+  {
+    title: 'Measured Contrast',
+    description: 'Off-white surfaces keep the interface quiet while preserving depth.'
+  },
+  {
+    title: 'Quiet Components',
+    description: 'Minimal cards support scanning without introducing visual noise.'
+  },
+  {
+    title: 'Balanced Spacing',
+    description: 'Consistent gaps and padding create a composed editorial cadence.'
+  },
+  {
+    title: 'Soft Elevation',
+    description: 'A subtle shadow adds depth while maintaining a calm visual tone.'
+  }
+];
 
-const paperDate = dateFormatter.format(new Date());
-const frontNotes = recentPosts.slice(0, 6);
-const opinionNotes = allPosts.slice(6, 12);
-const mastPhoto = '/images/newspaper-press-room.png';
-
-const headline = '노미 신문';
-const dek = '느낀점을 기록하고 있습니다';
+const toCategory = (tags: string[] | undefined) => {
+  if (!tags || tags.length === 0) return 'Editorial';
+  return tags[0].toUpperCase();
+};
 ---
 
-<BaseLayout title="노미 | 한만욱의 누리집" description="자바스크립트를 극진히 쓰고자 늘 힘쓰고 있사옵니다.">
+<BaseLayout
+  title="Nomi Journal"
+  description="Korean sentiment with product rigor in one editorial developer portfolio."
+>
   <Header />
 
-  <main class="homepage pt-[calc(var(--header-height)+1.2rem)] pb-[2.2rem] md:pt-[calc(var(--header-height)+1.9rem)] md:pb-12">
-    <section class="container mb-6 reveal" data-reveal>
-      <article class="frontpage paper-panel">
-        <div class="folio">
-          <span>88</span>
-          <p>노미신문 · {paperDate} · 기술 기록 별호</p>
-          <span>93</span>
-        </div>
-        <div class="paper-rule" />
-
-        <div class="lead-band">
-          <div class="lead-copy">
-            <h1 class="headline">
-              <span>{headline}</span>
-              <span class="headline-breaking">(속보)</span>
-            </h1>
-            <p class="subhead">{dek}</p>
+  <main class="main-shell home-page">
+    <section class="container">
+      <div class="home-stack">
+        <section class="home-hero page-card">
+          <div class="hero-wrap">
+            <h1>코드를 짓고, Stories를 배포하다.</h1>
+            <p>한국어의 정서와 English product rigor를 한 화면에 담은 editorial developer portfolio.</p>
+            <a href="/posts" class="btn-pill dark">View Selected Work</a>
           </div>
 
-          <figure class="main-photo">
-            <img src={mastPhoto} alt="유니폼 프레스 작업 현장" loading="lazy" />
-            <figcaption>△ 선수 유니폼 찍어내는 마당을 갈무리한 기록이옵니다.</figcaption>
-          </figure>
-        </div>
-
-        <div class="under-fold">
-          <div class="story-col">
-            <h2>오늘 엮은 글월</h2>
-            <p>
-              으뜸 지면은 그림 썸네일을 걷어내고, 머리글과 문장으로만 짜 놓았사옵니다. 눈길을 흩뜨리는 그림 칸을 덜어 내어, 옛
-              신문마냥 글줄의 위계가 먼저 읽히도록 다듬었사옵니다.
-            </p>
-            <ul>
-              {frontNotes.map((post) => (
-                <li class="story-item">
-                  <a href={`/blog/${post.slug}`}>
-                    <strong>{post.data.title}</strong>
-                    {post.data.description && <span>{post.data.description}</span>}
-                  </a>
-                </li>
+          <div class="featured-wrap">
+            <h2>Featured</h2>
+            <div class="featured-grid">
+              {featuredPosts.map((post) => (
+                <a href={`/blog/${post.slug}`} class="featured-card">
+                  {post.data.heroImage ? (
+                    <img src={post.data.heroImage} alt={post.data.title} loading="lazy" />
+                  ) : (
+                    <div class="featured-card__placeholder">No preview image</div>
+                  )}
+                  <p class="featured-card__kicker">{toCategory(post.data.tags)}</p>
+                  <h3>{post.data.title}</h3>
+                  <p class="featured-card__description">{post.data.description || 'Open article'}</p>
+                </a>
               ))}
-            </ul>
-            <p class="meta-text">
-              도합 {allPosts.length}편 기사 · 갈래말 {tagCount}벌 ·
-              <a href="/posts"> 모든 기사 보기</a>
-            </p>
+            </div>
           </div>
+        </section>
 
-          <aside class="photo-col">
-            <h3>사설 · 기별</h3>
-            <ul>
-              {opinionNotes.map((post) => (
-                <li>
-                  <a href={`/blog/${post.slug}`}>{post.data.title}</a>
-                  <time>{dateFormatter.format(post.data.pubDate)}</time>
-                </li>
-              ))}
-            </ul>
-            <p>
-              자바스크립트를 극진히 쓰고자 늘 힘쓰고 있사옵니다. 프론트엔드 일터에서 맞닥뜨린 난제를 풀어 간 자취를 부지런히 적어
-              두고 있사옵니다.
-            </p>
-          </aside>
-        </div>
-      </article>
-    </section>
+        <section class="editorial-statement">
+          <div class="editorial-statement__line" />
+          <p>
+            We choose clarity over noise, depth over speed, and craft over convenience so every line we publish carries
+            intention, calm, and conviction.
+          </p>
+          <div class="editorial-statement__line" />
+        </section>
 
-    <section class="container mt-5 reveal" data-reveal>
-      <div class="paper-panel section-head section-head-split">
-        <h2>새 기사</h2>
-        <a href="/posts">모두 보기</a>
+        <section class="feature-grid" aria-label="Editorial principles">
+          {valueCards.map((card) => (
+            <article class="feature-card">
+              <span class="feature-card__dot" aria-hidden="true"></span>
+              <h3>{card.title}</h3>
+              <p>{card.description}</p>
+            </article>
+          ))}
+        </section>
+
+        <section class="home-highlight">
+          <span class="kicker">Highlight</span>
+          <h2>
+            Building Interfaces
+            <br />
+            With Editorial Clarity
+          </h2>
+          <p>Quiet systems, precise typography, and deliberate interaction.</p>
+          <div class="home-highlight__actions">
+            <a href="/posts" class="btn-pill dark">Read Selected Works</a>
+            <a href="/tags" class="btn-pill soft">View Archive</a>
+          </div>
+          <div class="home-highlight__rule"></div>
+          <p class="home-highlight__stack">Astro · Tailwind CSS · Editorial Layout · Content Systems</p>
+        </section>
       </div>
-
-      <ul class="latest-list paper-panel">
-        {recentPosts.map((post) => (
-          <li class="latest-row">
-            <a href={`/blog/${post.slug}`} class="latest-link">
-              <time>{dateFormatter.format(post.data.pubDate)}</time>
-              <div>
-                <h3>{post.data.title}</h3>
-                {post.data.description && <p>{post.data.description}</p>}
-              </div>
-            </a>
-          </li>
-        ))}
-      </ul>
     </section>
   </main>
 
   <Footer />
 </BaseLayout>
 
-<script>
-  const revealNodes = Array.from(document.querySelectorAll('[data-reveal]'));
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  if (reduceMotion) {
-    revealNodes.forEach((node) => node.classList.add('is-visible'));
-  } else {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          const node = entry.target;
-          if (entry.isIntersecting) {
-            node.classList.add('is-visible');
-            node.classList.remove('is-past');
-          } else if (entry.boundingClientRect.top < 0) {
-            node.classList.add('is-past');
-            node.classList.remove('is-visible');
-          } else {
-            node.classList.remove('is-visible', 'is-past');
-          }
-        });
-      },
-      { threshold: 0.2, rootMargin: '0px 0px -12% 0px' }
-    );
-
-    revealNodes.forEach((node) => observer.observe(node));
-  }
-</script>
-
 <style>
-  .frontpage {
-    position: relative;
-    padding: 0.85rem;
-    overflow: hidden;
+  .home-stack {
+    display: grid;
+    gap: 70px;
   }
 
-  .frontpage::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    opacity: 0.11;
-    background-image: radial-gradient(circle at 1px 1px, rgba(20, 18, 15, 0.35) 0.75px, transparent 0.8px);
-    background-size: 3px 3px;
+  .home-hero {
+    padding: 36px 48px;
+    display: grid;
+    gap: 56px;
   }
 
-  .folio {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-    font-size: 0.76rem;
-    color: var(--text-tertiary);
-    margin-bottom: 0.5rem;
-  }
-
-  .folio p {
+  .hero-wrap {
+    display: grid;
+    justify-items: center;
+    gap: 24px;
     text-align: center;
-    letter-spacing: 0.02em;
   }
 
-  .headline {
-    font-family: var(--font-serif);
-    font-size: clamp(2.35rem, 7.4vw, 4.9rem);
-    line-height: 1.06;
+  .hero-wrap h1 {
+    max-width: 860px;
+    color: var(--text-strong);
+    font-size: clamp(48px, 7vw, 86px);
+    line-height: 1.02;
     letter-spacing: -0.03em;
-    margin-top: 0;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    gap: 0.45rem;
   }
 
-  .headline-breaking {
-    font-family: var(--font-sans);
-    font-size: clamp(0.82rem, 1.7vw, 1rem);
-    line-height: 1;
-    color: #6b2e1a;
-    letter-spacing: 0.04em;
-    padding-bottom: 0.28rem;
-    white-space: nowrap;
+  .hero-wrap p {
+    max-width: 760px;
+    color: #555;
+    font-size: 18px;
+    line-height: 1.5;
   }
 
-  .lead-band {
-    margin-top: 0.56rem;
+  .featured-wrap {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 0.62rem;
-    align-items: stretch;
+    gap: 20px;
   }
 
-  .lead-copy {
-    border: 1px solid var(--divider);
-    background: rgba(204, 200, 190, 0.45);
-    padding: 0.5rem 0.56rem;
+  .featured-wrap h2 {
+    color: var(--text-strong);
+    font-size: 30px;
+    line-height: 1.2;
   }
 
-  .subhead {
-    margin-top: 0.44rem;
-    font-size: 1.22rem;
-    line-height: 1.36;
-    font-weight: 700;
-    border-top: 1px solid var(--divider);
-    border-bottom: 1px solid var(--divider);
-    padding: 0.45rem 0;
+  .featured-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 20px;
   }
 
-  .main-photo {
-    border: 1px solid var(--divider);
-    background: #bdb8ae;
-    margin-top: 0;
-    height: 100%;
+  .featured-card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--line-default);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-soft);
+    padding: 16px;
+    display: grid;
+    gap: 12px;
+    transition: transform 0.2s ease, border-color 0.2s ease;
   }
 
-  .main-photo img {
+  .featured-card:hover {
+    transform: translateY(-1px);
+    border-color: var(--line-strong);
+  }
+
+  .featured-card img,
+  .featured-card__placeholder {
     width: 100%;
-    aspect-ratio: 4 / 3;
+    height: 150px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line-soft);
+    background: #efefef;
     object-fit: cover;
-    filter: grayscale(100%) contrast(1.1) saturate(0.35);
-    mix-blend-mode: multiply;
   }
 
-  .main-photo figcaption {
-    font-size: 0.83rem;
-    color: var(--text-secondary);
-    border-top: 1px solid var(--divider);
-    padding: 0.35rem 0.5rem;
-    font-weight: 700;
-  }
-
-  .under-fold {
-    margin-top: 0.65rem;
+  .featured-card__placeholder {
     display: grid;
-    grid-template-columns: 1.1fr 0.9fr;
-    gap: 0.62rem;
+    place-items: center;
+    color: var(--text-faint);
+    font-size: 12px;
   }
 
-  .story-col,
-  .photo-col {
-    border: 1px solid var(--divider);
-    padding: 0.5rem;
-    background: rgba(204, 200, 190, 0.65);
+  .featured-card__kicker {
+    color: #666;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    line-height: 1;
   }
 
-  .story-col h2,
-  .photo-col h3 {
-    font-size: 1.2rem;
-    margin-bottom: 0.3rem;
+  .featured-card h3 {
+    color: var(--text-strong);
+    font-size: 20px;
+    line-height: 1.2;
   }
 
-  .story-col p,
-  .photo-col p {
-    font-size: 0.86rem;
-    line-height: 1.56;
-    color: var(--text-secondary);
-  }
-
-  .story-col ul {
-    list-style: none;
-    border-top: 1px solid var(--divider);
-    margin-top: 0.46rem;
-    padding-top: 0.35rem;
-  }
-
-  .story-col li + li,
-  .photo-col li + li {
-    margin-top: 0.26rem;
-  }
-
-  .story-item {
-    border-bottom: 1px dotted rgba(95, 90, 80, 0.5);
-    padding-bottom: 0.25rem;
-  }
-
-  .story-col a {
-    font-size: 0.82rem;
-    color: var(--text-primary);
-    text-decoration: none;
-    display: inline-flex;
-    flex-direction: column;
-    gap: 0.1rem;
-    border-bottom: 1px solid transparent;
-  }
-
-  .story-col a:hover {
-    border-bottom-color: var(--border-secondary);
-  }
-
-  .story-col a span {
-    font-size: 0.74rem;
-    color: var(--text-secondary);
-    line-height: 1.42;
-  }
-
-  .meta-text {
-    margin-top: 0.5rem;
-    font-size: 0.76rem;
-    color: var(--text-tertiary);
-  }
-
-  .photo-col ul {
-    list-style: none;
-    border-top: 1px solid var(--divider);
-    margin-top: 0.35rem;
-    padding-top: 0.35rem;
-    margin-bottom: 0.42rem;
-  }
-
-  .photo-col li a {
-    font-size: 0.8rem;
-    color: var(--text-primary);
-    text-decoration: none;
-  }
-
-  .photo-col li a:hover {
-    text-decoration: underline;
-    text-underline-offset: 2px;
-  }
-
-  .photo-col li time {
-    display: block;
-    margin-top: 0.07rem;
-    font-size: 0.72rem;
-    color: var(--text-tertiary);
-  }
-
-  .section-head {
-    display: flex;
-    align-items: center;
-    padding: 0.48rem 0.75rem;
-    margin-bottom: 0.62rem;
-  }
-
-  .section-head h2 {
-    font-size: 1.02rem;
-    line-height: 1.3;
-  }
-
-  .section-head-split {
-    justify-content: space-between;
-  }
-
-  .section-head-split a {
-    font-size: 0.76rem;
-    color: var(--text-secondary);
-  }
-
-  .section-head-split a:hover {
-    color: var(--text-primary);
-  }
-
-  .latest-list {
-    list-style: none;
-  }
-
-  .latest-row + .latest-row {
-    border-top: 1px solid var(--divider);
-  }
-
-  .latest-link {
-    display: grid;
-    gap: 0.35rem;
-    grid-template-columns: 122px 1fr;
-    align-items: start;
-    padding: 0.78rem 0.75rem;
-  }
-
-  .latest-link time {
-    font-size: 0.74rem;
-    color: var(--text-tertiary);
-    padding-top: 0.25rem;
-  }
-
-  .latest-link h3 {
-    font-size: 1rem;
-    line-height: 1.45;
-  }
-
-  .latest-link p {
-    margin-top: 0.22rem;
-    font-size: 0.86rem;
-    line-height: 1.58;
-    color: var(--text-secondary);
+  .featured-card__description {
+    color: #555;
+    font-size: 14px;
+    line-height: 1.5;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
 
-  @media (max-width: 920px) {
-    .headline {
-      font-size: clamp(1.9rem, 9vw, 3.2rem);
-      line-height: 1.1;
+  .editorial-statement {
+    display: grid;
+    justify-items: center;
+    gap: 28px;
+    text-align: center;
+    padding: 0 120px;
+  }
+
+  .editorial-statement__line {
+    width: 100px;
+    height: 1px;
+    background: var(--line-strong);
+  }
+
+  .editorial-statement p {
+    max-width: 840px;
+    color: var(--text-strong);
+    font-size: clamp(34px, 4.2vw, 52px);
+    line-height: 1.34;
+    letter-spacing: -0.02em;
+    font-weight: 600;
+  }
+
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    padding: 0 24px;
+  }
+
+  .feature-card {
+    border: 1px solid var(--line-default);
+    border-radius: var(--radius-md);
+    background: #fcfbf8;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    padding: 20px;
+  }
+
+  .feature-card__dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #c3b8a8;
+  }
+
+  .feature-card h3 {
+    margin-top: 10px;
+    color: #2b2a28;
+    font-size: 18px;
+    line-height: 1.2;
+    font-weight: 500;
+  }
+
+  .feature-card p {
+    margin-top: 10px;
+    color: #6d675f;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .home-highlight {
+    padding: 60px 20px;
+    display: grid;
+    justify-items: center;
+    text-align: center;
+    gap: 34px;
+  }
+
+  .home-highlight h2 {
+    max-width: 860px;
+    color: var(--text-strong);
+    font-size: clamp(44px, 6vw, 64px);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  .home-highlight > p {
+    max-width: 740px;
+    color: #3a3a3a;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  .home-highlight__actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .home-highlight__rule {
+    width: 100%;
+    height: 1px;
+    background: #eaeaea;
+  }
+
+  .home-highlight__stack {
+    color: #6a6a6a;
+    font-size: 12px;
+  }
+
+  @media (max-width: 1024px) {
+    .home-stack {
+      gap: 52px;
     }
 
-    .headline-breaking {
-      font-size: 0.86rem;
-      padding-bottom: 0.16rem;
+    .home-hero {
+      padding: 30px;
+      gap: 44px;
     }
 
-    .subhead {
-      font-size: 1rem;
+    .featured-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .lead-band {
+    .editorial-statement {
+      padding: 0 36px;
+    }
+
+    .feature-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      padding: 0;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .home-stack {
+      gap: 40px;
+    }
+
+    .home-hero {
+      padding: 24px 16px;
+      gap: 32px;
+    }
+
+    .hero-wrap p {
+      font-size: 15px;
+    }
+
+    .featured-wrap h2 {
+      font-size: 24px;
+    }
+
+    .featured-grid {
       grid-template-columns: 1fr;
+      gap: 14px;
     }
 
-    .under-fold {
-      grid-template-columns: 1fr;
+    .editorial-statement {
+      padding: 0;
+      gap: 18px;
     }
 
-    .latest-link {
+    .editorial-statement p {
+      font-size: 32px;
+      line-height: 1.3;
+    }
+
+    .feature-grid {
       grid-template-columns: 1fr;
-      gap: 0.18rem;
+      gap: 14px;
+    }
+
+    .home-highlight {
+      padding: 36px 0;
+      gap: 22px;
+    }
+
+    .home-highlight h2 {
+      font-size: 40px;
+    }
+
+    .home-highlight__actions {
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .home-highlight__actions .btn-pill {
+      width: 100%;
     }
   }
 </style>

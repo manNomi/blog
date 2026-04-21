@@ -1,121 +1,75 @@
 ---
-const socialLinks = [
-  {
-    name: '깃허브',
-    url: 'https://github.com/manNomi',
-    icon: 'M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22'
-  },
-  {
-    name: '미디엄',
-    url: 'https://medium.com/@hanmw110',
-    icon: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'
-  },
-  {
-    name: '벨로그',
-    url: 'https://velog.io/@hanmw110/posts',
-    icon: 'M3 3h18v18H3V3zm16 16V5H5v14h14z M7 7h10v2H7V7zm0 4h10v2H7v-2zm0 4h7v2H7v-2z'
-  }
+const links = [
+  { name: 'Contact', url: 'mailto:hanmw110@gmail.com' },
+  { name: 'GitHub', url: 'https://github.com/manNomi' },
+  { name: 'Posts', url: '/posts' }
 ];
 ---
 
-<footer class="footer">
+<footer class="site-footer">
   <div class="container">
-    <div class="footer-content">
-      <div class="footer-text">
-        <p class="name">노미신문 · 한만욱</p>
-        <p class="description">자바스크립트를 극진히 쓰고자 늘 힘쓰고 있사옵니다.</p>
-      </div>
-
-      <div class="social-links">
-        {socialLinks.map(link => (
-          <a
-            href={link.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="social-link"
-            aria-label={link.name}
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d={link.icon} />
-            </svg>
-          </a>
+    <div class="site-footer__bar">
+      <div class="site-footer__links">
+        {links.map((link, index) => (
+          <>
+            {index > 0 && <span aria-hidden="true">·</span>}
+            <a href={link.url} target={link.url.startsWith('http') ? '_blank' : undefined} rel={link.url.startsWith('http') ? 'noopener noreferrer' : undefined}>{link.name}</a>
+          </>
         ))}
       </div>
-    </div>
-
-    <div class="footer-bottom">
-      <p>&copy; 2026 한만욱. 노미신문 판.</p>
+      <p>© 2026</p>
     </div>
   </div>
 </footer>
 
 <style>
-  .footer {
-    margin-top: var(--space-3xl);
-    padding: 1.75rem 0 1rem;
-    background-color: var(--bg-secondary);
-    border-top: 1px solid var(--border-primary);
+  .site-footer {
+    margin-top: 64px;
   }
 
-  .footer-content {
+  .site-footer__bar {
+    border-radius: var(--radius-md);
+    border: 1px solid #1f1f1f;
+    background: #111;
+    color: #d8d8d8;
     display: flex;
+    align-items: center;
     justify-content: space-between;
+    gap: 14px;
+    padding: 14px 16px;
+    font-size: 13px;
+    line-height: 1;
+  }
+
+  .site-footer__links {
+    display: inline-flex;
     align-items: center;
-    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 6px;
   }
 
-  .footer-text .name {
-    font-family: var(--font-serif);
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 0.18rem;
+  .site-footer__links a {
+    color: #efefef;
+    opacity: 0.95;
   }
 
-  .footer-text .description {
-    font-size: 0.78rem;
-    color: var(--text-secondary);
+  .site-footer__links a:hover {
+    opacity: 1;
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
-  .social-links {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .social-link {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 30px;
-    height: 30px;
-    border-radius: var(--radius-sm);
-    background-color: rgba(255, 255, 255, 0.12);
-    border: 1px solid var(--border-primary);
-    color: var(--text-secondary);
-    transition: border-color 0.15s ease, color 0.15s ease;
-  }
-
-  .social-link:hover {
-    border-color: var(--border-secondary);
-    color: var(--text-primary);
-  }
-
-  .footer-bottom {
-    text-align: center;
-    padding-top: 0.85rem;
-    border-top: 1px solid var(--border-primary);
-  }
-
-  .footer-bottom p {
-    font-size: 0.74rem;
-    color: var(--text-tertiary);
+  .site-footer p {
+    margin: 0;
+    color: #c4c4c4;
   }
 
   @media (max-width: 768px) {
-    .footer-content {
+    .site-footer__bar {
+      padding: 12px 14px;
       flex-direction: column;
-      gap: var(--space-lg);
-      text-align: center;
+      align-items: flex-start;
+      font-size: 12px;
     }
   }
 </style>

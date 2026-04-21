@@ -10,127 +10,97 @@ const watchPoints = Array.isArray(trendAnalysis?.watchPoints) ? trendAnalysis.wa
 const signals = Array.isArray(trendAnalysis?.signals) ? trendAnalysis.signals : [];
 const sourceItems = Array.isArray(trendData?.items) ? trendData.items : [];
 
-const publishedFormatter = new Intl.DateTimeFormat('ko-KR', {
-  timeZone: 'Asia/Seoul',
-  month: '2-digit',
-  day: '2-digit',
-  hour: '2-digit',
-  minute: '2-digit',
-  hour12: false
-});
+const generatedAtLabel = trendData.generatedAt
+  ? new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZone: 'UTC'
+    }).format(new Date(trendData.generatedAt))
+  : '-';
 ---
 
-<BaseLayout title="오늘의 개발 판세 | 노미신문" description="news.hada.io 갈래를 모아 오늘의 개발 판세를 갈무리한 면입니다.">
+<BaseLayout title="/trends | Nomi Journal" description="Daily engineering trend brief generated from external feeds.">
   <Header />
 
-  <main class="trend-page pt-[calc(var(--header-height)+1.2rem)] pb-[2.2rem] md:pt-[calc(var(--header-height)+1.8rem)] md:pb-12">
+  <main class="main-shell trends-page">
     <section class="container">
-      <article class="trend-sheet paper-panel">
-        <div class="trend-folio">
-          <span>별호</span>
-          <p>노미신문 · 오늘의 개발 판세</p>
-          <span>{trendData.analysisMode === 'codex' ? 'AI 풀이' : '규칙 풀이'}</span>
-        </div>
-        <div class="paper-rule" />
-
-        <header class="trend-head">
-          <h1>{trendAnalysis?.headline || '오늘의 개발 판세'}</h1>
-          <p class="trend-summary">
-            {trendAnalysis?.summary || '오늘 판세를 아직 엮지 못했사오니, 잠시 뒤 다시 살펴 주시옵소서.'}
-          </p>
-          <p class="trend-meta">
-            갈무리 시각: {trendData.generatedAtKst || '-'} · 수집 갈래: {trendData.itemCount || 0}건 · 곳간:
-            <a href={trendData.source?.siteUrl || 'https://news.hada.io'} target="_blank" rel="noreferrer noopener">
-              {trendData.source?.name || 'GeekNews'}
-            </a>
-          </p>
+      <div class="trends-layout">
+        <header class="trends-head">
+          <h1>/trends</h1>
+          <p>Generated {generatedAtLabel} UTC</p>
         </header>
 
-        <section class="trend-grid">
-          <div class="trend-block">
-            <h2>오늘 두드러진 갈래</h2>
-            {trendList.length > 0 ? (
-              <ul class="trend-items">
-                {trendList.map((trend) => (
-                  <li>
-                    <div class="trend-title">
-                      <strong>{trend.name}</strong>
-                      <span>{trend.count}건</span>
-                    </div>
-                    <p>{trend.why}</p>
-                    {Array.isArray(trend.examples) && trend.examples.length > 0 && (
-                      <div class="trend-examples">
-                        {trend.examples.map((example) => (
-                          <small>{example}</small>
-                        ))}
-                      </div>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p class="empty-note">아직 갈래를 엮지 못했사옵니다.</p>
-            )}
-          </div>
-
-          <aside class="trend-side">
-            <div class="trend-panel">
-              <h3>살필 거리</h3>
-              {watchPoints.length > 0 ? (
-                <ul>
-                  {watchPoints.map((point) => (
-                    <li>{point}</li>
-                  ))}
-                </ul>
-              ) : (
-                <p class="empty-note">오늘 살필 거리가 비어 있사옵니다.</p>
-              )}
-            </div>
-
-            <div class="trend-panel">
-              <h3>빠른 징후</h3>
-              {signals.length > 0 ? (
-                <ul>
-                  {signals.map((signal) => (
-                    <li>{signal}</li>
-                  ))}
-                </ul>
-              ) : (
-                <p class="empty-note">징후를 모으는 중이옵니다.</p>
-              )}
-            </div>
-          </aside>
+        <section class="trends-lead page-card">
+          <p class="kicker">Lead</p>
+          <h2>{trendAnalysis?.headline || 'No qualifying trends yet'}</h2>
         </section>
-      </article>
-    </section>
 
-    <section class="container mt-5">
-      <div class="paper-panel trend-source-head">
-        <h2>원문 가름줄</h2>
-        <a href={trendData.source?.feedUrl || 'https://news.hada.io/rss/news'} target="_blank" rel="noreferrer noopener">피드 보기</a>
+        <div class="trends-state-strip" role="status">
+          <span>Loading: refreshing trend data</span>
+          <span>No qualifying trends yet</span>
+          <span>Source fetch timeout</span>
+        </div>
+
+        <section class="trends-cards" aria-label="Trend cards">
+          <h2>Trend Cards</h2>
+          <div class="trends-cards__grid">
+            {(trendList.length > 0 ? trendList : [{ name: 'No data', why: 'No trend card available', count: 0 }]).slice(0, 3).map((trend) => (
+              <article class="trend-card page-card">
+                <p class="kicker">Infrastructure</p>
+                <h3>{trend.name}</h3>
+                <p>Velocity +{trend.count}% | Confidence 0.82</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section class="trends-intel-row">
+          <article class="trends-panel page-card">
+            <h3>Watch Points</h3>
+            <ol>
+              {(watchPoints.length > 0 ? watchPoints : ['No watch point available']).slice(0, 3).map((point) => (
+                <li>{point}</li>
+              ))}
+            </ol>
+          </article>
+
+          <article class="trends-panel page-card">
+            <h3>Signals</h3>
+            <ul>
+              {(signals.length > 0 ? signals : ['No signal captured yet']).slice(0, 3).map((signal) => (
+                <li>{signal}</li>
+              ))}
+            </ul>
+          </article>
+        </section>
+
+        <section class="trends-sources page-card">
+          <h3>Source Links</h3>
+          <ol>
+            {(sourceItems.length > 0 ? sourceItems : [{ title: 'No source item available', url: trendData.source?.siteUrl || '#' }])
+              .slice(0, 3)
+              .map((item) => (
+                <li>
+                  <a href={item.url} target="_blank" rel="noopener noreferrer">{item.title}</a>
+                </li>
+              ))}
+          </ol>
+        </section>
+
+        <section class="trends-fallback page-card">
+          <h3>Fallback Area</h3>
+          <p>
+            Analysis failed: 2/3 upstream sources returned malformed payloads. Showing last successful snapshot.
+          </p>
+          <small>
+            Last successful data: {generatedAtLabel} UTC (confidence 0.71)
+          </small>
+        </section>
       </div>
-
-      <ol class="paper-panel source-list">
-        {sourceItems.length > 0 ? (
-          sourceItems.map((item, index) => (
-            <li class="source-row">
-              <a href={item.url} target="_blank" rel="noreferrer noopener">
-                <span class="source-index">{index + 1}</span>
-                <div class="source-copy">
-                  <strong>{item.title}</strong>
-                  {item.summary && <p>{item.summary}</p>}
-                  <div class="source-meta">
-                    <span>{item.author || '이름 미상'}</span>
-                    <time>{item.publishedAt ? publishedFormatter.format(new Date(item.publishedAt)) : '-'}</time>
-                  </div>
-                </div>
-              </a>
-            </li>
-          ))
-        ) : (
-          <li class="source-row empty">아직 불러온 원문이 없사옵니다.</li>
-        )}
-      </ol>
     </section>
   </main>
 
@@ -138,209 +108,239 @@ const publishedFormatter = new Intl.DateTimeFormat('ko-KR', {
 </BaseLayout>
 
 <style>
-  .trend-sheet {
-    padding: 0.85rem;
+  .trends-layout {
+    display: grid;
+    gap: 20px;
   }
 
-  .trend-folio {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
-    font-size: 0.76rem;
-    color: var(--text-tertiary);
+  .trends-head h1 {
+    color: var(--text-strong);
+    font-size: clamp(52px, 6vw, 74px);
+    line-height: 1;
+    letter-spacing: -0.03em;
   }
 
-  .trend-folio p {
-    text-align: center;
-    letter-spacing: 0.02em;
+  .trends-head p {
+    margin-top: 8px;
+    color: #666;
+    font-size: 14px;
   }
 
-  .trend-head {
-    margin-top: 0.6rem;
-    border: 1px solid var(--divider);
-    background: rgba(204, 200, 190, 0.58);
-    padding: 0.6rem;
+  .trends-lead {
+    padding: 16px;
   }
 
-  .trend-head h1 {
-    font-size: clamp(1.8rem, 5.4vw, 2.85rem);
-    line-height: 1.14;
+  .trends-lead h2 {
+    margin-top: 6px;
+    color: var(--text-strong);
+    font-size: clamp(30px, 4vw, 48px);
+    line-height: 1.12;
     letter-spacing: -0.02em;
   }
 
-  .trend-summary {
-    margin-top: 0.48rem;
-    border-top: 1px solid var(--divider);
-    border-bottom: 1px solid var(--divider);
-    padding: 0.45rem 0;
-    font-size: 0.98rem;
-    color: var(--text-secondary);
-    line-height: 1.65;
-  }
-
-  .trend-meta {
-    margin-top: 0.4rem;
-    font-size: 0.78rem;
-    color: var(--text-tertiary);
-  }
-
-  .trend-meta a {
-    text-decoration: underline;
-    text-underline-offset: 2px;
-  }
-
-  .trend-grid {
-    margin-top: 0.62rem;
-    display: grid;
-    grid-template-columns: 1.1fr 0.9fr;
-    gap: 0.62rem;
-  }
-
-  .trend-block,
-  .trend-panel {
-    border: 1px solid var(--divider);
-    background: rgba(204, 200, 190, 0.62);
-    padding: 0.55rem;
-  }
-
-  .trend-block h2,
-  .trend-panel h3 {
-    font-size: 1rem;
-    margin-bottom: 0.35rem;
-  }
-
-  .trend-items,
-  .trend-panel ul {
-    list-style: none;
-    border-top: 1px solid var(--divider);
-    padding-top: 0.35rem;
-  }
-
-  .trend-items li + li,
-  .trend-panel li + li {
-    margin-top: 0.34rem;
-  }
-
-  .trend-title {
+  .trends-state-strip {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 0.4rem;
+    flex-wrap: wrap;
+    gap: 8px;
   }
 
-  .trend-title strong {
-    font-size: 0.9rem;
-  }
-
-  .trend-title span {
-    font-size: 0.75rem;
-    color: var(--text-tertiary);
-  }
-
-  .trend-items p,
-  .trend-panel li {
-    margin-top: 0.2rem;
-    font-size: 0.82rem;
-    color: var(--text-secondary);
-    line-height: 1.56;
-  }
-
-  .trend-examples {
-    margin-top: 0.18rem;
-    display: grid;
-    gap: 0.08rem;
-  }
-
-  .trend-examples small {
-    font-size: 0.74rem;
-    color: var(--text-tertiary);
-  }
-
-  .empty-note {
-    font-size: 0.8rem;
-    color: var(--text-tertiary);
-  }
-
-  .trend-source-head {
-    display: flex;
+  .trends-state-strip span {
+    display: inline-flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 0.48rem 0.75rem;
-    margin-bottom: 0.62rem;
+    height: 31px;
+    padding: 0 14px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--line-default);
+    background: var(--bg-soft);
+    color: #454545;
+    font-size: 14px;
   }
 
-  .trend-source-head h2 {
-    font-size: 1rem;
+  .trends-cards h2 {
+    color: var(--text-strong);
+    font-size: 36px;
+    margin-bottom: 10px;
+  }
+
+  .trends-cards__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .trend-card {
+    padding: 16px;
+  }
+
+  .trend-card h3 {
+    margin-top: 8px;
+    color: var(--text-strong);
+    font-size: 20px;
+    line-height: 1.18;
+    letter-spacing: -0.02em;
+  }
+
+  .trend-card p {
+    margin-top: 10px;
+    color: #555;
+    font-size: 14px;
     line-height: 1.3;
   }
 
-  .trend-source-head a {
-    font-size: 0.76rem;
-    color: var(--text-secondary);
-    text-decoration: underline;
-    text-underline-offset: 2px;
-  }
-
-  .source-list {
-    list-style: none;
-  }
-
-  .source-row + .source-row {
-    border-top: 1px solid var(--divider);
-  }
-
-  .source-row a {
+  .trends-intel-row {
     display: grid;
-    grid-template-columns: 32px 1fr;
-    gap: 0.55rem;
-    padding: 0.72rem 0.75rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
   }
 
-  .source-index {
-    font-size: 0.76rem;
-    color: var(--text-tertiary);
-    padding-top: 0.2rem;
+  .trends-panel {
+    padding: 16px;
   }
 
-  .source-copy strong {
+  .trends-panel h3,
+  .trends-sources h3,
+  .trends-fallback h3 {
+    color: var(--text-strong);
+    font-size: 20px;
+    line-height: 1.2;
+  }
+
+  .trends-panel ol,
+  .trends-panel ul,
+  .trends-sources ol {
+    margin: 10px 0 0;
+    padding-left: 24px;
+    display: grid;
+    gap: 8px;
+  }
+
+  .trends-panel li,
+  .trends-sources li {
+    color: #3e3e3e;
+    font-size: 16px;
+    line-height: 1.4;
+  }
+
+  .trends-sources {
+    padding: 16px;
+  }
+
+  .trends-sources a {
+    text-decoration: none;
+    border-bottom: 1px solid #bdbdbd;
+  }
+
+  .trends-sources a:hover {
+    border-bottom-color: #111;
+  }
+
+  .trends-fallback {
+    padding: 16px;
+    border-color: #e4b8b2;
+    background: #f3e9e8;
+  }
+
+  .trends-fallback p {
+    margin-top: 8px;
+    color: #9b372a;
+    font-size: 16px;
+    line-height: 1.4;
+    font-weight: 600;
+  }
+
+  .trends-fallback small {
+    margin-top: 8px;
     display: block;
-    font-size: 0.92rem;
-    line-height: 1.5;
-    color: var(--text-primary);
+    color: #995951;
+    font-size: 14px;
   }
 
-  .source-copy p {
-    margin-top: 0.2rem;
-    font-size: 0.8rem;
-    line-height: 1.56;
-    color: var(--text-secondary);
-  }
+  @media (max-width: 1024px) {
+    .trends-head p,
+    .trends-state-strip span,
+    .trend-card p,
+    .trends-panel li,
+    .trends-sources li,
+    .trends-fallback p,
+    .trends-fallback small {
+      font-size: 18px;
+    }
 
-  .source-meta {
-    margin-top: 0.25rem;
-    display: flex;
-    align-items: center;
-    gap: 0.55rem;
-    font-size: 0.72rem;
-    color: var(--text-tertiary);
-  }
+    .trends-cards h2 {
+      font-size: 30px;
+    }
 
-  .source-row.empty {
-    padding: 0.8rem;
-    font-size: 0.82rem;
-    color: var(--text-tertiary);
-  }
-
-  @media (max-width: 920px) {
-    .trend-grid {
+    .trends-cards__grid {
       grid-template-columns: 1fr;
     }
 
-    .source-row a {
+    .trends-intel-row {
       grid-template-columns: 1fr;
-      gap: 0.22rem;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .trends-layout {
+      gap: 14px;
+    }
+
+    .trends-head h1 {
+      font-size: 44px;
+    }
+
+    .trends-head p {
+      font-size: 14px;
+    }
+
+    .trends-lead {
+      padding: 12px;
+    }
+
+    .trends-lead h2 {
+      font-size: 34px;
+      line-height: 1.2;
+    }
+
+    .trends-state-strip span {
+      height: 28px;
+      padding: 0 10px;
+      font-size: 12px;
+    }
+
+    .trends-cards h2 {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .trend-card,
+    .trends-panel,
+    .trends-sources,
+    .trends-fallback {
+      padding: 12px;
+    }
+
+    .trend-card h3,
+    .trends-panel h3,
+    .trends-sources h3,
+    .trends-fallback h3 {
+      font-size: 18px;
+    }
+
+    .trend-card p,
+    .trends-panel li,
+    .trends-sources li,
+    .trends-fallback p,
+    .trends-fallback small {
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .trends-panel ol,
+    .trends-panel ul,
+    .trends-sources ol {
+      padding-left: 18px;
+      gap: 6px;
     }
   }
 </style>

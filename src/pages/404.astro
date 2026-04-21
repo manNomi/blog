@@ -1,0 +1,106 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<BaseLayout title="404 | Nomi Journal" description="Requested page was not found.">
+  <Header />
+
+  <main class="main-shell not-found-page">
+    <section class="container">
+      <div class="not-found-wrap">
+        <p class="not-found-code">404</p>
+        <p class="not-found-message">요청하신 페이지를 찾을 수 없습니다.</p>
+
+        <div class="not-found-actions">
+          <a href="/" class="btn-pill dark">메인으로</a>
+          <a href="/posts" class="btn-pill soft">글 목록</a>
+        </div>
+
+        <p class="not-found-note">또는 검색으로 원하는 글을 찾아보세요.</p>
+
+        <section class="not-found-state page-card">
+          <p>공통 상태: loading · empty · error · 404</p>
+          <p>A11y: h1 1개, 키보드 포커스, 대비, 대체텍스트</p>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  .not-found-wrap {
+    min-height: calc(100vh - var(--header-height) - 220px);
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    text-align: center;
+    gap: 16px;
+  }
+
+  .not-found-code {
+    color: var(--text-strong);
+    font-size: clamp(86px, 10vw, 164px);
+    line-height: 1;
+    letter-spacing: -0.05em;
+    font-weight: 700;
+  }
+
+  .not-found-message {
+    color: #3c3c3c;
+    font-size: 22px;
+    line-height: 1.4;
+  }
+
+  .not-found-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .not-found-note {
+    color: #666;
+    font-size: 16px;
+  }
+
+  .not-found-state {
+    margin-top: 8px;
+    width: min(100%, 904px);
+    text-align: left;
+    padding: 14px;
+    color: #5a5a5a;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 768px) {
+    .not-found-wrap {
+      min-height: calc(100vh - var(--header-height) - 180px);
+      gap: 12px;
+    }
+
+    .not-found-message {
+      font-size: 16px;
+    }
+
+    .not-found-actions {
+      width: 100%;
+      flex-direction: column;
+    }
+
+    .not-found-actions .btn-pill {
+      width: 100%;
+    }
+
+    .not-found-note {
+      font-size: 14px;
+    }
+
+    .not-found-state {
+      font-size: 12px;
+    }
+  }
+</style>

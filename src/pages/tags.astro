@@ -2,157 +2,107 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
-import PostCard from '../components/PostCard.astro';
 import Footer from '../components/Footer.astro';
+import PostCard from '../components/PostCard.astro';
 
-const allPosts = (await getCollection('blog'))
-  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
-
-const allTags = [...new Set(allPosts.flatMap((post) => post.data.tags || []))].sort();
-
+const allPosts = (await getCollection('blog')).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const allTags = [...new Set(allPosts.flatMap((post) => post.data.tags || []))].sort((a, b) => a.localeCompare(b, 'en-US'));
 const tagCounts = allTags.reduce((acc, tag) => {
-  acc[tag] = allPosts.filter((post) => post.data.tags?.includes(tag)).length;
+  acc[tag] = allPosts.filter((post) => (post.data.tags || []).includes(tag)).length;
   return acc;
 }, {} as Record<string, number>);
-
-const tagButtonBaseClass =
-  'tag-tab inline-flex items-center gap-2 rounded-[var(--radius-sm)] border px-[0.62rem] py-[0.3rem] text-[0.8rem] transition-[border-color,background-color,color] duration-150';
-const tagButtonInactiveClass =
-  'border-[var(--border-primary)] bg-[var(--bg-primary)] text-[var(--text-secondary)] hover:border-[var(--border-secondary)] hover:bg-[var(--bg-hover)]';
-const tagButtonActiveClass =
-  'border-[rgba(11,110,153,0.28)] bg-[#edf5f8] text-[var(--accent-primary)]';
-
-const tagCountBaseClass =
-  'tag-count inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-[var(--radius-sm)] px-1 text-[0.67rem] font-medium';
-const tagCountInactiveClass = 'bg-[var(--bg-tag)]';
-const tagCountActiveClass = 'bg-[rgba(11,110,153,0.12)] text-[var(--accent-primary)]';
 ---
 
-<BaseLayout title="갈래말 따라 글월 보기 - 한만욱" description="갈래말로 나뉜 기술 누리집 글월을 살펴보시옵소서">
+<BaseLayout title="Tags | Nomi Journal" description="Browse by topic and open concise collections of writing.">
   <Header />
 
-  <main class="min-h-screen pb-[var(--space-3xl)] pt-[calc(var(--header-height)+1.7rem)]">
-    <div class="container">
-      <div class="mb-[1.2rem] text-left">
-        <h1 class="mb-[0.32rem] text-[1.65rem] font-semibold tracking-[-0.015em] text-[var(--text-primary)] md:text-[2rem]">
-          갈래말 따라 글월 보기
-        </h1>
-        <p class="text-[0.9rem] text-[var(--text-secondary)]">마음 두신 갈래말을 고르시면 글월을 찾을 수 있사옵니다</p>
-      </div>
+  <main class="main-shell tags-page">
+    <section class="container">
+      <div class="tags-layout">
+        <header class="tags-page-head">
+          <p class="kicker">Index</p>
+          <h1>Tags</h1>
+          <p>Browse by topic and open concise collections of writing.</p>
+        </header>
 
-      <div class="mb-[1.2rem] rounded-[var(--radius-md)] border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-[0.72rem] md:p-[0.85rem]">
-        <div class="flex flex-wrap justify-start gap-[0.45rem]">
-          <button
-            class={`${tagButtonBaseClass} ${tagButtonActiveClass}`}
-            data-tag="all"
-            data-base={tagButtonBaseClass}
-            data-inactive={tagButtonInactiveClass}
-            data-active-classes={tagButtonActiveClass}
-            data-count-base={tagCountBaseClass}
-            data-count-inactive={tagCountInactiveClass}
-            data-count-active={tagCountActiveClass}
-          >
-            <span class="tag-name text-[0.78rem] font-medium">모두</span>
-            <span class={`${tagCountBaseClass} ${tagCountActiveClass}`}>{allPosts.length}</span>
-          </button>
-          {allTags.map((tag) => (
-            <button
-              class={`${tagButtonBaseClass} ${tagButtonInactiveClass}`}
-              data-tag={tag}
-              data-base={tagButtonBaseClass}
-              data-inactive={tagButtonInactiveClass}
-              data-active-classes={tagButtonActiveClass}
-              data-count-base={tagCountBaseClass}
-              data-count-inactive={tagCountInactiveClass}
-              data-count-active={tagCountActiveClass}
-            >
-              <span class="tag-name text-[0.78rem] font-medium">{tag}</span>
-              <span class={`${tagCountBaseClass} ${tagCountInactiveClass}`}>{tagCounts[tag]}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div class="posts-section mt-4">
-        <div class="mb-[0.9rem] border-b border-[var(--border-primary)] pb-[0.7rem]">
-          <h2 class="flex items-baseline gap-2 text-[1.24rem] font-semibold text-[var(--text-primary)]">
-            <span class="current-tag">모두</span>
-            <span class="post-count text-[0.85rem] font-normal text-[var(--text-tertiary)]">({allPosts.length}편 글월)</span>
-          </h2>
-        </div>
-
-        <div class="post-list space-y-3">
-          {allPosts.map((post) => (
-            <div class="post-item" data-tags={JSON.stringify(post.data.tags || [])}>
-              <PostCard
-                title={post.data.title}
-                description={post.data.description}
-                slug={post.slug}
-                pubDate={post.data.pubDate}
-                tags={post.data.tags}
-                pinned={post.data.pinned}
-              />
+        <section class="tags-body">
+          <aside class="tag-rail page-card" aria-label="Tag list">
+            <h2>Tag List</h2>
+            <div class="tag-rail__list" role="listbox" aria-label="Tag filters">
+              {allTags.map((tag) => (
+                <button type="button" class="tag-rail__button" data-tag={tag}>
+                  <span>{tag}</span>
+                  <span>{tagCounts[tag]}</span>
+                </button>
+              ))}
             </div>
-          ))}
-        </div>
+          </aside>
 
-        {allPosts.length === 0 && (
-          <div class="py-[var(--space-3xl)] text-center text-[0.95rem] text-[var(--text-tertiary)]">
-            <p>아직 적힌 글월이 없사옵니다.</p>
-          </div>
-        )}
+          <section class="tag-content" aria-live="polite">
+            <p class="kicker">Selected Tag</p>
+            <h2 class="tag-content__title">All Posts ({allPosts.length})</h2>
+            <p class="tag-content__summary">Minimal notes on token architecture, component governance, and interface craft.</p>
+
+            <div class="tag-content__list">
+              {allPosts.map((post) => (
+                <div class="tag-content__item" data-tags={JSON.stringify(post.data.tags || [])}>
+                  <PostCard
+                    title={post.data.title}
+                    description={post.data.description}
+                    slug={post.slug}
+                    pubDate={post.data.pubDate}
+                    pinned={post.data.pinned}
+                    variant="compact"
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div class="tag-content__states" aria-label="Mini states">
+              <span>Loading: fetching posts…</span>
+              <span>Empty: no posts in this tag.</span>
+              <span>Error: unable to load posts.</span>
+            </div>
+          </section>
+        </section>
       </div>
-    </div>
+    </section>
   </main>
 
   <Footer />
 </BaseLayout>
 
 <script>
-  const tagTabs = Array.from(document.querySelectorAll('.tag-tab'));
-  const postItems = Array.from(document.querySelectorAll('.post-item'));
-  const currentTagElement = document.querySelector('.current-tag');
-  const postCountElement = document.querySelector('.post-count');
+  // @ts-nocheck
+  const tagButtons = Array.from(document.querySelectorAll('.tag-rail__button'));
+  const postItems = Array.from(document.querySelectorAll('.tag-content__item'));
+  const titleNode = document.querySelector('.tag-content__title');
 
-  const updateButtonState = (button: Element, isActive: boolean) => {
-    const inactiveClasses = (button.getAttribute('data-inactive') || '').split(' ').filter(Boolean);
-    const activeClasses = (button.getAttribute('data-active-classes') || '').split(' ').filter(Boolean);
-    const countInactiveClasses = (button.getAttribute('data-count-inactive') || '').split(' ').filter(Boolean);
-    const countActiveClasses = (button.getAttribute('data-count-active') || '').split(' ').filter(Boolean);
-    const countNode = button.querySelector('.tag-count');
+  const sortByMostUsed = [...tagButtons].sort((a, b) => {
+    const aCount = Number.parseInt(a.lastElementChild?.textContent || '0', 10);
+    const bCount = Number.parseInt(b.lastElementChild?.textContent || '0', 10);
+    return bCount - aCount;
+  });
 
-    button.classList.remove(...inactiveClasses, ...activeClasses);
+  const rail = document.querySelector('.tag-rail__list');
+  if (rail) {
+    sortByMostUsed.forEach((button) => rail.appendChild(button));
+  }
 
-    if (isActive) {
-      button.classList.add(...activeClasses);
-    } else {
-      button.classList.add(...inactiveClasses);
-    }
-
-    if (countNode) {
-      countNode.classList.remove(...countInactiveClasses, ...countActiveClasses);
-      if (isActive) {
-        countNode.classList.add(...countActiveClasses);
-      } else {
-        countNode.classList.add(...countInactiveClasses);
-      }
-    }
-  };
-
-  const parsePostTags = (item: Element) => {
+  const parseTags = (node) => {
     try {
-      return JSON.parse(item.getAttribute('data-tags') || '[]');
+      return JSON.parse(node.getAttribute('data-tags') || '[]');
     } catch {
       return [];
     }
   };
 
-  const resolveTag = (tag: string | null) => {
+  const resolveTag = (tag) => {
     if (!tag) return 'all';
-    return tagTabs.some((button) => button.getAttribute('data-tag') === tag) ? tag : 'all';
+    return tagButtons.some((button) => button.getAttribute('data-tag') === tag) ? tag : 'all';
   };
 
-  const syncTagQuery = (tag: string) => {
+  const syncUrl = (tag) => {
     const url = new URL(window.location.href);
     if (tag === 'all') {
       url.searchParams.delete('tag');
@@ -162,50 +112,260 @@ const tagCountActiveClass = 'bg-[rgba(11,110,153,0.12)] text-[var(--accent-prima
     window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
   };
 
-  const applyFilter = (tag: string, options: { scroll?: boolean; syncUrl?: boolean } = {}) => {
-    const selectedTag = resolveTag(tag);
-    const activeButton =
-      tagTabs.find((button) => button.getAttribute('data-tag') === selectedTag) || tagTabs[0];
-    const tagName = activeButton?.querySelector('.tag-name')?.textContent || '모두';
-
-    tagTabs.forEach((button) => updateButtonState(button, button === activeButton));
-
-    let visibleCount = 0;
-    postItems.forEach((item) => {
-      const postTags = parsePostTags(item);
-      if (selectedTag === 'all' || postTags.includes(selectedTag)) {
-        item.classList.remove('hidden');
-        visibleCount++;
-      } else {
-        item.classList.add('hidden');
-      }
+  const setButtonActive = (activeTag) => {
+    tagButtons.forEach((button) => {
+      const isActive = button.getAttribute('data-tag') === activeTag;
+      button.classList.toggle('is-active', isActive);
+      button.setAttribute('aria-selected', isActive ? 'true' : 'false');
     });
-
-    if (currentTagElement) {
-      currentTagElement.textContent = tagName;
-    }
-    if (postCountElement) {
-      postCountElement.textContent = `(${visibleCount}편 글월)`;
-    }
-
-    if (options.syncUrl !== false) {
-      syncTagQuery(selectedTag);
-    }
-
-    if (options.scroll) {
-      document.querySelector('.posts-section')?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
-    }
   };
 
-  tagTabs.forEach((button) => {
+  const applyTag = (requestedTag, { sync = true } = {}) => {
+    const tag = resolveTag(requestedTag);
+    let visibleCount = 0;
+
+    setButtonActive(tag);
+
+    postItems.forEach((item) => {
+      const tags = parseTags(item);
+      const visible = tag === 'all' ? true : tags.includes(tag);
+      item.classList.toggle('is-hidden', !visible);
+      if (visible) visibleCount += 1;
+    });
+
+    if (titleNode) {
+      titleNode.textContent = tag === 'all' ? `All Posts (${visibleCount})` : `${tag} (${visibleCount})`;
+    }
+
+    if (sync) syncUrl(tag);
+  };
+
+  tagButtons.forEach((button) => {
     button.addEventListener('click', () => {
-      applyFilter(button.getAttribute('data-tag') || 'all', { scroll: true });
+      applyTag(button.getAttribute('data-tag'));
     });
   });
 
   const initialTag = new URLSearchParams(window.location.search).get('tag');
-  applyFilter(initialTag || 'all', { syncUrl: false });
+  applyTag(initialTag, { sync: false });
 </script>
+
+<style>
+  .tags-layout {
+    display: grid;
+    gap: 34px;
+  }
+
+  .tags-page-head {
+    border-bottom: 1px solid var(--line-default);
+    padding-bottom: 18px;
+  }
+
+  .tags-page-head h1 {
+    margin-top: 8px;
+    color: var(--text-strong);
+    font-size: clamp(64px, 7vw, 82px);
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+
+  .tags-page-head p {
+    margin-top: 10px;
+    color: #4c4c4c;
+    font-size: 31px;
+    line-height: 1.34;
+    max-width: 720px;
+  }
+
+  .tags-body {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    gap: 44px;
+    align-items: start;
+  }
+
+  .tag-rail {
+    padding: 14px;
+  }
+
+  .tag-rail h2 {
+    color: var(--text-strong);
+    font-size: 17px;
+    line-height: 1.2;
+  }
+
+  .tag-rail__list {
+    margin-top: 12px;
+    display: grid;
+    gap: 10px;
+  }
+
+  .tag-rail__button {
+    width: 100%;
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line-default);
+    background: var(--bg-soft);
+    color: var(--text-body);
+    font-size: 18px;
+    line-height: 1;
+    text-align: left;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .tag-rail__button span:last-child {
+    color: var(--text-faint);
+    font-size: 16px;
+  }
+
+  .tag-rail__button:hover,
+  .tag-rail__button.is-active {
+    background: #111;
+    border-color: #111;
+    color: #fff;
+  }
+
+  .tag-rail__button:hover span:last-child,
+  .tag-rail__button.is-active span:last-child {
+    color: #d3d3d3;
+  }
+
+  .tag-content {
+    min-width: 0;
+    display: grid;
+    gap: 14px;
+  }
+
+  .tag-content__title {
+    margin-top: 4px;
+    color: var(--text-strong);
+    font-size: clamp(54px, 5vw, 74px);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+
+  .tag-content__summary {
+    color: #4b4b4b;
+    font-size: 26px;
+    line-height: 1.4;
+    max-width: 760px;
+  }
+
+  .tag-content__list {
+    margin-top: 4px;
+    display: grid;
+    gap: 10px;
+  }
+
+  .tag-content__item.is-hidden {
+    display: none;
+  }
+
+  .tag-content__states {
+    margin-top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .tag-content__states span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 14px;
+    border: 1px solid var(--line-default);
+    border-radius: var(--radius-sm);
+    background: var(--bg-soft);
+    color: #555;
+    font-size: 16px;
+  }
+
+  .tag-content__states span:last-child {
+    border-color: #111;
+    background: #111;
+    color: #fff;
+  }
+
+  @media (max-width: 1024px) {
+    .tags-body {
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+
+    .tag-rail {
+      padding: 12px;
+    }
+
+    .tag-rail__list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .tag-content__title {
+      font-size: 50px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .tags-layout {
+      gap: 20px;
+    }
+
+    .tags-page-head {
+      padding-bottom: 14px;
+    }
+
+    .tags-page-head h1 {
+      margin-top: 6px;
+      font-size: 52px;
+    }
+
+    .tags-page-head p {
+      font-size: 18px;
+      margin-top: 8px;
+      line-height: 1.45;
+    }
+
+    .tag-rail__list {
+      grid-template-columns: 1fr;
+    }
+
+    .tag-rail__button {
+      font-size: 16px;
+      min-height: 34px;
+      padding: 8px 10px;
+    }
+
+    .tag-rail__button span:last-child {
+      font-size: 14px;
+    }
+
+    .tag-content {
+      gap: 10px;
+    }
+
+    .tag-content__title {
+      font-size: 36px;
+      line-height: 1.08;
+    }
+
+    .tag-content__summary {
+      font-size: 16px;
+      line-height: 1.45;
+    }
+
+    .tag-content__states {
+      margin-top: 6px;
+    }
+
+    .tag-content__states span {
+      min-height: 32px;
+      font-size: 13px;
+      padding: 0 10px;
+    }
+  }
+</style>

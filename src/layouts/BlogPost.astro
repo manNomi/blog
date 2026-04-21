@@ -7,79 +7,154 @@ import Comments from '../components/Comments';
 import ShareButtons from '../components/ShareButtons.astro';
 import Footer from '../components/Footer.astro';
 
-type Props = CollectionEntry<'blog'>['data'] & { slug: string; readingTime: number };
+type NavPost = { title: string; slug: string } | null;
+type RelatedPost = { title: string; slug: string; description?: string };
+type Props = CollectionEntry<'blog'>['data'] & {
+  slug: string;
+  readingTime: number;
+  previousPost?: NavPost;
+  nextPost?: NavPost;
+  relatedPosts?: RelatedPost[];
+};
 
-const { title, description, pubDate, updatedDate, heroImage, tags, slug, readingTime } = Astro.props;
+const {
+  title,
+  description,
+  pubDate,
+  updatedDate,
+  heroImage,
+  tags,
+  slug,
+  readingTime,
+  previousPost = null,
+  nextPost = null,
+  relatedPosts = []
+} = Astro.props as Props;
 
 const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   year: 'numeric',
-  month: 'long',
-  day: 'numeric'
+  month: '2-digit',
+  day: '2-digit'
 }).format(pubDate);
+
+const formattedUpdatedDate = updatedDate
+  ? new Intl.DateTimeFormat('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).format(updatedDate)
+  : null;
 ---
 
 <BaseLayout
-  title={`${title} - 한만욱`}
-  description={description}
+  title={`${title} - Nomi Journal`}
+  description={description || 'Editorial detail page'}
   image={heroImage}
   canonicalURL={`/blog/${slug}`}
 >
   <Header />
 
-  <main class="main">
-    <article class="article font-basic">
-      <div class="content">
-        <header class="article-header">
-          <h1 class="article-title">{title}</h1>
+  <main class="main-shell detail-main">
+    <article class="detail-article font-basic">
+      <section class="detail-top page-card">
+        <div class="detail-top__nav">
+          <a href="/posts">← Back to Articles</a>
+          <p>Share · Bookmark</p>
+        </div>
 
-          <div class="article-meta">
-            <time datetime={pubDate.toISOString()}>{formattedDate}</time>
-            <span class="reading-time">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10" />
-                <polyline points="12 6 12 12 16 14" />
-              </svg>
-              <span>{readingTime}분 남짓</span>
-            </span>
-            <ViewCounter client:load slug={slug} />
-            {updatedDate && (
-              <span class="updated">
-                고침 {new Intl.DateTimeFormat('ko-KR', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                }).format(updatedDate)}
-              </span>
-            )}
-          </div>
+        <div class="detail-top__rule"></div>
 
-          <div class="font-toggle-row">
-            <button type="button" class="font-toggle-button" data-font-toggle aria-pressed="true">
-              신문체 켜기
-            </button>
-          </div>
+        <p class="kicker detail-top__category">개발 문화</p>
 
-          {tags && tags.length > 0 && (
-            <div class="tags">
-              {tags.map(tag => (
-                <a href={`/posts?tag=${tag}`} class="tag">{tag}</a>
-              ))}
-            </div>
+        <h1 class="detail-top__title">{title}</h1>
+
+        {description && <p class="detail-top__dek">{description}</p>}
+
+        <div class="detail-top__meta">
+          <time datetime={pubDate.toISOString()}>발행 {formattedDate}</time>
+          {formattedUpdatedDate && <span>수정 {formattedUpdatedDate}</span>}
+          <span>읽는 시간 {readingTime}분</span>
+          <ViewCounter client:load slug={slug} />
+        </div>
+
+        <div class="detail-top__hero">
+          {heroImage ? (
+            <img src={heroImage} alt={title} loading="lazy" />
+          ) : (
+            <p>HERO IMAGE PLACEHOLDER</p>
           )}
-        </header>
-
-        <div class="article-body">
-          <slot />
         </div>
 
-        <div class="share-section">
-          <ShareButtons title={title} url={`/blog/${slug}`} />
+        <div class="detail-top__tag-row">
+          {tags && tags.length > 0 ? (
+            tags.map((tag) => (
+              <a href={`/posts?tag=${tag}`} class="chip">#{tag}</a>
+            ))
+          ) : (
+            <span class="chip">#editorial</span>
+          )}
+        </div>
+      </section>
+
+      <section class="detail-body">
+        <aside class="detail-toc" aria-label="On this page">
+          <h2>On this page</h2>
+          <div class="detail-toc__rule"></div>
+          <ol data-toc-list>
+            <li>Preparing sections…</li>
+          </ol>
+
+          <div class="detail-font-toggle">
+            <button type="button" data-font-toggle aria-pressed="true">Use Newspaper Font</button>
+          </div>
+        </aside>
+
+        <div class="detail-content">
+          <div class="detail-content__intro">{description || 'The detail body is designed as a calm reading field where each section breathes.'}</div>
+
+          <div class="article-body">
+            <slot />
+          </div>
+
+          <div class="detail-content__share-row page-card">
+            <p>Share · Comment · Subscribe</p>
+            <ShareButtons title={title} url={`/blog/${slug}`} />
+          </div>
+        </div>
+      </section>
+
+      <section class="detail-bottom">
+        <div class="detail-bottom__nav-row">
+          <a class="detail-nav-card" href={previousPost ? `/blog/${previousPost.slug}` : '/posts'}>
+            <span>Previous</span>
+            <strong>{previousPost?.title || 'View all posts'}</strong>
+          </a>
+          <a class="detail-nav-card detail-nav-card--dark" href={nextPost ? `/blog/${nextPost.slug}` : '/posts'}>
+            <span>Next</span>
+            <strong>{nextPost?.title || 'Explore next story'}</strong>
+          </a>
         </div>
 
-        <div class="comments-section">
+        <h2>Related Stories</h2>
+
+        <div class="detail-related-grid">
+          {(relatedPosts.length > 0 ? relatedPosts : [{ title: 'No related stories yet', slug: 'posts' }]).slice(0, 3).map((post) => (
+            <a href={post.slug === 'posts' ? '/posts' : `/blog/${post.slug}`} class="detail-related-card">
+              <div class="detail-related-card__thumb"></div>
+              <p>{post.title}</p>
+            </a>
+          ))}
+        </div>
+
+        <div class="detail-bottom__cta page-card">
+          <p>Share · Comment · Subscribe</p>
+          <p>댓글 보기</p>
+        </div>
+
+        <div class="detail-comments">
           <Comments client:load />
         </div>
-      </div>
+      </section>
     </article>
   </main>
 
@@ -160,20 +235,27 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
     return /^https?:\/\//.test(href);
   };
 
+  const slugify = (text) =>
+    text
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s가-힣-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-');
+
   const articleBody = document.querySelector('.article-body');
-  const articleRoot = document.querySelector('.article');
+  const articleRoot = document.querySelector('.detail-article');
+  const tocList = document.querySelector('[data-toc-list]');
   const fontToggleButton = document.querySelector('[data-font-toggle]');
   const FONT_MODE_KEY = 'blog_detail_font_mode';
 
   const applyFontMode = (mode) => {
-    if (!articleRoot || !fontToggleButton) {
-      return;
-    }
+    if (!articleRoot || !fontToggleButton) return;
 
-    const useBasicFont = mode === 'basic';
-    articleRoot.classList.toggle('font-basic', useBasicFont);
-    fontToggleButton.setAttribute('aria-pressed', useBasicFont ? 'true' : 'false');
-    fontToggleButton.textContent = useBasicFont ? '신문체 켜기' : '신문체 끄기';
+    const useBasic = mode === 'basic';
+    articleRoot.classList.toggle('font-basic', useBasic);
+    fontToggleButton.setAttribute('aria-pressed', useBasic ? 'true' : 'false');
+    fontToggleButton.textContent = useBasic ? 'Use Newspaper Font' : 'Use Basic Font';
   };
 
   const readSavedFontMode = () => {
@@ -189,7 +271,7 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
     try {
       window.localStorage.setItem(FONT_MODE_KEY, mode);
     } catch {
-      // 저장 실패 시 조용히 무시
+      // ignore storage failure
     }
   };
 
@@ -230,7 +312,7 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
         frame.loading = 'lazy';
         frame.allowFullscreen = true;
         frame.referrerPolicy = 'strict-origin-when-cross-origin';
-        frame.title = anchor?.textContent?.trim() || '삽입된 영상';
+        frame.title = anchor?.textContent?.trim() || 'Embedded video';
 
         const wrapper = document.createElement('figure');
         wrapper.className = 'notion-video-embed';
@@ -261,6 +343,33 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
       paragraph.replaceWith(card);
     }
 
+    const headings = Array.from(articleBody.querySelectorAll('h2, h3'));
+    if (tocList) {
+      tocList.innerHTML = '';
+
+      if (headings.length === 0) {
+        const fallback = document.createElement('li');
+        fallback.textContent = 'No sections detected';
+        tocList.appendChild(fallback);
+      } else {
+        headings.forEach((heading, index) => {
+          if (!heading.id) {
+            heading.id = `${slugify(heading.textContent || `section-${index + 1}`)}-${index + 1}`;
+          }
+
+          const item = document.createElement('li');
+          if (heading.tagName === 'H3') item.classList.add('is-sub');
+
+          const anchor = document.createElement('a');
+          anchor.href = `#${heading.id}`;
+          anchor.textContent = `${index + 1}. ${heading.textContent || 'Untitled section'}`;
+
+          item.appendChild(anchor);
+          tocList.appendChild(item);
+        });
+      }
+    }
+
     const mermaidCodeBlocks = Array.from(articleBody.querySelectorAll('pre code.language-mermaid'));
     if (mermaidCodeBlocks.length > 0) {
       import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs')
@@ -269,9 +378,7 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
 
           for (const code of mermaidCodeBlocks) {
             const pre = code.closest('pre');
-            if (!pre) {
-              continue;
-            }
+            if (!pre) continue;
 
             const diagram = document.createElement('div');
             diagram.className = 'mermaid';
@@ -280,9 +387,7 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
             nodes.push(diagram);
           }
 
-          if (nodes.length === 0) {
-            return;
-          }
+          if (nodes.length === 0) return;
 
           mermaid.initialize({
             startOnLoad: false,
@@ -293,308 +398,307 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
           mermaid.run({ nodes });
         })
         .catch(() => {
-          // Mermaid 로딩 실패 시 기존 코드 블록 유지
+          // keep original code block if mermaid fails
         });
     }
   }
 </script>
 
 <style>
-  .main {
-    padding-top: calc(var(--header-height) + 1.5rem);
-    padding-bottom: var(--space-3xl);
-  }
-
-  .article {
-    max-width: 100%;
+  .detail-article {
+    width: 100%;
+    max-width: 1080px;
+    margin: 0 auto;
     --detail-font-serif: var(--font-serif);
     --detail-font-body: var(--font-sans);
   }
 
-  .article.font-basic {
-    --detail-font-serif: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
-    --detail-font-body: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  .detail-article.font-basic {
+    --detail-font-serif: var(--font-sans);
+    --detail-font-body: var(--font-sans);
   }
 
-  .content {
-    max-width: var(--content-width);
-    margin: 0 auto;
-    padding: 0 1rem;
+  .detail-top {
+    padding: 28px 40px;
+    box-shadow: var(--shadow-card);
+    display: grid;
+    gap: 20px;
   }
 
-  .article-header {
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--divider);
+  .detail-top__nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 13px;
+    color: #444;
   }
 
-  .article-title {
+  .detail-top__nav a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .detail-top__rule {
+    width: 100%;
+    height: 1px;
+    background: #e8e8e8;
+  }
+
+  .detail-top__category {
+    color: #4b4b4b;
+  }
+
+  .detail-top__title {
     font-family: var(--detail-font-serif);
-    font-size: clamp(2.05rem, 4vw, 2.9rem);
-    line-height: 1.25;
-    margin-bottom: 0.8rem;
-    letter-spacing: -0.02em;
-    color: var(--text-primary);
+    color: var(--text-strong);
+    font-size: clamp(44px, 6vw, 72px);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
   }
 
-  .font-toggle-row {
-    margin-bottom: 0.75rem;
+  .detail-top__dek {
+    color: #3a3a3a;
+    font-size: 18px;
+    line-height: 1.45;
+    max-width: 760px;
   }
 
-  .font-toggle-button {
-    display: inline-flex;
+  .detail-top__meta {
+    display: flex;
     align-items: center;
-    justify-content: center;
-    height: 32px;
-    padding: 0 0.7rem;
-    border: 1px solid var(--border-primary);
+    flex-wrap: wrap;
+    gap: 12px 20px;
+    font-size: 12px;
+    color: #5f5f5f;
+  }
+
+  .detail-top__hero {
+    width: 100%;
+    min-height: 320px;
+    border-radius: var(--radius-md);
+    border: 1px solid #d9d9d9;
+    background: linear-gradient(90deg, #ededed 0%, #dcdcdc 100%);
+    box-shadow: var(--shadow-soft);
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+  }
+
+  .detail-top__hero img {
+    width: 100%;
+    height: 320px;
+    object-fit: cover;
+  }
+
+  .detail-top__hero p {
+    color: #7a7a7a;
+    letter-spacing: 0.08em;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .detail-top__tag-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .detail-body {
+    margin-top: 96px;
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 48px;
+    align-items: start;
+  }
+
+  .detail-toc {
+    position: sticky;
+    top: calc(var(--header-height) + 20px);
+    padding: 0;
+  }
+
+  .detail-toc h2 {
+    color: var(--text-strong);
+    font-size: 18px;
+    line-height: 1.2;
+  }
+
+  .detail-toc__rule {
+    width: 100%;
+    height: 1px;
+    background: #d0d0d0;
+    margin: 16px 0;
+  }
+
+  .detail-toc ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 12px;
+  }
+
+  .detail-toc li {
+    color: #2a2a2a;
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  .detail-toc li.is-sub {
+    padding-left: 12px;
+    color: #595959;
+  }
+
+  .detail-toc a:hover {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .detail-font-toggle {
+    margin-top: 22px;
+  }
+
+  .detail-font-toggle button {
+    width: 100%;
+    height: 34px;
     border-radius: var(--radius-sm);
-    background: var(--bg-secondary);
-    color: var(--text-secondary);
-    font-size: 0.76rem;
-    font-weight: 700;
-    line-height: 1;
-    transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+    border: 1px solid var(--line-default);
+    background: var(--bg-soft);
+    font-size: 12px;
+    color: #333;
   }
 
-  .font-toggle-button:hover {
-    border-color: var(--border-secondary);
-    background: var(--bg-hover);
-    color: var(--text-primary);
+  .detail-font-toggle button[aria-pressed='false'] {
+    background: #111;
+    color: #fff;
+    border-color: #111;
   }
 
-  .font-toggle-button[aria-pressed='true'] {
-    border-color: rgba(11, 110, 153, 0.28);
-    background: #edf5f8;
-    color: var(--accent-primary);
+  .detail-content {
+    min-width: 0;
+    display: grid;
+    gap: 30px;
   }
 
-  .article-meta {
-    display: flex;
-    align-items: center;
-    gap: 0.7rem;
-    margin-bottom: 0.8rem;
-    font-size: 0.82rem;
-    color: var(--text-tertiary);
-    flex-wrap: wrap;
-  }
-
-  .article-meta .reading-time {
-    display: flex;
-    align-items: center;
-    gap: var(--space-xs);
-  }
-
-  .article-meta .reading-time::before {
-    content: '•';
-    margin-right: var(--space-sm);
-  }
-
-  .article-meta :global(.view-counter) {
-    display: flex;
-    align-items: center;
-    gap: var(--space-xs);
-  }
-
-  .article-meta :global(.view-counter)::before {
-    content: '•';
-    margin-right: var(--space-sm);
-  }
-
-  .updated::before {
-    content: '•';
-    margin-right: var(--space-md);
-  }
-
-  .tags {
-    display: flex;
-    gap: 0.45rem;
-    flex-wrap: wrap;
-  }
-
-  .tag {
-    padding: 0.1rem 0.5rem;
-    background-color: var(--bg-tag);
-    border: 1px solid rgba(123, 118, 109, 0.44);
-    border-radius: 999px;
-    font-size: 0.78rem;
-    color: var(--text-secondary);
-    text-decoration: none;
-    transition: background-color 0.15s ease, color 0.15s ease;
-  }
-
-  .tag:hover {
-    background-color: #e6f3f8;
-    color: var(--accent-primary);
+  .detail-content__intro {
+    font-family: var(--detail-font-serif);
+    color: #111;
+    font-size: 28px;
+    line-height: 1.25;
   }
 
   .article-body {
     font-family: var(--detail-font-body);
-    font-size: 1.02rem;
-    line-height: 1.64;
-    color: var(--text-primary);
+    color: #222;
+    font-size: 17px;
+    line-height: 1.7;
     word-break: keep-all;
   }
 
-  /* Markdown Styles */
-  .article-body :global(h1) {
-    font-family: var(--detail-font-serif);
-    font-size: 2.2rem;
-    margin-top: 1.9rem;
-    margin-bottom: 0.62rem;
-    line-height: 1.3;
-    color: var(--text-primary);
-    letter-spacing: -0.01em;
-  }
-
-  .article-body :global(h2) {
-    font-family: var(--detail-font-serif);
-    font-size: 1.92rem;
-    margin-top: 1.85rem;
-    margin-bottom: 0.6rem;
-    color: var(--text-primary);
-    letter-spacing: -0.01em;
-  }
-
-  .article-body :global(h3) {
-    font-family: var(--detail-font-serif);
-    font-size: 1.46rem;
-    margin-top: 1.3rem;
-    margin-bottom: 0.42rem;
-    color: var(--text-primary);
-  }
-
-  .article-body :global(h4) {
-    font-family: var(--detail-font-serif);
-    font-size: 1.2rem;
-    margin-top: 1.1rem;
-    margin-bottom: 0.34rem;
-    color: var(--text-primary);
-  }
-
+  .article-body :global(h1),
+  .article-body :global(h2),
+  .article-body :global(h3),
+  .article-body :global(h4),
   .article-body :global(h5),
   .article-body :global(h6) {
     font-family: var(--detail-font-serif);
-    font-size: 1.05rem;
-    margin-top: 0.88rem;
-    margin-bottom: 0.3rem;
-    color: var(--text-primary);
+    color: #111;
+    letter-spacing: -0.01em;
+  }
+
+  .article-body :global(h1) {
+    margin-top: 46px;
+    margin-bottom: 14px;
+    font-size: 44px;
+    line-height: 1.15;
+  }
+
+  .article-body :global(h2) {
+    margin-top: 44px;
+    margin-bottom: 14px;
+    font-size: 34px;
+    line-height: 1.2;
+  }
+
+  .article-body :global(h3) {
+    margin-top: 36px;
+    margin-bottom: 12px;
+    font-size: 28px;
+    line-height: 1.24;
+  }
+
+  .article-body :global(h4),
+  .article-body :global(h5),
+  .article-body :global(h6) {
+    margin-top: 28px;
+    margin-bottom: 10px;
+    font-size: 22px;
+    line-height: 1.28;
   }
 
   .article-body :global(p) {
-    margin-bottom: 0.42rem;
+    margin-bottom: 10px;
   }
 
   .article-body :global(p:empty) {
     display: none;
   }
 
-  .article-body :global(a) {
-    color: #7f3f17;
-    text-decoration: none;
-    border-bottom: 1px solid rgba(127, 63, 23, 0.42);
-  }
-
-  .article-body :global(a:hover) {
-    color: #5e2d11;
-    border-bottom-color: #5e2d11;
-  }
-
   .article-body :global(ul),
   .article-body :global(ol) {
-    margin-bottom: 0.56rem;
-    padding-left: 1.25rem;
+    margin-bottom: 12px;
+    padding-left: 22px;
   }
 
   .article-body :global(li) {
-    margin-bottom: 0.16rem;
+    margin-bottom: 5px;
   }
 
-  .article-body :global(.contains-task-list) {
-    list-style: none;
-    padding-left: 0.2rem;
+  .article-body :global(a) {
+    color: #1f1f1f;
+    border-bottom: 1px solid #b8b8b8;
   }
 
-  .article-body :global(.task-list-item) {
-    list-style: none;
+  .article-body :global(a:hover) {
+    border-bottom-color: #111;
   }
 
-  .article-body :global(.task-list-item input[type='checkbox']) {
-    margin-right: 0.5rem;
-    accent-color: #7f3f17;
-    transform: translateY(1px);
-  }
-
-  .article-body :global(details) {
-    margin: 0.72rem 0;
-    border: 1px solid var(--divider);
-    border-radius: var(--radius-sm);
-    background: #f8f5ed;
-    padding: 0.45rem 0.75rem;
-  }
-
-  .article-body :global(details > summary) {
-    cursor: pointer;
-    font-weight: 700;
-    color: #5e2d11;
-    list-style: none;
-  }
-
-  .article-body :global(details > summary::-webkit-details-marker) {
-    display: none;
-  }
-
-  .article-body :global(details > summary::before) {
-    content: '▸';
-    display: inline-block;
-    margin-right: 0.4rem;
-    transition: transform 0.15s ease;
-  }
-
-  .article-body :global(details[open] > summary::before) {
-    transform: rotate(90deg);
-  }
-
-  .article-body :global(details > *:not(summary)) {
-    margin-top: 0.6rem;
+  .article-body :global(blockquote) {
+    margin: 18px 0;
+    padding-left: 14px;
+    border-left: 3px solid #bdbdbd;
+    color: #505050;
   }
 
   .article-body :global(:not(pre) > code) {
     font-family: var(--font-mono);
-    font-size: 0.84em;
-    background-color: #c8c4ba;
-    padding: 0.12em 0.35em;
-    border-radius: var(--radius-sm);
-    border: 1px solid #8f8a80;
+    font-size: 0.86em;
+    background: #efefef;
+    border: 1px solid #d8d8d8;
+    border-radius: 6px;
+    padding: 0.1em 0.35em;
   }
 
-  .article-body :global(pre) {
-    margin: 0.72rem 0;
-    padding: 0.95rem;
-    background-color: #151311;
-    border-radius: var(--radius-sm);
-    border: 1px solid #4f4942;
-    overflow-x: auto;
-  }
-
-  .article-body :global(pre code) {
-    background-color: transparent;
-    padding: 0;
-    border: 0;
-    white-space: pre;
-    word-break: normal;
-  }
-
+  .article-body :global(pre),
   .article-body :global(pre.astro-code) {
-    background: #151311;
-    border-color: #4f4942;
+    margin: 18px 0;
+    padding: 20px;
+    background: #f4f4f4 !important;
+    border: 1px solid #d8d8d8;
+    border-radius: var(--radius-sm);
+    overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
 
+  .article-body :global(pre code),
   .article-body :global(pre.astro-code code) {
-    display: block;
-    min-width: max-content;
-    line-height: 1.6;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 1.5;
+    color: #1a1a1a;
+    white-space: pre;
   }
 
   .article-body :global(pre.astro-code .line),
@@ -603,19 +707,10 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
     text-decoration: none !important;
   }
 
-  .article-body :global(blockquote) {
-    margin: 0.72rem 0;
-    padding-left: 0.9rem;
-    border-left: 3px solid #8f8a80;
-    color: var(--text-secondary);
-    font-style: normal;
-  }
-
   .article-body :global(.table-scroll) {
-    margin: 0.82rem 0;
+    margin: 18px 0;
     overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    border: 1px solid var(--divider);
+    border: 1px solid #dcdcdc;
     border-radius: var(--radius-sm);
     background: #fff;
   }
@@ -625,68 +720,57 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
     min-width: 100%;
     width: max-content;
     border-collapse: collapse;
+    font-size: 15px;
     line-height: 1.5;
-    font-size: 0.92rem;
   }
 
   .article-body :global(.table-scroll th),
   .article-body :global(.table-scroll td) {
-    border: 1px solid var(--divider);
-    padding: 0.52rem 0.72rem;
+    border: 1px solid #d7d7d7;
+    padding: 10px 12px;
     text-align: left;
     vertical-align: top;
-    word-break: break-word;
-    white-space: normal;
   }
 
   .article-body :global(.table-scroll th) {
-    background-color: #efeadf;
+    background: #f3f3f3;
     font-weight: 700;
-  }
-
-  .article-body :global(.table-scroll tbody tr:nth-child(even) td) {
-    background-color: #faf7f0;
   }
 
   .article-body :global(a.notion-link-card) {
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
-    margin: 0.72rem 0;
-    padding: 0.75rem 0.9rem;
-    border: 1px solid var(--divider);
+    gap: 6px;
+    margin: 18px 0;
+    padding: 14px;
+    border: 1px solid #dcdcdc;
     border-radius: var(--radius-sm);
-    background: #fbf8f1;
-    color: var(--text-primary);
-    text-decoration: none;
-    border-bottom: 1px solid var(--divider);
-    transition: border-color 0.15s ease, background-color 0.15s ease;
+    background: #fafafa;
+    color: #222;
   }
 
   .article-body :global(a.notion-link-card:hover) {
-    border-color: #c7bcab;
-    background: #f5efe2;
-    color: var(--text-primary);
+    border-color: #c8c8c8;
   }
 
   .article-body :global(.notion-link-card-title) {
-    font-weight: 700;
+    font-weight: 600;
     line-height: 1.4;
     overflow-wrap: anywhere;
   }
 
   .article-body :global(.notion-link-card-meta) {
-    font-size: 0.82rem;
-    color: var(--text-tertiary);
+    font-size: 13px;
+    color: #666;
     overflow-wrap: anywhere;
   }
 
   .article-body :global(.notion-video-embed) {
-    margin: 0.82rem 0;
-    border: 1px solid var(--divider);
+    margin: 20px 0;
+    border: 1px solid #d5d5d5;
     border-radius: var(--radius-sm);
     overflow: hidden;
-    background: #111;
+    background: #ececec;
   }
 
   .article-body :global(.notion-video-embed iframe) {
@@ -697,9 +781,9 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   }
 
   .article-body :global(.mermaid) {
-    margin: 0.72rem 0;
-    padding: 0.75rem;
-    border: 1px solid var(--divider);
+    margin: 18px 0;
+    padding: 14px;
+    border: 1px solid #dcdcdc;
     border-radius: var(--radius-sm);
     background: #fff;
     overflow-x: auto;
@@ -711,35 +795,253 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   }
 
   .article-body :global(img) {
-    max-width: 100%;
-    height: auto;
-    margin: 0.82rem auto;
+    margin: 20px auto;
     border-radius: var(--radius-sm);
-    display: block;
   }
 
   .article-body :global(hr) {
-    margin: 1.2rem 0;
-    border: none;
-    border-top: 1px solid var(--divider);
+    margin: 26px 0;
+    border: 0;
+    border-top: 1px solid #d7d7d7;
   }
 
-  .share-section {
-    margin-top: 1.6rem;
-    padding-top: 1.3rem;
-    border-top: 1px solid var(--divider);
+  .detail-content__share-row {
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 14px 18px;
   }
 
-  .comments-section {
-    margin-top: 1.6rem;
-    padding-top: 1.3rem;
+  .detail-content__share-row p {
+    color: #424242;
+    font-size: 13px;
+  }
+
+  .detail-bottom {
+    margin-top: 96px;
+    display: grid;
+    gap: 24px;
+  }
+
+  .detail-bottom__nav-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
+
+  .detail-nav-card {
+    min-height: 85px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--line-default);
+    background: #f3f3f3;
+    display: grid;
+    gap: 8px;
+    align-content: center;
+    padding: 20px;
+  }
+
+  .detail-nav-card span {
+    color: #707070;
+    font-size: 11px;
+  }
+
+  .detail-nav-card strong {
+    color: #111;
+    font-size: 18px;
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+  }
+
+  .detail-nav-card--dark {
+    background: #111;
+    border-color: #111;
+  }
+
+  .detail-nav-card--dark span {
+    color: #bdbdbd;
+  }
+
+  .detail-nav-card--dark strong {
+    color: #fff;
+  }
+
+  .detail-bottom h2 {
+    color: #111;
+    font-size: 26px;
+    line-height: 1.2;
+  }
+
+  .detail-related-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .detail-related-card {
+    display: grid;
+    gap: 8px;
+  }
+
+  .detail-related-card__thumb {
+    height: 120px;
+    border-radius: var(--radius-md);
+    border: 1px solid #d7d7d7;
+    background: #e6e6e6;
+  }
+
+  .detail-related-card p {
+    color: #111;
+    font-size: 14px;
+    line-height: 1.35;
+    font-weight: 600;
+  }
+
+  .detail-bottom__cta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 18px;
+    font-size: 13px;
+    color: #424242;
+  }
+
+  .detail-comments {
+    border-top: 1px solid var(--line-default);
+    padding-top: 16px;
+  }
+
+  @media (max-width: 1024px) {
+    .detail-top {
+      padding: 24px;
+    }
+
+    .detail-body {
+      margin-top: 56px;
+      grid-template-columns: 1fr;
+      gap: 22px;
+    }
+
+    .detail-toc {
+      position: static;
+      border: 1px solid var(--line-default);
+      border-radius: var(--radius-md);
+      background: var(--bg-surface);
+      padding: 14px;
+    }
+
+    .detail-toc ol {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 14px;
+    }
+
+    .detail-font-toggle {
+      margin-top: 14px;
+    }
+
+    .detail-bottom {
+      margin-top: 56px;
+    }
   }
 
   @media (max-width: 768px) {
-    .article-title {
-      font-size: var(--text-3xl);
+    .detail-top {
+      padding: 16px;
+      gap: 14px;
+    }
+
+    .detail-top__title {
+      font-size: 40px;
+      line-height: 1.08;
+    }
+
+    .detail-top__dek {
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    .detail-top__hero,
+    .detail-top__hero img {
+      min-height: 210px;
+      height: 210px;
+    }
+
+    .detail-toc ol {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .detail-content {
+      gap: 22px;
+    }
+
+    .detail-content__intro {
+      font-size: 22px;
+      line-height: 1.3;
+    }
+
+    .article-body {
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    .article-body :global(h1) {
+      font-size: 32px;
+      margin-top: 36px;
+    }
+
+    .article-body :global(h2) {
+      font-size: 28px;
+      margin-top: 32px;
+    }
+
+    .article-body :global(h3) {
+      font-size: 24px;
+      margin-top: 28px;
+    }
+
+    .detail-content__share-row {
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 12px 14px;
+    }
+
+    .detail-bottom {
+      margin-top: 40px;
+      gap: 18px;
+    }
+
+    .detail-bottom__nav-row {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .detail-nav-card {
+      min-height: 76px;
+      padding: 14px;
+    }
+
+    .detail-nav-card strong {
+      font-size: 16px;
+    }
+
+    .detail-bottom h2 {
+      font-size: 22px;
+    }
+
+    .detail-related-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .detail-related-card__thumb {
+      height: 100px;
+    }
+
+    .detail-bottom__cta {
+      padding: 12px 14px;
+      font-size: 12px;
     }
   }
 </style>

@@ -1,229 +1,192 @@
 ---
+const navItems = [
+  { href: '/posts', label: 'All Posts' },
+  { href: '/tags', label: 'Tags' },
+  { href: '/trends', label: 'Trends' },
+  { href: '/saju', label: 'Saju' }
+];
 ---
 
-<header class="header">
-  <div class="container">
-    <div class="header-content">
-      <a href="/" class="logo">
-        <span class="logo-label">노미</span>
-        <span class="logo-text">노미신문</span>
-      </a>
+<header class="site-header">
+  <div class="container site-header__inner">
+    <a class="site-logo" href="/" aria-label="Nomi Journal Home">
+      <span class="site-logo__title">Nomi Journal</span>
+      <span class="site-logo__sub">Editorial Developer Notes</span>
+    </a>
 
-      <ul class="desktop-nav">
-        <li><a href="/posts">글월 모음</a></li>
-        <li><a href="/tags">갈래말</a></li>
-        <li><a href="/trends">오늘 판세</a></li>
-        <li><a href="/saju">사주 풀이</a></li>
+    <nav class="site-nav" aria-label="Primary">
+      <ul>
+        {navItems.map((item) => (
+          <li><a href={item.href}>{item.label}</a></li>
+        ))}
       </ul>
+    </nav>
 
-      <button class="menu-button" aria-label="차림 열기" id="menuButton">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <line x1="3" y1="6" x2="21" y2="6"></line>
-          <line x1="3" y1="12" x2="21" y2="12"></line>
-          <line x1="3" y1="18" x2="21" y2="18"></line>
-        </svg>
-      </button>
-    </div>
+    <button type="button" class="site-nav-toggle" aria-expanded="false" aria-controls="mobile-nav" id="mobileNavToggle">
+      <span class="sr-only">Open navigation</span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="4" y1="7" x2="20" y2="7"></line>
+        <line x1="4" y1="12" x2="20" y2="12"></line>
+        <line x1="4" y1="17" x2="20" y2="17"></line>
+      </svg>
+    </button>
   </div>
 
-  <nav class="nav-menu" id="navMenu">
-    <div class="nav-content">
-      <button class="close-button" aria-label="차림 닫기" id="closeButton">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
-      </button>
-
-      <ul class="nav-list">
-        <li><a href="/">첫머리</a></li>
-        <li><a href="/posts">글월 모음</a></li>
-        <li><a href="/tags">갈래말로 보기</a></li>
-        <li><a href="/trends">오늘 판세</a></li>
-        <li><a href="/saju">사주 풀이</a></li>
+  <div class="mobile-nav" id="mobile-nav" hidden>
+    <div class="container">
+      <ul>
+        <li><a href="/">Home</a></li>
+        {navItems.map((item) => (
+          <li><a href={item.href}>{item.label}</a></li>
+        ))}
       </ul>
     </div>
-  </nav>
+  </div>
 </header>
 
 <style>
-  .header {
+  .site-header {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    height: var(--header-height);
-    background: rgba(220, 216, 208, 0.94);
-    backdrop-filter: blur(8px);
-    border-bottom: 1px solid var(--border-primary);
-    z-index: 100;
+    z-index: 50;
+    background: color-mix(in srgb, var(--bg-page) 92%, white 8%);
+    border-bottom: 1px solid var(--line-default);
+    backdrop-filter: blur(10px);
   }
 
-  .header-content {
+  .site-header__inner {
+    height: var(--header-height);
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    height: var(--header-height);
-    gap: 1rem;
+    justify-content: space-between;
+    gap: 20px;
   }
 
-  .logo {
+  .site-logo {
     display: inline-flex;
-    align-items: baseline;
-    gap: 0.48rem;
+    flex-direction: column;
+    min-width: 0;
   }
 
-  .logo-label {
-    font-size: 0.68rem;
-    letter-spacing: 0.06em;
-    color: var(--text-tertiary);
-  }
-
-  .logo-text {
-    font-family: var(--font-serif);
-    font-size: 1.12rem;
+  .site-logo__title {
+    font-size: 17px;
+    line-height: 1.05;
     font-weight: 700;
-    letter-spacing: -0.01em;
-    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    color: var(--text-strong);
   }
 
-  .desktop-nav {
+  .site-logo__sub {
+    margin-top: 2px;
+    font-size: 11px;
+    color: var(--text-faint);
+    white-space: nowrap;
+  }
+
+  .site-nav ul {
     list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+  }
+
+  .site-nav a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    padding: 0 12px;
+    border-radius: var(--radius-pill);
+    border: 1px solid transparent;
+    color: #4d4d4d;
+    font-size: 13px;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  }
+
+  .site-nav a:hover {
+    color: var(--text-strong);
+    border-color: var(--line-default);
+    background: var(--bg-soft);
+  }
+
+  .site-nav-toggle {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--line-default);
+    background: var(--bg-soft);
+    color: var(--text-body);
     display: none;
     align-items: center;
-    gap: 0.35rem;
-    margin-left: auto;
-  }
-
-  .desktop-nav a {
-    display: block;
-    font-size: 0.82rem;
-    color: var(--text-secondary);
-    border: 1px solid transparent;
-    padding: 0.3rem 0.55rem;
-    border-radius: var(--radius-sm);
-    transition: color 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
-  }
-
-  .desktop-nav a:hover {
-    color: var(--text-primary);
-    border-color: var(--border-primary);
-    background: rgba(255, 255, 255, 0.16);
-  }
-
-  .menu-button {
-    width: 30px;
-    height: 30px;
-    border-radius: var(--radius-sm);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-secondary);
-    transition: background-color 0.15s ease, color 0.15s ease;
-  }
-
-  .menu-button:hover {
-    color: var(--text-primary);
-    background-color: rgba(255, 255, 255, 0.18);
-  }
-
-  .nav-menu {
-    position: fixed;
-    top: 0;
-    right: -100%;
-    width: 100%;
-    max-width: 300px;
-    height: 100vh;
-    background-color: var(--bg-primary);
-    border-left: 1px solid var(--border-primary);
-    box-shadow: var(--shadow-md);
-    transition: right 0.2s ease;
-    z-index: 101;
-  }
-
-  .nav-menu.active {
-    right: 0;
-  }
-
-  .nav-content {
-    padding: 1rem;
-  }
-
-  .close-button {
-    width: 30px;
-    height: 30px;
-    border-radius: var(--radius-sm);
-    margin-bottom: 1rem;
-    color: var(--text-secondary);
-    display: inline-flex;
-    align-items: center;
     justify-content: center;
   }
 
-  .close-button:hover {
-    color: var(--text-primary);
-    background-color: rgba(255, 255, 255, 0.2);
+  .mobile-nav {
+    border-top: 1px solid var(--line-default);
+    background: var(--bg-page);
+    padding: 10px 0 14px;
   }
 
-  .nav-list {
+  .mobile-nav ul {
     list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 6px;
   }
 
-  .nav-list li {
-    margin-bottom: var(--space-xs);
-  }
-
-  .nav-list a {
-    font-size: var(--text-sm);
-    font-weight: 500;
+  .mobile-nav a {
     display: block;
-    color: var(--text-secondary);
-    padding: 0.5rem 0.625rem;
+    padding: 10px 12px;
     border-radius: var(--radius-sm);
-    border: 1px solid transparent;
-    transition: border-color 0.15s ease, color 0.15s ease;
+    border: 1px solid var(--line-default);
+    background: var(--bg-surface);
+    font-size: 14px;
+    color: var(--text-body);
   }
 
-  .nav-list a:hover {
-    border-color: var(--border-primary);
-    color: var(--text-primary);
-  }
-
-  @media (min-width: 900px) {
-    .desktop-nav {
-      display: flex;
-    }
-
-    .menu-button {
+  @media (max-width: 768px) {
+    .site-logo__sub {
       display: none;
     }
 
-    .nav-menu {
-      max-width: 400px;
+    .site-logo__title {
+      font-size: 16px;
+    }
+
+    .site-nav {
+      display: none;
+    }
+
+    .site-nav-toggle {
+      display: inline-flex;
     }
   }
 </style>
 
 <script>
-  const menuButton = document.getElementById('menuButton');
-  const closeButton = document.getElementById('closeButton');
-  const navMenu = document.getElementById('navMenu');
+  // @ts-nocheck
+  const toggle = document.getElementById('mobileNavToggle');
+  const mobileNav = document.getElementById('mobile-nav');
 
-  menuButton?.addEventListener('click', () => {
-    navMenu?.classList.add('active');
+  const setOpen = (open) => {
+    if (!toggle || !mobileNav) return;
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    mobileNav.hidden = !open;
+  };
+
+  toggle?.addEventListener('click', () => {
+    const isOpen = toggle.getAttribute('aria-expanded') === 'true';
+    setOpen(!isOpen);
   });
 
-  closeButton?.addEventListener('click', () => {
-    navMenu?.classList.remove('active');
-  });
-
-  // 메뉴 외부 클릭 시 닫기
-  document.addEventListener('click', (e) => {
-    const target = e.target as HTMLElement;
-    if (navMenu?.classList.contains('active') &&
-        !navMenu.contains(target) &&
-        !menuButton?.contains(target)) {
-      navMenu.classList.remove('active');
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 768) {
+      setOpen(false);
     }
   });
 </script>
