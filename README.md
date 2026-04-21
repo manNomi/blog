@@ -97,11 +97,10 @@ npm run trend:once:codex  # Codex 분석 강제(실패 시 에러)
 npm run dev
 ```
 
-### 오늘의 개발 판세 (/trends)
+### 오늘의 개발 판세 데이터
 
 - 수집원: `https://news.hada.io/rss/news`
 - 결과 파일: `src/data/trends/hada-today.json`
-- 페이지: `/trends`
 - `trend:once` 실행 시 Codex CLI 분석을 우선 시도하고, 실패하면 규칙 기반 분석으로 자동 폴백합니다.
 
 ### Codex Automation 실행 예시

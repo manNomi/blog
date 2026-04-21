@@ -23,31 +23,32 @@ const allPosts = (await getCollection('blog'))
   });
 
 const featuredPosts = allPosts.slice(0, 4);
+const defaultFeaturedImage = '/images/featured-fallback.svg';
 
 const valueCards = [
   {
-    title: 'Rapid Setup',
-    description: 'Get projects running quickly with a calm, dependable baseline.'
+    title: 'Production-First Engineer',
+    description: 'I turn real incidents into reusable patterns that help teams ship with confidence.'
   },
   {
-    title: 'Editorial Flow',
-    description: 'Structure content with restrained rhythm and clear visual hierarchy.'
+    title: 'Performance as a Habit',
+    description: 'From bundle size to memory pressure, I optimize for measurable speed over slogans.'
   },
   {
-    title: 'Measured Contrast',
-    description: 'Off-white surfaces keep the interface quiet while preserving depth.'
+    title: 'Webview Specialist',
+    description: 'I design around webview constraints and deliver stable user experience at scale.'
   },
   {
-    title: 'Quiet Components',
-    description: 'Minimal cards support scanning without introducing visual noise.'
+    title: 'AI with Engineering Discipline',
+    description: 'I use AI to move faster, then harden quality with explicit architecture and guardrails.'
   },
   {
-    title: 'Balanced Spacing',
-    description: 'Consistent gaps and padding create a composed editorial cadence.'
+    title: 'Systemic Problem Solver',
+    description: 'I connect product context and technical detail so complex issues become actionable.'
   },
   {
-    title: 'Soft Elevation',
-    description: 'A subtle shadow adds depth while maintaining a calm visual tone.'
+    title: 'Consistency Wins',
+    description: 'I ship daily, improve deliberately, and let cumulative execution speak for itself.'
   }
 ];
 
@@ -68,8 +69,8 @@ const toCategory = (tags: string[] | undefined) => {
       <div class="home-stack">
         <section class="home-hero page-card">
           <div class="hero-wrap">
-            <h1>코드를 짓고, Stories를 배포하다.</h1>
-            <p>한국어의 정서와 English product rigor를 한 화면에 담은 editorial developer portfolio.</p>
+            <h1>Build Code, Ship Stories.</h1>
+            <p>An editorial developer portfolio blending Korean sensibility with product rigor.</p>
             <a href="/posts" class="btn-pill dark">View Selected Work</a>
           </div>
 
@@ -78,11 +79,7 @@ const toCategory = (tags: string[] | undefined) => {
             <div class="featured-grid">
               {featuredPosts.map((post) => (
                 <a href={`/blog/${post.slug}`} class="featured-card">
-                  {post.data.heroImage ? (
-                    <img src={post.data.heroImage} alt={post.data.title} loading="lazy" />
-                  ) : (
-                    <div class="featured-card__placeholder">No preview image</div>
-                  )}
+                  <img src={post.data.heroImage || defaultFeaturedImage} alt={post.data.title} loading="lazy" />
                   <p class="featured-card__kicker">{toCategory(post.data.tags)}</p>
                   <h3>{post.data.title}</h3>
                   <p class="featured-card__description">{post.data.description || 'Open article'}</p>
@@ -94,10 +91,7 @@ const toCategory = (tags: string[] | undefined) => {
 
         <section class="editorial-statement">
           <div class="editorial-statement__line" />
-          <p>
-            We choose clarity over noise, depth over speed, and craft over convenience so every line we publish carries
-            intention, calm, and conviction.
-          </p>
+          <p>If you grow by 0.1 each day, consistency becomes your greatest talent.</p>
           <div class="editorial-statement__line" />
         </section>
 

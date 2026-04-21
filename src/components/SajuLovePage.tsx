@@ -22,13 +22,29 @@ const statusLookupSchema = z.object({
 type RequestFormValues = z.infer<typeof requestFormSchema>;
 type StatusLookupValues = z.infer<typeof statusLookupSchema>;
 
-type Step = 'landing' | 'input' | 'submitted';
+type FlowStep = 'intro' | 'identity' | 'birth' | 'review' | 'submitted';
 
 type CreateResponse = {
   requestId: string;
   accessToken: string;
   request: LoveJobPublic;
 };
+
+const formKeys: Array<keyof RequestFormValues> = [
+  'name',
+  'email',
+  'gender',
+  'calendarType',
+  'birthDate',
+  'birthTime',
+  'birthPlace'
+];
+
+const flowStepLabels: Array<{ key: Exclude<FlowStep, 'intro' | 'submitted'>; label: string }> = [
+  { key: 'identity', label: '기본 정보' },
+  { key: 'birth', label: '태어난 때' },
+  { key: 'review', label: '확인 및 제출' }
+];
 
 async function parseJson<T>(response: Response): Promise<T> {
   const payload = await response.json().catch(() => ({}));
@@ -54,14 +70,16 @@ function statusText(status: LoveJobPublic['status']) {
   }
 }
 
-const stepLabels: Array<{ key: Step; label: string }> = [
-  { key: 'landing', label: '알림' },
-  { key: 'input', label: '필수 입력' },
-  { key: 'submitted', label: '접수 마침' }
-];
+function calendarLabel(type: RequestFormValues['calendarType']) {
+  return type === 'solar' ? '양력' : '음력';
+}
+
+function genderLabel(gender: RequestFormValues['gender']) {
+  return gender === 'female' ? '여인' : '사내';
+}
 
 export default function SajuLovePage() {
-  const [step, setStep] = useState<Step>('landing');
+  const [step, setStep] = useState<FlowStep>('intro');
   const [requestState, setRequestState] = useState<LoveJobPublic | null>(null);
   const [notice, setNotice] = useState('');
   const [apiError, setApiError] = useState('');
@@ -91,28 +109,34 @@ export default function SajuLovePage() {
     }
   });
 
-  const watchedRequestForm = requestForm.watch();
-  const completionCount = useMemo(() => {
-    const entries = [
-      watchedRequestForm.name,
-      watchedRequestForm.email,
-      watchedRequestForm.birthDate,
-      watchedRequestForm.birthTime,
-      watchedRequestForm.birthPlace,
-      watchedRequestForm.gender,
-      watchedRequestForm.calendarType
-    ];
+  const watched = requestForm.watch();
 
-    return entries.filter((value) => typeof value === 'string' && value.trim().length > 0).length;
-  }, [
-    watchedRequestForm.name,
-    watchedRequestForm.email,
-    watchedRequestForm.birthDate,
-    watchedRequestForm.birthTime,
-    watchedRequestForm.birthPlace,
-    watchedRequestForm.gender,
-    watchedRequestForm.calendarType
-  ]);
+  const completionCount = useMemo(() => {
+    return formKeys.filter((key) => {
+      const value = watched[key];
+      return typeof value === 'string' && value.trim().length > 0;
+    }).length;
+  }, [watched]);
+
+  const completionPercent = Math.round((completionCount / formKeys.length) * 100);
+
+  const activeStepIndex = useMemo(() => {
+    if (step === 'intro') return -1;
+    if (step === 'submitted') return flowStepLabels.length;
+    return flowStepLabels.findIndex((entry) => entry.key === step);
+  }, [step]);
+
+  const moveToBirth = async () => {
+    const valid = await requestForm.trigger(['name', 'email', 'gender']);
+    if (!valid) return;
+    setStep('birth');
+  };
+
+  const moveToReview = async () => {
+    const valid = await requestForm.trigger(['calendarType', 'birthDate', 'birthTime', 'birthPlace']);
+    if (!valid) return;
+    setStep('review');
+  };
 
   const submitRequest = requestForm.handleSubmit(async (values) => {
     setApiError('');
@@ -191,7 +215,7 @@ export default function SajuLovePage() {
     }
   };
 
-  const resetForNewRequest = () => {
+  const resetFlow = () => {
     requestForm.reset({
       name: '',
       email: '',
@@ -204,21 +228,19 @@ export default function SajuLovePage() {
     setRequestState(null);
     setNotice('');
     setApiError('');
-    setStep('input');
+    setStep('identity');
   };
-
-  const currentStepIndex = stepLabels.findIndex((entry) => entry.key === step);
 
   return (
     <div className="space-y-5">
       <section className="rounded-[12px] border border-[var(--line-default)] bg-[var(--bg-surface)] p-5 shadow-[var(--shadow-card)] md:p-7">
         <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-faint)]">Saju Atelier</p>
         <h1 className="mt-3 text-[2.1rem] font-bold leading-[1.08] tracking-[-0.03em] text-[var(--text-strong)] md:text-[2.9rem]">사주 풀이 요청</h1>
-        <p className="mt-2 text-[0.95rem] leading-[1.6] text-[var(--text-muted)]">입력 후 비동기 처리되며 결과는 이메일로 전달됩니다.</p>
+        <p className="mt-2 text-[0.95rem] leading-[1.6] text-[var(--text-muted)]">입력 흐름을 단계별로 나누어 빠짐없이 작성할 수 있게 바꾸었사옵니다. 결과는 비동기 처리 후 전자우편 (이메일)로 전해집니다.</p>
 
         <div className="mt-4 flex flex-wrap gap-2">
-          {stepLabels.map((entry, index) => {
-            const active = index <= currentStepIndex;
+          {flowStepLabels.map((entry, index) => {
+            const active = index <= activeStepIndex;
             return (
               <span
                 key={entry.key}
@@ -228,137 +250,212 @@ export default function SajuLovePage() {
                     : 'border-[var(--line-default)] bg-[var(--bg-soft)] text-[var(--text-muted)]'
                 }`}
               >
-                {entry.label}
+                {index + 1}. {entry.label}
               </span>
             );
           })}
         </div>
+
+        <div className="mt-4">
+          <div className="mb-1 flex items-center justify-between text-xs text-[var(--text-muted)]">
+            <span>입력 완성도</span>
+            <strong className="text-[var(--text-strong)]">{completionCount}/{formKeys.length} · {completionPercent}%</strong>
+          </div>
+          <div className="h-2 w-full rounded-full bg-[var(--bg-soft)]">
+            <div className="h-full rounded-full bg-[#111] transition-all" style={{ width: `${completionPercent}%` }} />
+          </div>
+        </div>
       </section>
 
-      {step === 'landing' && (
-        <section className="rounded-[12px] border border-[var(--line-default)] bg-[var(--bg-surface)] p-6 shadow-[var(--shadow-soft)]">
-          <h2 className="text-[1.15rem] font-semibold text-[var(--text-strong)] md:text-[1.3rem]">필수 입력을 먼저 채워 주세요</h2>
-          <p className="mt-2 text-[0.9rem] text-[var(--text-muted)]">이름, 전자우편 (이메일), 태어난 날과 시각, 태어난 고장을 반드시 입력해야 요청이 접수됩니다.</p>
-          <button
-            type="button"
-            onClick={() => setStep('input')}
-            className="mt-4 inline-flex h-11 items-center rounded-full bg-[#111] px-5 text-sm font-medium text-white"
-          >
-            요청 접수
-          </button>
+      {step === 'intro' && (
+        <section className="rounded-[12px] border border-[var(--line-default)] bg-[var(--bg-surface)] p-6 shadow-[var(--shadow-soft)] md:p-7">
+          <h2 className="text-[1.18rem] font-semibold text-[var(--text-strong)] md:text-[1.35rem]">새 입력 흐름 안내</h2>
+          <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-[0.92rem] leading-[1.55] text-[var(--text-muted)]">
+            <li>기본 정보 입력</li>
+            <li>태어난 시점/장소 입력</li>
+            <li>최종 확인 후 요청 접수</li>
+          </ol>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setStep('identity')}
+              className="inline-flex h-11 items-center rounded-full bg-[#111] px-5 text-sm font-medium text-white"
+            >
+              입력 시작
+            </button>
+          </div>
         </section>
       )}
 
-      {step === 'input' && (
+      {(step === 'identity' || step === 'birth' || step === 'review') && (
         <section className="rounded-[12px] border border-[var(--line-default)] bg-[var(--bg-surface)] p-5 shadow-[var(--shadow-soft)] md:p-7">
-          <p className="mb-4 text-sm text-[var(--text-muted)]">
-            입력 진행률: <strong className="text-[var(--text-strong)]">{completionCount}/7</strong>
-          </p>
-
           <form className="space-y-4" onSubmit={submitRequest}>
-            <div className="grid gap-4 md:grid-cols-2">
-              <label className="text-sm text-[var(--text-muted)]">
-                성명 *
-                <input
-                  type="text"
-                  placeholder="홍길동"
-                  {...requestForm.register('name')}
-                  className="mt-1.5 h-11 w-full rounded-[8px] border border-[var(--line-default)] bg-[var(--bg-soft)] px-3 text-sm text-[var(--text-strong)]"
-                />
-                {requestForm.formState.errors.name && (
-                  <span className="mt-1 block text-xs text-[#b34131]">{requestForm.formState.errors.name.message}</span>
-                )}
-              </label>
+            {step === 'identity' && (
+              <>
+                <h2 className="text-[1.08rem] font-semibold text-[var(--text-strong)] md:text-[1.2rem]">1단계 · 기본 정보</h2>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <label className="text-sm text-[var(--text-muted)]">
+                    성명 *
+                    <input
+                      type="text"
+                      placeholder="홍길동"
+                      {...requestForm.register('name')}
+                      className="mt-1.5 h-11 w-full rounded-[8px] border border-[var(--line-default)] bg-[var(--bg-soft)] px-3 text-sm text-[var(--text-strong)]"
+                    />
+                    {requestForm.formState.errors.name && (
+                      <span className="mt-1 block text-xs text-[#b34131]">{requestForm.formState.errors.name.message}</span>
+                    )}
+                  </label>
 
-              <label className="text-sm text-[var(--text-muted)]">
-                전자우편 (이메일) *
-                <input
-                  type="email"
-                  placeholder="name@example.com"
-                  {...requestForm.register('email')}
-                  className="mt-1.5 h-11 w-full rounded-[8px] border border-[var(--line-default)] bg-[var(--bg-soft)] px-3 text-sm text-[var(--text-strong)]"
-                />
-                {requestForm.formState.errors.email && (
-                  <span className="mt-1 block text-xs text-[#b34131]">{requestForm.formState.errors.email.message}</span>
-                )}
-              </label>
+                  <label className="text-sm text-[var(--text-muted)]">
+                    전자우편 (이메일) *
+                    <input
+                      type="email"
+                      placeholder="name@example.com"
+                      {...requestForm.register('email')}
+                      className="mt-1.5 h-11 w-full rounded-[8px] border border-[var(--line-default)] bg-[var(--bg-soft)] px-3 text-sm text-[var(--text-strong)]"
+                    />
+                    {requestForm.formState.errors.email && (
+                      <span className="mt-1 block text-xs text-[#b34131]">{requestForm.formState.errors.email.message}</span>
+                    )}
+                  </label>
+                </div>
 
-              <label className="text-sm text-[var(--text-muted)]">
-                태어난 날 *
-                <input
-                  type="date"
-                  {...requestForm.register('birthDate')}
-                  className="mt-1.5 h-11 w-full rounded-[8px] border border-[var(--line-default)] bg-[var(--bg-soft)] px-3 text-sm text-[var(--text-strong)]"
-                />
-                {requestForm.formState.errors.birthDate && (
-                  <span className="mt-1 block text-xs text-[#b34131]">{requestForm.formState.errors.birthDate.message}</span>
-                )}
-              </label>
+                <label className="block text-sm text-[var(--text-muted)]">
+                  남녀 *
+                  <select
+                    {...requestForm.register('gender')}
+                    className="mt-1.5 h-11 w-full rounded-[8px] border border-[var(--line-default)] bg-[var(--bg-soft)] px-3 text-sm text-[var(--text-strong)]"
+                  >
+                    <option value="female">여인</option>
+                    <option value="male">사내</option>
+                  </select>
+                </label>
 
-              <label className="text-sm text-[var(--text-muted)]">
-                태어난 시각 *
-                <input
-                  type="time"
-                  {...requestForm.register('birthTime')}
-                  className="mt-1.5 h-11 w-full rounded-[8px] border border-[var(--line-default)] bg-[var(--bg-soft)] px-3 text-sm text-[var(--text-strong)]"
-                />
-                {requestForm.formState.errors.birthTime && (
-                  <span className="mt-1 block text-xs text-[#b34131]">{requestForm.formState.errors.birthTime.message}</span>
-                )}
-              </label>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={moveToBirth}
+                    className="inline-flex h-11 items-center rounded-full bg-[#111] px-5 text-sm font-medium text-white"
+                  >
+                    다음 단계
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStep('intro')}
+                    className="inline-flex h-11 items-center rounded-full border border-[var(--line-default)] bg-[var(--bg-soft)] px-5 text-sm text-[var(--text-body)]"
+                  >
+                    안내로 돌아가기
+                  </button>
+                </div>
+              </>
+            )}
 
-              <label className="text-sm text-[var(--text-muted)]">
-                남녀 *
-                <select
-                  {...requestForm.register('gender')}
-                  className="mt-1.5 h-11 w-full rounded-[8px] border border-[var(--line-default)] bg-[var(--bg-soft)] px-3 text-sm text-[var(--text-strong)]"
-                >
-                  <option value="female">여인</option>
-                  <option value="male">사내</option>
-                </select>
-              </label>
+            {step === 'birth' && (
+              <>
+                <h2 className="text-[1.08rem] font-semibold text-[var(--text-strong)] md:text-[1.2rem]">2단계 · 태어난 때</h2>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <label className="text-sm text-[var(--text-muted)]">
+                    역법 *
+                    <select
+                      {...requestForm.register('calendarType')}
+                      className="mt-1.5 h-11 w-full rounded-[8px] border border-[var(--line-default)] bg-[var(--bg-soft)] px-3 text-sm text-[var(--text-strong)]"
+                    >
+                      <option value="solar">양력</option>
+                      <option value="lunar">음력</option>
+                    </select>
+                  </label>
 
-              <label className="text-sm text-[var(--text-muted)]">
-                역법 *
-                <select
-                  {...requestForm.register('calendarType')}
-                  className="mt-1.5 h-11 w-full rounded-[8px] border border-[var(--line-default)] bg-[var(--bg-soft)] px-3 text-sm text-[var(--text-strong)]"
-                >
-                  <option value="solar">양력</option>
-                  <option value="lunar">음력</option>
-                </select>
-              </label>
-            </div>
+                  <label className="text-sm text-[var(--text-muted)]">
+                    태어난 날 *
+                    <input
+                      type="date"
+                      {...requestForm.register('birthDate')}
+                      className="mt-1.5 h-11 w-full rounded-[8px] border border-[var(--line-default)] bg-[var(--bg-soft)] px-3 text-sm text-[var(--text-strong)]"
+                    />
+                    {requestForm.formState.errors.birthDate && (
+                      <span className="mt-1 block text-xs text-[#b34131]">{requestForm.formState.errors.birthDate.message}</span>
+                    )}
+                  </label>
 
-            <label className="block text-sm text-[var(--text-muted)]">
-              태어난 고장 *
-              <input
-                type="text"
-                placeholder="서울특별시"
-                {...requestForm.register('birthPlace')}
-                className="mt-1.5 h-11 w-full rounded-[8px] border border-[var(--line-default)] bg-[var(--bg-soft)] px-3 text-sm text-[var(--text-strong)]"
-              />
-              {requestForm.formState.errors.birthPlace && (
-                <span className="mt-1 block text-xs text-[#b34131]">{requestForm.formState.errors.birthPlace.message}</span>
-              )}
-            </label>
+                  <label className="text-sm text-[var(--text-muted)]">
+                    태어난 시각 *
+                    <input
+                      type="time"
+                      {...requestForm.register('birthTime')}
+                      className="mt-1.5 h-11 w-full rounded-[8px] border border-[var(--line-default)] bg-[var(--bg-soft)] px-3 text-sm text-[var(--text-strong)]"
+                    />
+                    {requestForm.formState.errors.birthTime && (
+                      <span className="mt-1 block text-xs text-[#b34131]">{requestForm.formState.errors.birthTime.message}</span>
+                    )}
+                  </label>
 
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="submit"
-                disabled={requestForm.formState.isSubmitting}
-                className="inline-flex h-11 items-center rounded-full bg-[#111] px-5 text-sm font-medium text-white disabled:opacity-60"
-              >
-                {requestForm.formState.isSubmitting ? '접수 중…' : '요청 접수'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setStep('landing')}
-                className="inline-flex h-11 items-center rounded-full border border-[var(--line-default)] bg-[var(--bg-soft)] px-5 text-sm text-[var(--text-body)]"
-              >
-                뒤로
-              </button>
-            </div>
+                  <label className="text-sm text-[var(--text-muted)]">
+                    태어난 고장 *
+                    <input
+                      type="text"
+                      placeholder="서울특별시"
+                      {...requestForm.register('birthPlace')}
+                      className="mt-1.5 h-11 w-full rounded-[8px] border border-[var(--line-default)] bg-[var(--bg-soft)] px-3 text-sm text-[var(--text-strong)]"
+                    />
+                    {requestForm.formState.errors.birthPlace && (
+                      <span className="mt-1 block text-xs text-[#b34131]">{requestForm.formState.errors.birthPlace.message}</span>
+                    )}
+                  </label>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={moveToReview}
+                    className="inline-flex h-11 items-center rounded-full bg-[#111] px-5 text-sm font-medium text-white"
+                  >
+                    확인 단계로 이동
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStep('identity')}
+                    className="inline-flex h-11 items-center rounded-full border border-[var(--line-default)] bg-[var(--bg-soft)] px-5 text-sm text-[var(--text-body)]"
+                  >
+                    이전 단계
+                  </button>
+                </div>
+              </>
+            )}
+
+            {step === 'review' && (
+              <>
+                <h2 className="text-[1.08rem] font-semibold text-[var(--text-strong)] md:text-[1.2rem]">3단계 · 최종 확인</h2>
+                <div className="grid gap-3 rounded-[10px] border border-[var(--line-default)] bg-[var(--bg-soft)] p-4 text-sm md:grid-cols-2">
+                  <p><span className="text-[var(--text-muted)]">성명:</span> <strong>{watched.name || '-'}</strong></p>
+                  <p><span className="text-[var(--text-muted)]">전자우편:</span> <strong>{watched.email || '-'}</strong></p>
+                  <p><span className="text-[var(--text-muted)]">남녀:</span> <strong>{genderLabel(watched.gender)}</strong></p>
+                  <p><span className="text-[var(--text-muted)]">역법:</span> <strong>{calendarLabel(watched.calendarType)}</strong></p>
+                  <p><span className="text-[var(--text-muted)]">태어난 날:</span> <strong>{watched.birthDate || '-'}</strong></p>
+                  <p><span className="text-[var(--text-muted)]">태어난 시각:</span> <strong>{watched.birthTime || '-'}</strong></p>
+                  <p className="md:col-span-2"><span className="text-[var(--text-muted)]">태어난 고장:</span> <strong>{watched.birthPlace || '-'}</strong></p>
+                </div>
+
+                <p className="text-xs leading-5 text-[var(--text-muted)]">제출 후에는 요청 식별값과 접근 열쇠가 발급되며, 처리 결과는 등록한 전자우편 (이메일)로 보내집니다.</p>
+
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="submit"
+                    disabled={requestForm.formState.isSubmitting}
+                    className="inline-flex h-11 items-center rounded-full bg-[#111] px-5 text-sm font-medium text-white disabled:opacity-60"
+                  >
+                    {requestForm.formState.isSubmitting ? '접수 중…' : '요청 접수'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStep('birth')}
+                    className="inline-flex h-11 items-center rounded-full border border-[var(--line-default)] bg-[var(--bg-soft)] px-5 text-sm text-[var(--text-body)]"
+                  >
+                    수정하기
+                  </button>
+                </div>
+              </>
+            )}
           </form>
         </section>
       )}
@@ -429,7 +526,7 @@ export default function SajuLovePage() {
               </button>
               <button
                 type="button"
-                onClick={resetForNewRequest}
+                onClick={resetFlow}
                 className="inline-flex h-11 items-center rounded-full border border-[var(--line-default)] bg-[var(--bg-soft)] px-5 text-sm text-[var(--text-body)]"
               >
                 새 요청 작성
