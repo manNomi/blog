@@ -405,6 +405,10 @@ const formattedUpdatedDate = updatedDate
 </script>
 
 <style>
+  .detail-main {
+    overflow-x: clip;
+  }
+
   .detail-article {
     width: 100%;
     max-width: 1080px;
@@ -508,15 +512,17 @@ const formattedUpdatedDate = updatedDate
   .detail-body {
     margin-top: 96px;
     display: grid;
-    grid-template-columns: 220px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 220px) minmax(0, 1fr);
     gap: 48px;
     align-items: start;
+    min-width: 0;
   }
 
   .detail-toc {
     position: sticky;
     top: calc(var(--header-height) + 20px);
     padding: 0;
+    min-width: 0;
   }
 
   .detail-toc h2 {
@@ -544,11 +550,21 @@ const formattedUpdatedDate = updatedDate
     color: #2a2a2a;
     font-size: 13px;
     line-height: 1.35;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .detail-toc li.is-sub {
     padding-left: 12px;
     color: #595959;
+  }
+
+  .detail-toc a {
+    display: block;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .detail-toc a:hover {
