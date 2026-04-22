@@ -1,6 +1,12 @@
 import { nanoid } from "nanoid";
 import { buildLoveResult } from '../love-result';
-import type { LoveJob, LoveJobInput, LoveJobPublic, LoveJobResult } from '../love-job-types';
+import type {
+  LoveJob,
+  LoveJobInput,
+  LoveJobPublic,
+  LoveJobResult,
+  RelationshipStatus,
+} from '../love-job-types';
 import {
   claimQueuedLoveJob,
   createLoveJob,
@@ -12,6 +18,29 @@ import { sendAdminJobSummaryEmail, sendLoveResultEmail } from './email';
 import { hashToken, verifyToken } from './hash';
 import { logEvent } from './monitoring';
 
+const RELATIONSHIP_STATUSES: RelationshipStatus[] = ["none", "interested", "dating", "unknown"];
+
+function normalizeRelationshipStatus(value: unknown): RelationshipStatus {
+  if (typeof value === "string" && RELATIONSHIP_STATUSES.includes(value as RelationshipStatus)) {
+    return value as RelationshipStatus;
+  }
+
+  return "unknown";
+}
+
+function normalizeLegacyInput(input: Partial<LoveJobInput> | null | undefined): LoveJobInput {
+  return defaultInput({
+    name: input?.name ?? "",
+    email: input?.email ?? "",
+    gender: input?.gender === "male" ? "male" : "female",
+    calendarType: input?.calendarType === "lunar" ? "lunar" : "solar",
+    birthDate: input?.birthDate ?? "",
+    birthTime: input?.birthTime ?? "00:00",
+    birthPlace: input?.birthPlace ?? "",
+    relationshipStatus: normalizeRelationshipStatus(input?.relationshipStatus),
+  });
+}
+
 function defaultInput(input: LoveJobInput): LoveJobInput {
   return {
     ...input,
@@ -19,6 +48,7 @@ function defaultInput(input: LoveJobInput): LoveJobInput {
     email: input.email?.trim().toLowerCase() ?? "",
     birthPlace: input.birthPlace?.trim() ?? "",
     birthTime: input.birthTime?.trim() || "",
+    relationshipStatus: normalizeRelationshipStatus(input.relationshipStatus),
   };
 }
 
@@ -68,6 +98,10 @@ export function validateLoveInput(input: LoveJobInput) {
     throw new Error("calendar_type_invalid");
   }
 
+  if (!RELATIONSHIP_STATUSES.includes(input.relationshipStatus)) {
+    throw new Error("relationship_status_invalid");
+  }
+
   if (
     input.birthDate.length > 20 ||
     input.birthTime.length > 10 ||
@@ -79,10 +113,12 @@ export function validateLoveInput(input: LoveJobInput) {
 }
 
 export function sanitizeLoveJob(job: LoveJob): LoveJobPublic {
+  const normalizedInput = normalizeLegacyInput(job.input as Partial<LoveJobInput>);
+
   return {
     id: job.id,
     status: job.status,
-    input: job.input,
+    input: normalizedInput,
     result: job.result,
     error: job.error,
     email: job.email,
@@ -162,6 +198,7 @@ export async function processLoveJob(jobId: string) {
   }
 
   const job = claimed;
+  const normalizedInput = normalizeLegacyInput(job.input as Partial<LoveJobInput>);
 
   // Defensive guard: if email is already marked sent, never send again.
   if (job.email.sent) {
@@ -181,11 +218,11 @@ export async function processLoveJob(jobId: string) {
   let sentEmail: { provider: "resend" | "console"; messageId: string | null; sentAt: number } | null = null;
 
   try {
-    result = buildLoveResult(job.input);
+    result = buildLoveResult(normalizedInput);
 
     const emailResult = await sendLoveResultEmail({
-      to: job.input.email,
-      name: job.input.name,
+      to: normalizedInput.email,
+      name: normalizedInput.name,
       requestId: job.id,
       result,
     });
@@ -214,8 +251,8 @@ export async function processLoveJob(jobId: string) {
     try {
       await sendAdminJobSummaryEmail({
         requestId: job.id,
-        requesterName: job.input.name,
-        requesterEmail: job.input.email,
+        requesterName: normalizedInput.name,
+        requesterEmail: normalizedInput.email,
         status: "completed",
         error: null,
         source: "api",
@@ -251,8 +288,8 @@ export async function processLoveJob(jobId: string) {
     try {
       await sendAdminJobSummaryEmail({
         requestId: job.id,
-        requesterName: job.input.name,
-        requesterEmail: job.input.email,
+        requesterName: normalizedInput.name,
+        requesterEmail: normalizedInput.email,
         status: sentEmail ? "completed" : "failed",
         error: sentEmail ? null : message,
         source: "api",

@@ -123,6 +123,35 @@ const formattedUpdatedDate = updatedDate
         </div>
       </section>
 
+      <button
+        type="button"
+        class="detail-floating-toc-toggle"
+        data-floating-toc-toggle
+        aria-expanded="false"
+        aria-controls="detail-floating-toc-panel"
+      >
+        목차 보기
+      </button>
+
+      <div class="detail-floating-toc-backdrop" data-floating-toc-backdrop data-open="false"></div>
+
+      <aside
+        id="detail-floating-toc-panel"
+        class="detail-floating-toc-panel"
+        data-floating-toc-panel
+        data-open="false"
+        aria-label="Floating table of contents"
+      >
+        <div class="detail-floating-toc-panel__header">
+          <h2>On this page</h2>
+          <button type="button" data-floating-toc-close>닫기</button>
+        </div>
+        <div class="detail-toc__rule"></div>
+        <ol data-floating-toc-list>
+          <li>Preparing sections…</li>
+        </ol>
+      </aside>
+
       <section class="detail-bottom">
         <div class="detail-bottom__nav-row">
           <a class="detail-nav-card" href={previousPost ? `/blog/${previousPost.slug}` : '/posts'}>
@@ -246,8 +275,33 @@ const formattedUpdatedDate = updatedDate
   const articleBody = document.querySelector('.article-body');
   const articleRoot = document.querySelector('.detail-article');
   const tocList = document.querySelector('[data-toc-list]');
+  const floatingTocList = document.querySelector('[data-floating-toc-list]');
   const fontToggleButton = document.querySelector('[data-font-toggle]');
+  const floatingTocToggle = document.querySelector('[data-floating-toc-toggle]');
+  const floatingTocPanel = document.querySelector('[data-floating-toc-panel]');
+  const floatingTocBackdrop = document.querySelector('[data-floating-toc-backdrop]');
+  const floatingTocClose = document.querySelector('[data-floating-toc-close]');
   const FONT_MODE_KEY = 'blog_detail_font_mode';
+  const floatingTocQuery = window.matchMedia('(max-width: 1360px) and (min-width: 1025px)');
+
+  const setFloatingTocOpen = (open) => {
+    if (!floatingTocPanel || !floatingTocBackdrop || !floatingTocToggle) return;
+    floatingTocPanel.setAttribute('data-open', open ? 'true' : 'false');
+    floatingTocBackdrop.setAttribute('data-open', open ? 'true' : 'false');
+    floatingTocToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    floatingTocToggle.textContent = open ? '목차 닫기' : '목차 보기';
+  };
+
+  const syncFloatingTocVisibility = () => {
+    if (!floatingTocToggle) return;
+    if (floatingTocQuery.matches) {
+      floatingTocToggle.style.display = '';
+      return;
+    }
+
+    floatingTocToggle.style.display = 'none';
+    setFloatingTocOpen(false);
+  };
 
   const applyFontMode = (mode) => {
     if (!articleRoot || !fontToggleButton) return;
@@ -282,6 +336,32 @@ const formattedUpdatedDate = updatedDate
     applyFontMode(nextMode);
     saveFontMode(nextMode);
   });
+
+  floatingTocToggle?.addEventListener('click', () => {
+    const nextOpen = floatingTocPanel?.getAttribute('data-open') !== 'true';
+    setFloatingTocOpen(nextOpen);
+  });
+
+  floatingTocBackdrop?.addEventListener('click', () => setFloatingTocOpen(false));
+  floatingTocClose?.addEventListener('click', () => setFloatingTocOpen(false));
+
+  floatingTocPanel?.addEventListener('click', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLAnchorElement) {
+      setFloatingTocOpen(false);
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      setFloatingTocOpen(false);
+    }
+  });
+
+  syncFloatingTocVisibility();
+  if (typeof floatingTocQuery.addEventListener === 'function') {
+    floatingTocQuery.addEventListener('change', syncFloatingTocVisibility);
+  }
 
   if (articleBody) {
     for (const table of articleBody.querySelectorAll('table')) {
@@ -344,30 +424,33 @@ const formattedUpdatedDate = updatedDate
     }
 
     const headings = Array.from(articleBody.querySelectorAll('h2, h3'));
-    if (tocList) {
-      tocList.innerHTML = '';
+    const tocLists = [tocList, floatingTocList].filter(Boolean);
+
+    for (const list of tocLists) {
+      list.innerHTML = '';
 
       if (headings.length === 0) {
         const fallback = document.createElement('li');
         fallback.textContent = 'No sections detected';
-        tocList.appendChild(fallback);
-      } else {
-        headings.forEach((heading, index) => {
-          if (!heading.id) {
-            heading.id = `${slugify(heading.textContent || `section-${index + 1}`)}-${index + 1}`;
-          }
-
-          const item = document.createElement('li');
-          if (heading.tagName === 'H3') item.classList.add('is-sub');
-
-          const anchor = document.createElement('a');
-          anchor.href = `#${heading.id}`;
-          anchor.textContent = `${index + 1}. ${heading.textContent || 'Untitled section'}`;
-
-          item.appendChild(anchor);
-          tocList.appendChild(item);
-        });
+        list.appendChild(fallback);
+        continue;
       }
+
+      headings.forEach((heading, index) => {
+        if (!heading.id) {
+          heading.id = `${slugify(heading.textContent || `section-${index + 1}`)}-${index + 1}`;
+        }
+
+        const item = document.createElement('li');
+        if (heading.tagName === 'H3') item.classList.add('is-sub');
+
+        const anchor = document.createElement('a');
+        anchor.href = `#${heading.id}`;
+        anchor.textContent = `${index + 1}. ${heading.textContent || 'Untitled section'}`;
+
+        item.appendChild(anchor);
+        list.appendChild(item);
+      });
     }
 
     const mermaidCodeBlocks = Array.from(articleBody.querySelectorAll('pre code.language-mermaid'));
@@ -405,10 +488,6 @@ const formattedUpdatedDate = updatedDate
 </script>
 
 <style>
-  .detail-main {
-    overflow-x: clip;
-  }
-
   .detail-article {
     width: 100%;
     max-width: 1080px;
@@ -834,6 +913,104 @@ const formattedUpdatedDate = updatedDate
     font-size: 13px;
   }
 
+  .detail-floating-toc-toggle {
+    display: none;
+    position: fixed;
+    right: 22px;
+    bottom: 20px;
+    z-index: 80;
+    height: 40px;
+    padding: 0 14px;
+    border-radius: var(--radius-pill);
+    border: 1px solid #1a1a1a;
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 13px;
+    box-shadow: var(--shadow-card);
+  }
+
+  .detail-floating-toc-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.28);
+    z-index: 79;
+  }
+
+  .detail-floating-toc-panel {
+    display: none;
+    position: fixed;
+    right: 22px;
+    bottom: 68px;
+    width: min(360px, calc(100vw - 24px));
+    max-height: min(68vh, 560px);
+    overflow: auto;
+    padding: 14px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--line-default);
+    background: var(--bg-surface);
+    box-shadow: var(--shadow-card);
+    z-index: 81;
+  }
+
+  .detail-floating-toc-panel__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .detail-floating-toc-panel__header h2 {
+    color: var(--text-strong);
+    font-size: 18px;
+    line-height: 1.2;
+  }
+
+  .detail-floating-toc-panel__header button {
+    height: 28px;
+    padding: 0 10px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--line-default);
+    background: var(--bg-soft);
+    font-size: 12px;
+    color: var(--text-body);
+  }
+
+  .detail-floating-toc-panel ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 10px;
+  }
+
+  .detail-floating-toc-panel li {
+    color: #2a2a2a;
+    font-size: 13px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .detail-floating-toc-panel li.is-sub {
+    padding-left: 12px;
+    color: #595959;
+  }
+
+  .detail-floating-toc-panel a {
+    display: block;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .detail-floating-toc-panel[data-open='true'] {
+    display: block;
+  }
+
+  .detail-floating-toc-backdrop[data-open='true'] {
+    display: block;
+  }
+
   .detail-bottom {
     margin-top: 96px;
     display: grid;
@@ -928,6 +1105,30 @@ const formattedUpdatedDate = updatedDate
     padding-top: 16px;
   }
 
+  @media (max-width: 1360px) {
+    .detail-body {
+      margin-top: 56px;
+      grid-template-columns: 1fr;
+      gap: 22px;
+    }
+
+    .detail-toc {
+      display: none;
+    }
+
+    .detail-bottom {
+      margin-top: 56px;
+    }
+  }
+
+  @media (max-width: 1360px) and (min-width: 1025px) {
+    .detail-floating-toc-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
   @media (max-width: 1024px) {
     .detail-top {
       padding: 24px;
@@ -940,6 +1141,7 @@ const formattedUpdatedDate = updatedDate
     }
 
     .detail-toc {
+      display: block;
       position: static;
       border: 1px solid var(--line-default);
       border-radius: var(--radius-md);

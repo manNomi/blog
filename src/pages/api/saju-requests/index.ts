@@ -18,21 +18,23 @@ function json(body: unknown, status = 200) {
 function mapCreateErrorToMessage(code: string) {
   switch (code) {
     case 'name_required':
-      return '이름은 반드시 적어야 하옵니다.';
+      return '이름을 입력해 주세요.';
     case 'birth_date_required':
-      return '태어난 날은 반드시 적어야 하옵니다.';
+      return '태어난 날짜를 입력해 주세요.';
     case 'birth_time_required':
-      return '태어난 시각은 반드시 적어야 하옵니다.';
+      return '태어난 시각을 입력해 주세요.';
     case 'birth_place_required':
-      return '태어난 고장은 반드시 적어야 하옵니다.';
+      return '태어난 고장을 입력해 주세요.';
     case 'email_invalid':
-      return '옳은 전자우편 (이메일)을 적어 주시옵소서.';
+      return '올바른 이메일을 입력해 주세요.';
     case 'gender_invalid':
-      return '남녀 값이 바르지 아니하옵니다.';
+      return '성별 값이 올바르지 않습니다.';
     case 'calendar_type_invalid':
-      return '역법 값이 바르지 아니하옵니다.';
+      return '역법 값이 올바르지 않습니다.';
+    case 'relationship_status_invalid':
+      return '현재 관계 상태 값이 올바르지 않습니다.';
     case 'input_length_invalid':
-      return '적은 값의 길이를 살펴 주시옵소서.';
+      return '입력 길이를 다시 확인해 주세요.';
     default:
       return null;
   }
@@ -50,7 +52,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   const rate = consumeRateLimit(`saju:create:${ip}`, 10, 60_000);
 
   if (!rate.allowed) {
-    return json({ error: '청원이 몹시 많사오니, 잠시 뒤 다시 청해 주시옵소서.' }, 429);
+    return json({ error: '요청이 많아 잠시 제한되었습니다. 잠시 후 다시 시도해 주세요.' }, 429);
   }
 
   try {
@@ -60,12 +62,12 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     };
 
     if (!body.input) {
-      return json({ error: '적어 올릴 값이 필요하옵니다.' }, 400);
+      return json({ error: '입력 정보가 필요합니다.' }, 400);
     }
 
     const captcha = await verifyTurnstileToken(body.captchaToken ?? null, ip);
     if (!captcha.success) {
-      return json({ error: '사람 확인 표지 살핌에 그르쳤사옵니다.' }, 400);
+      return json({ error: '보안 확인에 실패했습니다. 다시 시도해 주세요.' }, 400);
     }
 
     const created = await createLoveJobWithToken({
@@ -97,6 +99,6 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
       message: error instanceof Error ? error.message : 'unknown'
     });
 
-    return json({ error: '청원을 세우는 동안 허물이 생겼사오니, 다시 청해 주시옵소서.' }, 500);
+    return json({ error: '요청을 처리하는 중 문제가 발생했습니다. 다시 시도해 주세요.' }, 500);
   }
 };

@@ -2,7 +2,7 @@
 title: "Cloudflare Workers + TanStack Start — 빌드/배포 파이프라인의 복합 버그를 해부하다"
 pubDate: 2026-01-16T00:00:00.000Z
 notionId: "32f7cf19-a364-801e-9af7-f20b1af09282"
----> `realty-web`의 SSR 인프라를 Vercel에서 Cloudflare Workers로 마이그레이션하면서, CJS/ESM interop 빌드 실패부터 Turborepo 캐시 충돌, Worker 이름 이중 suffix까지 — Cloudflare Workers + TanStack Start + Turborepo 3개 도구가 맞물리는 지점에서 발생한 복합적인 문제들을 해결한 기록이에요.
+---> `web`의 SSR 인프라를 Vercel에서 Cloudflare Workers로 마이그레이션하면서, CJS/ESM interop 빌드 실패부터 Turborepo 캐시 충돌, Worker 이름 이중 suffix까지 — Cloudflare Workers + TanStack Start + Turborepo 3개 도구가 맞물리는 지점에서 발생한 복합적인 문제들을 해결한 기록이에요.
 
 ---
 
@@ -28,14 +28,14 @@ Node.js 런타임에서는 문제없던 코드들이 Cloudflare Workers의 ESM-o
 ## 1. 전체 타임라인
 
 
-| **내용**                                |
-| ------------------------------------- |
-| CJS interop 패턴 빌드 수정                  |
-| Cloudflare/TanStack 최신화 (최종)          |
-| Relay loader 타입/SSR 비활성화              |
-| CI 워크플로우 수정 (Turborepo 캐시 이슈)         |
-| wrangler.toml 설정 수정                   |
-| vite.config worker name 주석 처리         |
+| **내용** |
+| --- |
+| CJS interop 패턴 빌드 수정 |
+| Cloudflare/TanStack 최신화 (최종) |
+| Relay loader 타입/SSR 비활성화 |
+| CI 워크플로우 수정 (Turborepo 캐시 이슈) |
+| wrangler.toml 설정 수정 |
+| vite.config worker name 주석 처리 |
 | wrangler + GitHub Actions 워크플로우 통합 수정 |
 
 
@@ -298,12 +298,12 @@ vars: notInheritable(
 ### Before vs. After
 
 
-| 비교 항목              | 기존 (Post-build Fix)        | 최종 (스택 최신화)                               |
-| ------------------ | -------------------------- | ----------------------------------------- |
-| **CJS interop 해결** | 빌드 후 정규식으로 패치              | Vite 7.0 + @cloudflare/vite-plugin이 근본 해결 |
-| **빌드 파이프라인**       | build → fix → deploy (3단계) | build → deploy (2단계)                      |
-| **유지보수**           | 정규식 패턴 관리 필요               | 추가 관리 불필요                                 |
-| **안정성**            | Vite 업데이트 시 깨질 위험          | 공식 플러그인 기반으로 안정적                          |
+| 비교 항목 | 기존 (Post-build Fix) | 최종 (스택 최신화) |
+| --- | --- | --- |
+| **CJS interop 해결** | 빌드 후 정규식으로 패치 | Vite 7.0 + @cloudflare/vite-plugin이 근본 해결 |
+| **빌드 파이프라인** | build → fix → deploy (3단계) | build → deploy (2단계) |
+| **유지보수** | 정규식 패턴 관리 필요 | 추가 관리 불필요 |
+| **안정성** | Vite 업데이트 시 깨질 위험 | 공식 플러그인 기반으로 안정적 |
 
 
 ---
