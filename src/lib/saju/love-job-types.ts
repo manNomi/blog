@@ -6,7 +6,10 @@ export type LoveJobInput = {
   birthDate: string;
   birthTime: string;
   birthPlace: string;
+  relationshipStatus: RelationshipStatus;
 };
+
+export type RelationshipStatus = "none" | "interested" | "dating" | "unknown";
 
 export type LoveResultSection = {
   title: string;
