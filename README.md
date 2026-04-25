@@ -126,6 +126,11 @@ npm run trend:once
   - 기본: edit 체크된 글만 동기화
   - `full_sync=true`: Published 전체 동기화
 
+### PR 작성 규칙
+
+- PR 작성/갱신 규칙은 `AGENTS.md`를 따릅니다.
+- PR 본문 포맷은 `.github/pull_request_template.md`를 사용합니다.
+
 ## 배포
 
 ```bash
