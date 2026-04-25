@@ -1,4 +1,6 @@
 ---
+import '../styles/global.css';
+
 interface Props {
   title: string;
   description?: string;
@@ -29,7 +31,6 @@ const ogImage = new URL(image, siteURL).href;
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preload" href="/fonts/ChosunCentennial.ttf" as="font" type="font/ttf" crossorigin />
 
-    <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content={fullURL} />
     <meta property="og:title" content={title} />
@@ -37,7 +38,6 @@ const ogImage = new URL(image, siteURL).href;
     <meta property="og:image" content={ogImage} />
     <meta property="og:locale" content="ko_KR" />
 
-    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:url" content={fullURL} />
     <meta name="twitter:title" content={title} />
@@ -48,7 +48,3 @@ const ogImage = new URL(image, siteURL).href;
     <slot />
   </body>
 </html>
-
-<style is:global>
-  @import '../styles/global.css';
-</style>

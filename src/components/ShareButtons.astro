@@ -7,14 +7,25 @@ interface Props {
 const { title, url } = Astro.props;
 ---
 
-<div class="share-buttons">
-  <a href="https://github.com/manNomi/" target="_blank" rel="noopener noreferrer" class="share-btn" title="깃허브">
+<div class="flex gap-1.5">
+  <a
+    href="https://github.com/manNomi/"
+    target="_blank"
+    rel="noopener noreferrer"
+    class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line bg-soft text-zinc-700 transition hover:border-zinc-400 hover:bg-zinc-200 hover:text-zinc-900"
+    title="깃허브"
+  >
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
     </svg>
   </a>
 
-  <button class="share-btn" data-type="copy" data-url={url} title={`${title} 고리 베끼기`}>
+  <button
+    class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line bg-soft text-zinc-700 transition hover:border-zinc-400 hover:bg-zinc-200 hover:text-zinc-900"
+    data-type="copy"
+    data-url={url}
+    title={`${title} 고리 베끼기`}
+  >
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
       <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
@@ -22,36 +33,8 @@ const { title, url } = Astro.props;
   </button>
 </div>
 
-<style>
-  .share-buttons {
-    display: flex;
-    gap: 0.38rem;
-  }
-
-  .share-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 30px;
-    height: 30px;
-    border-radius: var(--radius-sm);
-    background-color: var(--bg-soft);
-    border: 1px solid var(--line-default);
-    color: var(--text-body);
-    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-    cursor: pointer;
-    text-decoration: none;
-  }
-
-  .share-btn:hover {
-    background-color: #ebebeb;
-    border-color: var(--line-strong);
-    color: var(--text-strong);
-  }
-</style>
-
 <script>
-  const copyButton = document.querySelector('.share-btn[data-type="copy"]');
+  const copyButton = document.querySelector('.share-buttons [data-type="copy"], [data-type="copy"]');
 
   if (copyButton) {
     copyButton.setAttribute('aria-label', `${document.title} 고리 베끼기`);
@@ -61,9 +44,7 @@ const { title, url } = Astro.props;
         const prevTitle = copyButton.getAttribute('title');
         copyButton.setAttribute('title', '베꼈사옵니다');
         setTimeout(() => {
-          if (prevTitle) {
-            copyButton.setAttribute('title', prevTitle);
-          }
+          if (prevTitle) copyButton.setAttribute('title', prevTitle);
         }, 1200);
       });
     });

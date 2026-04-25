@@ -1,11 +1,12 @@
-import { nanoid } from "nanoid";
+import { nanoid } from 'nanoid';
 import { buildLoveResult } from '../love-result';
-import type {
-  LoveJob,
-  LoveJobInput,
-  LoveJobPublic,
-  LoveJobResult,
-  RelationshipStatus,
+import {
+  RELATIONSHIP_STATUSES,
+  type LoveJob,
+  type LoveJobInput,
+  type LoveJobPublic,
+  type LoveJobResult,
+  type RelationshipStatus
 } from '../love-job-types';
 import {
   claimQueuedLoveJob,
@@ -18,37 +19,21 @@ import { sendAdminJobSummaryEmail, sendLoveResultEmail } from './email';
 import { hashToken, verifyToken } from './hash';
 import { logEvent } from './monitoring';
 
-const RELATIONSHIP_STATUSES: RelationshipStatus[] = ["none", "interested", "dating", "unknown"];
-
 function normalizeRelationshipStatus(value: unknown): RelationshipStatus {
-  if (typeof value === "string" && RELATIONSHIP_STATUSES.includes(value as RelationshipStatus)) {
-    return value as RelationshipStatus;
-  }
-
-  return "unknown";
+  if (typeof value !== 'string') return 'unknown';
+  return RELATIONSHIP_STATUSES.includes(value as RelationshipStatus) ? (value as RelationshipStatus) : 'unknown';
 }
 
-function normalizeLegacyInput(input: Partial<LoveJobInput> | null | undefined): LoveJobInput {
-  return defaultInput({
-    name: input?.name ?? "",
-    email: input?.email ?? "",
-    gender: input?.gender === "male" ? "male" : "female",
-    calendarType: input?.calendarType === "lunar" ? "lunar" : "solar",
-    birthDate: input?.birthDate ?? "",
-    birthTime: input?.birthTime ?? "00:00",
-    birthPlace: input?.birthPlace ?? "",
-    relationshipStatus: normalizeRelationshipStatus(input?.relationshipStatus),
-  });
-}
-
-function defaultInput(input: LoveJobInput): LoveJobInput {
+function normalizeInput(input: Partial<LoveJobInput> | LoveJobInput): LoveJobInput {
   return {
-    ...input,
-    name: input.name?.trim() ?? "",
-    email: input.email?.trim().toLowerCase() ?? "",
-    birthPlace: input.birthPlace?.trim() ?? "",
-    birthTime: input.birthTime?.trim() || "",
-    relationshipStatus: normalizeRelationshipStatus(input.relationshipStatus),
+    name: input.name?.trim() ?? '',
+    email: input.email?.trim().toLowerCase() ?? '',
+    gender: input.gender === 'male' ? 'male' : 'female',
+    calendarType: input.calendarType === 'lunar' ? 'lunar' : 'solar',
+    birthDate: input.birthDate?.trim() ?? '',
+    birthTime: input.birthTime?.trim() || '',
+    birthPlace: input.birthPlace?.trim() ?? '',
+    relationshipStatus: normalizeRelationshipStatus(input.relationshipStatus)
   };
 }
 
@@ -58,44 +43,48 @@ function isValidEmail(email: string) {
 
 function normalizeNameForJobId(name: string) {
   const normalized = name
-    .normalize("NFKC")
+    .normalize('NFKC')
     .trim()
-    .replace(/[\s_]+/g, "-")
-    .replace(/[^\p{L}\p{N}-]/gu, "")
-    .replace(/-+/g, "-")
-    .replace(/^-+|-+$/g, "")
+    .replace(/[\s_]+/g, '-')
+    .replace(/[^\p{L}\p{N}-]/gu, '')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '')
     .slice(0, 24);
 
-  return normalized || "guest";
+  return normalized || 'guest';
 }
 
 export function validateLoveInput(input: LoveJobInput) {
   if (!input.name) {
-    throw new Error("name_required");
+    throw new Error('name_required');
   }
 
   if (!input.birthDate) {
-    throw new Error("birth_date_required");
+    throw new Error('birth_date_required');
   }
 
   if (!input.birthTime) {
-    throw new Error("birth_time_required");
+    throw new Error('birth_time_required');
   }
 
   if (!input.birthPlace) {
-    throw new Error("birth_place_required");
+    throw new Error('birth_place_required');
   }
 
   if (!isValidEmail(input.email)) {
-    throw new Error("email_invalid");
+    throw new Error('email_invalid');
   }
 
-  if (input.gender !== "female" && input.gender !== "male") {
-    throw new Error("gender_invalid");
+  if (input.gender !== 'female' && input.gender !== 'male') {
+    throw new Error('gender_invalid');
   }
 
-  if (input.calendarType !== "solar" && input.calendarType !== "lunar") {
-    throw new Error("calendar_type_invalid");
+  if (input.calendarType !== 'solar' && input.calendarType !== 'lunar') {
+    throw new Error('calendar_type_invalid');
+  }
+
+  if (!RELATIONSHIP_STATUSES.includes(input.relationshipStatus)) {
+    throw new Error('relationship_status_invalid');
   }
 
   if (!RELATIONSHIP_STATUSES.includes(input.relationshipStatus)) {
@@ -108,7 +97,7 @@ export function validateLoveInput(input: LoveJobInput) {
     input.birthPlace.length > 120 ||
     input.email.length > 200
   ) {
-    throw new Error("input_length_invalid");
+    throw new Error('input_length_invalid');
   }
 }
 
@@ -118,7 +107,7 @@ export function sanitizeLoveJob(job: LoveJob): LoveJobPublic {
   return {
     id: job.id,
     status: job.status,
-    input: normalizedInput,
+    input: normalizeInput(job.input),
     result: job.result,
     error: job.error,
     email: job.email,
@@ -135,7 +124,7 @@ export async function createLoveJobWithToken(payload: {
   ip: string;
   ua: string;
 }) {
-  const normalizedInput = defaultInput(payload.input);
+  const normalizedInput = normalizeInput(payload.input);
   validateLoveInput(normalizedInput);
 
   const namePart = normalizeNameForJobId(normalizedInput.name);
@@ -145,13 +134,13 @@ export async function createLoveJobWithToken(payload: {
 
   const job: LoveJob = {
     id,
-    status: "queued",
+    status: 'queued',
     input: normalizedInput,
     result: null,
     error: null,
     email: {
       to: normalizedInput.email,
-      provider: process.env.RESEND_API_KEY ? "resend" : "console",
+      provider: process.env.RESEND_API_KEY ? 'resend' : 'console',
       messageId: null,
       sent: false,
       sentAt: null,
@@ -182,7 +171,7 @@ export async function getAuthorizedLoveJob(jobId: string, accessToken: string) {
   if (!job) return null;
 
   if (!verifyToken(accessToken, job.accessTokenHash)) {
-    throw new Error("job_access_denied");
+    throw new Error('job_access_denied');
   }
 
   return job;
@@ -198,12 +187,11 @@ export async function processLoveJob(jobId: string) {
   }
 
   const job = claimed;
-  const normalizedInput = normalizeLegacyInput(job.input as Partial<LoveJobInput>);
+  const normalizedInput = normalizeInput(job.input);
 
-  // Defensive guard: if email is already marked sent, never send again.
   if (job.email.sent) {
     await updateLoveJob(job.id, {
-      status: "completed",
+      status: 'completed',
       updatedAt: Date.now(),
       processingCompletedAt: Date.now(),
       error: null,
@@ -215,7 +203,7 @@ export async function processLoveJob(jobId: string) {
   }
 
   let result: LoveJobResult | null = null;
-  let sentEmail: { provider: "resend" | "console"; messageId: string | null; sentAt: number } | null = null;
+  let sentEmail: { provider: 'resend' | 'console'; messageId: string | null; sentAt: number } | null = null;
 
   try {
     result = buildLoveResult(normalizedInput);
@@ -233,7 +221,8 @@ export async function processLoveJob(jobId: string) {
     };
 
     await updateLoveJob(job.id, {
-      status: "completed",
+      status: 'completed',
+      input: normalizedInput,
       result,
       updatedAt: Date.now(),
       processingCompletedAt: Date.now(),
@@ -253,23 +242,24 @@ export async function processLoveJob(jobId: string) {
         requestId: job.id,
         requesterName: normalizedInput.name,
         requesterEmail: normalizedInput.email,
-        status: "completed",
+        status: 'completed',
         error: null,
-        source: "api",
+        source: 'api',
         result,
       });
     } catch (notifyError) {
-      logEvent("warn", "admin_summary_email_failed", {
+      logEvent('warn', 'admin_summary_email_failed', {
         requestId: job.id,
-        source: "api",
-        message: notifyError instanceof Error ? notifyError.message : "unknown",
+        source: 'api',
+        message: notifyError instanceof Error ? notifyError.message : 'unknown',
       });
     }
   } catch (error) {
-    const message = error instanceof Error ? error.message : "analysis_or_email_failed";
+    const message = error instanceof Error ? error.message : 'analysis_or_email_failed';
 
     await updateLoveJob(job.id, {
-      status: sentEmail ? "completed" : "failed",
+      status: sentEmail ? 'completed' : 'failed',
+      input: normalizedInput,
       updatedAt: Date.now(),
       processingCompletedAt: Date.now(),
       error: sentEmail ? null : message,
@@ -290,16 +280,16 @@ export async function processLoveJob(jobId: string) {
         requestId: job.id,
         requesterName: normalizedInput.name,
         requesterEmail: normalizedInput.email,
-        status: sentEmail ? "completed" : "failed",
+        status: sentEmail ? 'completed' : 'failed',
         error: sentEmail ? null : message,
-        source: "api",
+        source: 'api',
         result,
       });
     } catch (notifyError) {
-      logEvent("warn", "admin_summary_email_failed", {
+      logEvent('warn', 'admin_summary_email_failed', {
         requestId: job.id,
-        source: "api",
-        message: notifyError instanceof Error ? notifyError.message : "unknown",
+        source: 'api',
+        message: notifyError instanceof Error ? notifyError.message : 'unknown',
       });
     }
   }
@@ -314,7 +304,7 @@ export async function processLoveJobsBatch(limitCount = 10) {
 
   for (const job of jobs) {
     const next = await processLoveJob(job.id);
-    if (next?.status === "completed" || next?.status === "failed") {
+    if (next?.status === 'completed' || next?.status === 'failed') {
       processed += 1;
     }
   }

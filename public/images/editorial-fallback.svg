@@ -1,0 +1,24 @@
+<svg width="1200" height="800" viewBox="0 0 1200 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="800" fill="#F4F1EA"/>
+  <rect x="56" y="56" width="1088" height="688" rx="16" fill="#F9F7F2" stroke="#D9D3C7"/>
+  <rect x="96" y="106" width="640" height="34" rx="4" fill="#2D2D2D" fill-opacity="0.9"/>
+  <rect x="96" y="162" width="980" height="8" rx="4" fill="#B8B1A4"/>
+  <rect x="96" y="184" width="920" height="8" rx="4" fill="#C5BFB2"/>
+  <rect x="96" y="206" width="860" height="8" rx="4" fill="#CFC9BC"/>
+  <rect x="96" y="248" width="318" height="438" rx="12" fill="#EFE9DC" stroke="#D7D1C3"/>
+  <rect x="441" y="248" width="318" height="438" rx="12" fill="#ECE6D8" stroke="#D7D1C3"/>
+  <rect x="786" y="248" width="318" height="438" rx="12" fill="#EAE3D4" stroke="#D7D1C3"/>
+  <rect x="126" y="286" width="258" height="160" rx="8" fill="#D8D1C3"/>
+  <rect x="471" y="286" width="258" height="160" rx="8" fill="#D3CCBE"/>
+  <rect x="816" y="286" width="258" height="160" rx="8" fill="#CEC7B9"/>
+  <rect x="126" y="468" width="218" height="10" rx="5" fill="#5A574F" fill-opacity="0.72"/>
+  <rect x="126" y="490" width="238" height="8" rx="4" fill="#8E887D"/>
+  <rect x="126" y="512" width="210" height="8" rx="4" fill="#A49E93"/>
+  <rect x="471" y="468" width="218" height="10" rx="5" fill="#5A574F" fill-opacity="0.72"/>
+  <rect x="471" y="490" width="238" height="8" rx="4" fill="#8E887D"/>
+  <rect x="471" y="512" width="210" height="8" rx="4" fill="#A49E93"/>
+  <rect x="816" y="468" width="218" height="10" rx="5" fill="#5A574F" fill-opacity="0.72"/>
+  <rect x="816" y="490" width="238" height="8" rx="4" fill="#8E887D"/>
+  <rect x="816" y="512" width="210" height="8" rx="4" fill="#A49E93"/>
+  <text x="96" y="90" fill="#8A8478" font-family="Noto Sans KR, Apple SD Gothic Neo, sans-serif" font-size="20" letter-spacing="0.06em">EDITORIAL FALLBACK</text>
+</svg>
