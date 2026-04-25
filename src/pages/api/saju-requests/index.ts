@@ -30,9 +30,9 @@ function mapCreateErrorToMessage(code: string) {
     case 'gender_invalid':
       return '성별 값이 올바르지 않습니다.';
     case 'calendar_type_invalid':
-      return '역법 값이 올바르지 않습니다.';
+      return '역법 값이 바르지 아니하옵니다.';
     case 'relationship_status_invalid':
-      return '현재 관계 상태 값이 올바르지 않습니다.';
+      return '연애 상태 값을 다시 골라 주시옵소서.';
     case 'input_length_invalid':
       return '입력 길이를 다시 확인해 주세요.';
     default:

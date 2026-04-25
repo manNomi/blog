@@ -22,7 +22,6 @@ const {
   description,
   pubDate,
   updatedDate,
-  heroImage,
   tags,
   slug,
   readingTime,
@@ -44,51 +43,57 @@ const formattedUpdatedDate = updatedDate
       day: '2-digit'
     }).format(updatedDate)
   : null;
+
+const articleBodyClass = [
+  'article-body min-w-0 text-[16px] leading-[1.72] text-zinc-800 md:text-[17px] md:leading-[1.78]',
+  '[&_h1]:mt-10 [&_h1]:mb-3 [&_h1]:text-[32px] [&_h1]:font-semibold [&_h1]:leading-[1.16] [&_h1]:tracking-[-0.02em] md:[&_h1]:text-[44px]',
+  '[&_h2]:mt-9 [&_h2]:mb-3 [&_h2]:text-[28px] [&_h2]:font-semibold [&_h2]:leading-[1.2] [&_h2]:tracking-[-0.01em] md:[&_h2]:text-[34px]',
+  '[&_h3]:mt-8 [&_h3]:mb-2.5 [&_h3]:text-[24px] [&_h3]:font-semibold [&_h3]:leading-[1.24] md:[&_h3]:text-[28px]',
+  '[&_h4]:mt-7 [&_h4]:mb-2 [&_h4]:text-[21px] [&_h4]:font-semibold [&_h4]:leading-[1.26]',
+  '[&_h5]:mt-7 [&_h5]:mb-2 [&_h5]:text-[19px] [&_h5]:font-semibold [&_h5]:leading-[1.26]',
+  '[&_h6]:mt-7 [&_h6]:mb-2 [&_h6]:text-[18px] [&_h6]:font-semibold [&_h6]:leading-[1.26]',
+  '[&_p]:mb-3 [&_p:empty]:hidden',
+  '[&_ul]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:mb-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:mb-1',
+  '[&_a]:border-b [&_a]:border-zinc-400 [&_a]:text-zinc-900 hover:[&_a]:border-zinc-900',
+  '[&_blockquote]:my-4 [&_blockquote]:border-l-[3px] [&_blockquote]:border-zinc-400 [&_blockquote]:pl-4 [&_blockquote]:text-zinc-600',
+  '[&_code]:font-mono [&_code]:text-[0.9em] [&_:not(pre)>code]:rounded [&_:not(pre)>code]:border [&_:not(pre)>code]:border-zinc-300 [&_:not(pre)>code]:bg-zinc-100 [&_:not(pre)>code]:px-1.5 [&_:not(pre)>code]:py-0.5',
+  '[&_pre]:my-5 [&_pre]:overflow-x-auto [&_pre]:rounded-md [&_pre]:border [&_pre]:border-zinc-700 [&_pre]:!bg-zinc-900 [&_pre]:p-4 [&_pre]:shadow-soft',
+  '[&_pre.astro-code]:!bg-zinc-900 [&_pre.astro-code]:[--shiki-background-color:#18181b] [&_pre.astro-code]:[--shiki-color:#e5e7eb]',
+  '[&_pre_code]:text-[13px] [&_pre_code]:leading-[1.55] [&_pre_code]:text-zinc-100',
+  '[&_img]:mx-auto [&_img]:my-5 [&_img]:rounded-md',
+  '[&_hr]:my-6 [&_hr]:border-0 [&_hr]:border-t [&_hr]:border-zinc-300'
+].join(' ');
 ---
 
-<BaseLayout
-  title={`${title} - Nomi Journal`}
-  description={description || 'Editorial detail page'}
-  image={heroImage}
-  canonicalURL={`/blog/${slug}`}
->
+<BaseLayout title={`${title} - Nomi Journal`} description={description || 'Editorial detail page'} canonicalURL={`/blog/${slug}`}>
   <Header />
 
-  <main class="main-shell detail-main">
-    <article class="detail-article font-basic">
-      <section class="detail-top page-card">
-        <div class="detail-top__nav">
-          <a href="/posts">← Back to Articles</a>
+  <main class="main-shell">
+    <article id="detail-root" class="mx-auto grid w-full max-w-[1080px] animate-fade-up gap-10 font-sans">
+      <section class="page-card grid gap-4 px-4 py-5 md:gap-5 md:px-8 md:py-7">
+        <div class="flex flex-wrap items-center justify-between gap-2 text-[13px] text-zinc-600">
+          <a href="/posts" class="underline-offset-2 hover:underline">← Back to Articles</a>
           <p>Share · Bookmark</p>
         </div>
 
-        <div class="detail-top__rule"></div>
+        <div class="h-px w-full bg-zinc-200"></div>
 
-        <p class="kicker detail-top__category">개발 문화</p>
+        <p class="kicker text-zinc-600">개발 문화</p>
+        <h1 class="text-balance text-[40px] font-semibold leading-[1.06] tracking-[-0.03em] text-zinc-900 md:text-[60px] lg:text-[72px]">{title}</h1>
 
-        <h1 class="detail-top__title">{title}</h1>
+        {description && <p class="max-w-[760px] text-[16px] leading-[1.5] text-zinc-700 md:text-[18px]">{description}</p>}
 
-        {description && <p class="detail-top__dek">{description}</p>}
-
-        <div class="detail-top__meta">
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-zinc-600">
           <time datetime={pubDate.toISOString()}>발행 {formattedDate}</time>
           {formattedUpdatedDate && <span>수정 {formattedUpdatedDate}</span>}
           <span>읽는 시간 {readingTime}분</span>
           <ViewCounter client:load slug={slug} />
         </div>
 
-        <div class="detail-top__hero">
-          {heroImage ? (
-            <img src={heroImage} alt={title} loading="lazy" />
-          ) : (
-            <p>HERO IMAGE PLACEHOLDER</p>
-          )}
-        </div>
-
-        <div class="detail-top__tag-row">
+        <div class="flex flex-wrap items-center gap-2">
           {tags && tags.length > 0 ? (
             tags.map((tag) => (
-              <a href={`/posts?tag=${tag}`} class="chip">#{tag}</a>
+              <a href={`/tags?tag=${tag}`} class="chip">#{tag}</a>
             ))
           ) : (
             <span class="chip">#editorial</span>
@@ -96,91 +101,92 @@ const formattedUpdatedDate = updatedDate
         </div>
       </section>
 
-      <section class="detail-body">
-        <aside class="detail-toc" aria-label="On this page">
-          <h2>On this page</h2>
-          <div class="detail-toc__rule"></div>
-          <ol data-toc-list>
+      <section class="grid items-start gap-6 xl:grid-cols-[220px_minmax(0,1fr)] xl:gap-12">
+        <aside class="page-card sticky top-24 hidden p-4 xl:block" aria-label="On this page">
+          <h2 class="text-[24px] font-semibold leading-tight tracking-[-0.01em] text-zinc-900">On this page</h2>
+          <div class="my-3 h-px w-full bg-zinc-300"></div>
+          <ol class="grid gap-2 text-[13px] leading-[1.4] text-zinc-700" data-toc-list>
             <li>Preparing sections…</li>
           </ol>
 
-          <div class="detail-font-toggle">
-            <button type="button" data-font-toggle aria-pressed="true">Use Newspaper Font</button>
+          <div class="mt-5">
+            <button
+              type="button"
+              data-font-toggle
+              aria-pressed="true"
+              class="w-full rounded-md border border-line bg-soft px-3 py-2 text-xs text-zinc-700 transition hover:bg-zinc-200"
+            >
+              Use Newspaper Font
+            </button>
           </div>
         </aside>
 
-        <div class="detail-content">
-          <div class="detail-content__intro">{description || 'The detail body is designed as a calm reading field where each section breathes.'}</div>
+        <div class="min-w-0 grid gap-6">
+          <details class="page-card xl:hidden">
+            <summary class="cursor-pointer list-none px-4 py-3 text-sm font-semibold text-zinc-800">On this page</summary>
+            <div class="border-t border-line px-4 py-3">
+              <ol class="grid gap-2 text-sm text-zinc-700" data-toc-list>
+                <li>Preparing sections…</li>
+              </ol>
+              <button
+                type="button"
+                data-font-toggle
+                aria-pressed="true"
+                class="mt-3 w-full rounded-md border border-line bg-soft px-3 py-2 text-xs text-zinc-700 transition hover:bg-zinc-200"
+              >
+                Use Newspaper Font
+              </button>
+            </div>
+          </details>
 
-          <div class="article-body">
+          <div class="rounded-card border border-line bg-soft px-4 py-4 text-[20px] leading-[1.3] text-zinc-900 md:text-[28px]">
+            {description || 'The detail body is designed as a calm reading field where each section breathes.'}
+          </div>
+
+          <div class={articleBodyClass}>
             <slot />
           </div>
 
-          <div class="detail-content__share-row page-card">
-            <p>Share · Comment · Subscribe</p>
+          <div class="page-card flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <p class="text-[13px] text-zinc-700">Share · Comment · Subscribe</p>
             <ShareButtons title={title} url={`/blog/${slug}`} />
           </div>
         </div>
       </section>
 
-      <button
-        type="button"
-        class="detail-floating-toc-toggle"
-        data-floating-toc-toggle
-        aria-expanded="false"
-        aria-controls="detail-floating-toc-panel"
-      >
-        목차 보기
-      </button>
-
-      <div class="detail-floating-toc-backdrop" data-floating-toc-backdrop data-open="false"></div>
-
-      <aside
-        id="detail-floating-toc-panel"
-        class="detail-floating-toc-panel"
-        data-floating-toc-panel
-        data-open="false"
-        aria-label="Floating table of contents"
-      >
-        <div class="detail-floating-toc-panel__header">
-          <h2>On this page</h2>
-          <button type="button" data-floating-toc-close>닫기</button>
-        </div>
-        <div class="detail-toc__rule"></div>
-        <ol data-floating-toc-list>
-          <li>Preparing sections…</li>
-        </ol>
-      </aside>
-
-      <section class="detail-bottom">
-        <div class="detail-bottom__nav-row">
-          <a class="detail-nav-card" href={previousPost ? `/blog/${previousPost.slug}` : '/posts'}>
-            <span>Previous</span>
-            <strong>{previousPost?.title || 'View all posts'}</strong>
+      <section class="grid gap-5 md:gap-6">
+        <div class="grid gap-3 md:grid-cols-2 md:gap-5">
+          <a href={previousPost ? `/blog/${previousPost.slug}` : '/posts'} class="grid min-h-[76px] content-center gap-1.5 rounded-card border border-line bg-soft px-4 py-4 transition hover:border-zinc-400">
+            <span class="text-[11px] text-zinc-500">Previous</span>
+            <strong class="text-[16px] leading-[1.3] text-zinc-900 md:text-[18px]">{previousPost?.title || 'View all posts'}</strong>
           </a>
-          <a class="detail-nav-card detail-nav-card--dark" href={nextPost ? `/blog/${nextPost.slug}` : '/posts'}>
-            <span>Next</span>
-            <strong>{nextPost?.title || 'Explore next story'}</strong>
+
+          <a
+            href={nextPost ? `/blog/${nextPost.slug}` : '/posts'}
+            class="grid min-h-[76px] content-center gap-1.5 rounded-card border border-zinc-900 bg-zinc-900 px-4 py-4 transition hover:bg-zinc-800"
+          >
+            <span class="text-[11px] text-zinc-400">Next</span>
+            <strong class="text-[16px] leading-[1.3] text-white md:text-[18px]">{nextPost?.title || 'Explore next story'}</strong>
           </a>
         </div>
 
-        <h2>Related Stories</h2>
+        <h2 class="text-[22px] font-semibold leading-tight tracking-[-0.01em] text-zinc-900 md:text-[26px]">Related Stories</h2>
 
-        <div class="detail-related-grid">
+        <div class="grid gap-3 md:grid-cols-3 md:gap-4">
           {(relatedPosts.length > 0 ? relatedPosts : [{ title: 'No related stories yet', slug: 'posts' }]).slice(0, 3).map((post) => (
-            <a href={post.slug === 'posts' ? '/posts' : `/blog/${post.slug}`} class="detail-related-card">
-              <div class="detail-related-card__thumb"></div>
-              <p>{post.title}</p>
+            <a href={post.slug === 'posts' ? '/posts' : `/blog/${post.slug}`} class="grid gap-2 rounded-card border border-line bg-surface p-3 transition hover:border-zinc-400">
+              <div class="h-[100px] rounded-md border border-zinc-300 bg-zinc-200 md:h-[120px]"></div>
+              <p class="text-[14px] font-semibold leading-[1.35] text-zinc-900">{post.title}</p>
             </a>
           ))}
         </div>
 
-        <div class="detail-bottom__cta page-card">
+        <div class="page-card flex flex-col gap-2 px-4 py-3 text-xs text-zinc-700 md:flex-row md:items-center md:justify-between md:text-[13px]">
           <p>Share · Comment · Subscribe</p>
           <p>댓글 보기</p>
         </div>
 
-        <div class="detail-comments">
+        <div class="border-t border-line pt-4">
           <Comments client:load />
         </div>
       </section>
@@ -201,9 +207,7 @@ const formattedUpdatedDate = updatedDate
 
   const getVideoEmbedUrl = (href) => {
     const parsed = parseUrl(href);
-    if (!parsed) {
-      return '';
-    }
+    if (!parsed) return '';
 
     const host = parsed.hostname.replace(/^www\./, '');
 
@@ -238,17 +242,9 @@ const formattedUpdatedDate = updatedDate
   };
 
   const isStandaloneExternalLinkParagraph = (paragraph) => {
-    if (!paragraph || paragraph.tagName !== 'P') {
-      return false;
-    }
-
-    if (paragraph.closest('li, blockquote, td, th')) {
-      return false;
-    }
-
-    if (paragraph.children.length !== 1 || paragraph.firstElementChild?.tagName !== 'A') {
-      return false;
-    }
+    if (!paragraph || paragraph.tagName !== 'P') return false;
+    if (paragraph.closest('li, blockquote, td, th')) return false;
+    if (paragraph.children.length !== 1 || paragraph.firstElementChild?.tagName !== 'A') return false;
 
     const inlineText = Array.from(paragraph.childNodes)
       .filter((node) => node.nodeType === Node.TEXT_NODE)
@@ -256,9 +252,7 @@ const formattedUpdatedDate = updatedDate
       .join('')
       .trim();
 
-    if (inlineText) {
-      return false;
-    }
+    if (inlineText) return false;
 
     const href = paragraph.firstElementChild.getAttribute('href') || '';
     return /^https?:\/\//.test(href);
@@ -273,14 +267,9 @@ const formattedUpdatedDate = updatedDate
       .replace(/-+/g, '-');
 
   const articleBody = document.querySelector('.article-body');
-  const articleRoot = document.querySelector('.detail-article');
-  const tocList = document.querySelector('[data-toc-list]');
-  const floatingTocList = document.querySelector('[data-floating-toc-list]');
-  const fontToggleButton = document.querySelector('[data-font-toggle]');
-  const floatingTocToggle = document.querySelector('[data-floating-toc-toggle]');
-  const floatingTocPanel = document.querySelector('[data-floating-toc-panel]');
-  const floatingTocBackdrop = document.querySelector('[data-floating-toc-backdrop]');
-  const floatingTocClose = document.querySelector('[data-floating-toc-close]');
+  const articleRoot = document.getElementById('detail-root');
+  const tocLists = Array.from(document.querySelectorAll('[data-toc-list]'));
+  const fontToggleButtons = Array.from(document.querySelectorAll('[data-font-toggle]'));
   const FONT_MODE_KEY = 'blog_detail_font_mode';
   const floatingTocQuery = window.matchMedia('(max-width: 1360px) and (min-width: 1025px)');
 
@@ -304,12 +293,16 @@ const formattedUpdatedDate = updatedDate
   };
 
   const applyFontMode = (mode) => {
-    if (!articleRoot || !fontToggleButton) return;
+    if (!articleRoot) return;
 
     const useBasic = mode === 'basic';
-    articleRoot.classList.toggle('font-basic', useBasic);
-    fontToggleButton.setAttribute('aria-pressed', useBasic ? 'true' : 'false');
-    fontToggleButton.textContent = useBasic ? 'Use Newspaper Font' : 'Use Basic Font';
+    articleRoot.classList.toggle('font-sans', useBasic);
+    articleRoot.classList.toggle('font-newspaper', !useBasic);
+
+    fontToggleButtons.forEach((button) => {
+      button.setAttribute('aria-pressed', useBasic ? 'true' : 'false');
+      button.textContent = useBasic ? 'Use Newspaper Font' : 'Use Basic Font';
+    });
   };
 
   const readSavedFontMode = () => {
@@ -331,10 +324,12 @@ const formattedUpdatedDate = updatedDate
 
   applyFontMode(readSavedFontMode());
 
-  fontToggleButton?.addEventListener('click', () => {
-    const nextMode = articleRoot?.classList.contains('font-basic') ? 'newspaper' : 'basic';
-    applyFontMode(nextMode);
-    saveFontMode(nextMode);
+  fontToggleButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const nextMode = articleRoot?.classList.contains('font-sans') ? 'newspaper' : 'basic';
+      applyFontMode(nextMode);
+      saveFontMode(nextMode);
+    });
   });
 
   floatingTocToggle?.addEventListener('click', () => {
@@ -369,21 +364,24 @@ const formattedUpdatedDate = updatedDate
         continue;
       }
       const wrapper = document.createElement('div');
-      wrapper.className = 'table-scroll';
+      wrapper.className = 'table-scroll my-5 overflow-x-auto rounded-md border border-zinc-300 bg-white';
       table.parentNode?.insertBefore(wrapper, table);
       wrapper.appendChild(table);
+      table.className = 'min-w-full w-max border-collapse text-[15px] leading-[1.5]';
+      table.querySelectorAll('th').forEach((th) => {
+        th.classList.add('border', 'border-zinc-300', 'bg-zinc-100', 'px-3', 'py-2.5', 'text-left', 'font-semibold');
+      });
+      table.querySelectorAll('td').forEach((td) => {
+        td.classList.add('border', 'border-zinc-300', 'px-3', 'py-2.5', 'text-left', 'align-top');
+      });
     }
 
     for (const paragraph of articleBody.querySelectorAll('p')) {
-      if (!isStandaloneExternalLinkParagraph(paragraph)) {
-        continue;
-      }
+      if (!isStandaloneExternalLinkParagraph(paragraph)) continue;
 
       const anchor = paragraph.firstElementChild;
       const href = anchor?.getAttribute('href')?.trim() || '';
-      if (!href) {
-        continue;
-      }
+      if (!href) continue;
 
       const embedUrl = getVideoEmbedUrl(href);
       if (embedUrl) {
@@ -395,7 +393,8 @@ const formattedUpdatedDate = updatedDate
         frame.title = anchor?.textContent?.trim() || 'Embedded video';
 
         const wrapper = document.createElement('figure');
-        wrapper.className = 'notion-video-embed';
+        wrapper.className = 'my-5 overflow-hidden rounded-md border border-zinc-300 bg-zinc-100';
+        frame.className = 'block aspect-video w-full border-0';
         wrapper.appendChild(frame);
         paragraph.replaceWith(wrapper);
         continue;
@@ -405,17 +404,18 @@ const formattedUpdatedDate = updatedDate
       const domain = parsed?.hostname?.replace(/^www\./, '') || href;
 
       const card = document.createElement('a');
-      card.className = 'notion-link-card';
+      card.className =
+        'my-5 flex flex-col gap-1.5 rounded-md border border-zinc-300 bg-zinc-50 p-3.5 text-zinc-800 transition hover:border-zinc-400';
       card.href = href;
       card.target = '_blank';
       card.rel = 'noopener noreferrer';
 
       const title = document.createElement('span');
-      title.className = 'notion-link-card-title';
+      title.className = 'text-[15px] font-semibold leading-[1.35] break-all';
       title.textContent = anchor?.textContent?.trim() || href;
 
       const meta = document.createElement('span');
-      meta.className = 'notion-link-card-meta';
+      meta.className = 'text-[13px] text-zinc-500 break-all';
       meta.textContent = domain;
 
       card.appendChild(title);
@@ -424,16 +424,14 @@ const formattedUpdatedDate = updatedDate
     }
 
     const headings = Array.from(articleBody.querySelectorAll('h2, h3'));
-    const tocLists = [tocList, floatingTocList].filter(Boolean);
-
-    for (const list of tocLists) {
-      list.innerHTML = '';
+    tocLists.forEach((tocList) => {
+      tocList.innerHTML = '';
 
       if (headings.length === 0) {
         const fallback = document.createElement('li');
         fallback.textContent = 'No sections detected';
-        list.appendChild(fallback);
-        continue;
+        tocList.appendChild(fallback);
+        return;
       }
 
       headings.forEach((heading, index) => {
@@ -442,16 +440,17 @@ const formattedUpdatedDate = updatedDate
         }
 
         const item = document.createElement('li');
-        if (heading.tagName === 'H3') item.classList.add('is-sub');
+        item.className = heading.tagName === 'H3' ? 'pl-3 text-zinc-500' : '';
 
         const anchor = document.createElement('a');
         anchor.href = `#${heading.id}`;
         anchor.textContent = `${index + 1}. ${heading.textContent || 'Untitled section'}`;
+        anchor.className = 'hover:underline underline-offset-2';
 
         item.appendChild(anchor);
-        list.appendChild(item);
+        tocList.appendChild(item);
       });
-    }
+    });
 
     const mermaidCodeBlocks = Array.from(articleBody.querySelectorAll('pre code.language-mermaid'));
     if (mermaidCodeBlocks.length > 0) {
@@ -464,7 +463,7 @@ const formattedUpdatedDate = updatedDate
             if (!pre) continue;
 
             const diagram = document.createElement('div');
-            diagram.className = 'mermaid';
+            diagram.className = 'mermaid my-5 overflow-x-auto rounded-md border border-zinc-300 bg-white p-3';
             diagram.textContent = code.textContent || '';
             pre.replaceWith(diagram);
             nodes.push(diagram);
@@ -486,780 +485,3 @@ const formattedUpdatedDate = updatedDate
     }
   }
 </script>
-
-<style>
-  .detail-article {
-    width: 100%;
-    max-width: 1080px;
-    margin: 0 auto;
-    --detail-font-serif: var(--font-serif);
-    --detail-font-body: var(--font-sans);
-  }
-
-  .detail-article.font-basic {
-    --detail-font-serif: var(--font-sans);
-    --detail-font-body: var(--font-sans);
-  }
-
-  .detail-top {
-    padding: 28px 40px;
-    box-shadow: var(--shadow-card);
-    display: grid;
-    gap: 20px;
-  }
-
-  .detail-top__nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    font-size: 13px;
-    color: #444;
-  }
-
-  .detail-top__nav a:hover {
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-
-  .detail-top__rule {
-    width: 100%;
-    height: 1px;
-    background: #e8e8e8;
-  }
-
-  .detail-top__category {
-    color: #4b4b4b;
-  }
-
-  .detail-top__title {
-    font-family: var(--detail-font-serif);
-    color: var(--text-strong);
-    font-size: clamp(44px, 6vw, 72px);
-    line-height: 1.05;
-    letter-spacing: -0.03em;
-  }
-
-  .detail-top__dek {
-    color: #3a3a3a;
-    font-size: 18px;
-    line-height: 1.45;
-    max-width: 760px;
-  }
-
-  .detail-top__meta {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 12px 20px;
-    font-size: 12px;
-    color: #5f5f5f;
-  }
-
-  .detail-top__hero {
-    width: 100%;
-    min-height: 320px;
-    border-radius: var(--radius-md);
-    border: 1px solid #d9d9d9;
-    background: linear-gradient(90deg, #ededed 0%, #dcdcdc 100%);
-    box-shadow: var(--shadow-soft);
-    overflow: hidden;
-    display: grid;
-    place-items: center;
-  }
-
-  .detail-top__hero img {
-    width: 100%;
-    height: 320px;
-    object-fit: cover;
-  }
-
-  .detail-top__hero p {
-    color: #7a7a7a;
-    letter-spacing: 0.08em;
-    font-size: 12px;
-    font-weight: 600;
-  }
-
-  .detail-top__tag-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-
-  .detail-body {
-    margin-top: 96px;
-    display: grid;
-    grid-template-columns: minmax(0, 220px) minmax(0, 1fr);
-    gap: 48px;
-    align-items: start;
-    min-width: 0;
-  }
-
-  .detail-toc {
-    position: sticky;
-    top: calc(var(--header-height) + 20px);
-    padding: 0;
-    min-width: 0;
-  }
-
-  .detail-toc h2 {
-    color: var(--text-strong);
-    font-size: 18px;
-    line-height: 1.2;
-  }
-
-  .detail-toc__rule {
-    width: 100%;
-    height: 1px;
-    background: #d0d0d0;
-    margin: 16px 0;
-  }
-
-  .detail-toc ol {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: grid;
-    gap: 12px;
-  }
-
-  .detail-toc li {
-    color: #2a2a2a;
-    font-size: 13px;
-    line-height: 1.35;
-    min-width: 0;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-  }
-
-  .detail-toc li.is-sub {
-    padding-left: 12px;
-    color: #595959;
-  }
-
-  .detail-toc a {
-    display: block;
-    min-width: 0;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-  }
-
-  .detail-toc a:hover {
-    text-decoration: underline;
-    text-underline-offset: 2px;
-  }
-
-  .detail-font-toggle {
-    margin-top: 22px;
-  }
-
-  .detail-font-toggle button {
-    width: 100%;
-    height: 34px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--line-default);
-    background: var(--bg-soft);
-    font-size: 12px;
-    color: #333;
-  }
-
-  .detail-font-toggle button[aria-pressed='false'] {
-    background: #111;
-    color: #fff;
-    border-color: #111;
-  }
-
-  .detail-content {
-    min-width: 0;
-    display: grid;
-    gap: 30px;
-  }
-
-  .detail-content__intro {
-    font-family: var(--detail-font-serif);
-    color: #111;
-    font-size: 28px;
-    line-height: 1.25;
-  }
-
-  .article-body {
-    font-family: var(--detail-font-body);
-    color: #222;
-    font-size: 17px;
-    line-height: 1.7;
-    word-break: keep-all;
-  }
-
-  .article-body :global(h1),
-  .article-body :global(h2),
-  .article-body :global(h3),
-  .article-body :global(h4),
-  .article-body :global(h5),
-  .article-body :global(h6) {
-    font-family: var(--detail-font-serif);
-    color: #111;
-    letter-spacing: -0.01em;
-  }
-
-  .article-body :global(h1) {
-    margin-top: 46px;
-    margin-bottom: 14px;
-    font-size: 44px;
-    line-height: 1.15;
-  }
-
-  .article-body :global(h2) {
-    margin-top: 44px;
-    margin-bottom: 14px;
-    font-size: 34px;
-    line-height: 1.2;
-  }
-
-  .article-body :global(h3) {
-    margin-top: 36px;
-    margin-bottom: 12px;
-    font-size: 28px;
-    line-height: 1.24;
-  }
-
-  .article-body :global(h4),
-  .article-body :global(h5),
-  .article-body :global(h6) {
-    margin-top: 28px;
-    margin-bottom: 10px;
-    font-size: 22px;
-    line-height: 1.28;
-  }
-
-  .article-body :global(p) {
-    margin-bottom: 10px;
-  }
-
-  .article-body :global(p:empty) {
-    display: none;
-  }
-
-  .article-body :global(ul),
-  .article-body :global(ol) {
-    margin-bottom: 12px;
-    padding-left: 22px;
-  }
-
-  .article-body :global(li) {
-    margin-bottom: 5px;
-  }
-
-  .article-body :global(a) {
-    color: #1f1f1f;
-    border-bottom: 1px solid #b8b8b8;
-  }
-
-  .article-body :global(a:hover) {
-    border-bottom-color: #111;
-  }
-
-  .article-body :global(blockquote) {
-    margin: 18px 0;
-    padding-left: 14px;
-    border-left: 3px solid #bdbdbd;
-    color: #505050;
-  }
-
-  .article-body :global(:not(pre) > code) {
-    font-family: var(--font-mono);
-    font-size: 0.86em;
-    background: #efefef;
-    border: 1px solid #d8d8d8;
-    border-radius: 6px;
-    padding: 0.1em 0.35em;
-  }
-
-  .article-body :global(pre),
-  .article-body :global(pre.astro-code) {
-    margin: 18px 0;
-    padding: 20px;
-    background: #f4f4f4 !important;
-    border: 1px solid #d8d8d8;
-    border-radius: var(--radius-sm);
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .article-body :global(pre code),
-  .article-body :global(pre.astro-code code) {
-    font-family: var(--font-mono);
-    font-size: 14px;
-    line-height: 1.5;
-    color: #1a1a1a;
-    white-space: pre;
-  }
-
-  .article-body :global(pre.astro-code .line),
-  .article-body :global(pre.astro-code .line span) {
-    border: 0 !important;
-    text-decoration: none !important;
-  }
-
-  .article-body :global(.table-scroll) {
-    margin: 18px 0;
-    overflow-x: auto;
-    border: 1px solid #dcdcdc;
-    border-radius: var(--radius-sm);
-    background: #fff;
-  }
-
-  .article-body :global(.table-scroll table) {
-    margin: 0;
-    min-width: 100%;
-    width: max-content;
-    border-collapse: collapse;
-    font-size: 15px;
-    line-height: 1.5;
-  }
-
-  .article-body :global(.table-scroll th),
-  .article-body :global(.table-scroll td) {
-    border: 1px solid #d7d7d7;
-    padding: 10px 12px;
-    text-align: left;
-    vertical-align: top;
-  }
-
-  .article-body :global(.table-scroll th) {
-    background: #f3f3f3;
-    font-weight: 700;
-  }
-
-  .article-body :global(a.notion-link-card) {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin: 18px 0;
-    padding: 14px;
-    border: 1px solid #dcdcdc;
-    border-radius: var(--radius-sm);
-    background: #fafafa;
-    color: #222;
-  }
-
-  .article-body :global(a.notion-link-card:hover) {
-    border-color: #c8c8c8;
-  }
-
-  .article-body :global(.notion-link-card-title) {
-    font-weight: 600;
-    line-height: 1.4;
-    overflow-wrap: anywhere;
-  }
-
-  .article-body :global(.notion-link-card-meta) {
-    font-size: 13px;
-    color: #666;
-    overflow-wrap: anywhere;
-  }
-
-  .article-body :global(.notion-video-embed) {
-    margin: 20px 0;
-    border: 1px solid #d5d5d5;
-    border-radius: var(--radius-sm);
-    overflow: hidden;
-    background: #ececec;
-  }
-
-  .article-body :global(.notion-video-embed iframe) {
-    display: block;
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    border: 0;
-  }
-
-  .article-body :global(.mermaid) {
-    margin: 18px 0;
-    padding: 14px;
-    border: 1px solid #dcdcdc;
-    border-radius: var(--radius-sm);
-    background: #fff;
-    overflow-x: auto;
-  }
-
-  .article-body :global(.mermaid svg) {
-    max-width: 100%;
-    height: auto;
-  }
-
-  .article-body :global(img) {
-    margin: 20px auto;
-    border-radius: var(--radius-sm);
-  }
-
-  .article-body :global(hr) {
-    margin: 26px 0;
-    border: 0;
-    border-top: 1px solid #d7d7d7;
-  }
-
-  .detail-content__share-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 14px;
-    padding: 14px 18px;
-  }
-
-  .detail-content__share-row p {
-    color: #424242;
-    font-size: 13px;
-  }
-
-  .detail-floating-toc-toggle {
-    display: none;
-    position: fixed;
-    right: 22px;
-    bottom: 20px;
-    z-index: 80;
-    height: 40px;
-    padding: 0 14px;
-    border-radius: var(--radius-pill);
-    border: 1px solid #1a1a1a;
-    background: #1a1a1a;
-    color: #fff;
-    font-size: 13px;
-    box-shadow: var(--shadow-card);
-  }
-
-  .detail-floating-toc-backdrop {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.28);
-    z-index: 79;
-  }
-
-  .detail-floating-toc-panel {
-    display: none;
-    position: fixed;
-    right: 22px;
-    bottom: 68px;
-    width: min(360px, calc(100vw - 24px));
-    max-height: min(68vh, 560px);
-    overflow: auto;
-    padding: 14px;
-    border-radius: var(--radius-md);
-    border: 1px solid var(--line-default);
-    background: var(--bg-surface);
-    box-shadow: var(--shadow-card);
-    z-index: 81;
-  }
-
-  .detail-floating-toc-panel__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-  }
-
-  .detail-floating-toc-panel__header h2 {
-    color: var(--text-strong);
-    font-size: 18px;
-    line-height: 1.2;
-  }
-
-  .detail-floating-toc-panel__header button {
-    height: 28px;
-    padding: 0 10px;
-    border-radius: var(--radius-pill);
-    border: 1px solid var(--line-default);
-    background: var(--bg-soft);
-    font-size: 12px;
-    color: var(--text-body);
-  }
-
-  .detail-floating-toc-panel ol {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: grid;
-    gap: 10px;
-  }
-
-  .detail-floating-toc-panel li {
-    color: #2a2a2a;
-    font-size: 13px;
-    line-height: 1.35;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-  }
-
-  .detail-floating-toc-panel li.is-sub {
-    padding-left: 12px;
-    color: #595959;
-  }
-
-  .detail-floating-toc-panel a {
-    display: block;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-  }
-
-  .detail-floating-toc-panel[data-open='true'] {
-    display: block;
-  }
-
-  .detail-floating-toc-backdrop[data-open='true'] {
-    display: block;
-  }
-
-  .detail-bottom {
-    margin-top: 96px;
-    display: grid;
-    gap: 24px;
-  }
-
-  .detail-bottom__nav-row {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 20px;
-  }
-
-  .detail-nav-card {
-    min-height: 85px;
-    border-radius: var(--radius-md);
-    border: 1px solid var(--line-default);
-    background: #f3f3f3;
-    display: grid;
-    gap: 8px;
-    align-content: center;
-    padding: 20px;
-  }
-
-  .detail-nav-card span {
-    color: #707070;
-    font-size: 11px;
-  }
-
-  .detail-nav-card strong {
-    color: #111;
-    font-size: 18px;
-    line-height: 1.35;
-    letter-spacing: -0.01em;
-  }
-
-  .detail-nav-card--dark {
-    background: #111;
-    border-color: #111;
-  }
-
-  .detail-nav-card--dark span {
-    color: #bdbdbd;
-  }
-
-  .detail-nav-card--dark strong {
-    color: #fff;
-  }
-
-  .detail-bottom h2 {
-    color: #111;
-    font-size: 26px;
-    line-height: 1.2;
-  }
-
-  .detail-related-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 16px;
-  }
-
-  .detail-related-card {
-    display: grid;
-    gap: 8px;
-  }
-
-  .detail-related-card__thumb {
-    height: 120px;
-    border-radius: var(--radius-md);
-    border: 1px solid #d7d7d7;
-    background: #e6e6e6;
-  }
-
-  .detail-related-card p {
-    color: #111;
-    font-size: 14px;
-    line-height: 1.35;
-    font-weight: 600;
-  }
-
-  .detail-bottom__cta {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 16px 18px;
-    font-size: 13px;
-    color: #424242;
-  }
-
-  .detail-comments {
-    border-top: 1px solid var(--line-default);
-    padding-top: 16px;
-  }
-
-  @media (max-width: 1360px) {
-    .detail-body {
-      margin-top: 56px;
-      grid-template-columns: 1fr;
-      gap: 22px;
-    }
-
-    .detail-toc {
-      display: none;
-    }
-
-    .detail-bottom {
-      margin-top: 56px;
-    }
-  }
-
-  @media (max-width: 1360px) and (min-width: 1025px) {
-    .detail-floating-toc-toggle {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-  }
-
-  @media (max-width: 1024px) {
-    .detail-top {
-      padding: 24px;
-    }
-
-    .detail-body {
-      margin-top: 56px;
-      grid-template-columns: 1fr;
-      gap: 22px;
-    }
-
-    .detail-toc {
-      display: block;
-      position: static;
-      border: 1px solid var(--line-default);
-      border-radius: var(--radius-md);
-      background: var(--bg-surface);
-      padding: 14px;
-    }
-
-    .detail-toc ol {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px 14px;
-    }
-
-    .detail-font-toggle {
-      margin-top: 14px;
-    }
-
-    .detail-bottom {
-      margin-top: 56px;
-    }
-  }
-
-  @media (max-width: 768px) {
-    .detail-top {
-      padding: 16px;
-      gap: 14px;
-    }
-
-    .detail-top__title {
-      font-size: 40px;
-      line-height: 1.08;
-    }
-
-    .detail-top__dek {
-      font-size: 16px;
-      line-height: 1.5;
-    }
-
-    .detail-top__hero,
-    .detail-top__hero img {
-      min-height: 210px;
-      height: 210px;
-    }
-
-    .detail-toc ol {
-      grid-template-columns: 1fr;
-      gap: 8px;
-    }
-
-    .detail-content {
-      gap: 22px;
-    }
-
-    .detail-content__intro {
-      font-size: 22px;
-      line-height: 1.3;
-    }
-
-    .article-body {
-      font-size: 16px;
-      line-height: 1.7;
-    }
-
-    .article-body :global(h1) {
-      font-size: 32px;
-      margin-top: 36px;
-    }
-
-    .article-body :global(h2) {
-      font-size: 28px;
-      margin-top: 32px;
-    }
-
-    .article-body :global(h3) {
-      font-size: 24px;
-      margin-top: 28px;
-    }
-
-    .detail-content__share-row {
-      flex-direction: column;
-      align-items: flex-start;
-      padding: 12px 14px;
-    }
-
-    .detail-bottom {
-      margin-top: 40px;
-      gap: 18px;
-    }
-
-    .detail-bottom__nav-row {
-      grid-template-columns: 1fr;
-      gap: 10px;
-    }
-
-    .detail-nav-card {
-      min-height: 76px;
-      padding: 14px;
-    }
-
-    .detail-nav-card strong {
-      font-size: 16px;
-    }
-
-    .detail-bottom h2 {
-      font-size: 22px;
-    }
-
-    .detail-related-grid {
-      grid-template-columns: 1fr;
-      gap: 12px;
-    }
-
-    .detail-related-card__thumb {
-      height: 100px;
-    }
-
-    .detail-bottom__cta {
-      padding: 12px 14px;
-      font-size: 12px;
-    }
-  }
-</style>

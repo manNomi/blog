@@ -2,27 +2,39 @@
 const navItems = [
   { href: '/posts', label: 'All Posts' },
   { href: '/tags', label: 'Tags' },
-  { href: '/trends', label: 'Trends' },
   { href: '/saju', label: 'Saju' }
 ];
 ---
 
-<header class="site-header">
-  <div class="container site-header__inner">
-    <a class="site-logo" href="/" aria-label="Nomi Journal Home">
-      <span class="site-logo__title">Nomi Journal</span>
-      <span class="site-logo__sub">Editorial Developer Notes</span>
+<header class="fixed inset-x-0 top-0 z-50 border-b border-line/90 bg-page/95 backdrop-blur">
+  <div class="container-shell flex h-[62px] items-center justify-between gap-4 md:h-[64px]">
+    <a class="inline-flex min-w-0 flex-col" href="/" aria-label="Nomi Journal Home">
+      <span class="truncate text-[17px] font-bold leading-none tracking-[-0.02em] text-zinc-900">Nomi Journal</span>
+      <span class="mt-0.5 hidden text-[11px] text-zinc-500 md:block">Editorial Developer Notes</span>
     </a>
 
-    <nav class="site-nav" aria-label="Primary">
-      <ul>
+    <nav class="hidden md:block" aria-label="Primary">
+      <ul class="flex items-center gap-1">
         {navItems.map((item) => (
-          <li><a href={item.href}>{item.label}</a></li>
+          <li>
+            <a
+              href={item.href}
+              class="inline-flex h-8 items-center justify-center rounded-full border border-transparent px-3 text-[13px] text-zinc-600 transition hover:border-line hover:bg-soft hover:text-zinc-900"
+            >
+              {item.label}
+            </a>
+          </li>
         ))}
       </ul>
     </nav>
 
-    <button type="button" class="site-nav-toggle" aria-expanded="false" aria-controls="mobile-nav" id="mobileNavToggle">
+    <button
+      type="button"
+      class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-line bg-soft text-zinc-700 transition hover:bg-zinc-200 md:hidden"
+      aria-expanded="false"
+      aria-controls="mobile-nav"
+      id="mobileNavToggle"
+    >
       <span class="sr-only">Open navigation</span>
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
         <line x1="4" y1="7" x2="20" y2="7"></line>
@@ -32,141 +44,29 @@ const navItems = [
     </button>
   </div>
 
-  <div class="mobile-nav" id="mobile-nav" hidden>
-    <div class="container">
-      <ul>
-        <li><a href="/">Home</a></li>
+  <div
+    class="max-h-0 overflow-hidden border-t border-transparent bg-page opacity-0 transition-all duration-300 ease-out md:hidden"
+    id="mobile-nav"
+    data-open="false"
+  >
+    <div class="container-shell py-3">
+      <ul class="grid gap-2">
+        <li>
+          <a href="/" class="block rounded-md border border-line bg-surface px-3 py-2.5 text-sm text-zinc-700 transition hover:bg-zinc-100">
+            Home
+          </a>
+        </li>
         {navItems.map((item) => (
-          <li><a href={item.href}>{item.label}</a></li>
+          <li>
+            <a href={item.href} class="block rounded-md border border-line bg-surface px-3 py-2.5 text-sm text-zinc-700 transition hover:bg-zinc-100">
+              {item.label}
+            </a>
+          </li>
         ))}
       </ul>
     </div>
   </div>
 </header>
-
-<style>
-  .site-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 50;
-    background: color-mix(in srgb, var(--bg-page) 92%, white 8%);
-    border-bottom: 1px solid var(--line-default);
-    backdrop-filter: blur(10px);
-  }
-
-  .site-header__inner {
-    height: var(--header-height);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-  }
-
-  .site-logo {
-    display: inline-flex;
-    flex-direction: column;
-    min-width: 0;
-  }
-
-  .site-logo__title {
-    font-size: 17px;
-    line-height: 1.05;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    color: var(--text-strong);
-  }
-
-  .site-logo__sub {
-    margin-top: 2px;
-    font-size: 11px;
-    color: var(--text-faint);
-    white-space: nowrap;
-  }
-
-  .site-nav ul {
-    list-style: none;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin: 0;
-    padding: 0;
-  }
-
-  .site-nav a {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    height: 32px;
-    padding: 0 12px;
-    border-radius: var(--radius-pill);
-    border: 1px solid transparent;
-    color: #4d4d4d;
-    font-size: 13px;
-    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-  }
-
-  .site-nav a:hover {
-    color: var(--text-strong);
-    border-color: var(--line-default);
-    background: var(--bg-soft);
-  }
-
-  .site-nav-toggle {
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    border: 1px solid var(--line-default);
-    background: var(--bg-soft);
-    color: var(--text-body);
-    display: none;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .mobile-nav {
-    border-top: 1px solid var(--line-default);
-    background: var(--bg-page);
-    padding: 10px 0 14px;
-  }
-
-  .mobile-nav ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    gap: 6px;
-  }
-
-  .mobile-nav a {
-    display: block;
-    padding: 10px 12px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--line-default);
-    background: var(--bg-surface);
-    font-size: 14px;
-    color: var(--text-body);
-  }
-
-  @media (max-width: 768px) {
-    .site-logo__sub {
-      display: none;
-    }
-
-    .site-logo__title {
-      font-size: 16px;
-    }
-
-    .site-nav {
-      display: none;
-    }
-
-    .site-nav-toggle {
-      display: inline-flex;
-    }
-  }
-</style>
 
 <script>
   // @ts-nocheck
@@ -176,7 +76,13 @@ const navItems = [
   const setOpen = (open) => {
     if (!toggle || !mobileNav) return;
     toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-    mobileNav.hidden = !open;
+    mobileNav.dataset.open = open ? 'true' : 'false';
+    mobileNav.classList.toggle('max-h-0', !open);
+    mobileNav.classList.toggle('max-h-[420px]', open);
+    mobileNav.classList.toggle('opacity-0', !open);
+    mobileNav.classList.toggle('opacity-100', open);
+    mobileNav.classList.toggle('border-transparent', !open);
+    mobileNav.classList.toggle('border-line', open);
   };
 
   toggle?.addEventListener('click', () => {
@@ -185,7 +91,7 @@ const navItems = [
   });
 
   window.addEventListener('resize', () => {
-    if (window.innerWidth > 768) {
+    if (window.innerWidth >= 768) {
       setOpen(false);
     }
   });

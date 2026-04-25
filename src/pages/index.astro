@@ -58,81 +58,93 @@ const toCategory = (tags: string[] | undefined) => {
 };
 ---
 
-<BaseLayout
-  title="Nomi Journal"
-  description="프론트엔드 개발과 일상에 대해서 이야기를 적고 있습니다."
->
+<BaseLayout title="Nomi Journal" description="프론트엔드 개발과 일상에 대해서 이야기를 적고 있습니다.">
   <Header />
 
-  <main class="main-shell home-page">
-    <section class="container">
-      <div class="home-stack">
-        <section class="home-hero page-card">
-          <div class="hero-wrap">
-            <h1>한만욱의 이모저모</h1>
-            <p>프론트엔드 개발과 일상에 대해서 이야기를 적고 있습니다.</p>
-            <a href="/posts" class="btn-pill dark">View Selected Work</a>
+  <main class="main-shell">
+    <section class="container-shell">
+      <div class="grid animate-fade-up gap-10 md:gap-14 lg:gap-[70px]">
+        <section class="page-card grid gap-10 px-4 py-6 md:gap-12 md:px-8 md:py-9">
+          <div class="grid justify-items-center gap-6 text-center">
+            <h1 class="max-w-[860px] text-balance text-[42px] font-semibold leading-[1.02] tracking-[-0.03em] text-zinc-900 sm:text-[56px] md:text-[72px] lg:text-[86px]">
+              한만욱의 이모저모
+            </h1>
+            <p class="max-w-[760px] text-balance text-[15px] leading-[1.55] text-zinc-600 md:text-lg">
+              프론트엔드 개발과 일상에 대해서 이야기를 적고 있습니다.
+            </p>
+            <a href="/posts" class="btn-pill-dark">View Selected Work</a>
           </div>
 
-          <div class="featured-wrap">
-            <h2>Pinned</h2>
+          <div class="grid gap-5">
+            <h2 class="text-[28px] font-semibold leading-tight tracking-[-0.02em] text-zinc-900 md:text-[30px]">Pinned</h2>
+
             {featuredPosts.length > 0 ? (
-              <div class="featured-grid">
-                {featuredPosts.map((post) => (
-                  <a href={`/blog/${post.slug}`} class="featured-card">
-                    {post.data.heroImage ? (
-                      <img src={post.data.heroImage} alt={post.data.title} loading="lazy" />
-                    ) : (
-                      <div class="featured-card__placeholder">No preview image</div>
-                    )}
-                    <p class="featured-card__kicker">{toCategory(post.data.tags)}</p>
-                    <h3>{post.data.title}</h3>
-                    <p class="featured-card__description">{post.data.description || 'Open article'}</p>
+              <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4 lg:gap-5">
+                {featuredPosts.map((post, index) => (
+                  <a
+                    href={`/blog/${post.slug}`}
+                    class="group grid gap-3 rounded-card border border-line bg-elevated p-4 shadow-soft transition duration-200 hover:-translate-y-0.5 hover:border-zinc-400"
+                    style={`animation-delay:${index * 60}ms`}
+                  >
+                    <img
+                      src={post.data.heroImage || '/images/editorial-fallback.svg'}
+                      alt={post.data.title}
+                      loading="lazy"
+                      class="h-[150px] w-full rounded-md border border-zinc-200 object-cover"
+                    />
+                    <p class="text-[11px] uppercase leading-none tracking-[0.05em] text-zinc-500">{toCategory(post.data.tags)}</p>
+                    <h3 class="line-clamp-2 text-[20px] font-semibold leading-[1.2] text-zinc-900">{post.data.title}</h3>
+                    <p class="line-clamp-2 text-sm leading-[1.5] text-zinc-600">{post.data.description || 'Open article'}</p>
                   </a>
                 ))}
               </div>
             ) : (
-              <div class="featured-empty" role="status" aria-live="polite">
+              <div class="grid min-h-[132px] place-items-center rounded-card border border-line bg-elevated px-5 py-6 text-center text-[15px] text-zinc-500 shadow-soft">
                 고정된 글을 준비 중입니다.
               </div>
             )}
           </div>
         </section>
 
-        <section class="editorial-statement">
-          <div class="editorial-statement__line" />
-          <p>
+        <section class="grid justify-items-center gap-5 text-center md:gap-7">
+          <div class="h-px w-24 bg-zinc-300"></div>
+          <p class="max-w-[840px] text-balance text-[28px] font-semibold leading-[1.32] tracking-[-0.02em] text-zinc-900 sm:text-[34px] md:text-[44px] lg:text-[52px]">
             Consider the postage stamp: its usefulness consists in the ability to stick to one thing till it gets there.
             <br />
-            <span class="editorial-statement__author">- Josh Billings -</span>
+            <span class="mt-3 inline-block text-[0.78em] font-medium italic tracking-[-0.01em]">- Josh Billings -</span>
           </p>
-          <div class="editorial-statement__line" />
+          <div class="h-px w-24 bg-zinc-300"></div>
         </section>
 
-        <section class="feature-grid" aria-label="Editorial principles">
-          {valueCards.map((card) => (
-            <article class="feature-card">
-              <span class="feature-card__dot" aria-hidden="true"></span>
-              <h3>{card.title}</h3>
-              <p>{card.description}</p>
+        <section class="grid grid-cols-1 gap-4 px-0 md:grid-cols-2 md:gap-5 lg:grid-cols-3 lg:gap-6 lg:px-6" aria-label="Editorial principles">
+          {valueCards.map((card, index) => (
+            <article
+              class="rounded-card border border-line bg-[#fcfbf8] p-5 shadow-card transition duration-200 hover:-translate-y-0.5"
+              style={`animation-delay:${index * 55}ms`}
+            >
+              <span class="inline-block h-2 w-2 animate-float-dot rounded-full bg-[#c3b8a8]" aria-hidden="true"></span>
+              <h3 class="mt-3 text-[18px] font-medium leading-tight text-[#2b2a28]">{card.title}</h3>
+              <p class="mt-2.5 text-[14px] leading-[1.55] text-[#6d675f]">{card.description}</p>
             </article>
           ))}
         </section>
 
-        <section class="home-highlight">
+        <section class="grid justify-items-center gap-6 px-0 py-8 text-center md:gap-8 md:py-14">
           <span class="kicker">Highlight</span>
-          <h2>
+          <h2 class="max-w-[860px] text-balance text-[38px] font-semibold leading-[1.08] tracking-[-0.02em] text-zinc-900 sm:text-[44px] md:text-[56px] lg:text-[64px]">
             Building Interfaces
             <br />
             With Notion API
           </h2>
-          <p>Quiet Sys, Quiet deploy.</p>
-          <div class="home-highlight__actions">
-            <a href="/posts" class="btn-pill dark">Read Selected Works</a>
-            <a href="/tags" class="btn-pill soft">View Archive</a>
+          <p class="max-w-[740px] text-balance text-[15px] leading-[1.6] text-zinc-700 md:text-base">Quiet Sys, Quiet deploy.</p>
+
+          <div class="flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row">
+            <a href="/posts" class="btn-pill-dark w-full sm:w-auto">Read Selected Works</a>
+            <a href="/tags" class="btn-pill-soft w-full sm:w-auto">View Archive</a>
           </div>
-          <div class="home-highlight__rule"></div>
-          <p class="home-highlight__stack">Astro · Tailwind CSS · Editorial Layout · Content Systems</p>
+
+          <div class="h-px w-full bg-zinc-200"></div>
+          <p class="text-[12px] text-zinc-500">Astro · Tailwind CSS · Editorial Layout · Content Systems</p>
         </section>
       </div>
     </section>
@@ -140,317 +152,3 @@ const toCategory = (tags: string[] | undefined) => {
 
   <Footer />
 </BaseLayout>
-
-<style>
-  .home-stack {
-    display: grid;
-    gap: 70px;
-  }
-
-  .home-hero {
-    padding: 36px 48px;
-    display: grid;
-    gap: 56px;
-  }
-
-  .hero-wrap {
-    display: grid;
-    justify-items: center;
-    gap: 24px;
-    text-align: center;
-  }
-
-  .hero-wrap h1 {
-    max-width: 860px;
-    color: var(--text-strong);
-    font-size: clamp(48px, 7vw, 86px);
-    line-height: 1.02;
-    letter-spacing: -0.03em;
-  }
-
-  .hero-wrap p {
-    max-width: 760px;
-    color: #555;
-    font-size: 18px;
-    line-height: 1.5;
-  }
-
-  .featured-wrap {
-    display: grid;
-    gap: 20px;
-  }
-
-  .featured-wrap h2 {
-    color: var(--text-strong);
-    font-size: 30px;
-    line-height: 1.2;
-  }
-
-  .featured-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 20px;
-  }
-
-  .featured-card {
-    background: var(--bg-elevated);
-    border: 1px solid var(--line-default);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-soft);
-    padding: 16px;
-    display: grid;
-    gap: 12px;
-    transition: transform 0.2s ease, border-color 0.2s ease;
-  }
-
-  .featured-card:hover {
-    transform: translateY(-1px);
-    border-color: var(--line-strong);
-  }
-
-  .featured-card img,
-  .featured-card__placeholder {
-    width: 100%;
-    height: 150px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--line-soft);
-    background: #efefef;
-    object-fit: cover;
-  }
-
-  .featured-card__placeholder {
-    display: grid;
-    place-items: center;
-    color: var(--text-faint);
-    font-size: 12px;
-  }
-
-  .featured-card__kicker {
-    color: #666;
-    font-size: 11px;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    line-height: 1;
-  }
-
-  .featured-card h3 {
-    color: var(--text-strong);
-    font-size: 20px;
-    line-height: 1.2;
-  }
-
-  .featured-card__description {
-    color: #555;
-    font-size: 14px;
-    line-height: 1.5;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  .featured-empty {
-    min-height: 132px;
-    border: 1px solid var(--line-default);
-    border-radius: var(--radius-md);
-    background: var(--bg-elevated);
-    box-shadow: var(--shadow-soft);
-    display: grid;
-    place-items: center;
-    padding: 20px;
-    color: var(--text-faint);
-    font-size: 15px;
-    text-align: center;
-  }
-
-  .editorial-statement {
-    display: grid;
-    justify-items: center;
-    gap: 28px;
-    text-align: center;
-    padding: 0 120px;
-  }
-
-  .editorial-statement__line {
-    width: 100px;
-    height: 1px;
-    background: var(--line-strong);
-  }
-
-  .editorial-statement p {
-    max-width: 840px;
-    color: var(--text-strong);
-    font-size: clamp(34px, 4.2vw, 52px);
-    line-height: 1.34;
-    letter-spacing: -0.02em;
-    font-weight: 600;
-  }
-
-  .editorial-statement__author {
-    display: inline-block;
-    margin-top: 14px;
-    font-size: 0.78em;
-    font-style: italic;
-    font-weight: 500;
-    letter-spacing: -0.01em;
-  }
-
-  .feature-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 24px;
-    padding: 0 24px;
-  }
-
-  .feature-card {
-    border: 1px solid var(--line-default);
-    border-radius: var(--radius-md);
-    background: #fcfbf8;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-    padding: 20px;
-  }
-
-  .feature-card__dot {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #c3b8a8;
-  }
-
-  .feature-card h3 {
-    margin-top: 10px;
-    color: #2b2a28;
-    font-size: 18px;
-    line-height: 1.2;
-    font-weight: 500;
-  }
-
-  .feature-card p {
-    margin-top: 10px;
-    color: #6d675f;
-    font-size: 14px;
-    line-height: 1.5;
-  }
-
-  .home-highlight {
-    padding: 60px 20px;
-    display: grid;
-    justify-items: center;
-    text-align: center;
-    gap: 34px;
-  }
-
-  .home-highlight h2 {
-    max-width: 860px;
-    color: var(--text-strong);
-    font-size: clamp(44px, 6vw, 64px);
-    line-height: 1.1;
-    letter-spacing: -0.02em;
-  }
-
-  .home-highlight > p {
-    max-width: 740px;
-    color: #3a3a3a;
-    font-size: 16px;
-    line-height: 1.6;
-  }
-
-  .home-highlight__actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .home-highlight__rule {
-    width: 100%;
-    height: 1px;
-    background: #eaeaea;
-  }
-
-  .home-highlight__stack {
-    color: #6a6a6a;
-    font-size: 12px;
-  }
-
-  @media (max-width: 1024px) {
-    .home-stack {
-      gap: 52px;
-    }
-
-    .home-hero {
-      padding: 30px;
-      gap: 44px;
-    }
-
-    .featured-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .editorial-statement {
-      padding: 0 36px;
-    }
-
-    .feature-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      padding: 0;
-    }
-  }
-
-  @media (max-width: 768px) {
-    .home-stack {
-      gap: 40px;
-    }
-
-    .home-hero {
-      padding: 24px 16px;
-      gap: 32px;
-    }
-
-    .hero-wrap p {
-      font-size: 15px;
-    }
-
-    .featured-wrap h2 {
-      font-size: 24px;
-    }
-
-    .featured-grid {
-      grid-template-columns: 1fr;
-      gap: 14px;
-    }
-
-    .editorial-statement {
-      padding: 0;
-      gap: 18px;
-    }
-
-    .editorial-statement p {
-      font-size: 32px;
-      line-height: 1.3;
-    }
-
-    .feature-grid {
-      grid-template-columns: 1fr;
-      gap: 14px;
-    }
-
-    .home-highlight {
-      padding: 36px 0;
-      gap: 22px;
-    }
-
-    .home-highlight h2 {
-      font-size: 40px;
-    }
-
-    .home-highlight__actions {
-      flex-direction: column;
-      width: 100%;
-    }
-
-    .home-highlight__actions .btn-pill {
-      width: 100%;
-    }
-  }
-</style>
