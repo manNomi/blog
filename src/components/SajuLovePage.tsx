@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -31,9 +31,7 @@ const requestFormSchema = z
   });
 
 type RequestFormValues = z.infer<typeof requestFormSchema>;
-
-type Step = 'intro' | 'form' | 'result';
-type RequestResult = 'idle' | 'success' | 'error';
+type Step = 'landing' | 'input' | 'submitted';
 
 type CreateResponse = {
   request: LoveJobPublic;
@@ -44,7 +42,7 @@ const REQUIRED_COUNT = 8;
 const stepLabels: Array<{ key: Step; label: string; caption: string }> = [
   { key: 'landing', label: '01 안내', caption: '흐름 확인' },
   { key: 'input', label: '02 입력', caption: '정보 작성' },
-  { key: 'submitted', label: '03 접수', caption: '이메일 발송 대기' }
+  { key: 'submitted', label: '03 접수', caption: '이메일 대기' }
 ];
 
 const relationshipOptions: Array<{ value: RelationshipStatus; label: string; description: string }> = [
@@ -79,6 +77,19 @@ function statusText(status: LoveJobPublic['status']) {
   }
 }
 
+function statusTone(status: LoveJobPublic['status']) {
+  switch (status) {
+    case 'completed':
+      return 'border-emerald-300 bg-emerald-50 text-emerald-900';
+    case 'processing':
+      return 'border-sky-300 bg-sky-50 text-sky-900';
+    case 'queued':
+      return 'border-amber-300 bg-amber-50 text-amber-900';
+    default:
+      return 'border-red-300 bg-red-50 text-red-800';
+  }
+}
+
 export default function SajuLovePage() {
   const [step, setStep] = useState<Step>('landing');
   const [requestState, setRequestState] = useState<LoveJobPublic | null>(null);
@@ -107,6 +118,17 @@ export default function SajuLovePage() {
   const selectedRelationship = requestForm.watch('relationshipStatus');
   const birthTimeUnknown = requestForm.watch('birthTimeUnknown');
 
+  useEffect(() => {
+    if (!notice) return;
+    const timer = window.setTimeout(() => {
+      setNotice('');
+    }, 3600);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [notice]);
+
   const completionCount = useMemo(() => {
     const checks = [
       watched.name?.trim().length > 0,
@@ -115,7 +137,7 @@ export default function SajuLovePage() {
       watched.birthPlace?.trim().length > 0,
       watched.gender === 'female' || watched.gender === 'male',
       watched.calendarType === 'solar' || watched.calendarType === 'lunar',
-      watched.relationshipStatus ? true : false,
+      Boolean(watched.relationshipStatus),
       watched.birthTimeUnknown || TIME_REGEX.test(watched.birthTime || '')
     ];
 
@@ -136,48 +158,32 @@ export default function SajuLovePage() {
   const currentStepIndex = stepLabels.findIndex((entry) => entry.key === step);
 
   const submitRequest = requestForm.handleSubmit(async (values) => {
-    setRequestResult('idle');
-    setResultTitle('');
-    setResultMessage('');
-
-    const payload = {
-      input: {
-        name: values.name,
-        email: values.email,
-        gender: values.gender,
-        calendarType: values.calendarType,
-        birthDate: values.birthDate,
-        birthTime: values.birthTimeUnknown ? '00:00' : values.birthTime,
-        birthPlace: values.birthPlace,
-        relationshipStatus: values.relationshipStatus
-      }
-    };
+    setApiError('');
+    setNotice('');
 
     try {
-      const payload = {
-        input: {
-          name: values.name,
-          email: values.email,
-          gender: values.gender,
-          calendarType: values.calendarType,
-          birthDate: values.birthDate,
-          birthTime: values.birthTimeUnknown ? '00:00' : values.birthTime,
-          birthPlace: values.birthPlace,
-          relationshipStatus: values.relationshipStatus
-        }
-      };
-
       const created = await parseJson<CreateResponse>(
         await fetch('/api/saju-requests', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+          body: JSON.stringify({
+            input: {
+              name: values.name,
+              email: values.email,
+              gender: values.gender,
+              calendarType: values.calendarType,
+              birthDate: values.birthDate,
+              birthTime: values.birthTimeUnknown ? '00:00' : values.birthTime,
+              birthPlace: values.birthPlace,
+              relationshipStatus: values.relationshipStatus
+            }
+          })
         })
       );
 
       setRequestState(created.request);
       setStep('submitted');
-      setNotice('요청이 접수되었습니다. 분석이 완료되면 입력한 이메일로 결과를 보내드립니다.');
+      setNotice('요청이 접수되었습니다. 분석이 완료되면 입력하신 이메일로 결과를 보내드립니다.');
     } catch (requestError) {
       setApiError(requestError instanceof Error ? requestError.message : '요청 접수 중 오류가 발생했습니다.');
     }
@@ -195,19 +201,24 @@ export default function SajuLovePage() {
       birthPlace: '',
       relationshipStatus: 'unknown'
     });
-    setRequestResult('idle');
-    setResultTitle('');
-    setResultMessage('');
-    setStep('form');
+    setRequestState(null);
+    setNotice('');
+    setApiError('');
+    setStep('input');
   };
 
   return (
-    <div className="mx-auto grid max-w-[1080px] gap-4 text-zinc-800 md:gap-5">
-      <section className="page-card relative overflow-hidden px-4 py-5 animate-fade-up md:px-7 md:py-7">
+    <div className="relative mx-auto grid max-w-[1080px] gap-4 text-zinc-800 md:gap-5">
+      <section className="page-card relative overflow-hidden px-4 py-5 md:px-7 md:py-7">
         <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-zinc-900/5 blur-2xl" aria-hidden="true" />
-        <p className="kicker">Saju Atelier</p>
-        <h1 className="mt-2 text-[32px] font-semibold leading-[1.1] tracking-[-0.03em] text-zinc-900 md:text-[52px]">사주 연애운 요청</h1>
-        <p className="mt-3 max-w-[780px] text-[15px] leading-[1.58] text-zinc-600 md:text-[17px]">
+        <div className="pointer-events-none absolute right-5 top-5 h-2.5 w-2.5 animate-float-dot rounded-full bg-zinc-300" aria-hidden="true" />
+        <div className="pointer-events-none absolute right-10 top-9 h-1.5 w-1.5 animate-soft-pulse rounded-full bg-zinc-400" aria-hidden="true" />
+
+        <p className="kicker animate-step-enter">Saju Atelier</p>
+        <h1 className="mt-2 text-[32px] font-semibold leading-[1.1] tracking-[-0.03em] text-zinc-900 md:text-[52px] [animation-delay:80ms] animate-step-enter">
+          사주 연애운 요청
+        </h1>
+        <p className="mt-3 max-w-[780px] text-[15px] leading-[1.58] text-zinc-600 md:text-[17px] [animation-delay:140ms] animate-step-enter">
           3단계 입력 흐름으로 정보를 정리하고, 완료된 리포트를 이메일로 받아보세요.
         </p>
 
@@ -218,9 +229,10 @@ export default function SajuLovePage() {
               <div
                 key={entry.key}
                 role="listitem"
-                className={`rounded-md border px-3 py-2 transition ${
-                  active ? 'border-zinc-900 bg-zinc-900 text-white' : 'border-line bg-soft text-zinc-600'
+                className={`rounded-md border px-3 py-2 transition-all duration-300 animate-step-enter ${
+                  active ? 'scale-[1.01] border-zinc-900 bg-zinc-900 text-white' : 'border-line bg-soft text-zinc-600'
                 }`}
+                style={{ animationDelay: `${180 + index * 80}ms` }}
               >
                 <strong className="block text-sm">{entry.label}</strong>
                 <span className={`text-xs ${active ? 'text-zinc-200' : 'text-zinc-500'}`}>{entry.caption}</span>
@@ -231,27 +243,27 @@ export default function SajuLovePage() {
       </section>
 
       {step === 'landing' && (
-        <section className="page-card grid gap-4 px-4 py-5 animate-fade-up md:px-7 md:py-6">
+        <section className="page-card grid gap-4 px-4 py-5 md:px-7 md:py-6 animate-panel-reveal">
           <h2 className="text-[24px] font-semibold tracking-[-0.02em] text-zinc-900 md:text-[28px]">요청 전에 확인해 주세요</h2>
           <p className="text-[15px] leading-[1.6] text-zinc-600">필수 정보 입력 후 접수되며, 분석 완료 시 이메일로 결과가 발송됩니다.</p>
 
           <div className="grid gap-2.5 md:grid-cols-3">
-            <article className="rounded-md border border-line bg-soft p-3.5">
+            <article className="rounded-md border border-line bg-soft p-3.5 transition-transform duration-200 hover:-translate-y-0.5">
               <h3 className="text-sm font-semibold text-zinc-900">필수 입력</h3>
               <p className="mt-1 text-[13px] leading-[1.55] text-zinc-600">이름, 이메일, 생년월일/시각, 출생지, 관계 상태를 입력해 주세요.</p>
             </article>
-            <article className="rounded-md border border-line bg-soft p-3.5">
+            <article className="rounded-md border border-line bg-soft p-3.5 transition-transform duration-200 hover:-translate-y-0.5">
               <h3 className="text-sm font-semibold text-zinc-900">비동기 처리</h3>
               <p className="mt-1 text-[13px] leading-[1.55] text-zinc-600">요청은 순차 큐로 처리되며 완료 후 이메일로 발송됩니다.</p>
             </article>
-            <article className="rounded-md border border-line bg-soft p-3.5">
+            <article className="rounded-md border border-line bg-soft p-3.5 transition-transform duration-200 hover:-translate-y-0.5">
               <h3 className="text-sm font-semibold text-zinc-900">개인정보 유의</h3>
               <p className="mt-1 text-[13px] leading-[1.55] text-zinc-600">분석 목적 최소 정보만 수집하며, 정책에 따라 안전하게 처리합니다.</p>
             </article>
           </div>
 
           <div>
-            <button type="button" onClick={() => setStep('input')} className="btn-pill-dark">
+            <button type="button" onClick={() => setStep('input')} className="btn-pill-dark transition-transform duration-200 hover:-translate-y-0.5">
               입력 시작하기
             </button>
           </div>
@@ -259,7 +271,7 @@ export default function SajuLovePage() {
       )}
 
       {step === 'input' && (
-        <section className="page-card grid gap-5 px-4 py-5 animate-fade-up md:px-7 md:py-6">
+        <section className="page-card grid gap-5 px-4 py-5 md:px-7 md:py-6 animate-panel-reveal">
           <div className="grid gap-2">
             <div className="flex items-center justify-between text-[13px] text-zinc-600">
               <span>입력 진행률</span>
@@ -268,7 +280,10 @@ export default function SajuLovePage() {
               </strong>
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-zinc-200">
-              <span className="block h-full rounded-full bg-zinc-900 transition-all duration-300" style={{ width: `${completionPercent}%` }} />
+              <span
+                className={`block h-full rounded-full bg-zinc-900 transition-all duration-500 ${completionPercent === 100 ? 'animate-soft-pulse' : ''}`}
+                style={{ width: `${completionPercent}%` }}
+              />
             </div>
           </div>
 
@@ -277,7 +292,7 @@ export default function SajuLovePage() {
               <label className="grid gap-1.5">
                 <span className="text-sm font-medium text-zinc-700">이름 *</span>
                 <input type="text" placeholder="홍길동" {...requestForm.register('name')} className="h-11 rounded-md border border-line bg-white px-3 outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-900/10" />
-                {requestForm.formState.errors.name && <em className="text-xs not-italic text-red-600">{requestForm.formState.errors.name.message}</em>}
+                {requestForm.formState.errors.name && <em className="text-xs not-italic text-red-600 animate-toast-slide">{requestForm.formState.errors.name.message}</em>}
               </label>
 
               <label className="grid gap-1.5">
@@ -288,13 +303,13 @@ export default function SajuLovePage() {
                   {...requestForm.register('email')}
                   className="h-11 rounded-md border border-line bg-white px-3 outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-900/10"
                 />
-                {requestForm.formState.errors.email && <em className="text-xs not-italic text-red-600">{requestForm.formState.errors.email.message}</em>}
+                {requestForm.formState.errors.email && <em className="text-xs not-italic text-red-600 animate-toast-slide">{requestForm.formState.errors.email.message}</em>}
               </label>
 
               <label className="grid gap-1.5">
                 <span className="text-sm font-medium text-zinc-700">생년월일 *</span>
                 <input type="date" {...requestForm.register('birthDate')} className="h-11 rounded-md border border-line bg-white px-3 outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-900/10" />
-                {requestForm.formState.errors.birthDate && <em className="text-xs not-italic text-red-600">{requestForm.formState.errors.birthDate.message}</em>}
+                {requestForm.formState.errors.birthDate && <em className="text-xs not-italic text-red-600 animate-toast-slide">{requestForm.formState.errors.birthDate.message}</em>}
               </label>
 
               <label className="grid gap-1.5">
@@ -322,21 +337,7 @@ export default function SajuLovePage() {
                   />
                   태어난 시각을 모릅니다 (00:00 기준)
                 </label>
-                {requestForm.formState.errors.birthTime && <em className="text-xs not-italic text-red-600">{requestForm.formState.errors.birthTime.message}</em>}
-              </label>
-
-              <label className="text-sm text-[var(--text-muted)] md:col-span-2">
-                현재 관계 상태 *
-                <select
-                  {...requestForm.register('relationshipStatus')}
-                  className="mt-1.5 h-11 w-full rounded-[8px] border border-[var(--line-default)] bg-[var(--bg-soft)] px-3 text-sm text-[var(--text-strong)]"
-                >
-                  {relationshipOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                {requestForm.formState.errors.birthTime && <em className="text-xs not-italic text-red-600 animate-toast-slide">{requestForm.formState.errors.birthTime.message}</em>}
               </label>
             </div>
 
@@ -392,8 +393,8 @@ export default function SajuLovePage() {
                       type="button"
                       key={option.value}
                       onClick={() => requestForm.setValue('relationshipStatus', option.value, { shouldValidate: true, shouldDirty: true })}
-                      className={`rounded-md border p-3 text-left transition ${
-                        active ? 'border-zinc-900 bg-zinc-900 text-white' : 'border-line bg-soft text-zinc-700 hover:bg-zinc-200'
+                      className={`rounded-md border p-3 text-left transition-all duration-300 ${
+                        active ? 'scale-[1.01] border-zinc-900 bg-zinc-900 text-white' : 'border-line bg-soft text-zinc-700 hover:bg-zinc-200'
                       }`}
                     >
                       <strong className="block text-sm">{option.label}</strong>
@@ -403,7 +404,7 @@ export default function SajuLovePage() {
                 })}
               </div>
               {requestForm.formState.errors.relationshipStatus && (
-                <em className="text-xs not-italic text-red-600">{requestForm.formState.errors.relationshipStatus.message}</em>
+                <em className="text-xs not-italic text-red-600 animate-toast-slide">{requestForm.formState.errors.relationshipStatus.message}</em>
               )}
             </div>
 
@@ -415,55 +416,67 @@ export default function SajuLovePage() {
                 {...requestForm.register('birthPlace')}
                 className="h-11 rounded-md border border-line bg-white px-3 outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-900/10"
               />
-              {requestForm.formState.errors.birthPlace && <em className="text-xs not-italic text-red-600">{requestForm.formState.errors.birthPlace.message}</em>}
+              {requestForm.formState.errors.birthPlace && <em className="text-xs not-italic text-red-600 animate-toast-slide">{requestForm.formState.errors.birthPlace.message}</em>}
             </label>
 
             <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:items-center">
-              <button type="submit" disabled={requestForm.formState.isSubmitting} className="btn-pill-dark disabled:cursor-not-allowed disabled:opacity-60">
+              <button
+                type="submit"
+                disabled={requestForm.formState.isSubmitting}
+                className="btn-pill-dark transition-transform duration-200 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+              >
                 {requestForm.formState.isSubmitting ? '접수 중...' : '요청 접수하기'}
               </button>
-              <button type="button" onClick={() => setStep('landing')} className="btn-pill-soft">
+              <button type="button" onClick={() => setStep('landing')} className="btn-pill-soft transition-transform duration-200 hover:-translate-y-0.5">
                 이전 단계
               </button>
             </div>
           </form>
 
-          <section className="mt-5 rounded-[12px] border border-[var(--line-default)] bg-[var(--bg-soft)] px-4 py-3 text-xs leading-[1.55] text-[var(--text-muted)]">
-            개인정보 안내: 서비스 제공에 필요한 최소 정보만 수집합니다.
+          <section className="rounded-md border border-line bg-soft px-4 py-3 text-xs leading-[1.6] text-zinc-600 md:text-[13px]">
+            개인정보 안내: 민감 정보는 최소 수집하며, 처리 완료 후 보관 정책에 따라 관리합니다.
             <br />
-            처리 안내: 분석은 비동기 처리되며 결과는 이메일로 전달됩니다.
+            처리 안내: 분석은 비동기로 진행되며 결과는 이메일로 전달됩니다.
           </section>
         </section>
       )}
 
       {step === 'submitted' && (
-        <section className="page-card grid gap-4 px-4 py-5 animate-fade-up md:px-7 md:py-6">
+        <section className="page-card grid gap-4 px-4 py-5 md:px-7 md:py-6 animate-result-pop">
           <h2 className="text-[26px] font-semibold tracking-[-0.02em] text-zinc-900 md:text-[30px]">접수가 완료되었습니다</h2>
           <p className="text-[15px] leading-[1.6] text-zinc-600">분석 완료 시 전자우편(이메일)로 결과를 보내드립니다. 스팸함도 함께 확인해 주세요.</p>
 
           {requestState && (
-            <div className="rounded-md border border-line bg-soft p-4 text-sm leading-[1.6] text-zinc-700">
-              <p className="font-medium text-zinc-900">현재 상태</p>
+            <div className={`rounded-md border p-4 text-sm leading-[1.6] ${statusTone(requestState.status)}`}>
+              <p className="font-medium">현재 상태</p>
               <p className="mt-1">{statusText(requestState.status)}</p>
             </div>
           )}
 
           <div className="pt-1">
-            <button type="button" onClick={resetForNewRequest} className="btn-pill-dark">
+            <button type="button" onClick={resetForNewRequest} className="btn-pill-dark transition-transform duration-200 hover:-translate-y-0.5">
               새 요청 작성
             </button>
           </div>
         </section>
       )}
 
-      {notice && <div className="rounded-md border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 animate-fade-up">{notice}</div>}
-      {apiError && <div className="rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 animate-fade-up">{apiError}</div>}
-
       <section className="rounded-md border border-line bg-soft px-4 py-3 text-xs leading-[1.65] text-zinc-600 md:text-[13px]">
-        개인정보 안내: 민감 정보는 최소 수집하며, 처리 완료 후 보관 정책에 따라 관리합니다.
-        <br />
         요청 상태는 시스템 처리 순서에 따라 queued → processing → completed 또는 failed로 진행됩니다.
       </section>
+
+      <div className="pointer-events-none fixed right-4 top-24 z-[70] flex w-[min(92vw,360px)] flex-col gap-2">
+        {notice && (
+          <div className="pointer-events-auto rounded-md border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 shadow-soft animate-toast-slide" role="status" aria-live="polite">
+            {notice}
+          </div>
+        )}
+        {apiError && (
+          <div className="pointer-events-auto rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-soft animate-toast-slide" role="alert">
+            {apiError}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

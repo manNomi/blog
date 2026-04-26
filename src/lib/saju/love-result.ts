@@ -304,6 +304,5 @@ export function buildLoveResult(input: LoveJobInput): LoveJobResult {
     modelVersion: analysis.modelVersion,
   };
 
-  const promotedResult = applyOptimisticPromo(result);
-  return applyRelationshipContext(promotedResult, input.relationshipStatus ?? "unknown");
+  return applyOptimisticPromo(result);
 }

@@ -87,10 +87,6 @@ export function validateLoveInput(input: LoveJobInput) {
     throw new Error('relationship_status_invalid');
   }
 
-  if (!RELATIONSHIP_STATUSES.includes(input.relationshipStatus)) {
-    throw new Error("relationship_status_invalid");
-  }
-
   if (
     input.birthDate.length > 20 ||
     input.birthTime.length > 10 ||
@@ -102,8 +98,6 @@ export function validateLoveInput(input: LoveJobInput) {
 }
 
 export function sanitizeLoveJob(job: LoveJob): LoveJobPublic {
-  const normalizedInput = normalizeLegacyInput(job.input as Partial<LoveJobInput>);
-
   return {
     id: job.id,
     status: job.status,
