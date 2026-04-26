@@ -13,8 +13,6 @@ export type LoveJobInput = {
   relationshipStatus: RelationshipStatus;
 };
 
-export type RelationshipStatus = "none" | "interested" | "dating" | "unknown";
-
 export type LoveResultSection = {
   title: string;
   body: string;
