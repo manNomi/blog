@@ -289,6 +289,7 @@ function assertConcernReflected(input: LoveJobInput, personalized: PersonalizedL
     .filter((part) => part.length >= 2 && !['고민', '해결', '방법', '있을까요'].includes(part))
     .slice(0, 6);
   const target = [
+    personalized.concernAnswer.concern,
     personalized.summary,
     personalized.caution,
     personalized.timingHint,
