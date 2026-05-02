@@ -78,6 +78,22 @@ CODEX_MODEL=
 - 워커/크론이 `POST /api/saju-requests/process` 호출하여 queued 요청 처리
 - 처리 완료 시 이메일 발송, 상태 조회는 `GET /api/saju-requests/:id?token=...`
 
+### Codex 워커 실행
+
+```bash
+# 1회 배치 처리 (queued 최대 3건)
+npm run worker:once
+
+# 상시 루프 처리 (45초 간격)
+npm run worker:loop
+```
+
+워커 필수 조건:
+
+- `codex login` 완료
+- Firebase Admin 환경 변수 설정 (`FIREBASE_ADMIN_*` 또는 `GOOGLE_APPLICATION_CREDENTIALS`)
+- 결과 이메일 발송 시 `RESEND_API_KEY`, `EMAIL_FROM` 설정
+
 ### Giscus 댓글 설정
 
 1. GitHub 저장소 Discussions 활성화
