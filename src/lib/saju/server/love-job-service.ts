@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid';
 import { buildLoveResult } from '../love-result';
-import { MAX_LLM_RETRIES, hasPersonalizationConcern, personalizeLoveResult } from './love-llm-personalizer';
+import { MAX_LLM_RETRIES, markLoveResultWithLlmFallback, personalizeLoveResult } from './love-llm-personalizer';
 import {
   RELATIONSHIP_STATUSES,
   type LoveJob,
@@ -176,7 +176,9 @@ export async function getAuthorizedLoveJob(jobId: string, accessToken: string) {
   return job;
 }
 
-export async function processLoveJob(jobId: string) {
+type ProcessSource = 'api' | 'worker';
+
+export async function processLoveJob(jobId: string, source: ProcessSource = 'api') {
   const now = Date.now();
   const claimed = await claimQueuedLoveJob(jobId, now);
 
@@ -201,14 +203,62 @@ export async function processLoveJob(jobId: string) {
     return refreshed ? sanitizeLoveJob(refreshed) : null;
   }
 
+  const baselineResult = buildLoveResult(normalizedInput);
   let result: LoveJobResult | null = null;
   let sentEmail: { provider: 'resend' | 'console'; messageId: string | null; sentAt: number } | null = null;
+  let llmFailureMessage: string | null = null;
+  let retryCount = job.retryCount ?? 0;
 
   try {
-    const baselineResult = buildLoveResult(normalizedInput);
-    result = hasPersonalizationConcern(normalizedInput)
-      ? await personalizeLoveResult(normalizedInput, baselineResult)
-      : baselineResult;
+    try {
+      result = await personalizeLoveResult(normalizedInput, baselineResult);
+    } catch (error) {
+      llmFailureMessage = error instanceof Error ? error.message : 'llm_personalization_failed';
+      retryCount += 1;
+
+      if (retryCount < MAX_LLM_RETRIES) {
+        await updateLoveJob(job.id, {
+          status: 'queued',
+          input: normalizedInput,
+          result: null,
+          error: llmFailureMessage,
+          retryCount,
+          updatedAt: Date.now(),
+          processingStartedAt: null,
+          processingCompletedAt: null,
+          email: {
+            ...job.email,
+            sent: false,
+            error: llmFailureMessage,
+          },
+        });
+
+        logEvent('warn', 'saju_request_retry_queued', {
+          requestId: job.id,
+          retryCount,
+          maxRetries: MAX_LLM_RETRIES,
+          message: llmFailureMessage,
+          source,
+        });
+
+        const refreshedQueued = await getLoveJobById(job.id);
+        return refreshedQueued ? sanitizeLoveJob(refreshedQueued) : null;
+      }
+
+      result = markLoveResultWithLlmFallback(baselineResult);
+
+      logEvent('warn', 'saju_request_llm_fallback_used', {
+        requestId: job.id,
+        retryCount,
+        maxRetries: MAX_LLM_RETRIES,
+        message: llmFailureMessage,
+        source,
+      });
+    }
+
+    if (!result) {
+      result = baselineResult;
+    }
 
     const emailResult = await sendLoveResultEmail({
       to: normalizedInput.email,
@@ -226,6 +276,7 @@ export async function processLoveJob(jobId: string) {
       status: 'completed',
       input: normalizedInput,
       result,
+      retryCount,
       updatedAt: Date.now(),
       processingCompletedAt: Date.now(),
       error: null,
@@ -245,20 +296,20 @@ export async function processLoveJob(jobId: string) {
         requesterName: normalizedInput.name,
         requesterEmail: normalizedInput.email,
         status: 'completed',
-        error: null,
-        source: 'api',
+        error: llmFailureMessage,
+        source,
         result,
       });
     } catch (notifyError) {
       logEvent('warn', 'admin_summary_email_failed', {
         requestId: job.id,
-        source: 'api',
+        source,
         message: notifyError instanceof Error ? notifyError.message : 'unknown',
       });
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : 'analysis_or_email_failed';
-    const nextRetryCount = sentEmail ? job.retryCount ?? 0 : (job.retryCount ?? 0) + 1;
+    const nextRetryCount = sentEmail ? retryCount : retryCount + 1;
     const shouldRetry = !sentEmail && nextRetryCount < MAX_LLM_RETRIES;
     const nextStatus: LoveJob['status'] = sentEmail ? 'completed' : shouldRetry ? 'queued' : 'failed';
 
@@ -287,6 +338,7 @@ export async function processLoveJob(jobId: string) {
         retryCount: nextRetryCount,
         maxRetries: MAX_LLM_RETRIES,
         message,
+        source,
       });
     }
 
@@ -298,13 +350,13 @@ export async function processLoveJob(jobId: string) {
           requesterEmail: normalizedInput.email,
           status: nextStatus,
           error: sentEmail ? null : message,
-          source: 'api',
+          source,
           result,
         });
       } catch (notifyError) {
         logEvent('warn', 'admin_summary_email_failed', {
           requestId: job.id,
-          source: 'api',
+          source,
           message: notifyError instanceof Error ? notifyError.message : 'unknown',
         });
       }
@@ -315,12 +367,12 @@ export async function processLoveJob(jobId: string) {
   return refreshed ? sanitizeLoveJob(refreshed) : null;
 }
 
-export async function processLoveJobsBatch(limitCount = 10) {
+export async function processLoveJobsBatch(limitCount = 10, source: ProcessSource = 'api') {
   const jobs = await findProcessableLoveJobs(limitCount);
   let processed = 0;
 
   for (const job of jobs) {
-    const next = await processLoveJob(job.id);
+    const next = await processLoveJob(job.id, source);
     if (next?.status === 'completed' || next?.status === 'failed') {
       processed += 1;
     }

@@ -75,8 +75,45 @@ CODEX_MODEL=
 ### 사주 처리 플로우
 
 - `/saju`에서 요청 등록 → `POST /api/saju-requests`
-- 워커/크론이 `POST /api/saju-requests/process` 호출하여 queued 요청 처리
+- 워커/배치 API가 동일 공용 처리 모듈(`love-job-service`)로 queued 요청 처리
 - 처리 완료 시 이메일 발송, 상태 조회는 `GET /api/saju-requests/:id?token=...`
+- 모든 요청에서 LLM 개인화 텍스트를 생성하며, 점수/연도 수치는 엔진 결과를 고정 유지
+- LLM 실패 시 재시도 후 엔진 텍스트 폴백으로 완료 처리
+
+### Firestore 데이터 양식 (`sajuRequests`)
+
+```json
+{
+  "id": "hong-xxxxxxxxxxxx",
+  "status": "queued|processing|completed|failed",
+  "input": {
+    "name": "홍길동",
+    "email": "user@example.com",
+    "gender": "male|female",
+    "calendarType": "solar|lunar",
+    "birthDate": "1991-01-01",
+    "birthTime": "08:30",
+    "birthPlace": "서울",
+    "relationshipStatus": "none|interested|dating|unknown",
+    "concern": "선택 입력, 최대 200자"
+  },
+  "result": {
+    "loveScore": 0,
+    "marriageScore": 0,
+    "riskScore": 0,
+    "confidence": 0,
+    "topYears": [{ "year": 2027, "loveChance": 0.7, "breakupRisk": 0.3 }],
+    "evidenceCodes": ["R_SP_BASE"],
+    "summary": "LLM 개인화 텍스트",
+    "highlight": "LLM 개인화 텍스트",
+    "caution": "LLM 개인화 텍스트",
+    "timingHint": "LLM 개인화 텍스트",
+    "detailedSections": [{ "title": "1) ...", "body": "LLM 개인화 텍스트" }],
+    "yearlyGuidance": [{ "year": 2027, "loveChance": 0.7, "breakupRisk": 0.3, "focus": "LLM 개인화 텍스트" }],
+    "modelVersion": "engine+llm:* 또는 engine+llm:fallback"
+  }
+}
+```
 
 ### Codex 워커 실행
 
@@ -90,8 +127,8 @@ npm run worker:loop
 
 워커 필수 조건:
 
-- `codex login` 완료
 - Firebase Admin 환경 변수 설정 (`FIREBASE_ADMIN_*` 또는 `GOOGLE_APPLICATION_CREDENTIALS`)
+- OpenAI 환경 변수 설정 (`OPENAI_API_KEY`, `OPENAI_MODEL`, `OPENAI_TIMEOUT_MS`)
 - 결과 이메일 발송 시 `RESEND_API_KEY`, `EMAIL_FROM` 설정
 
 ### Giscus 댓글 설정
@@ -113,6 +150,7 @@ npm run sync:notion:all  # Published 글 전체 강제 동기화
 npm run trend:once  # news.hada.io 피드 수집 + Codex 분석(실패 시 폴백)
 npm run trend:once:heuristic  # 규칙 기반 분석만 사용
 npm run trend:once:codex  # Codex 분석 강제(실패 시 에러)
+npm run test:saju  # 사주 LLM/메일 템플릿 테스트
 npm run dev
 ```
 
