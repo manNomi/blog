@@ -6,6 +6,7 @@ type EmailSendPayload = {
   to: string;
   name: string;
   requestId: string;
+  concern?: string;
   result: LoveJobResult;
 };
 
@@ -42,6 +43,7 @@ async function sendWithResend(payload: EmailSendPayload): Promise<EmailSendResul
   const rendered = await renderLoveResultEmail({
     requestId: payload.requestId,
     name: payload.name,
+    concern: payload.concern,
     result: payload.result,
   });
 
@@ -55,7 +57,7 @@ async function sendWithResend(payload: EmailSendPayload): Promise<EmailSendResul
     body: JSON.stringify({
       from,
       to: [payload.to],
-      subject: "[사주 결과] 청하신 연애운 풀이 글월이 도착했사옵니다",
+      subject: "[사주 리포트] 연애운 분석 결과가 도착했습니다",
       text: rendered.text,
       html: rendered.html,
     }),

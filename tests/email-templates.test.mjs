@@ -40,16 +40,23 @@ test('renderLoveResultEmail includes progressive details/summary blocks', async 
   const rendered = await renderLoveResultEmail({
     requestId: 'job-123',
     name: '테스터',
+    concern: '연락이 뜸해져서 관계가 식은 건 아닌지 걱정돼요.',
     result: sampleResult(),
   });
 
   assert.match(rendered.html, /<details/i);
   assert.match(rendered.html, /<summary/i);
   assert.match(rendered.html, /핵심 요약/);
+  assert.match(rendered.html, /고민 중심 해석/);
+  assert.match(rendered.html, /년도별 연애운 차트/);
   assert.match(rendered.html, /연도별 실행 포인트/);
+  assert.match(rendered.html, /width:72%/);
+  assert.match(rendered.html, /리스크 30%/);
 
   assert.match(rendered.text, /핵심 요약 문구/);
+  assert.match(rendered.text, /연락이 뜸해져서 관계가 식은 건 아닌지 걱정돼요/);
   assert.match(rendered.text, /2027 실행 포커스/);
+  assert.doesNotMatch(rendered.text, /\u0000/);
 });
 
 test('renderAdminSummaryEmail contains request summary data', async () => {
@@ -67,4 +74,3 @@ test('renderAdminSummaryEmail contains request summary data', async () => {
   assert.match(rendered.html, /관리자테스트/);
   assert.match(rendered.text, /처리 경로:\s*worker/);
 });
-

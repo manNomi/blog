@@ -2,6 +2,9 @@ import type { LoveJobInput, LoveJobResult } from '../love-job-types';
 
 const OPENAI_API_URL = 'https://api.openai.com/v1/responses';
 const DEFAULT_OPENAI_TIMEOUT_MS = 20_000;
+const MIN_MAIN_TEXT_LENGTH = 48;
+const MIN_SECTION_BODY_LENGTH = 140;
+const MIN_YEAR_FOCUS_LENGTH = 56;
 
 export const MAX_LLM_RETRIES = 3;
 
@@ -112,9 +115,10 @@ function baselineForPrompt(result: LoveJobResult) {
 function buildPersonalizerPrompt(input: LoveJobInput, baselineResult: LoveJobResult) {
   const birthPlace = normalizeBirthPlace(input);
   const concern = normalizeConcern(input);
+  const hasConcern = concern !== '미입력';
 
   return [
-    '아래 baseline 텍스트를 사용자 맥락에 맞게 개인화하세요.',
+    '아래 baseline 텍스트를 바탕으로 이메일로 보낼 사주 연애 리포트 문장을 새로 작성하세요.',
     '반드시 JSON으로만 응답하세요.',
     '',
     '[출력해야 하는 키]',
@@ -125,14 +129,26 @@ function buildPersonalizerPrompt(input: LoveJobInput, baselineResult: LoveJobRes
     '- detailedSections[{title, body}]',
     '- yearlyGuidance[{year, focus}]',
     '',
-    '[절대 규칙]',
+    '[절대 규칙: 수치/근거 보존]',
     '- 점수/확률/연도 수치/오행/근거코드는 절대 수정하거나 새로 만들지 말 것',
-    '- summary/highlight/caution/timingHint는 공감 + 실행 제안 중심으로 작성',
     '- detailedSections는 baseline의 title을 그대로 유지하고 body만 다시 작성',
     '- yearlyGuidance는 baseline의 year를 그대로 유지하고 focus만 다시 작성',
+    '',
+    '[문체/품질 규칙]',
+    '- 상담사가 직접 차분히 설명하는 듯한 자연스러운 존댓말로 작성',
+    '- 각 상세 섹션 body는 반드시 "사주 근거 → 관계 해석 → 현실적인 행동 제안" 흐름으로 작성',
+    '- summary/highlight/caution/timingHint는 각각 2~3문장으로 작성',
+    '- detailedSections 각 body는 4~6문장으로 작성하고, 너무 짧게 쓰지 말 것',
+    '- yearlyGuidance.focus는 해당 연도에 무엇을 조심하고 무엇을 시도할지 2~3문장으로 작성',
+    '- 배우자궁 합/충/형/해/파, 배우자별, 도화, 홍란, 홍염, 일간 강약, 오행 균형 중 baseline에 있는 근거를 자연스럽게 풀어서 설명',
+    '- 어려운 용어를 쓰면 바로 쉬운 말로 풀어 설명',
     '- 예언·공포 조장·단정적 표현 금지',
+    '- 같은 말 반복, 일반론, 빈약한 위로 문장 금지',
     '- relationshipStatus, birthPlace, concern을 문맥에 반영',
     '- 출생지 맥락 조언을 최소 1회 포함',
+    hasConcern
+      ? '- concern이 입력되어 있으므로 모든 핵심 필드와 상세 섹션/연도별 가이드가 이 고민에 연결되어야 함'
+      : '- concern이 없으므로 관계 상태와 출생지 맥락을 중심으로 개인화하되 고민을 지어내지 말 것',
     '',
     `[relationshipStatus]: ${input.relationshipStatus}`,
     `[birthPlace]: ${birthPlace}`,
@@ -143,6 +159,13 @@ function buildPersonalizerPrompt(input: LoveJobInput, baselineResult: LoveJobRes
     '[baseline(JSON)]',
     JSON.stringify(baselineForPrompt(baselineResult), null, 2),
   ].join('\n');
+}
+
+function assertMinimumTextQuality(value: string, minLength: number, code: string) {
+  const compact = value.replace(/\s+/g, ' ').trim();
+  if (compact.length < minLength) {
+    throw new Error(code);
+  }
 }
 
 function extractOutputText(payload: OpenAiResponsePayload) {
@@ -202,6 +225,19 @@ function parsePersonalizedOutput(rawText: string): PersonalizedLoveText {
 
   if (!summary || !highlight || !caution || !timingHint || detailedSections.length === 0 || yearlyGuidance.length === 0) {
     throw new Error('openai_schema_invalid');
+  }
+
+  assertMinimumTextQuality(summary, MIN_MAIN_TEXT_LENGTH, 'openai_summary_too_short');
+  assertMinimumTextQuality(highlight, MIN_MAIN_TEXT_LENGTH, 'openai_highlight_too_short');
+  assertMinimumTextQuality(caution, MIN_MAIN_TEXT_LENGTH, 'openai_caution_too_short');
+  assertMinimumTextQuality(timingHint, MIN_MAIN_TEXT_LENGTH, 'openai_timing_hint_too_short');
+
+  for (const section of detailedSections) {
+    assertMinimumTextQuality(section.body, MIN_SECTION_BODY_LENGTH, 'openai_section_too_short');
+  }
+
+  for (const row of yearlyGuidance) {
+    assertMinimumTextQuality(row.focus, MIN_YEAR_FOCUS_LENGTH, 'openai_year_focus_too_short');
   }
 
   return {
@@ -265,7 +301,7 @@ async function requestPersonalizedText(input: LoveJobInput, baselineResult: Love
           {
             role: 'system',
             content:
-              '너는 사주 연애 리포트 개인화 에디터다. 수치와 근거는 절대 바꾸지 말고 텍스트만 개인화하라. 반드시 JSON만 출력하라.',
+              '너는 사주 연애 리포트를 사람다운 상담 문장으로 작성하는 에디터다. 수치와 근거는 절대 바꾸지 말고, 사용자의 고민과 관계 상태를 중심으로 충분히 상세한 해설과 행동 제안을 작성하라. 반드시 JSON만 출력하라.',
           },
           {
             role: 'user',
@@ -353,4 +389,3 @@ export async function personalizeLoveResult(input: LoveJobInput, baselineResult:
   const { personalized, model } = await requestPersonalizedText(input, baselineResult);
   return mergePersonalizedText(baselineResult, personalized, model);
 }
-

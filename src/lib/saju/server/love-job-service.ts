@@ -264,6 +264,7 @@ export async function processLoveJob(jobId: string, source: ProcessSource = 'api
       to: normalizedInput.email,
       name: normalizedInput.name,
       requestId: job.id,
+      concern: normalizedInput.concern,
       result,
     });
     sentEmail = {
