@@ -16,6 +16,7 @@ const requestFormSchema = z
     birthTime: z.string(),
     birthTimeUnknown: z.boolean(),
     birthPlace: z.string().trim().min(2, '출생지는 2자 이상 입력해 주세요.').max(50, '출생지는 50자 이하로 입력해 주세요.'),
+    concern: z.string().trim().max(200, '고민은 200자 이하로 입력해 주세요.').optional(),
     relationshipStatus: z.enum(['none', 'interested', 'dating', 'unknown'], {
       required_error: '현재 관계 상태를 선택해 주세요.'
     })
@@ -108,6 +109,7 @@ export default function SajuLovePage() {
       birthTime: '',
       birthTimeUnknown: false,
       birthPlace: '',
+      concern: '',
       relationshipStatus: 'unknown'
     }
   });
@@ -117,6 +119,7 @@ export default function SajuLovePage() {
   const selectedCalendarType = requestForm.watch('calendarType');
   const selectedRelationship = requestForm.watch('relationshipStatus');
   const birthTimeUnknown = requestForm.watch('birthTimeUnknown');
+  const concernLength = watched.concern?.length ?? 0;
 
   useEffect(() => {
     if (!notice) return;
@@ -175,7 +178,8 @@ export default function SajuLovePage() {
               birthDate: values.birthDate,
               birthTime: values.birthTimeUnknown ? '00:00' : values.birthTime,
               birthPlace: values.birthPlace,
-              relationshipStatus: values.relationshipStatus
+              relationshipStatus: values.relationshipStatus,
+              concern: values.concern?.trim() ? values.concern.trim() : undefined
             }
           })
         })
@@ -199,6 +203,7 @@ export default function SajuLovePage() {
       birthTime: '',
       birthTimeUnknown: false,
       birthPlace: '',
+      concern: '',
       relationshipStatus: 'unknown'
     });
     setRequestState(null);
@@ -417,6 +422,21 @@ export default function SajuLovePage() {
                 className="h-11 rounded-md border border-line bg-white px-3 outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-900/10"
               />
               {requestForm.formState.errors.birthPlace && <em className="text-xs not-italic text-red-600 animate-toast-slide">{requestForm.formState.errors.birthPlace.message}</em>}
+            </label>
+
+            <label className="grid gap-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-zinc-700">요즘 가장 고민되는 연애 이슈 (선택)</span>
+                <span className="text-xs text-zinc-500">{concernLength}/200</span>
+              </div>
+              <textarea
+                rows={4}
+                maxLength={200}
+                placeholder="요즘 가장 고민되는 연애 이슈"
+                {...requestForm.register('concern')}
+                className="rounded-md border border-line bg-white px-3 py-2.5 text-sm leading-[1.55] outline-none transition resize-y min-h-[112px] focus:border-zinc-500 focus:ring-2 focus:ring-zinc-900/10"
+              />
+              {requestForm.formState.errors.concern && <em className="text-xs not-italic text-red-600 animate-toast-slide">{requestForm.formState.errors.concern.message}</em>}
             </label>
 
             <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:items-center">

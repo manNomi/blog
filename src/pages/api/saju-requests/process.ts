@@ -20,7 +20,7 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   try {
-    const processed = await processLoveJobsBatch(20);
+    const processed = await processLoveJobsBatch(20, 'api');
 
     logEvent('info', 'saju_request_batch_processed', {
       processed
