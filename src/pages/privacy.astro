@@ -4,23 +4,71 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 ---
 
-<BaseLayout title="개인정보 처리 안내 | Nomi Journal" description="사주 요청 시 개인정보 처리 기준 안내">
+<BaseLayout title="개인정보 처리방침 | Nomi Journal" description="사주 연애운 요청 서비스의 개인정보 처리 기준 안내">
   <Header />
 
   <main class="main-shell">
     <section class="container-shell">
-      <article class="page-card mx-auto grid max-w-[860px] gap-3 p-4 md:p-6">
-        <p class="kicker">Privacy Notice</p>
-        <h1 class="text-[28px] font-semibold leading-[1.18] tracking-[-0.02em] text-zinc-900 md:text-[38px]">개인정보 처리 안내</h1>
-        <p class="text-sm leading-[1.62] text-zinc-700 md:text-[15px]">
-          사주 요청 기능은 분석 결과 전달을 위해 이름, 이메일, 생년월일/시각, 출생지, 관계 상태를 수집합니다.
-        </p>
-        <p class="text-sm leading-[1.62] text-zinc-700 md:text-[15px]">
-          수집 정보는 사주 분석과 결과 이메일 발송 목적에만 사용하며, 처리 완료 건은 90일, 처리 실패 건은 30일 보관 후 파기하는 운영 정책을 따릅니다.
-        </p>
-        <p class="text-xs leading-[1.6] text-zinc-500 md:text-[13px]">
-          문의: <a href="mailto:hanmw110@gmail.com" class="underline underline-offset-2">hanmw110@gmail.com</a>
-        </p>
+      <article class="mx-auto grid max-w-[900px] gap-4 page-card p-4 md:p-7">
+        <header class="grid gap-2">
+          <p class="kicker">Saju Privacy Policy</p>
+          <h1 class="text-[30px] font-semibold tracking-[-0.03em] text-zinc-900 md:text-[44px]">개인정보 처리방침</h1>
+          <p class="text-sm leading-[1.6] text-zinc-600 md:text-[15px]">
+            Nomi Journal 사주 연애운 요청 기능은 필요한 정보만 최소한으로 수집하며, 본 방침은 현재 운영 기준에 따라 적용됩니다.
+          </p>
+        </header>
+
+        <section class="grid gap-2 rounded-md border border-line bg-soft p-3.5 md:p-4">
+          <h2 class="text-[18px] font-semibold text-zinc-900 md:text-[20px]">1. 수집 항목</h2>
+          <p class="text-sm leading-[1.65] text-zinc-700">
+            이름, 전자우편(이메일), 생년월일, 출생 시각, 출생지, 관계 상태, 연애 고민 내용(선택)을 수집합니다.
+          </p>
+        </section>
+
+        <section class="grid gap-2 rounded-md border border-line bg-soft p-3.5 md:p-4">
+          <h2 class="text-[18px] font-semibold text-zinc-900 md:text-[20px]">2. 수집 목적</h2>
+          <p class="text-sm leading-[1.65] text-zinc-700">
+            사주 연애운 분석 결과 생성 및 결과 이메일 발송을 위해서만 이용합니다.
+          </p>
+        </section>
+
+        <section class="grid gap-2 rounded-md border border-line bg-soft p-3.5 md:p-4">
+          <h2 class="text-[18px] font-semibold text-zinc-900 md:text-[20px]">3. 보관 및 파기</h2>
+          <p class="text-sm leading-[1.65] text-zinc-700">
+            처리 완료 건은 90일, 처리 실패 건은 30일 보관 후 파기하는 것을 기본 정책으로 운영합니다.
+          </p>
+          <p class="text-xs leading-[1.6] text-zinc-500 md:text-[13px]">
+            현재 문구는 운영 정책 기준이며, 자동 파기 기능 도입 시 실제 동작 기준으로 고지 내용을 갱신합니다.
+          </p>
+        </section>
+
+        <section class="grid gap-2 rounded-md border border-line bg-soft p-3.5 md:p-4">
+          <h2 class="text-[18px] font-semibold text-zinc-900 md:text-[20px]">4. 제3자 제공 및 처리위탁</h2>
+          <p class="text-sm leading-[1.65] text-zinc-700">
+            서비스 운영을 위해 Firebase(Firestore), Resend(이메일 발송), OpenAI(텍스트 개인화), Cloudflare Turnstile(봇 방지)을 사용합니다.
+          </p>
+          <p class="text-xs leading-[1.6] text-zinc-500 md:text-[13px]">
+            분석 품질 향상을 위한 처리 외의 목적으로는 사용하지 않습니다.
+          </p>
+        </section>
+
+        <section class="grid gap-2 rounded-md border border-line bg-soft p-3.5 md:p-4">
+          <h2 class="text-[18px] font-semibold text-zinc-900 md:text-[20px]">5. 이용자 권리</h2>
+          <p class="text-sm leading-[1.65] text-zinc-700">
+            이용자는 본인 정보에 대해 열람, 정정, 삭제를 요청할 수 있으며, 요청 시 확인 절차 후 지체 없이 처리합니다.
+          </p>
+        </section>
+
+        <section class="grid gap-2 rounded-md border border-line bg-soft p-3.5 md:p-4">
+          <h2 class="text-[18px] font-semibold text-zinc-900 md:text-[20px]">6. 문의처</h2>
+          <p class="text-sm leading-[1.65] text-zinc-700">
+            개인정보 관련 문의: <a class="underline underline-offset-2" href="mailto:hanmw110@gmail.com">hanmw110@gmail.com</a>
+          </p>
+        </section>
+
+        <footer class="rounded-md border border-line bg-white p-3 text-xs leading-[1.6] text-zinc-500 md:text-[13px]">
+          시행일: 2026년 5월 2일 · 버전: v0.1
+        </footer>
       </article>
     </section>
   </main>

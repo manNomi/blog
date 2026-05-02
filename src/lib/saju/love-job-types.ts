@@ -26,6 +26,63 @@ export type LoveYearGuide = {
   focus: string;
 };
 
+export type LoveScoreRationales = {
+  love: string;
+  marriage: string;
+  risk: string;
+};
+
+export type LoveSajuSnapshot = {
+  pillars: {
+    year: string;
+    month: string;
+    day: string;
+    hour: string;
+  };
+  dayMaster: {
+    stem: string;
+    branch: string;
+    strength: number;
+  };
+  elementProfile: {
+    dominant: string;
+    weakest: string;
+    balanceScore: number;
+  };
+  spousePalace: {
+    branch: string;
+    stability: number;
+    conflictRisk: number;
+    relations: string[];
+  };
+  spouseStar: {
+    presence: number;
+    balance: number;
+    conflictRisk: number;
+  };
+  romanceStars: {
+    peachInner: number;
+    peachOuter: number;
+    hongLuanCount: number;
+    hongYanCount: number;
+  };
+  evidenceCodes: string[];
+  traces: string[];
+};
+
+export type LoveConcernAnswer = {
+  concern: string;
+  answer: string;
+  actionItems: string[];
+};
+
+export type LoveGenerationMeta = {
+  provider: 'codex' | 'openai' | 'engine';
+  model: string;
+  attempts: number;
+  generatedAt: number;
+};
+
 export type LoveJobResult = {
   loveScore: number;
   marriageScore: number;
@@ -43,6 +100,10 @@ export type LoveJobResult = {
   detailedSections: LoveResultSection[];
   yearlyGuidance: LoveYearGuide[];
   modelVersion: string;
+  scoreRationales?: LoveScoreRationales;
+  sajuSnapshot?: LoveSajuSnapshot;
+  concernAnswer?: LoveConcernAnswer;
+  generationMeta?: LoveGenerationMeta;
 };
 
 export type LoveJobStatus = 'queued' | 'processing' | 'completed' | 'failed';

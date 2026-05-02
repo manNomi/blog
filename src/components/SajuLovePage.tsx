@@ -451,12 +451,22 @@ export default function SajuLovePage() {
                 이전 단계
               </button>
             </div>
+
+            <p className="text-xs leading-[1.6] text-zinc-500 md:text-[13px]">
+              요청 접수 전{' '}
+              <a href="/privacy" className="font-medium text-zinc-700 underline underline-offset-2 transition hover:text-zinc-900">
+                개인정보 처리방침
+              </a>
+              을 확인해 주세요.
+            </p>
           </form>
 
           <section className="rounded-md border border-line bg-soft px-4 py-3 text-xs leading-[1.6] text-zinc-600 md:text-[13px]">
-            개인정보 안내: 민감 정보는 최소 수집하며, 처리 완료 후 보관 정책에 따라 관리합니다.
+            수집 항목: 이름, 이메일, 생년월일/시각, 출생지, 관계 상태(고민 내용은 선택)만 수집합니다.
             <br />
-            처리 안내: 분석은 비동기로 진행되며 결과는 이메일로 전달됩니다.
+            처리 목적: 사주 연애운 분석 및 결과 이메일 발송 목적으로만 이용합니다.
+            <br />
+            보관 정책: 처리 완료 건 90일, 처리 실패 건 30일 보관 후 파기(현재 운영정책 기준)합니다.
           </section>
         </section>
       )}

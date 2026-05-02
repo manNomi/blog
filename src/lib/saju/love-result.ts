@@ -1,7 +1,33 @@
 import { analyzeLoveFortune, toKoreanElementName } from './saju-love-engine';
-import type { LoveJobInput, LoveJobResult, RelationshipStatus } from './love-job-types';
+import type { LoveJobInput, LoveJobResult, LoveSajuSnapshot, RelationshipStatus } from './love-job-types';
 
 const OPTIMISTIC_PROMO_DATE_KST = '2026-03-15';
+const STEM_LABELS: Record<string, string> = {
+  JIA: '갑',
+  YI: '을',
+  BING: '병',
+  DING: '정',
+  WU: '무',
+  JI: '기',
+  GENG: '경',
+  XIN: '신',
+  REN: '임',
+  GUI: '계',
+};
+const BRANCH_LABELS: Record<string, string> = {
+  ZI: '자',
+  CHOU: '축',
+  YIN: '인',
+  MAO: '묘',
+  CHEN: '진',
+  SI: '사',
+  WU: '오',
+  WEI: '미',
+  SHEN: '신',
+  YOU: '유',
+  XU: '술',
+  HAI: '해',
+};
 
 function percent(value01: number) {
   return `${Math.round(value01 * 100)}%`;
@@ -176,6 +202,51 @@ function yearFocusFromNotes(notes: string[]) {
   return '관계 템포를 천천히 맞추며 신뢰를 축적하는 해';
 }
 
+function relationText(relation: { target: string; branch: string; relation: string }) {
+  return `${relation.target} ${BRANCH_LABELS[relation.branch] ?? relation.branch}(${relation.relation})`;
+}
+
+function buildScoreRationales(analysis: ReturnType<typeof analyzeLoveFortune>) {
+  const dominant = toKoreanElementName(analysis.elementProfile.dominant);
+  const weakest = toKoreanElementName(analysis.elementProfile.weakest);
+  const bestYear = analysis.topYears[0];
+  const firstHighlight = analysis.highlights[0] ?? '관계 유지력과 인연 유입을 뒷받침하는 기본 신호가 있습니다.';
+  const firstCaution = analysis.cautions[0] ?? '감정이 올라오는 순간에는 관계 속도를 늦추는 편이 안정적입니다.';
+
+  return {
+    love: `연애 점수 ${analysis.loveScore}점은 배우자별 활성도, 배우자궁 안정도, 도화·홍란·홍염 신호를 함께 반영한 값입니다. 현재 핵심 근거는 "${firstHighlight}"이며, 오행상 ${dominant} 기운이 강하고 ${weakest} 기운을 보완해야 관계 표현이 더 자연스러워집니다. ${bestYear ? `${bestYear.year}년처럼 연애 기대값이 높은 해에는 만남 노출을 늘릴수록 점수의 장점이 현실 행동으로 이어집니다.` : '추천 연도 흐름은 만남의 양보다 관계 리듬을 안정적으로 만드는 쪽에 초점이 있습니다.'}`,
+    marriage: `혼인 안정 점수 ${analysis.marriageScore}점은 배우자궁의 안정도 ${percent(analysis.diagnostics.spousePalace.stability)}와 배우자별 균형 ${percent(analysis.diagnostics.spouseStar.balance)}을 중심으로 산출했습니다. 관계를 공식화하거나 장기 관계로 이어가려면 감정의 크기보다 약속을 지키는 패턴이 더 중요하게 작동합니다. 원국과 세운의 좋은 신호가 들어오는 시기에는 생활 리듬, 만남 빈도, 미래 계획을 구체적으로 맞추는 대화가 안정도를 높입니다.`,
+    risk: `갈등 리스크 ${analysis.riskScore}점은 배우자궁 충돌 가능성, 배우자별 혼잡도, 홍염·도화처럼 감정 진폭을 키울 수 있는 신호를 함께 본 값입니다. 현재 주의 근거는 "${firstCaution}"로 요약되며, 이는 관계가 나쁘다는 뜻보다 오해가 커지는 방식을 먼저 관리해야 한다는 의미에 가깝습니다. 감정이 큰 날에는 바로 결론을 내리지 말고 대화 주제와 시간을 나눠 잡는 것이 리스크를 낮춥니다.`,
+  };
+}
+
+function buildSajuSnapshot(analysis: ReturnType<typeof analyzeLoveFortune>): LoveSajuSnapshot {
+  const diagnostics = analysis.diagnostics;
+
+  return {
+    pillars: diagnostics.pillars,
+    dayMaster: {
+      ...diagnostics.dayMaster,
+      stem: STEM_LABELS[diagnostics.dayMaster.stem] ?? diagnostics.dayMaster.stem,
+      branch: BRANCH_LABELS[diagnostics.dayMaster.branch] ?? diagnostics.dayMaster.branch,
+    },
+    elementProfile: {
+      dominant: toKoreanElementName(analysis.elementProfile.dominant),
+      weakest: toKoreanElementName(analysis.elementProfile.weakest),
+      balanceScore: analysis.elementProfile.balanceScore,
+    },
+    spousePalace: {
+      ...diagnostics.spousePalace,
+      branch: BRANCH_LABELS[diagnostics.spousePalace.branch] ?? diagnostics.spousePalace.branch,
+      relations: diagnostics.spousePalace.relations.map(relationText),
+    },
+    spouseStar: diagnostics.spouseStar,
+    romanceStars: diagnostics.romanceStars,
+    evidenceCodes: analysis.evidenceCodes,
+    traces: analysis.traces,
+  };
+}
+
 function buildDetailedSections(
   analysis: ReturnType<typeof analyzeLoveFortune>,
   relationshipStatus: RelationshipStatus,
@@ -184,7 +255,8 @@ function buildDetailedSections(
   const weakest = toKoreanElementName(analysis.elementProfile.weakest);
   const sortedTimeline = [...analysis.timeline]
     .sort((a, b) => b.loveChance - b.breakupRisk - (a.loveChance - a.breakupRisk))
-    .slice(0, 5);
+    .slice(0, 5)
+    .sort((a, b) => a.year - b.year);
 
   const yearlyGuidance = sortedTimeline.map((year) => ({
     year: year.year,
@@ -302,6 +374,14 @@ export function buildLoveResult(input: LoveJobInput): LoveJobResult {
     detailedSections: detail.detailedSections,
     yearlyGuidance: detail.yearlyGuidance,
     modelVersion: analysis.modelVersion,
+    scoreRationales: buildScoreRationales(analysis),
+    sajuSnapshot: buildSajuSnapshot(analysis),
+    generationMeta: {
+      provider: 'engine',
+      model: analysis.modelVersion,
+      attempts: 0,
+      generatedAt: Date.now(),
+    },
   };
 
   return applyOptimisticPromo(result);

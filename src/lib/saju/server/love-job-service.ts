@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid';
 import { buildLoveResult } from '../love-result';
-import { MAX_LLM_RETRIES, markLoveResultWithLlmFallback, personalizeLoveResult } from './love-llm-personalizer';
+import { MAX_LLM_RETRIES, personalizeLoveResult } from './love-llm-personalizer';
 import {
   RELATIONSHIP_STATUSES,
   type LoveJob,
@@ -211,7 +211,9 @@ export async function processLoveJob(jobId: string, source: ProcessSource = 'api
 
   try {
     try {
-      result = await personalizeLoveResult(normalizedInput, baselineResult);
+      result = await personalizeLoveResult(normalizedInput, baselineResult, {
+        preferCodex: source === 'worker',
+      });
     } catch (error) {
       llmFailureMessage = error instanceof Error ? error.message : 'llm_personalization_failed';
       retryCount += 1;
@@ -245,15 +247,49 @@ export async function processLoveJob(jobId: string, source: ProcessSource = 'api
         return refreshedQueued ? sanitizeLoveJob(refreshedQueued) : null;
       }
 
-      result = markLoveResultWithLlmFallback(baselineResult);
+      await updateLoveJob(job.id, {
+        status: 'failed',
+        input: normalizedInput,
+        result: null,
+        error: llmFailureMessage,
+        retryCount,
+        updatedAt: Date.now(),
+        processingCompletedAt: Date.now(),
+        email: {
+          ...job.email,
+          sent: false,
+          error: llmFailureMessage,
+        },
+      });
 
-      logEvent('warn', 'saju_request_llm_fallback_used', {
+      logEvent('error', 'saju_request_generation_failed_no_user_email', {
         requestId: job.id,
         retryCount,
         maxRetries: MAX_LLM_RETRIES,
         message: llmFailureMessage,
         source,
       });
+
+      try {
+        await sendAdminJobSummaryEmail({
+          requestId: job.id,
+          requesterName: normalizedInput.name,
+          requesterEmail: normalizedInput.email,
+          status: 'failed',
+          error: llmFailureMessage,
+          source,
+          result: null,
+        });
+      } catch (notifyError) {
+        logEvent('warn', 'admin_summary_email_failed', {
+          requestId: job.id,
+          source,
+          message: notifyError instanceof Error ? notifyError.message : 'unknown',
+        });
+      }
+
+      const refreshedFailed = await getLoveJobById(job.id);
+      return refreshedFailed ? sanitizeLoveJob(refreshedFailed) : null;
     }
 
     if (!result) {

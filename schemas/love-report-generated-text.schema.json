@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://saju.local/schemas/love-report-generated-text.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "summary",
+    "highlight",
+    "caution",
+    "timingHint",
+    "scoreRationales",
+    "concernAnswer",
+    "detailedSections",
+    "yearlyGuidance"
+  ],
+  "properties": {
+    "summary": { "type": "string", "minLength": 120, "maxLength": 900 },
+    "highlight": { "type": "string", "minLength": 90, "maxLength": 700 },
+    "caution": { "type": "string", "minLength": 90, "maxLength": 700 },
+    "timingHint": { "type": "string", "minLength": 90, "maxLength": 700 },
+    "scoreRationales": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["love", "marriage", "risk"],
+      "properties": {
+        "love": { "type": "string", "minLength": 120, "maxLength": 900 },
+        "marriage": { "type": "string", "minLength": 120, "maxLength": 900 },
+        "risk": { "type": "string", "minLength": 120, "maxLength": 900 }
+      }
+    },
+    "concernAnswer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["concern", "answer", "actionItems"],
+      "properties": {
+        "concern": { "type": "string", "maxLength": 220 },
+        "answer": { "type": "string", "maxLength": 900 },
+        "actionItems": {
+          "type": "array",
+          "maxItems": 5,
+          "items": { "type": "string", "minLength": 20, "maxLength": 240 }
+        }
+      }
+    },
+    "detailedSections": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["title", "body"],
+        "properties": {
+          "title": { "type": "string", "minLength": 2, "maxLength": 80 },
+          "body": { "type": "string", "minLength": 240, "maxLength": 1200 }
+        }
+      }
+    },
+    "yearlyGuidance": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["year", "focus"],
+        "properties": {
+          "year": { "type": "integer", "minimum": 1900, "maximum": 2200 },
+          "focus": { "type": "string", "minLength": 90, "maxLength": 500 }
+        }
+      }
+    }
+  }
+}

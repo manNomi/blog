@@ -74,22 +74,38 @@ function cleanPlainText(text: string) {
   return text.replace(/\u0000/g, '').replace(/[ \t]+\n/g, '\n').trim();
 }
 
-function scoreCard(label: string, score: number, barColor: string) {
+function firstSentence(value?: string) {
+  const normalized = value?.replace(/\s+/g, ' ').trim();
+  if (!normalized) return null;
+  const match = normalized.match(/^.+?[.!?。！？]/);
+  return match?.[0] ?? normalized.slice(0, 120);
+}
+
+function sortedYearlyGuidance(yearlyGuidance: LoveJobResult['yearlyGuidance']) {
+  return [...yearlyGuidance].sort((a, b) => a.year - b.year);
+}
+
+function bestOpportunityYear(yearlyGuidance: LoveJobResult['yearlyGuidance']) {
+  return [...yearlyGuidance].sort((a, b) => b.loveChance - a.loveChance)[0] ?? null;
+}
+
+function scoreCard(label: string, score: number, barColor: string, rationale?: string) {
   const safeScore = clampPercent(score);
+  const rationaleLead = firstSentence(rationale);
 
   return h(
     Column,
     { width: '33.33%', style: { padding: '6px' } },
     h(
-      Section,
-      {
-        style: {
-          border: `1px solid ${BORDER_COLOR}`,
-          borderRadius: CARD_RADIUS,
-          backgroundColor: SECTION_BG,
-          padding: '15px 14px',
+        Section,
+        {
+          style: {
+            border: `1px solid ${BORDER_COLOR}`,
+            borderRadius: CARD_RADIUS,
+            backgroundColor: SECTION_BG,
+            padding: '15px 14px',
+          },
         },
-      },
       h(Text, { style: { margin: '0 0 8px', color: TEXT_SOFT, fontSize: '12px', fontWeight: 700 } }, label),
       h(
         Text,
@@ -116,6 +132,9 @@ function scoreCard(label: string, score: number, barColor: string) {
           },
         }),
       ),
+      rationaleLead
+        ? h(Text, { style: { margin: '10px 0 0', color: TEXT_MUTED, fontSize: '12px', lineHeight: '1.55' } }, rationaleLead)
+        : null,
     ),
   );
 }
@@ -204,11 +223,180 @@ function detailsBlock(title: string, body: string) {
   );
 }
 
+function readableRatio(value: number) {
+  return `${ratioToPercent(value)}%`;
+}
+
+function levelLabel(value: number, highLabel = '높은 편', middleLabel = '보통', lowLabel = '낮은 편') {
+  if (!Number.isFinite(value)) return '확인 불가';
+  if (value >= 0.7) return highLabel;
+  if (value >= 0.45) return middleLabel;
+  return lowLabel;
+}
+
+function ratioLevel(value: number, highLabel = '높은 편', middleLabel = '보통', lowLabel = '낮은 편') {
+  return `${levelLabel(value, highLabel, middleLabel, lowLabel)} (${readableRatio(value)})`;
+}
+
+function riskLevel(value: number) {
+  if (!Number.isFinite(value)) return '확인 불가';
+  if (value >= 0.65) return `주의 필요 (${readableRatio(value)})`;
+  if (value >= 0.4) return `관리 필요 (${readableRatio(value)})`;
+  return `낮은 편 (${readableRatio(value)})`;
+}
+
+function romanceStarsSummary(snapshot: NonNullable<LoveJobResult['sajuSnapshot']>) {
+  const stars = snapshot.romanceStars;
+  const peachCount = stars.peachInner + stars.peachOuter;
+  const total = peachCount + stars.hongLuanCount + stars.hongYanCount;
+
+  if (total <= 0) {
+    return '도화·홍란·홍염 신호는 강하게 잡히지 않습니다. 첫인상으로 밀어붙이기보다 편안함과 신뢰를 쌓는 방식이 더 잘 맞습니다.';
+  }
+
+  const signals = [];
+  if (peachCount > 0) signals.push('도화 신호가 일부 보입니다');
+  if (stars.hongLuanCount > 0) signals.push('홍란 신호가 보입니다');
+  if (stars.hongYanCount > 0) signals.push('홍염 신호가 보입니다');
+  return `도화·홍란·홍염 신호는 일부 잡힙니다. ${signals.join(', ')}. 매력 표현은 살리되 관계 속도와 기대치를 함께 조율하는 편이 좋습니다.`;
+}
+
+function sajuSnapshotBlock(result: LoveJobResult) {
+  const snapshot = result.sajuSnapshot;
+  if (!snapshot) return null;
+
+  const relationText = snapshot.spousePalace.relations.length > 0 ? snapshot.spousePalace.relations.join(', ') : '큰 합충 신호 없음';
+  const rows = [
+    ['사주팔자', `${snapshot.pillars.year} / ${snapshot.pillars.month} / ${snapshot.pillars.day} / ${snapshot.pillars.hour}`],
+    ['일간 강약', `${ratioLevel(snapshot.dayMaster.strength, '강한 편', '보통', '낮은 편')} · 감정 표현과 관계 속도 조절의 기본 체력으로 봅니다.`],
+    ['오행 균형', `${levelLabel(snapshot.elementProfile.balanceScore, '고른 편', '보완 필요', '많이 치우친 편')} · ${snapshot.elementProfile.dominant} 기운이 강하고 ${snapshot.elementProfile.weakest} 기운 보완이 필요합니다.`],
+    ['배우자궁', `안정도 ${ratioLevel(snapshot.spousePalace.stability, '안정적인 편', '보통', '약한 편')}, 충돌 가능성 ${riskLevel(snapshot.spousePalace.conflictRisk)} · ${relationText}`],
+    ['배우자별', `활성도 ${ratioLevel(snapshot.spouseStar.presence, '높은 편', '중간 이상', '낮은 편')}, 균형 ${ratioLevel(snapshot.spouseStar.balance, '안정적인 편', '보통', '보완 필요')}, 혼잡도 ${riskLevel(snapshot.spouseStar.conflictRisk)}`],
+    ['도화/홍란/홍염', romanceStarsSummary(snapshot)],
+  ];
+
+  return h(
+    Section,
+    {
+      style: {
+        marginTop: '12px',
+        border: `1px solid ${BORDER_COLOR}`,
+        borderRadius: CARD_RADIUS,
+        backgroundColor: SECTION_BG,
+        padding: '16px',
+      },
+    },
+    h(Text, { style: { margin: '0 0 6px', fontSize: '15px', color: TEXT_DARK, fontWeight: 800 } }, '만세력 근거 요약'),
+    h(Text, { style: { margin: '0 0 12px', fontSize: '13px', color: TEXT_SOFT, lineHeight: '1.55' } }, '아래 항목은 점수와 해석에 사용한 원자료입니다. 어려운 용어는 관계에서 어떤 의미로 읽었는지 함께 적었습니다.'),
+    h(
+      'table',
+      { role: 'presentation', width: '100%', cellPadding: 0, cellSpacing: 0, style: { borderCollapse: 'collapse' } },
+      h(
+        'tbody',
+        null,
+        ...rows.map(([label, value]) =>
+          h(
+            'tr',
+            { key: label },
+            h('td', { style: { width: '96px', padding: '8px 10px 8px 0', borderTop: `1px solid ${BORDER_COLOR}`, color: TEXT_SOFT, fontSize: '12px', fontWeight: 800, verticalAlign: 'top' } }, label),
+            h('td', { style: { padding: '8px 0', borderTop: `1px solid ${BORDER_COLOR}`, color: TEXT_MUTED, fontSize: '13px', lineHeight: '1.6', verticalAlign: 'top' } }, value),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+function scoreRationaleBlock(result: LoveJobResult) {
+  const rationales = result.scoreRationales;
+  if (!rationales) return null;
+
+  const items = [
+    ['연애 점수 근거', rationales.love],
+    ['혼인 안정 근거', rationales.marriage],
+    ['갈등 리스크 근거', rationales.risk],
+  ];
+
+  return h(
+    Section,
+    {
+      style: {
+        marginTop: '12px',
+        border: `1px solid ${BORDER_COLOR}`,
+        borderRadius: CARD_RADIUS,
+        backgroundColor: SECTION_BG,
+        padding: '16px',
+      },
+    },
+    h(Text, { style: { margin: '0 0 10px', fontSize: '15px', color: TEXT_DARK, fontWeight: 800 } }, '왜 이 점수인가'),
+    ...items.map(([title, body]) =>
+      h(
+        Section,
+        { key: title, style: { marginTop: '10px', padding: '12px', borderRadius: '10px', backgroundColor: SOFT_BG } },
+        h(Text, { style: { margin: '0 0 6px', fontSize: '13px', color: TEXT_DARK, fontWeight: 800 } }, title),
+        h(Text, { style: { margin: 0, fontSize: '13px', color: TEXT_MUTED, lineHeight: '1.68' } }, body),
+      ),
+    ),
+  );
+}
+
+function concernAnswerBlock(result: LoveJobResult, fallbackConcern: string | null) {
+  const answer = result.concernAnswer;
+  if (!answer?.answer) return null;
+  const concern = answer.concern || fallbackConcern;
+
+  return h(
+    Section,
+    {
+      style: {
+        marginTop: '12px',
+        border: `1px solid ${BORDER_COLOR}`,
+        borderRadius: CARD_RADIUS,
+        backgroundColor: '#f7f2ea',
+        padding: '16px',
+      },
+    },
+    h(Text, { style: { margin: '0 0 8px', fontSize: '15px', color: TEXT_DARK, fontWeight: 800 } }, '고민에 대한 직접 답변'),
+    concern ? h(Text, { style: { margin: '0 0 10px', fontSize: '13px', color: TEXT_SOFT, lineHeight: '1.6' } }, `입력하신 고민: ${concern}`) : null,
+    h(Text, { style: { margin: '0 0 12px', fontSize: '14px', color: TEXT_MUTED, lineHeight: '1.75' } }, answer.answer),
+    answer.actionItems.length > 0
+      ? h(
+          Section,
+          { style: { marginTop: '8px' } },
+          h(Text, { style: { margin: '0 0 8px', fontSize: '12px', color: TEXT_SOFT, fontWeight: 800 } }, '바로 해볼 행동'),
+          ...answer.actionItems.map((item, index) =>
+            h(Text, { key: item, style: { margin: '0 0 6px', fontSize: '13px', color: TEXT_MUTED, lineHeight: '1.6' } }, `${index + 1}. ${item}`),
+          ),
+        )
+      : null,
+  );
+}
+
+function sectionCard(title: string, body: string) {
+  return h(
+    Section,
+    {
+      style: {
+        marginBottom: '10px',
+        border: `1px solid ${BORDER_COLOR}`,
+        borderRadius: CARD_RADIUS,
+        backgroundColor: SECTION_BG,
+        padding: '14px',
+      },
+    },
+    h(Text, { style: { margin: '0 0 8px', fontSize: '15px', color: TEXT_DARK, fontWeight: 800 } }, title),
+    h(Text, { style: { margin: 0, fontSize: '14px', color: TEXT_MUTED, lineHeight: '1.78' } }, body),
+  );
+}
+
 function yearlyChartBlock(yearlyGuidance: LoveJobResult['yearlyGuidance']) {
-  const rows = yearlyGuidance.map((row) => {
+  const sorted = sortedYearlyGuidance(yearlyGuidance);
+  const bestYear = bestOpportunityYear(yearlyGuidance);
+  const rows = sorted.map((row) => {
     const love = ratioToPercent(row.loveChance);
     const risk = ratioToPercent(row.breakupRisk);
     const riskTone = getRiskTone(risk);
+    const isBest = bestYear?.year === row.year;
 
     return h(
       'tr',
@@ -224,6 +412,24 @@ function yearlyChartBlock(yearlyGuidance: LoveJobResult['yearlyGuidance']) {
           },
         },
         h(Text, { style: { margin: 0, color: TEXT_DARK, fontSize: '13px', fontWeight: 800 } }, `${row.year}년`),
+        isBest
+          ? h(
+              'span',
+              {
+                style: {
+                  display: 'inline-block',
+                  marginTop: '6px',
+                  padding: '3px 7px',
+                  borderRadius: '999px',
+                  backgroundColor: '#18181b',
+                  color: '#ffffff',
+                  fontSize: '11px',
+                  fontWeight: 800,
+                },
+              },
+              '최고 기회',
+            )
+          : null,
       ),
       h(
         'td',
@@ -313,8 +519,8 @@ function yearlyChartBlock(yearlyGuidance: LoveJobResult['yearlyGuidance']) {
         padding: '16px',
       },
     },
-    h(Text, { style: { margin: '0 0 4px', fontSize: '15px', color: TEXT_DARK, fontWeight: 800 } }, '년도별 연애운 차트'),
-    h(Text, { style: { margin: '0 0 12px', fontSize: '13px', color: TEXT_SOFT, lineHeight: '1.55' } }, '막대는 연애운 흐름, 배지는 갈등 리스크를 뜻합니다. 숫자는 엔진 산출값을 그대로 사용했습니다.'),
+    h(Text, { style: { margin: '0 0 4px', fontSize: '15px', color: TEXT_DARK, fontWeight: 800 } }, '연도별 연애운 차트'),
+    h(Text, { style: { margin: '0 0 12px', fontSize: '13px', color: TEXT_SOFT, lineHeight: '1.55' } }, '표시는 연도순입니다. 막대는 연애운 흐름, 배지는 갈등 리스크를 뜻하고, 최고 기회 배지는 연애 기대값이 가장 높은 해를 뜻합니다. 숫자는 엔진 산출값을 그대로 사용했습니다.'),
     h(
       'table',
       { role: 'presentation', width: '100%', cellPadding: 0, cellSpacing: 0, style: { borderCollapse: 'collapse' } },
@@ -328,8 +534,9 @@ function loveResultTemplate(payload: LoveResultEmailPayload) {
   const riskScore = clampPercent(result.riskScore);
   const riskTone = getRiskTone(riskScore);
   const detailedSections = result.detailedSections ?? [];
-  const yearlyGuidance = result.yearlyGuidance ?? [];
+  const yearlyGuidance = sortedYearlyGuidance(result.yearlyGuidance ?? []);
   const concern = normalizeOptionalText(payload.concern);
+  const directConcernAnswer = concernAnswerBlock(result, concern);
 
   return baseLayout(
     `${payload.name}님의 사주 리포트가 도착했습니다`,
@@ -342,13 +549,14 @@ function loveResultTemplate(payload: LoveResultEmailPayload) {
         `${payload.name || '고객'}님의 사주 연애 리포트`,
       ),
       h(Text, { style: { margin: '0', fontSize: '12px', color: TEXT_SOFT } }, `요청 ID: ${payload.requestId}`),
+      h(Text, { style: { margin: '10px 0 0', fontSize: '15px', color: TEXT_MUTED, lineHeight: '1.7' } }, result.summary),
       h(Hr, { style: { borderColor: BORDER_COLOR, margin: '14px 0' } }),
       h(
         Row,
         null,
-        scoreCard('연애 점수', result.loveScore, TEXT_DARK),
-        scoreCard('혼인 안정', result.marriageScore, '#52525b'),
-        scoreCard('갈등 리스크', result.riskScore, '#a1a1aa'),
+        scoreCard('연애 점수', result.loveScore, TEXT_DARK, result.scoreRationales?.love),
+        scoreCard('혼인 안정', result.marriageScore, '#52525b', result.scoreRationales?.marriage),
+        scoreCard('갈등 리스크', result.riskScore, '#a1a1aa', result.scoreRationales?.risk),
       ),
       h(
         Section,
@@ -383,6 +591,8 @@ function loveResultTemplate(payload: LoveResultEmailPayload) {
           ' 구간입니다.',
         ),
       ),
+      scoreRationaleBlock(result),
+      sajuSnapshotBlock(result),
       h(
         Section,
         {
@@ -399,9 +609,7 @@ function loveResultTemplate(payload: LoveResultEmailPayload) {
         h(
           'div',
           { style: { marginTop: '4px' } },
-          metricBadge('신뢰도', `${ratioToPercent(result.confidence)}%`),
-          ' ',
-          metricBadge('근거', `${result.evidenceCodes.length}개`),
+          metricBadge('근거 신호', `${result.evidenceCodes.length}개`),
           ' ',
           metricBadge('상세', `${detailedSections.length}개 섹션`),
         ),
@@ -412,7 +620,8 @@ function loveResultTemplate(payload: LoveResultEmailPayload) {
         h(Text, { style: { margin: '0 0 8px', fontSize: '12px', color: TEXT_SOFT, fontWeight: 700 } }, '타이밍 힌트'),
         h(Text, { style: { margin: '0', fontSize: '14px', color: TEXT_MUTED, lineHeight: '1.72' } }, result.timingHint),
       ),
-      concern
+      directConcernAnswer,
+      !directConcernAnswer && concern
         ? h(
             Section,
             {
@@ -441,8 +650,8 @@ function loveResultTemplate(payload: LoveResultEmailPayload) {
             padding: '16px',
           },
         },
-        h(Text, { style: { margin: '0 0 10px', fontSize: '15px', color: TEXT_DARK, fontWeight: 800 } }, '상세 해석 (열기/닫기)'),
-        ...detailedSections.map((section) => detailsBlock(section.title, section.body)),
+        h(Text, { style: { margin: '0 0 10px', fontSize: '15px', color: TEXT_DARK, fontWeight: 800 } }, '상세 해석'),
+        ...detailedSections.map((section) => sectionCard(section.title, section.body)),
       ),
       h(
         Section,
@@ -463,18 +672,6 @@ function loveResultTemplate(payload: LoveResultEmailPayload) {
         {
           style: {
             margin: '14px 0 0',
-            color: TEXT_SOFT,
-            fontSize: '12px',
-            lineHeight: '1.6',
-          },
-        },
-        `모델 버전: ${result.modelVersion} · 신뢰도 ${ratioToPercent(result.confidence)}%`,
-      ),
-      h(
-        Text,
-        {
-          style: {
-            margin: '6px 0 0',
             color: TEXT_SOFT,
             fontSize: '12px',
             lineHeight: '1.6',
@@ -521,7 +718,7 @@ function adminSummaryTemplate(payload: AdminSummaryEmailPayload) {
 }
 
 export async function renderLoveResultEmail(payload: LoveResultEmailPayload): Promise<RenderedEmail> {
-  const html = await render(loveResultTemplate(payload));
+  const html = (await render(loveResultTemplate(payload))).replace(/\u0000/g, '');
   return {
     html,
     text: cleanPlainText(toPlainText(html)),
@@ -529,7 +726,7 @@ export async function renderLoveResultEmail(payload: LoveResultEmailPayload): Pr
 }
 
 export async function renderAdminSummaryEmail(payload: AdminSummaryEmailPayload): Promise<RenderedEmail> {
-  const html = await render(adminSummaryTemplate(payload));
+  const html = (await render(adminSummaryTemplate(payload))).replace(/\u0000/g, '');
   return {
     html,
     text: cleanPlainText(toPlainText(html)),
