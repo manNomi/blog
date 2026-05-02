@@ -109,7 +109,7 @@
     "detailedReport": {
       "type": "string",
       "minLength": 220,
-      "maxLength": 2400
+      "maxLength": 4200
     },
     "detailedSections": {
       "type": "array",
@@ -128,15 +128,15 @@
           "body": {
             "type": "string",
             "minLength": 60,
-            "maxLength": 650
+            "maxLength": 1600
           }
         }
       }
     },
     "yearlyGuidance": {
       "type": "array",
-      "minItems": 3,
-      "maxItems": 4,
+      "minItems": 10,
+      "maxItems": 10,
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -160,7 +160,7 @@
           "focus": {
             "type": "string",
             "minLength": 16,
-            "maxLength": 180
+            "maxLength": 500
           }
         }
       }

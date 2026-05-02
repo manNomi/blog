@@ -6,6 +6,21 @@ import {
   renderLoveResultEmail,
 } from '../src/lib/saju/server/email-templates.ts';
 
+function sampleYearlyGuidance() {
+  return [
+    { year: 2026, loveChance: 0.52, breakupRisk: 0.34, focus: '2026 실행 포커스' },
+    { year: 2027, loveChance: 0.57, breakupRisk: 0.32, focus: '2027 실행 포커스' },
+    { year: 2028, loveChance: 0.49, breakupRisk: 0.3, focus: '2028 실행 포커스' },
+    { year: 2029, loveChance: 0.61, breakupRisk: 0.37, focus: '2029 실행 포커스' },
+    { year: 2030, loveChance: 0.9, breakupRisk: 0.3, focus: '2030 실행 포커스' },
+    { year: 2031, loveChance: 0.75, breakupRisk: 0.3, focus: '2031 실행 포커스' },
+    { year: 2032, loveChance: 0.58, breakupRisk: 0.39, focus: '2032 실행 포커스' },
+    { year: 2033, loveChance: 0.63, breakupRisk: 0.35, focus: '2033 실행 포커스' },
+    { year: 2034, loveChance: 0.54, breakupRisk: 0.31, focus: '2034 실행 포커스' },
+    { year: 2035, loveChance: 0.56, breakupRisk: 0.3, focus: '2035 실행 포커스' },
+  ];
+}
+
 function sampleResult() {
   return {
     loveScore: 84,
@@ -52,11 +67,7 @@ function sampleResult() {
       { title: '1) 전체 진단', body: '전체 진단 본문' },
       { title: '2) 현재 관계 상태 해석', body: '관계 상태 해석 본문' },
     ],
-    yearlyGuidance: [
-      { year: 2030, loveChance: 0.9, breakupRisk: 0.3, focus: '2030 실행 포커스' },
-      { year: 2028, loveChance: 0.49, breakupRisk: 0.3, focus: '2028 실행 포커스' },
-      { year: 2029, loveChance: 0.61, breakupRisk: 0.37, focus: '2029 실행 포커스' },
-    ],
+    yearlyGuidance: sampleYearlyGuidance(),
     modelVersion: 'saju-love-v2+llm:codex-local-codex',
     generationMeta: {
       provider: 'codex',
@@ -81,20 +92,23 @@ test('renderLoveResultEmail includes evidence-rich modern report blocks', async 
   assert.match(rendered.html, /왜 이 점수인가/);
   assert.match(rendered.html, /만세력 근거 요약/);
   assert.match(rendered.html, /고민에 대한 직접 답변/);
-  assert.match(rendered.html, /연도별 연애운 차트/);
+  assert.match(rendered.html, /2026~2035 연애운 타임라인/);
   assert.match(rendered.html, /최고 기회/);
   assert.match(rendered.html, /width:90%/);
   assert.match(rendered.html, /리스크 30%/);
 
-  const first2028 = rendered.text.indexOf('2028년');
-  const first2029 = rendered.text.indexOf('2029년');
-  const first2030 = rendered.text.indexOf('2030년');
-  assert.ok(first2028 >= 0 && first2029 > first2028 && first2030 > first2029);
+  const yearPositions = Array.from({ length: 10 }, (_, index) => {
+    const year = 2026 + index;
+    return rendered.text.indexOf(`${year} 실행 포커스`);
+  });
+  assert.ok(yearPositions.every((position) => position >= 0));
+  assert.deepEqual([...yearPositions].sort((a, b) => a - b), yearPositions);
 
   assert.match(rendered.text, /소개팅이 잘 안 풀리는 문제/);
   assert.match(rendered.text, /사주팔자/);
   assert.match(rendered.text, /첫 만남 후 24시간 안에/);
   assert.match(rendered.text, /2028 실행 포커스/);
+  assert.match(rendered.text, /2035 실행 포커스/);
   assert.match(rendered.text, /도화·홍란·홍염 신호/);
   assert.doesNotMatch(rendered.text, /청하신 연애운 풀이 글월/);
   assert.doesNotMatch(rendered.text, /모델 버전|local-codex|Codex|confidence|presence|traces|evidenceCodes|loveChance|breakupRisk/);

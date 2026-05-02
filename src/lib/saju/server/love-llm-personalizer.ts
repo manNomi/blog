@@ -116,6 +116,12 @@ function buildBirthPlaceGuide(birthPlace: string) {
   return `${birthPlace} 출생 배경을 고려해 지역 생활 리듬(이동 시간, 약속 시간)에 맞춘 조언을 포함하세요.`;
 }
 
+function yearRangeText(result: LoveJobResult) {
+  const years = result.yearlyGuidance.map((row) => row.year).sort((a, b) => a - b);
+  if (!years.length) return '연도별 가이드';
+  return `${years[0]}~${years[years.length - 1]}년 ${years.length}개 연도`;
+}
+
 function getOpenAiConfig(): OpenAiConfig {
   const apiKey = process.env.OPENAI_API_KEY?.trim();
   const model = process.env.OPENAI_MODEL?.trim();
@@ -271,6 +277,7 @@ function buildPersonalizerPrompt(input: LoveJobInput, baselineResult: LoveJobRes
   const birthPlace = normalizeBirthPlace(input);
   const concern = normalizeConcern(input);
   const hasConcern = concern !== '미입력';
+  const guidanceRange = yearRangeText(baselineResult);
 
   return [
     '아래 엔진 산출값과 만세력 요약을 바탕으로 이메일로 보낼 사주 연애 리포트 문장을 새로 작성하세요.',
@@ -284,14 +291,14 @@ function buildPersonalizerPrompt(input: LoveJobInput, baselineResult: LoveJobRes
     '- scoreRationales: { love, marriage, risk }',
     '- concernAnswer: { concern, answer, actionItems }',
     '- detailedSections[{title, body}]',
-    '- yearlyGuidance[{year, focus}]',
+    `- yearlyGuidance[{year, focus}] (${guidanceRange} 전체)`,
     '',
     '[절대 규칙: 엔진 값 보존]',
     '- 출력 JSON 키는 영어로 유지하되, 각 값에 들어가는 문장은 반드시 한국어 자연문으로 작성한다',
     '- 연애 점수, 혼인 안정, 갈등 리스크, 연도는 절대 변경하거나 새로 만들지 말 것',
     '- LLM은 텍스트만 작성한다. 점수/확률/연도는 입력에 있는 한국어 요약값만 언급한다',
     '- detailedSections는 기본_문장.상세_섹션의 title을 그대로 유지하고 body만 다시 작성한다',
-    '- yearlyGuidance는 연도별_가이드의 year를 그대로 유지하고 focus만 다시 작성한다',
+    `- yearlyGuidance는 연도별_가이드의 year를 그대로 유지하고 ${guidanceRange}를 하나도 빠뜨리지 않는다`,
     '- confidence, presence, balance, stability, conflictRisk, traces, evidenceCodes, spouseRelations, loveChance, breakupRisk 같은 내부 키 이름을 문장에 쓰지 말 것',
     '- 0.688095238 같은 소수 원자료를 절대 쓰지 말 것. 필요한 경우 69%, 보통, 중간 이상, 낮은 편처럼 사용자용 표현만 쓸 것',
     '',
@@ -307,6 +314,7 @@ function buildPersonalizerPrompt(input: LoveJobInput, baselineResult: LoveJobRes
     '- scoreRationales love/marriage/risk는 각각 3문장 이상으로 쓰고 해당 점수의 근거를 반드시 설명한다',
     '- detailedSections 각 body는 5~7문장으로 작성하고 반드시 "사주 근거 → 관계 해석 → 현실적인 행동 제안" 흐름을 따른다',
     '- yearlyGuidance.focus는 각 연도별로 2~3문장 작성하고 무엇을 시도할지와 무엇을 조심할지 모두 포함한다',
+    `- yearlyGuidance는 반드시 ${guidanceRange} 전체를 연도 오름차순으로 작성한다`,
     '- highlight/caution/timingHint는 각각 3~4문장으로 작성한다',
     '- 배우자궁, 배우자별, 도화, 홍란, 홍염, 일간 강약, 오행 균형 중 실제 입력에 있는 근거를 활용한다',
     '- birthPlace 맥락 조언을 최소 1회 포함한다',
@@ -411,6 +419,21 @@ function assertConcernReflected(input: LoveJobInput, personalized: PersonalizedL
   }
 }
 
+function assertYearlyGuidanceCoverage(personalized: PersonalizedLoveText, expectedYears: number[], errorPrefix: string) {
+  const expected = [...expectedYears].sort((a, b) => a - b);
+  const actual = personalized.yearlyGuidance.map((row) => row.year).sort((a, b) => a - b);
+
+  if (actual.length !== expected.length) {
+    throw new Error(`${errorPrefix}_yearly_guidance_incomplete`);
+  }
+
+  for (let index = 0; index < expected.length; index += 1) {
+    if (actual[index] !== expected[index]) {
+      throw new Error(`${errorPrefix}_yearly_guidance_incomplete`);
+    }
+  }
+}
+
 function assertOutputQuality(input: LoveJobInput, personalized: PersonalizedLoveText) {
   const texts = [
     personalized.summary,
@@ -509,7 +532,7 @@ function parseConcernAnswer(value: Record<string, unknown>): LoveConcernAnswer {
   return { concern, answer, actionItems };
 }
 
-function parsePersonalizedOutput(rawText: string, input: LoveJobInput, errorPrefix: string): PersonalizedLoveText {
+function parsePersonalizedOutput(rawText: string, input: LoveJobInput, errorPrefix: string, expectedYears: number[]): PersonalizedLoveText {
   const parsed = parseJsonOutput(rawText, errorPrefix);
   const value = parsed as Record<string, unknown>;
   const summary = typeof value.summary === 'string' ? value.summary.trim() : '';
@@ -556,6 +579,7 @@ function parsePersonalizedOutput(rawText: string, input: LoveJobInput, errorPref
     yearlyGuidance,
   };
 
+  assertYearlyGuidanceCoverage(personalized, expectedYears, errorPrefix);
   assertOutputQuality(input, personalized);
 
   return personalized;
@@ -682,6 +706,8 @@ async function requestOpenAiPersonalizedText(input: LoveJobInput, baselineResult
                 },
                 yearlyGuidance: {
                   type: 'array',
+                  minItems: 10,
+                  maxItems: 10,
                   items: {
                     type: 'object',
                     additionalProperties: false,
@@ -713,7 +739,7 @@ async function requestOpenAiPersonalizedText(input: LoveJobInput, baselineResult
     }
 
     return {
-      personalized: parsePersonalizedOutput(rawText, input, 'openai'),
+      personalized: parsePersonalizedOutput(rawText, input, 'openai', baselineResult.yearlyGuidance.map((row) => row.year)),
       model: config.model,
     };
   } catch (error) {
@@ -806,7 +832,7 @@ async function requestCodexPersonalizedText(input: LoveJobInput, baselineResult:
   try {
     const rawText = await readFile(outPath, 'utf8');
     return {
-      personalized: parsePersonalizedOutput(rawText, input, 'codex'),
+      personalized: parsePersonalizedOutput(rawText, input, 'codex', baselineResult.yearlyGuidance.map((row) => row.year)),
       model: config.model,
     };
   } finally {

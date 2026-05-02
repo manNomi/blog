@@ -6,6 +6,28 @@ import {
   personalizeLoveResult,
 } from '../src/lib/saju/server/love-llm-personalizer.ts';
 
+function baselineYearlyGuidance() {
+  return Array.from({ length: 10 }, (_, index) => {
+    const year = 2026 + index;
+    return {
+      year,
+      loveChance: Math.min(0.86, 0.58 + index * 0.025),
+      breakupRisk: Math.max(0.22, 0.36 - index * 0.008),
+      focus: `기본 포커스 ${year}`,
+    };
+  });
+}
+
+function generatedYearlyGuidance() {
+  return Array.from({ length: 10 }, (_, index) => {
+    const year = 2026 + index;
+    return {
+      year,
+      focus: `${year}년은 연락 템포 고민을 기준으로 관계의 속도를 점검하기 좋은 해입니다. 중요한 이야기는 문자보다 통화나 만남에서 나누고, 만남 뒤에는 다음 약속 후보를 짧게 제안하세요. 다만 상대 반응을 하루 만에 단정하지 말고 반복되는 행동 패턴을 보고 판단하는 편이 안전합니다.`,
+    };
+  });
+}
+
 function createBaselineResult() {
   return {
     loveScore: 78,
@@ -44,10 +66,7 @@ function createBaselineResult() {
       { title: '2) 현재 관계 상태 해석', body: '기본 해석' },
       { title: '3) 강점 패턴', body: '기본 강점' },
     ],
-    yearlyGuidance: [
-      { year: 2027, loveChance: 0.71, breakupRisk: 0.28, focus: '기본 포커스 2027' },
-      { year: 2028, loveChance: 0.69, breakupRisk: 0.31, focus: '기본 포커스 2028' },
-    ],
+    yearlyGuidance: baselineYearlyGuidance(),
     modelVersion: 'saju-love-v2',
   };
 }
@@ -86,16 +105,7 @@ function generatedPayload() {
         body: '강점은 감정이 한 번에 폭발하는 방식보다 꾸준한 약속과 반복되는 표현에서 살아납니다. 배우자별 활성도는 관계가 실제 만남으로 이어질 가능성이 있다는 신호로 볼 수 있습니다. 도화와 홍란 신호는 매력 노출이나 관계 공식화의 계기가 생길 때 장점으로 작동합니다. 다만 이 장점은 막연히 기다릴 때보다 만남 이후 후속 연락을 안정적으로 이어갈 때 더 잘 드러납니다. 현실적으로는 첫 만남 뒤 48시간 안에 짧은 후속 연락을 하고, 다음 약속을 너무 늦추지 않는 방식이 좋습니다.',
       },
     ],
-    yearlyGuidance: [
-      {
-        year: 2027,
-        focus: '2027년은 관계 방향을 다시 맞추기 좋은 해입니다. 연락 템포 고민은 혼자 판단하지 말고 소통 빈도와 약속 방식을 함께 정하는 대화로 풀어가세요. 특히 첫 제안은 짧고 구체적으로 남기는 편이 안정적입니다.',
-      },
-      {
-        year: 2028,
-        focus: '2028년에는 감정 표현이 커질 수 있어 서운함을 오래 쌓아두지 않는 것이 중요합니다. 중요한 이야기는 문자보다 통화나 만남에서 짧고 분명하게 나누는 편이 좋습니다. 대화 뒤에는 다음 약속을 확인해 불안을 줄이세요.',
-      },
-    ],
+    yearlyGuidance: generatedYearlyGuidance(),
   };
 }
 
@@ -155,6 +165,10 @@ test('personalizeLoveResult keeps numeric engine fields fixed and rewrites rich 
     assert.match(result.concernAnswer?.answer ?? '', /연락 템포 고민/);
     assert.match(result.detailedSections[0].body, /사주 근거/);
     assert.match(result.yearlyGuidance[1].focus, /중요한 이야기는 문자보다 통화나 만남/);
+    assert.deepEqual(
+      result.yearlyGuidance.map((row) => row.year),
+      [2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035],
+    );
     assert.equal(result.generationMeta?.provider, 'openai');
     assert.match(result.modelVersion, /saju-love-v2\+llm:openai-gpt-test-mini/);
     const requestBody = JSON.stringify(getRequestBody());
@@ -197,6 +211,32 @@ test('personalizeLoveResult falls back from local Codex failure to OpenAI', asyn
   } finally {
     process.env.CODEX_REPORT_BIN = originalBin;
   }
+});
+
+test('personalizeLoveResult rejects missing yearly guidance years', async () => {
+  const incomplete = generatedPayload();
+  incomplete.yearlyGuidance = incomplete.yearlyGuidance.slice(0, 9);
+
+  await withMockedOpenAi(incomplete, async () => {
+    await assert.rejects(
+      () =>
+        personalizeLoveResult(
+          {
+            name: '홍길동',
+            email: 'test@example.com',
+            gender: 'male',
+            calendarType: 'solar',
+            birthDate: '1991-01-01',
+            birthTime: '08:30',
+            birthPlace: '부산',
+            relationshipStatus: 'dating',
+            concern: '연락 템포 고민',
+          },
+          createBaselineResult(),
+        ),
+      /openai_yearly_guidance_incomplete/,
+    );
+  });
 });
 
 test('markLoveResultWithLlmFallback appends fallback marker for legacy callers only', () => {

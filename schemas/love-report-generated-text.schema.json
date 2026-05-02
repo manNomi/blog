@@ -58,8 +58,8 @@
     },
     "yearlyGuidance": {
       "type": "array",
-      "minItems": 3,
-      "maxItems": 6,
+      "minItems": 10,
+      "maxItems": 10,
       "items": {
         "type": "object",
         "additionalProperties": false,
