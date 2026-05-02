@@ -81,13 +81,6 @@ function firstSentence(value?: string) {
   return match?.[0] ?? normalized.slice(0, 120);
 }
 
-function providerLabel(result: LoveJobResult) {
-  const provider = result.generationMeta?.provider;
-  if (provider === 'codex') return 'Codex';
-  if (provider === 'openai') return 'OpenAI';
-  return '엔진';
-}
-
 function sortedYearlyGuidance(yearlyGuidance: LoveJobResult['yearlyGuidance']) {
   return [...yearlyGuidance].sort((a, b) => a.year - b.year);
 }
@@ -234,6 +227,40 @@ function readableRatio(value: number) {
   return `${ratioToPercent(value)}%`;
 }
 
+function levelLabel(value: number, highLabel = '높은 편', middleLabel = '보통', lowLabel = '낮은 편') {
+  if (!Number.isFinite(value)) return '확인 불가';
+  if (value >= 0.7) return highLabel;
+  if (value >= 0.45) return middleLabel;
+  return lowLabel;
+}
+
+function ratioLevel(value: number, highLabel = '높은 편', middleLabel = '보통', lowLabel = '낮은 편') {
+  return `${levelLabel(value, highLabel, middleLabel, lowLabel)} (${readableRatio(value)})`;
+}
+
+function riskLevel(value: number) {
+  if (!Number.isFinite(value)) return '확인 불가';
+  if (value >= 0.65) return `주의 필요 (${readableRatio(value)})`;
+  if (value >= 0.4) return `관리 필요 (${readableRatio(value)})`;
+  return `낮은 편 (${readableRatio(value)})`;
+}
+
+function romanceStarsSummary(snapshot: NonNullable<LoveJobResult['sajuSnapshot']>) {
+  const stars = snapshot.romanceStars;
+  const peachCount = stars.peachInner + stars.peachOuter;
+  const total = peachCount + stars.hongLuanCount + stars.hongYanCount;
+
+  if (total <= 0) {
+    return '도화·홍란·홍염 신호는 강하게 잡히지 않습니다. 첫인상으로 밀어붙이기보다 편안함과 신뢰를 쌓는 방식이 더 잘 맞습니다.';
+  }
+
+  const signals = [];
+  if (peachCount > 0) signals.push('도화 신호가 일부 보입니다');
+  if (stars.hongLuanCount > 0) signals.push('홍란 신호가 보입니다');
+  if (stars.hongYanCount > 0) signals.push('홍염 신호가 보입니다');
+  return `도화·홍란·홍염 신호는 일부 잡힙니다. ${signals.join(', ')}. 매력 표현은 살리되 관계 속도와 기대치를 함께 조율하는 편이 좋습니다.`;
+}
+
 function sajuSnapshotBlock(result: LoveJobResult) {
   const snapshot = result.sajuSnapshot;
   if (!snapshot) return null;
@@ -241,11 +268,11 @@ function sajuSnapshotBlock(result: LoveJobResult) {
   const relationText = snapshot.spousePalace.relations.length > 0 ? snapshot.spousePalace.relations.join(', ') : '큰 합충 신호 없음';
   const rows = [
     ['사주팔자', `${snapshot.pillars.year} / ${snapshot.pillars.month} / ${snapshot.pillars.day} / ${snapshot.pillars.hour}`],
-    ['일간 강약', `${readableRatio(snapshot.dayMaster.strength)} · 감정 표현과 관계 속도 조절의 기본 체력으로 봅니다.`],
-    ['오행 균형', `${snapshot.elementProfile.dominant} 기운이 강하고 ${snapshot.elementProfile.weakest} 기운 보완이 필요합니다. 균형도 ${readableRatio(snapshot.elementProfile.balanceScore)}.`],
-    ['배우자궁', `안정도 ${readableRatio(snapshot.spousePalace.stability)}, 충돌 가능성 ${readableRatio(snapshot.spousePalace.conflictRisk)} · ${relationText}`],
-    ['배우자별', `활성도 ${readableRatio(snapshot.spouseStar.presence)}, 균형 ${readableRatio(snapshot.spouseStar.balance)}, 혼잡도 ${readableRatio(snapshot.spouseStar.conflictRisk)}`],
-    ['도화/홍란/홍염', `도화 안쪽 ${snapshot.romanceStars.peachInner}, 도화 바깥 ${snapshot.romanceStars.peachOuter}, 홍란 ${snapshot.romanceStars.hongLuanCount}, 홍염 ${snapshot.romanceStars.hongYanCount}`],
+    ['일간 강약', `${ratioLevel(snapshot.dayMaster.strength, '강한 편', '보통', '낮은 편')} · 감정 표현과 관계 속도 조절의 기본 체력으로 봅니다.`],
+    ['오행 균형', `${levelLabel(snapshot.elementProfile.balanceScore, '고른 편', '보완 필요', '많이 치우친 편')} · ${snapshot.elementProfile.dominant} 기운이 강하고 ${snapshot.elementProfile.weakest} 기운 보완이 필요합니다.`],
+    ['배우자궁', `안정도 ${ratioLevel(snapshot.spousePalace.stability, '안정적인 편', '보통', '약한 편')}, 충돌 가능성 ${riskLevel(snapshot.spousePalace.conflictRisk)} · ${relationText}`],
+    ['배우자별', `활성도 ${ratioLevel(snapshot.spouseStar.presence, '높은 편', '중간 이상', '낮은 편')}, 균형 ${ratioLevel(snapshot.spouseStar.balance, '안정적인 편', '보통', '보완 필요')}, 혼잡도 ${riskLevel(snapshot.spouseStar.conflictRisk)}`],
+    ['도화/홍란/홍염', romanceStarsSummary(snapshot)],
   ];
 
   return h(
@@ -582,13 +609,9 @@ function loveResultTemplate(payload: LoveResultEmailPayload) {
         h(
           'div',
           { style: { marginTop: '4px' } },
-          metricBadge('신뢰도', `${ratioToPercent(result.confidence)}%`),
-          ' ',
-          metricBadge('근거', `${result.evidenceCodes.length}개`),
+          metricBadge('근거 신호', `${result.evidenceCodes.length}개`),
           ' ',
           metricBadge('상세', `${detailedSections.length}개 섹션`),
-          ' ',
-          metricBadge('생성', providerLabel(result)),
         ),
         h(Text, { style: { margin: '12px 0 8px', fontSize: '12px', color: TEXT_SOFT, fontWeight: 700 } }, '좋은 흐름'),
         h(Text, { style: { margin: '0 0 12px', fontSize: '14px', color: TEXT_MUTED, lineHeight: '1.72' } }, result.highlight),
@@ -649,19 +672,6 @@ function loveResultTemplate(payload: LoveResultEmailPayload) {
         {
           style: {
             margin: '14px 0 0',
-            color: TEXT_SOFT,
-            fontSize: '12px',
-            lineHeight: '1.6',
-          },
-        },
-        `모델 버전: ${result.modelVersion} · 신뢰도 ${ratioToPercent(result.confidence)}%`,
-        result.generationMeta ? ` · 생성 ${providerLabel(result)}(${result.generationMeta.model})` : '',
-      ),
-      h(
-        Text,
-        {
-          style: {
-            margin: '6px 0 0',
             color: TEXT_SOFT,
             fontSize: '12px',
             lineHeight: '1.6',

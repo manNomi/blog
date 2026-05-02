@@ -85,7 +85,6 @@ test('renderLoveResultEmail includes evidence-rich modern report blocks', async 
   assert.match(rendered.html, /최고 기회/);
   assert.match(rendered.html, /width:90%/);
   assert.match(rendered.html, /리스크 30%/);
-  assert.match(rendered.text, /생성\s*Codex/);
 
   const first2028 = rendered.text.indexOf('2028년');
   const first2029 = rendered.text.indexOf('2029년');
@@ -96,7 +95,10 @@ test('renderLoveResultEmail includes evidence-rich modern report blocks', async 
   assert.match(rendered.text, /사주팔자/);
   assert.match(rendered.text, /첫 만남 후 24시간 안에/);
   assert.match(rendered.text, /2028 실행 포커스/);
+  assert.match(rendered.text, /도화·홍란·홍염 신호/);
   assert.doesNotMatch(rendered.text, /청하신 연애운 풀이 글월/);
+  assert.doesNotMatch(rendered.text, /모델 버전|local-codex|Codex|confidence|presence|traces|evidenceCodes|loveChance|breakupRisk/);
+  assert.doesNotMatch(rendered.text, /\b(?:0|1)\.\d+\b/);
   assert.doesNotMatch(rendered.html, /\u0000/);
   assert.doesNotMatch(rendered.text, /\u0000/);
 });

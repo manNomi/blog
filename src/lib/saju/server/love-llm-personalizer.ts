@@ -24,6 +24,23 @@ const FORBIDDEN_TONE_PATTERNS = [
   /좋은 흐름입니다[.。]?$/,
   /안정적으로 흐릅니다[.。]?$/,
 ];
+const FORBIDDEN_INTERNAL_PATTERNS = [
+  /\b(?:0|1)\.\d+\b/,
+  /\bconfidence\b/i,
+  /\bpresence\b/i,
+  /\bbalance\b/i,
+  /\bstability\b/i,
+  /\bconflictRisk\b/i,
+  /\btraces\b/i,
+  /\bevidenceCodes\b/i,
+  /\bspouseRelations\b/i,
+  /\bloveChance\b/i,
+  /\bbreakupRisk\b/i,
+  /\bdayMaster\b/i,
+  /\belementBalance\b/i,
+  /\bspousePalace\b/i,
+  /\bspouseStar\b/i,
+];
 
 export const MAX_LLM_RETRIES = 3;
 
@@ -140,43 +157,114 @@ function buildModelVersionWithLlm(baseModelVersion: string, llmTag: string) {
 
 function buildDefaultScoreRationales(result: LoveJobResult): LoveScoreRationales {
   return {
-    love: `연애 점수 ${result.loveScore}점은 인연 유입 가능성, 배우자궁 안정도, 도화·홍란·홍염처럼 관계를 움직이는 신호를 함께 반영한 값입니다. 현재 핵심 근거는 ${result.evidenceCodes.join(', ')}이며, 강한 오행 ${result.dominantElement}과 약한 오행 ${result.weakestElement}의 균형을 어떻게 맞추는지가 관계 표현에 영향을 줍니다. 점수 자체보다 이 점수가 말하는 행동 방향을 읽는 것이 중요합니다.`,
+    love: `연애 점수 ${result.loveScore}점은 인연 유입 가능성, 배우자궁 안정도, 도화·홍란·홍염처럼 관계를 움직이는 신호를 함께 반영한 값입니다. 현재 근거 신호는 ${result.evidenceCodes.length}개이며, 강한 오행 ${result.dominantElement}과 약한 오행 ${result.weakestElement}의 균형을 어떻게 맞추는지가 관계 표현에 영향을 줍니다. 점수 자체보다 이 점수가 말하는 행동 방향을 읽는 것이 중요합니다.`,
     marriage: `혼인 안정 점수 ${result.marriageScore}점은 장기 관계로 이어질 때의 안정성, 약속을 지키는 힘, 관계를 공식화할 수 있는 흐름을 함께 본 값입니다. 추천 연도와 신뢰도 ${Math.round(result.confidence * 100)}%를 함께 보면, 좋은 시기에는 만남의 양보다 관계 규칙을 구체화하는 대화가 더 중요합니다. 생활 리듬과 기대치를 맞추면 안정 점수의 장점이 현실에서 살아납니다.`,
     risk: `갈등 리스크 ${result.riskScore}점은 감정 기복, 배우자궁 충돌 가능성, 연락·속도 차이에서 생길 수 있는 오해를 반영한 값입니다. 리스크가 있다는 말은 관계가 실패한다는 뜻이 아니라, 어떤 상황에서 불필요한 소모가 커지는지 미리 보라는 의미입니다. 감정이 올라온 날에는 즉시 결론 내리기보다 대화 시간을 나눠 잡는 것이 안전합니다.`,
   };
 }
 
-function baselineForPrompt(result: LoveJobResult) {
+function toPercent(value: number) {
+  if (!Number.isFinite(value)) return '확인 불가';
+  return `${Math.max(0, Math.min(100, Math.round(value * 100)))}%`;
+}
+
+function toLevel(value: number, highLabel = '높음', middleLabel = '보통', lowLabel = '낮음') {
+  if (!Number.isFinite(value)) return '확인 불가';
+  if (value >= 0.7) return highLabel;
+  if (value >= 0.45) return middleLabel;
+  return lowLabel;
+}
+
+function toRiskLevel(value: number) {
+  if (!Number.isFinite(value)) return '확인 불가';
+  if (value >= 0.65) return '주의 필요';
+  if (value >= 0.4) return '관리 필요';
+  return '낮은 편';
+}
+
+function signalPresenceLabel(count: number) {
+  if (!Number.isFinite(count) || count <= 0) return '강하게 잡히지 않음';
+  if (count >= 2) return '뚜렷하게 잡힘';
+  return '약하게 잡힘';
+}
+
+function summarizeRomanceStars(result: LoveJobResult) {
+  const stars = result.sajuSnapshot?.romanceStars;
+  if (!stars) return '확인 가능한 보조 신호가 제한적입니다.';
+
+  const peachCount = stars.peachInner + stars.peachOuter;
+  const hongLuan = signalPresenceLabel(stars.hongLuanCount);
+  const hongYan = signalPresenceLabel(stars.hongYanCount);
+
+  if (peachCount <= 0 && stars.hongLuanCount <= 0 && stars.hongYanCount <= 0) {
+    return '도화·홍란·홍염 신호는 강하게 잡히지 않습니다. 첫인상으로 강하게 밀어붙이기보다 편안함과 신뢰를 쌓는 방식이 더 잘 맞습니다.';
+  }
+
+  return `도화 신호는 ${signalPresenceLabel(peachCount)}, 홍란 신호는 ${hongLuan}, 홍염 신호는 ${hongYan}으로 읽습니다. 강한 매력 연출보다 관계 흐름에 맞춘 표현이 중요합니다.`;
+}
+
+function buildPromptContext(result: LoveJobResult) {
+  const snapshot = result.sajuSnapshot;
+  const topYears = result.topYears.map((row) => ({
+    연도: `${row.year}년`,
+    연애_기대: toPercent(row.loveChance),
+    갈등_리스크: toPercent(row.breakupRisk),
+  }));
+  const yearlyGuidance = result.yearlyGuidance.map((row) => ({
+    year: row.year,
+    연애_기대: toPercent(row.loveChance),
+    갈등_리스크: toPercent(row.breakupRisk),
+    기존_초점: row.focus,
+  }));
+
   return {
-    fixedNumbers: {
-      loveScore: result.loveScore,
-      marriageScore: result.marriageScore,
-      riskScore: result.riskScore,
-      confidence: result.confidence,
-      dominantElement: result.dominantElement,
-      weakestElement: result.weakestElement,
-      topYears: result.topYears,
-      evidenceCodes: result.evidenceCodes,
+    고정_점수: {
+      연애_점수: `${result.loveScore}점`,
+      혼인_안정: `${result.marriageScore}점`,
+      갈등_리스크: `${result.riskScore}점`,
+      강한_오행: result.dominantElement,
+      보완할_오행: result.weakestElement,
+      근거_신호_수: `${result.evidenceCodes.length}개`,
     },
-    sajuSnapshot: result.sajuSnapshot ?? null,
-    scoreRationales: result.scoreRationales ?? buildDefaultScoreRationales(result),
-    baselineText: {
-      summary: result.summary,
-      highlight: result.highlight,
-      caution: result.caution,
-      timingHint: result.timingHint,
-      detailedSections: result.detailedSections.map((section) => ({
+    만세력_요약: snapshot
+      ? {
+          사주팔자: `${snapshot.pillars.year} / ${snapshot.pillars.month} / ${snapshot.pillars.day} / ${snapshot.pillars.hour}`,
+          일간_강약: `${toLevel(snapshot.dayMaster.strength, '강한 편', '보통', '낮은 편')} (${toPercent(snapshot.dayMaster.strength)})`,
+          오행_균형: `${toLevel(snapshot.elementProfile.balanceScore, '고른 편', '보완 필요', '많이 치우친 편')}`,
+          오행_설명: `${snapshot.elementProfile.dominant} 기운이 강하고 ${snapshot.elementProfile.weakest} 기운 보완이 필요합니다.`,
+          배우자궁: {
+            안정도: `${toLevel(snapshot.spousePalace.stability, '안정적인 편', '보통', '약한 편')} (${toPercent(snapshot.spousePalace.stability)})`,
+            충돌_가능성: `${toRiskLevel(snapshot.spousePalace.conflictRisk)} (${toPercent(snapshot.spousePalace.conflictRisk)})`,
+            관계_신호: snapshot.spousePalace.relations.length > 0 ? snapshot.spousePalace.relations.join(', ') : '큰 합충 신호 없음',
+          },
+          배우자별: {
+            활성도: `${toLevel(snapshot.spouseStar.presence, '높은 편', '중간 이상', '낮은 편')} (${toPercent(snapshot.spouseStar.presence)})`,
+            균형: `${toLevel(snapshot.spouseStar.balance, '안정적인 편', '보통', '보완 필요')} (${toPercent(snapshot.spouseStar.balance)})`,
+            혼잡도: `${toRiskLevel(snapshot.spouseStar.conflictRisk)} (${toPercent(snapshot.spouseStar.conflictRisk)})`,
+          },
+          도화_홍란_홍염: summarizeRomanceStars(result),
+        }
+      : '만세력 세부 요약 없음',
+    추천_연도: topYears,
+    연도별_가이드: yearlyGuidance,
+    기본_문장: {
+      요약: result.summary,
+      좋은_흐름: result.highlight,
+      주의_포인트: result.caution,
+      타이밍_힌트: result.timingHint,
+      상세_섹션: result.detailedSections.map((section) => ({
         title: section.title,
-        body: section.body,
-      })),
-      yearlyGuidance: result.yearlyGuidance.map((row) => ({
-        year: row.year,
-        loveChance: row.loveChance,
-        breakupRisk: row.breakupRisk,
-        focus: row.focus,
+        기존_본문: section.body,
       })),
     },
   };
+}
+
+function baselineForPrompt(result: LoveJobResult) {
+  return buildPromptContext({
+    ...result,
+    scoreRationales: result.scoreRationales ?? buildDefaultScoreRationales(result),
+  });
 }
 
 function buildPersonalizerPrompt(input: LoveJobInput, baselineResult: LoveJobResult) {
@@ -199,10 +287,13 @@ function buildPersonalizerPrompt(input: LoveJobInput, baselineResult: LoveJobRes
     '- yearlyGuidance[{year, focus}]',
     '',
     '[절대 규칙: 엔진 값 보존]',
-    '- loveScore, marriageScore, riskScore, confidence, topYears, evidenceCodes, yearlyGuidance.year는 절대 변경하거나 새로 만들지 말 것',
-    '- LLM은 텍스트만 작성한다. 점수/확률/연도/근거코드는 입력에 있는 값만 언급한다',
-    '- detailedSections는 baselineText.detailedSections의 title을 그대로 유지하고 body만 다시 작성한다',
-    '- yearlyGuidance는 baselineText.yearlyGuidance의 year를 그대로 유지하고 focus만 다시 작성한다',
+    '- 출력 JSON 키는 영어로 유지하되, 각 값에 들어가는 문장은 반드시 한국어 자연문으로 작성한다',
+    '- 연애 점수, 혼인 안정, 갈등 리스크, 연도는 절대 변경하거나 새로 만들지 말 것',
+    '- LLM은 텍스트만 작성한다. 점수/확률/연도는 입력에 있는 한국어 요약값만 언급한다',
+    '- detailedSections는 기본_문장.상세_섹션의 title을 그대로 유지하고 body만 다시 작성한다',
+    '- yearlyGuidance는 연도별_가이드의 year를 그대로 유지하고 focus만 다시 작성한다',
+    '- confidence, presence, balance, stability, conflictRisk, traces, evidenceCodes, spouseRelations, loveChance, breakupRisk 같은 내부 키 이름을 문장에 쓰지 말 것',
+    '- 0.688095238 같은 소수 원자료를 절대 쓰지 말 것. 필요한 경우 69%, 보통, 중간 이상, 낮은 편처럼 사용자용 표현만 쓸 것',
     '',
     '[문체 규칙]',
     '- 상담사가 직접 설명하는 듯한 자연스러운 존댓말로 쓴다',
@@ -217,7 +308,7 @@ function buildPersonalizerPrompt(input: LoveJobInput, baselineResult: LoveJobRes
     '- detailedSections 각 body는 5~7문장으로 작성하고 반드시 "사주 근거 → 관계 해석 → 현실적인 행동 제안" 흐름을 따른다',
     '- yearlyGuidance.focus는 각 연도별로 2~3문장 작성하고 무엇을 시도할지와 무엇을 조심할지 모두 포함한다',
     '- highlight/caution/timingHint는 각각 3~4문장으로 작성한다',
-    '- 배우자궁, 배우자별, 도화, 홍란, 홍염, 일간 강약, 오행 균형, traces 중 실제 입력에 있는 근거를 활용한다',
+    '- 배우자궁, 배우자별, 도화, 홍란, 홍염, 일간 강약, 오행 균형 중 실제 입력에 있는 근거를 활용한다',
     '- birthPlace 맥락 조언을 최소 1회 포함한다',
     hasConcern
       ? '- concern이 입력되어 있으므로 summary, caution, timingHint, concernAnswer, 상세 섹션, 연도별 가이드가 이 고민과 연결되어야 한다'
@@ -229,7 +320,7 @@ function buildPersonalizerPrompt(input: LoveJobInput, baselineResult: LoveJobRes
     '[출생지 맞춤 가이드]',
     buildBirthPlaceGuide(birthPlace),
     '',
-    '[엔진 산출값 및 만세력 요약(JSON)]',
+    '[사용자용으로 정리한 엔진 산출값 및 만세력 요약(JSON)]',
     JSON.stringify(baselineForPrompt(baselineResult), null, 2),
   ].join('\n');
 }
@@ -260,6 +351,15 @@ function assertNoForbiddenTone(value: string) {
   for (const pattern of FORBIDDEN_TONE_PATTERNS) {
     if (pattern.test(compact)) {
       throw new Error('llm_forbidden_tone');
+    }
+  }
+}
+
+function assertNoInternalLeak(value: string) {
+  const compact = compactText(value);
+  for (const pattern of FORBIDDEN_INTERNAL_PATTERNS) {
+    if (pattern.test(compact)) {
+      throw new Error('llm_internal_metric_leak');
     }
   }
 }
@@ -328,6 +428,7 @@ function assertOutputQuality(input: LoveJobInput, personalized: PersonalizedLove
 
   for (const text of texts) {
     assertNoForbiddenTone(text);
+    assertNoInternalLeak(text);
     assertNoRepeatedSentences(text);
   }
 

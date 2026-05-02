@@ -157,8 +157,13 @@ test('personalizeLoveResult keeps numeric engine fields fixed and rewrites rich 
     assert.match(result.yearlyGuidance[1].focus, /중요한 이야기는 문자보다 통화나 만남/);
     assert.equal(result.generationMeta?.provider, 'openai');
     assert.match(result.modelVersion, /saju-love-v2\+llm:openai-gpt-test-mini/);
-    assert.match(JSON.stringify(getRequestBody()), /연락 템포 고민/);
-    assert.match(JSON.stringify(getRequestBody()), /만세력 요약/);
+    const requestBody = JSON.stringify(getRequestBody());
+    const prompt = getRequestBody().input[1].content;
+    const userFacingContext = prompt.split('[사용자용으로 정리한 엔진 산출값 및 만세력 요약(JSON)]')[1] ?? '';
+    assert.match(requestBody, /연락 템포 고민/);
+    assert.match(requestBody, /만세력 요약/);
+    assert.doesNotMatch(userFacingContext, /presence|confidence|traces|evidenceCodes|loveChance|breakupRisk/);
+    assert.doesNotMatch(userFacingContext, /0\.7|0\.62|0\.82/);
   });
 });
 
@@ -250,6 +255,32 @@ test('personalizeLoveResult rejects archaic or unreadable tone', async () => {
           createBaselineResult(),
         ),
       /llm_forbidden_tone/,
+    );
+  });
+});
+
+test('personalizeLoveResult rejects raw internal metrics in generated prose', async () => {
+  const leaked = generatedPayload();
+  leaked.summary = `${leaked.summary} confidence 0.82와 presence 0.6880952380952382를 보면 좋습니다.`;
+
+  await withMockedOpenAi(leaked, async () => {
+    await assert.rejects(
+      () =>
+        personalizeLoveResult(
+          {
+            name: '홍길동',
+            email: 'test@example.com',
+            gender: 'male',
+            calendarType: 'solar',
+            birthDate: '1991-01-01',
+            birthTime: '08:30',
+            birthPlace: '부산',
+            relationshipStatus: 'dating',
+            concern: '연락 템포 고민',
+          },
+          createBaselineResult(),
+        ),
+      /llm_internal_metric_leak/,
     );
   });
 });
