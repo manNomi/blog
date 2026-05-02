@@ -1,5 +1,6 @@
 import { nanoid } from 'nanoid';
 import { buildLoveResult } from '../love-result';
+import { MAX_LLM_RETRIES, hasPersonalizationConcern, personalizeLoveResult } from './love-llm-personalizer';
 import {
   RELATIONSHIP_STATUSES,
   type LoveJob,
@@ -25,6 +26,8 @@ function normalizeRelationshipStatus(value: unknown): RelationshipStatus {
 }
 
 function normalizeInput(input: Partial<LoveJobInput> | LoveJobInput): LoveJobInput {
+  const normalizedConcern = input.concern?.trim();
+
   return {
     name: input.name?.trim() ?? '',
     email: input.email?.trim().toLowerCase() ?? '',
@@ -33,7 +36,8 @@ function normalizeInput(input: Partial<LoveJobInput> | LoveJobInput): LoveJobInp
     birthDate: input.birthDate?.trim() ?? '',
     birthTime: input.birthTime?.trim() || '',
     birthPlace: input.birthPlace?.trim() ?? '',
-    relationshipStatus: normalizeRelationshipStatus(input.relationshipStatus)
+    relationshipStatus: normalizeRelationshipStatus(input.relationshipStatus),
+    concern: normalizedConcern ? normalizedConcern : undefined,
   };
 }
 
@@ -91,7 +95,8 @@ export function validateLoveInput(input: LoveJobInput) {
     input.birthDate.length > 20 ||
     input.birthTime.length > 10 ||
     input.birthPlace.length > 120 ||
-    input.email.length > 200
+    input.email.length > 200 ||
+    (input.concern?.length ?? 0) > 200
   ) {
     throw new Error('input_length_invalid');
   }
@@ -200,7 +205,10 @@ export async function processLoveJob(jobId: string) {
   let sentEmail: { provider: 'resend' | 'console'; messageId: string | null; sentAt: number } | null = null;
 
   try {
-    result = buildLoveResult(normalizedInput);
+    const baselineResult = buildLoveResult(normalizedInput);
+    result = hasPersonalizationConcern(normalizedInput)
+      ? await personalizeLoveResult(normalizedInput, baselineResult)
+      : baselineResult;
 
     const emailResult = await sendLoveResultEmail({
       to: normalizedInput.email,
@@ -250,15 +258,19 @@ export async function processLoveJob(jobId: string) {
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : 'analysis_or_email_failed';
+    const nextRetryCount = sentEmail ? job.retryCount ?? 0 : (job.retryCount ?? 0) + 1;
+    const shouldRetry = !sentEmail && nextRetryCount < MAX_LLM_RETRIES;
+    const nextStatus: LoveJob['status'] = sentEmail ? 'completed' : shouldRetry ? 'queued' : 'failed';
 
     await updateLoveJob(job.id, {
-      status: sentEmail ? 'completed' : 'failed',
+      status: nextStatus,
       input: normalizedInput,
       updatedAt: Date.now(),
-      processingCompletedAt: Date.now(),
+      processingStartedAt: nextStatus === 'queued' ? null : job.processingStartedAt,
+      processingCompletedAt: nextStatus === 'queued' ? null : Date.now(),
       error: sentEmail ? null : message,
       result,
-      retryCount: sentEmail ? job.retryCount ?? 0 : (job.retryCount ?? 0) + 1,
+      retryCount: nextRetryCount,
       email: {
         ...job.email,
         provider: sentEmail?.provider ?? job.email.provider,
@@ -269,22 +281,33 @@ export async function processLoveJob(jobId: string) {
       },
     });
 
-    try {
-      await sendAdminJobSummaryEmail({
+    if (nextStatus === 'queued') {
+      logEvent('warn', 'saju_request_retry_queued', {
         requestId: job.id,
-        requesterName: normalizedInput.name,
-        requesterEmail: normalizedInput.email,
-        status: sentEmail ? 'completed' : 'failed',
-        error: sentEmail ? null : message,
-        source: 'api',
-        result,
+        retryCount: nextRetryCount,
+        maxRetries: MAX_LLM_RETRIES,
+        message,
       });
-    } catch (notifyError) {
-      logEvent('warn', 'admin_summary_email_failed', {
-        requestId: job.id,
-        source: 'api',
-        message: notifyError instanceof Error ? notifyError.message : 'unknown',
-      });
+    }
+
+    if (nextStatus !== 'queued') {
+      try {
+        await sendAdminJobSummaryEmail({
+          requestId: job.id,
+          requesterName: normalizedInput.name,
+          requesterEmail: normalizedInput.email,
+          status: nextStatus,
+          error: sentEmail ? null : message,
+          source: 'api',
+          result,
+        });
+      } catch (notifyError) {
+        logEvent('warn', 'admin_summary_email_failed', {
+          requestId: job.id,
+          source: 'api',
+          message: notifyError instanceof Error ? notifyError.message : 'unknown',
+        });
+      }
     }
   }
 

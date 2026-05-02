@@ -11,6 +11,7 @@ export type LoveJobInput = {
   birthTime: string;
   birthPlace: string;
   relationshipStatus: RelationshipStatus;
+  concern?: string;
 };
 
 export type LoveResultSection = {
