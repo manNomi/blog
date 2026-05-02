@@ -253,10 +253,7 @@ function buildDetailedSections(
 ) {
   const dominant = toKoreanElementName(analysis.elementProfile.dominant);
   const weakest = toKoreanElementName(analysis.elementProfile.weakest);
-  const sortedTimeline = [...analysis.timeline]
-    .sort((a, b) => b.loveChance - b.breakupRisk - (a.loveChance - a.breakupRisk))
-    .slice(0, 5)
-    .sort((a, b) => a.year - b.year);
+  const sortedTimeline = [...analysis.timeline].sort((a, b) => a.year - b.year);
 
   const yearlyGuidance = sortedTimeline.map((year) => ({
     year: year.year,

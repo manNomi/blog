@@ -392,6 +392,10 @@ function sectionCard(title: string, body: string) {
 function yearlyChartBlock(yearlyGuidance: LoveJobResult['yearlyGuidance']) {
   const sorted = sortedYearlyGuidance(yearlyGuidance);
   const bestYear = bestOpportunityYear(yearlyGuidance);
+  const firstYear = sorted[0]?.year;
+  const lastYear = sorted[sorted.length - 1]?.year;
+  const title = firstYear && lastYear ? `${firstYear}~${lastYear} 연애운 타임라인` : '연도별 연애운 타임라인';
+  const bestLove = bestYear ? ratioToPercent(bestYear.loveChance) : null;
   const rows = sorted.map((row) => {
     const love = ratioToPercent(row.loveChance);
     const risk = ratioToPercent(row.breakupRisk);
@@ -405,7 +409,7 @@ function yearlyChartBlock(yearlyGuidance: LoveJobResult['yearlyGuidance']) {
         'td',
         {
           style: {
-            padding: '13px 0',
+            padding: '12px 0',
             borderTop: `1px solid ${BORDER_COLOR}`,
             verticalAlign: 'top',
             width: '72px',
@@ -435,7 +439,7 @@ function yearlyChartBlock(yearlyGuidance: LoveJobResult['yearlyGuidance']) {
         'td',
         {
           style: {
-            padding: '13px 10px',
+            padding: '12px 10px',
             borderTop: `1px solid ${BORDER_COLOR}`,
             verticalAlign: 'top',
           },
@@ -453,17 +457,18 @@ function yearlyChartBlock(yearlyGuidance: LoveJobResult['yearlyGuidance']) {
                 'td',
                 {
                   style: {
-                    height: '10px',
+                    height: '12px',
                     borderRadius: '999px',
                     overflow: 'hidden',
                     backgroundColor: SOFT_BG,
+                    border: `1px solid ${BORDER_COLOR}`,
                   },
                 },
                 h('div', {
                   style: {
                     width: `${love}%`,
-                    height: '10px',
-                    backgroundColor: TEXT_DARK,
+                    height: '12px',
+                    backgroundColor: isBest ? '#18181b' : '#71717a',
                     borderRadius: '999px',
                   },
                 }),
@@ -482,7 +487,7 @@ function yearlyChartBlock(yearlyGuidance: LoveJobResult['yearlyGuidance']) {
         'td',
         {
           style: {
-            padding: '13px 0',
+            padding: '12px 0',
             borderTop: `1px solid ${BORDER_COLOR}`,
             verticalAlign: 'top',
             width: '76px',
@@ -515,12 +520,19 @@ function yearlyChartBlock(yearlyGuidance: LoveJobResult['yearlyGuidance']) {
         marginTop: '12px',
         border: `1px solid ${BORDER_COLOR}`,
         borderRadius: CARD_RADIUS,
-        backgroundColor: SECTION_BG,
+        backgroundColor: '#ffffff',
         padding: '16px',
       },
     },
-    h(Text, { style: { margin: '0 0 4px', fontSize: '15px', color: TEXT_DARK, fontWeight: 800 } }, '연도별 연애운 차트'),
-    h(Text, { style: { margin: '0 0 12px', fontSize: '13px', color: TEXT_SOFT, lineHeight: '1.55' } }, '표시는 연도순입니다. 막대는 연애운 흐름, 배지는 갈등 리스크를 뜻하고, 최고 기회 배지는 연애 기대값이 가장 높은 해를 뜻합니다. 숫자는 엔진 산출값을 그대로 사용했습니다.'),
+    h(Text, { style: { margin: '0 0 4px', fontSize: '16px', color: TEXT_DARK, fontWeight: 900 } }, title),
+    bestYear
+      ? h(
+          Text,
+          { style: { margin: '0 0 8px', fontSize: '13px', color: TEXT_MUTED, lineHeight: '1.6' } },
+          `${bestYear.year}년이 가장 강한 기회 구간입니다. 연애운 ${bestLove}% 흐름을 기준으로, 아래 타임라인에서 준비·확장·정리 시점을 함께 보세요.`,
+        )
+      : null,
+    h(Text, { style: { margin: '0 0 12px', fontSize: '13px', color: TEXT_SOFT, lineHeight: '1.55' } }, '표시는 연도순입니다. 막대는 연애운 흐름, 배지는 갈등 리스크를 뜻합니다. 숫자는 엔진 산출값을 그대로 사용했습니다.'),
     h(
       'table',
       { role: 'presentation', width: '100%', cellPadding: 0, cellSpacing: 0, style: { borderCollapse: 'collapse' } },
