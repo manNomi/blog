@@ -170,6 +170,33 @@ export type LoveAnalysis = {
 };
 
 const MODEL_VERSION = "love-engine-v2.4";
+const CORE_MODEL_VERSION = "saju-core-v1.0";
+
+export type SajuCoreDiagnostics = {
+  pillars: {
+    year: string;
+    month: string;
+    day: string;
+    hour: string;
+  };
+  dayMaster: {
+    stem: HeavenlyStem;
+    branch: EarthlyBranch;
+    strength: number;
+  };
+  elementProfile: ElementProfile;
+};
+
+export type SajuCoreAnalysis = {
+  chart: Chart;
+  confidence: number;
+  dayMasterStrength: number;
+  elementProfile: ElementProfile;
+  diagnostics: SajuCoreDiagnostics;
+  evidenceCodes: string[];
+  traces: string[];
+  modelVersion: string;
+};
 
 const STEM_ELEMENT: Record<HeavenlyStem, Element> = {
   JIA: "wood",
@@ -844,6 +871,66 @@ function buildConfidence(input: BirthInput) {
   if (!input.birthPlace) confidence -= 0.04;
 
   return clamp01(confidence);
+}
+
+export function analyzeSajuCore(input: BirthInput): SajuCoreAnalysis {
+  const chart = buildApproxChart(input);
+  const elementProfile = calcElementProfile(chart);
+  const dayMasterStrength = calcDayMasterStrength(chart, elementProfile);
+  const confidence = buildConfidence(input);
+  const evidenceCodes: string[] = [];
+
+  if (elementProfile.balanceScore > 0.66) {
+    evidenceCodes.push("C_ELEM_BALANCED");
+  } else if (elementProfile.balanceScore < 0.42) {
+    evidenceCodes.push("C_ELEM_IMBALANCED");
+  } else {
+    evidenceCodes.push("C_ELEM_MODERATE");
+  }
+
+  if (dayMasterStrength < 0.42) {
+    evidenceCodes.push("C_DAYMASTER_NEEDS_SUPPORT");
+  } else if (dayMasterStrength > 0.72) {
+    evidenceCodes.push("C_DAYMASTER_STRONG");
+  } else {
+    evidenceCodes.push("C_DAYMASTER_STEADY");
+  }
+
+  const diagnostics: SajuCoreDiagnostics = {
+    pillars: {
+      year: toKoreanPillar(chart.year),
+      month: toKoreanPillar(chart.month),
+      day: toKoreanPillar(chart.day),
+      hour: toKoreanPillar(chart.hour),
+    },
+    dayMaster: {
+      stem: chart.day.stem,
+      branch: chart.day.branch,
+      strength: dayMasterStrength,
+    },
+    elementProfile,
+  };
+
+  const countsTrace = Object.entries(elementProfile.counts)
+    .map(([element, count]) => `${element}=${count.toFixed(2)}`)
+    .join(", ");
+
+  return {
+    chart,
+    confidence,
+    dayMasterStrength,
+    elementProfile,
+    diagnostics,
+    evidenceCodes,
+    traces: [
+      `dayMaster=${dayMasterStrength.toFixed(2)}, elementBalance=${elementProfile.balanceScore.toFixed(2)}`,
+      `elementCounts(${countsTrace})`,
+      `elementProfile(dominant=${elementProfile.dominant}, weakest=${elementProfile.weakest})`,
+      `context(calendarType=${input.calendarType}, hasBirthTime=${Boolean(input.birthTime)}, hasBirthPlace=${Boolean(input.birthPlace)})`,
+      `confidence=${confidence.toFixed(2)}, model=${CORE_MODEL_VERSION}`,
+    ],
+    modelVersion: CORE_MODEL_VERSION,
+  };
 }
 
 function pickTopYears(timeline: YearLoveLuck[]) {

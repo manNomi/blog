@@ -1,8 +1,10 @@
 export const RELATIONSHIP_STATUSES = ['none', 'interested', 'dating', 'unknown'] as const;
 export const FORTUNE_TYPES = ['love', 'exam'] as const;
+export const EXAM_RESULT_FORMATS = ['grade', 'score'] as const;
 
 export type RelationshipStatus = (typeof RELATIONSHIP_STATUSES)[number];
 export type FortuneType = (typeof FORTUNE_TYPES)[number];
+export type ExamResultFormat = (typeof EXAM_RESULT_FORMATS)[number];
 
 export type LoveJobInput = {
   fortuneType?: FortuneType;
@@ -16,6 +18,7 @@ export type LoveJobInput = {
   relationshipStatus: RelationshipStatus;
   concern?: string;
   examSubject?: string;
+  examResultFormat?: ExamResultFormat;
 };
 
 export type LoveResultSection = {
@@ -69,6 +72,27 @@ export type LoveSajuSnapshot = {
     peachOuter: number;
     hongLuanCount: number;
     hongYanCount: number;
+  };
+  evidenceCodes: string[];
+  traces: string[];
+};
+
+export type ExamSajuSnapshot = {
+  pillars: {
+    year: string;
+    month: string;
+    day: string;
+    hour: string;
+  };
+  dayMaster: {
+    stem: string;
+    branch: string;
+    strength: number;
+  };
+  elementProfile: {
+    dominant: string;
+    weakest: string;
+    balanceScore: number;
   };
   evidenceCodes: string[];
   traces: string[];
@@ -140,8 +164,17 @@ export type ExamSubjectAnswer = {
   actionItems: string[];
 };
 
+export type ExamExpectedOutcome = {
+  format: ExamResultFormat;
+  label: string;
+  value: string;
+  description: string;
+  score: number;
+};
+
 export type ExamJobResult = {
   fortuneType: 'exam';
+  examResultFormat?: ExamResultFormat;
   examScore: number;
   subjectFitScore: number;
   effortScore: number;
@@ -149,7 +182,8 @@ export type ExamJobResult = {
   dominantElement: string;
   weakestElement: string;
   subjectProfile: ExamSubjectProfile;
-  topYears: Array<{ year: number; studyFlow: number; overloadRisk: number }>;
+  expectedOutcome?: ExamExpectedOutcome;
+  topYears?: Array<{ year: number; studyFlow: number; overloadRisk: number }>;
   evidenceCodes: string[];
   summary: string;
   highlight: string;
@@ -157,10 +191,10 @@ export type ExamJobResult = {
   timingHint: string;
   detailedReport: string;
   detailedSections: LoveResultSection[];
-  yearlyGuidance: ExamYearGuide[];
+  yearlyGuidance?: ExamYearGuide[];
   modelVersion: string;
   scoreRationales?: ExamScoreRationales;
-  sajuSnapshot?: LoveSajuSnapshot;
+  sajuSnapshot?: ExamSajuSnapshot;
   subjectAnswer?: ExamSubjectAnswer;
   generationMeta?: LoveGenerationMeta;
 };

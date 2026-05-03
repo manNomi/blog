@@ -1,5 +1,5 @@
-import { analyzeLoveFortune, toKoreanElementName, type Element } from './saju-love-engine';
-import type { ExamJobResult, ExamSubjectProfile, ExamYearGuide, LoveJobInput, LoveSajuSnapshot } from './love-job-types';
+import { analyzeSajuCore, toKoreanElementName, type Element } from './saju-core-engine';
+import type { ExamJobResult, ExamResultFormat, ExamSajuSnapshot, ExamSubjectProfile, LoveJobInput } from './love-job-types';
 
 const STEM_LABELS: Record<string, string> = {
   JIA: '갑',
@@ -98,10 +98,6 @@ function clampScore(value: number) {
   return Math.max(0, Math.min(100, Math.round(value)));
 }
 
-function percent(value01: number) {
-  return `${Math.round(clamp01(value01) * 100)}%`;
-}
-
 function normalizeSubject(value?: string) {
   return value?.normalize('NFKC').trim().replace(/\s+/g, ' ') ?? '';
 }
@@ -111,11 +107,13 @@ function classifySubject(subject: string): SubjectRule {
   return SUBJECT_RULES.find((rule) => rule.patterns.some((pattern) => pattern.test(normalized))) ?? FALLBACK_RULE;
 }
 
-function relationText(relation: { target: string; branch: string; relation: string }) {
-  return `${relation.target} ${BRANCH_LABELS[relation.branch] ?? relation.branch}(${relation.relation})`;
+function levelText(score: number, high: string, mid: string, low: string) {
+  if (score >= 75) return high;
+  if (score >= 58) return mid;
+  return low;
 }
 
-function buildSajuSnapshot(analysis: ReturnType<typeof analyzeLoveFortune>): LoveSajuSnapshot {
+function buildSajuSnapshot(analysis: ReturnType<typeof analyzeSajuCore>): ExamSajuSnapshot {
   const diagnostics = analysis.diagnostics;
 
   return {
@@ -130,13 +128,6 @@ function buildSajuSnapshot(analysis: ReturnType<typeof analyzeLoveFortune>): Lov
       weakest: toKoreanElementName(analysis.elementProfile.weakest),
       balanceScore: analysis.elementProfile.balanceScore,
     },
-    spousePalace: {
-      ...diagnostics.spousePalace,
-      branch: BRANCH_LABELS[diagnostics.spousePalace.branch] ?? diagnostics.spousePalace.branch,
-      relations: diagnostics.spousePalace.relations.map(relationText),
-    },
-    spouseStar: diagnostics.spouseStar,
-    romanceStars: diagnostics.romanceStars,
     evidenceCodes: analysis.evidenceCodes,
     traces: analysis.traces,
   };
@@ -154,47 +145,60 @@ function buildSubjectProfile(subject: string, rule: SubjectRule): ExamSubjectPro
   };
 }
 
-function buildYearFocus(row: ExamYearGuide, subject: string) {
-  if (row.studyFlow >= 0.72 && row.overloadRisk < 0.55) {
-    return `${row.year}년은 ${subject} 공부 흐름이 비교적 잘 붙는 구간입니다. 새 단원을 넓히기보다 기출과 오답을 촘촘히 연결하면 점수 회수가 빠릅니다. 다만 자신감이 올라온 날에도 풀이 근거를 쓰는 습관은 유지하세요.`;
+function buildRoutine(subject: string, effortScore: number) {
+  if (effortScore >= 72) {
+    return `${subject}는 4주 동안 같은 시간대에 짧고 반복적인 블록을 고정하는 편이 좋습니다. 1주차는 개념 빈칸 찾기, 2주차는 유형별 대표 문제, 3주차는 시간 제한 풀이, 4주차는 오답 재풀이로 좁히세요.`;
   }
 
-  if (row.overloadRisk >= 0.68) {
-    return `${row.year}년은 ${subject}를 무리하게 몰아치면 쉽게 지치는 흐름입니다. 하루 공부량을 크게 늘리기보다 40분 단위 반복과 짧은 회고로 리듬을 쪼개세요. 어려운 파트는 못하는 과목이라는 딱지를 붙이지 말고, 풀이 순서를 다시 만드는 쪽이 유리합니다.`;
+  if (effortScore >= 58) {
+    return `${subject}는 2주 단위 루틴이 잘 맞습니다. 첫 주에는 자주 틀리는 유형을 모으고, 둘째 주에는 같은 유형을 시간 제한 안에서 다시 풀어 정확도를 확인하세요.`;
   }
 
-  return `${row.year}년은 ${subject} 공부의 기초 체력을 다지는 구간입니다. 개념을 한 번 더 읽는 것보다 예제, 기출, 오답을 같은 규칙으로 묶어보세요. 작은 루틴을 꾸준히 지키면 과목 궁합의 약점도 충분히 보완됩니다.`;
+  return `${subject}는 이미 붙는 감각이 있으니 루틴을 너무 복잡하게 만들 필요는 없습니다. 매일 대표 문제 몇 개와 오답 한 줄 회고만 유지해도 흐름이 유지됩니다.`;
 }
 
-function buildYearlyGuidance(
-  analysis: ReturnType<typeof analyzeLoveFortune>,
-  subject: string,
-  fit01: number,
-  effort01: number,
-) {
-  return [...analysis.timeline]
-    .sort((a, b) => a.year - b.year)
-    .map((row) => {
-      const studyFlow = clamp01(row.loveChance * 0.42 + fit01 * 0.28 + analysis.elementProfile.balanceScore * 0.2 + (1 - row.breakupRisk) * 0.1);
-      const overloadRisk = clamp01(row.breakupRisk * 0.48 + effort01 * 0.34 + (1 - analysis.elementProfile.balanceScore) * 0.18);
-      const next = {
-        year: row.year,
-        studyFlow,
-        overloadRisk,
-        focus: '',
-      };
+function normalizeExamResultFormat(value?: ExamResultFormat): ExamResultFormat {
+  return value === 'grade' ? 'grade' : 'score';
+}
 
-      return {
-        ...next,
-        focus: buildYearFocus(next, subject),
-      };
-    });
+function gradeFromScore(score: number) {
+  if (score >= 95) return { value: 'A+ (4.5/4.5)', description: '상위권 학점까지 노려볼 수 있는 흐름입니다.' };
+  if (score >= 90) return { value: 'A0 (4.0/4.5)', description: 'A권 진입을 목표로 삼기 좋은 흐름입니다.' };
+  if (score >= 85) return { value: 'B+ (3.5/4.5)', description: '상위권에 붙을 수 있으나 오답 관리가 관건입니다.' };
+  if (score >= 80) return { value: 'B0 (3.0/4.5)', description: '기본기는 붙지만 실수 방지가 학점을 가릅니다.' };
+  if (score >= 75) return { value: 'C+ (2.5/4.5)', description: '보완 루틴을 잡으면 한 단계 끌어올릴 여지가 있습니다.' };
+  if (score >= 70) return { value: 'C0 (2.0/4.5)', description: '기초 구멍을 좁히는 루틴이 먼저 필요한 흐름입니다.' };
+  if (score >= 65) return { value: 'D+ (1.5/4.5)', description: '공부량보다 문제 접근 순서를 다시 세우는 편이 좋습니다.' };
+  if (score >= 60) return { value: 'D0 (1.0/4.5)', description: '짧은 반복 루틴으로 최소 안정선을 먼저 잡아야 합니다.' };
+  return { value: 'F 위험권', description: '포기 신호가 아니라 범위를 과감히 줄여 다시 시작하라는 경고에 가깝습니다.' };
+}
+
+function buildExpectedOutcome(format: ExamResultFormat, score: number) {
+  if (format === 'grade') {
+    const grade = gradeFromScore(score);
+    return {
+      format,
+      label: '예상 학점',
+      value: grade.value,
+      description: grade.description,
+      score,
+    };
+  }
+
+  return {
+    format,
+    label: '예상 점수',
+    value: `${score}점대`,
+    description: '100점 기준으로 체감 점수대를 잡은 값입니다.',
+    score,
+  };
 }
 
 export function buildExamResult(input: LoveJobInput): ExamJobResult {
   const subject = normalizeSubject(input.examSubject) || '시험 과목';
+  const examResultFormat = normalizeExamResultFormat(input.examResultFormat);
   const rule = classifySubject(subject);
-  const analysis = analyzeLoveFortune({
+  const analysis = analyzeSajuCore({
     birthDate: input.birthDate,
     birthTime: input.birthTime,
     gender: input.gender,
@@ -221,50 +225,48 @@ export function buildExamResult(input: LoveJobInput): ExamJobResult {
   const examScore = clampScore(40 + fit01 * 42 + (1 - effort01) * 10 + analysis.elementProfile.balanceScore * 8);
   const subjectFitScore = clampScore(35 + fit01 * 60);
   const effortScore = clampScore(35 + effort01 * 60);
+  const expectedOutcome = buildExpectedOutcome(examResultFormat, examScore);
   const dominant = toKoreanElementName(analysis.elementProfile.dominant);
   const weakest = toKoreanElementName(analysis.elementProfile.weakest);
   const subjectProfile = buildSubjectProfile(subject, rule);
-  const yearlyGuidance = buildYearlyGuidance(analysis, subject, fit01, effort01);
-  const topYears = [...yearlyGuidance]
-    .sort((a, b) => b.studyFlow - b.overloadRisk * 0.35 - (a.studyFlow - a.overloadRisk * 0.35))
-    .slice(0, 3)
-    .map((row) => ({ year: row.year, studyFlow: row.studyFlow, overloadRisk: row.overloadRisk }))
-    .sort((a, b) => a.year - b.year);
-  const bestYear = topYears[0]?.year ?? yearlyGuidance[0]?.year ?? new Date().getFullYear();
+  const fitLabel = levelText(subjectFitScore, '꽤 잘 붙는 편', '중간 이상', '처음엔 삐걱일 수 있는 편');
+  const effortLabel = levelText(effortScore, '루틴 보정이 크게 필요한 편', '반복 설계가 중요한 편', '기본 흐름을 살리기 좋은 편');
   const weakSubjectMessage = weakestHitsPrimary || weakestHitsSupport
     ? `${subject}가 안 맞는다는 결론은 아닙니다. 오행상 ${weakest} 기운을 보완해야 하는 과목이라, 재능보다 루틴 설계가 점수를 더 크게 흔듭니다.`
     : `${subject}는 타고난 흐름과 완전히 따로 노는 과목은 아닙니다. 다만 감으로 밀기보다 규칙을 반복해서 몸에 붙이는 쪽이 더 빠릅니다.`;
+  const routine = buildRoutine(subject, effortScore);
 
   const detailedSections = [
     {
       title: '1) 전체 시험운',
-      body: `이번 시험운은 ${examScore}점 흐름입니다. 강한 오행은 ${dominant}, 보완할 오행은 ${weakest}로 잡히며, ${subject}는 ${subjectProfile.primaryElementLabel} 기운을 중심으로 보는 과목입니다. 점수는 운이 대신 공부해준다는 뜻이 아니라, 어떤 방식으로 공부할 때 덜 새는지를 보여주는 지도에 가깝습니다. ${weakSubjectMessage}`,
+      body: `이번 시험운은 ${expectedOutcome.label} 기준 ${expectedOutcome.value} 흐름입니다. 강한 오행은 ${dominant}, 보완할 오행은 ${weakest}로 잡히며, ${subject}는 ${subjectProfile.primaryElementLabel} 기운을 중심으로 보는 과목입니다. 이 값은 운이 대신 공부해준다는 뜻이 아니라, 어떤 방식으로 공부할 때 덜 새는지를 보여주는 지도에 가깝습니다. ${weakSubjectMessage}`,
     },
     {
       title: '2) 과목 궁합',
-      body: `${subject}는 ${subjectProfile.category}으로 분류했습니다. ${subjectProfile.fitReason} 현재 과목 궁합 점수는 ${subjectFitScore}점이라, 기본 흐름은 ${subjectFitScore >= 75 ? '꽤 잘 붙는 편' : subjectFitScore >= 58 ? '중간 이상' : '처음엔 삐걱일 수 있는 편'}입니다. 궁합이 낮게 나와도 포기 신호가 아니라 공부 방식을 바꾸라는 알림에 가깝습니다.`,
+      body: `${subject}는 ${subjectProfile.category}으로 분류했습니다. ${subjectProfile.fitReason} 현재 과목 궁합 점수는 ${subjectFitScore}점이라, 기본 흐름은 ${fitLabel}입니다. 궁합이 낮게 나와도 포기 신호가 아니라 공부 방식을 바꾸라는 알림에 가깝습니다.`,
     },
     {
       title: '3) 오행상 보완 포인트',
-      body: `노력 보정 점수는 ${effortScore}점입니다. 이 점수가 높을수록 벼락치기보다 매일 같은 시간에 같은 규칙으로 반복하는 편이 좋습니다. 특히 ${subjectProfile.primaryElementLabel} 기운이 필요한 파트는 개념을 오래 읽는 방식보다 문제를 풀고 틀린 이유를 분류하는 방식이 잘 맞습니다. 오늘의 목표는 완벽 이해가 아니라 같은 실수를 줄이는 쪽으로 잡으세요.`,
+      body: `노력 보정 점수는 ${effortScore}점이고, 해석상 ${effortLabel}입니다. 이 점수가 높을수록 벼락치기보다 매일 같은 시간에 같은 규칙으로 반복하는 편이 좋습니다. 특히 ${subjectProfile.primaryElementLabel} 기운이 필요한 파트는 개념을 오래 읽는 방식보다 문제를 풀고 틀린 이유를 분류하는 방식이 잘 맞습니다. 오늘의 목표는 완벽 이해가 아니라 같은 실수를 줄이는 쪽으로 잡으세요.`,
     },
     {
       title: '4) 공부 전략',
-      body: `추천 루틴은 20분 개념 확인, 40분 문제 풀이, 10분 오답 이름 붙이기입니다. 오답에는 "개념 누락", "계산/문법 실수", "조건 오독", "시간 부족"처럼 원인을 붙이세요. ${subject}가 재미없게 느껴지는 날에는 공부량을 늘리기보다 시작 마찰을 줄이는 편이 낫습니다. 작은 단위로 자주 이기는 구조가 시험운을 현실 점수로 바꿉니다.`,
+      body: `추천 기본 루틴은 20분 개념 확인, 40분 문제 풀이, 10분 오답 이름 붙이기입니다. 오답에는 "개념 누락", "계산/문법 실수", "조건 오독", "시간 부족"처럼 원인을 붙이세요. ${subject}가 재미없게 느껴지는 날에는 공부량을 늘리기보다 시작 마찰을 줄이는 편이 낫습니다. 작은 단위로 자주 이기는 구조가 시험운을 현실 점수로 바꿉니다.`,
     },
     {
-      title: '5) 실전 멘탈',
-      body: `시험장에서는 안 맞는 과목이라는 생각이 올라와도 그 문장을 그대로 믿지 않는 것이 중요합니다. 사주 해석은 방향을 알려주는 장난기 있는 코칭이지, 합격과 불합격을 확정하는 판정표가 아닙니다. 긴장되는 문제를 만나면 바로 넘기고, 풀 수 있는 문제로 손을 데운 뒤 돌아오세요. 흐름을 되찾는 순서가 점수 방어의 핵심입니다.`,
+      title: '5) 주의 패턴',
+      body: `주의할 점은 어려운 단원을 성향 문제로 단정하는 순간입니다. 사주 해석은 방향을 알려주는 장난기 있는 코칭이지, 시험 결과를 확정하는 판정표가 아닙니다. 막히는 문제를 만나면 바로 넘기고, 풀 수 있는 문제로 손을 데운 뒤 돌아오세요. 흐름을 되찾는 순서가 점수 방어의 핵심입니다.`,
     },
     {
-      title: '6) 연도별 학습 흐름',
-      body: yearlyGuidance.map((row) => `${row.year}년: 학습 흐름 ${percent(row.studyFlow)}, 과부하 ${percent(row.overloadRisk)} · ${row.focus}`).join(' '),
+      title: '6) 짧은 루틴',
+      body: routine,
     },
   ];
   const detailedReport = detailedSections.map((section) => `${section.title}\n${section.body}`).join('\n\n');
 
   return {
     fortuneType: 'exam',
+    examResultFormat,
     examScore,
     subjectFitScore,
     effortScore,
@@ -272,18 +274,19 @@ export function buildExamResult(input: LoveJobInput): ExamJobResult {
     dominantElement: dominant,
     weakestElement: weakest,
     subjectProfile,
-    topYears,
+    expectedOutcome,
+    topYears: [],
     evidenceCodes: Array.from(new Set([...analysis.evidenceCodes, `E_SUBJECT_${rule.primaryElement.toUpperCase()}`, `E_SUPPORT_${rule.supportElement.toUpperCase()}`])),
-    summary: `${subject} 시험운은 ${examScore}점입니다. ${weakSubjectMessage} 지금은 재능 판정보다 공부 구조를 다시 짜는 쪽이 훨씬 쓸모 있습니다. ${subjectProfile.primaryElementLabel} 기운을 쓰는 과목답게, 한 번에 몰아치기보다 풀이 규칙과 오답 분류를 반복할수록 점수가 붙습니다.`,
-    highlight: `${subject}에서 살릴 장점은 ${dominant} 기운의 속도를 공부 루틴으로 바꾸는 데 있습니다. 잘 맞는 파트는 빠르게 밀고, 안 맞는 파트는 오답 원인을 이름 붙이며 공략하면 흐름이 살아납니다. ${bestYear}년은 학습 흐름을 확장하기 좋은 후보 구간입니다.`,
+    summary: `${subject} 시험운은 ${expectedOutcome.label} 기준 ${expectedOutcome.value}입니다. ${weakSubjectMessage} 지금은 재능 판정보다 공부 구조를 다시 짜는 쪽이 훨씬 쓸모 있습니다. ${subjectProfile.primaryElementLabel} 기운을 쓰는 과목답게, 한 번에 몰아치기보다 풀이 규칙과 오답 분류를 반복할수록 결과가 붙습니다.`,
+    highlight: `${subject}에서 살릴 장점은 ${dominant} 기운의 속도를 공부 루틴으로 바꾸는 데 있습니다. 잘 맞는 파트는 빠르게 밀고, 안 맞는 파트는 오답 원인을 이름 붙이며 공략하면 흐름이 살아납니다.`,
     caution: `${subject}가 안 맞는다는 말은 재미있는 경고일 뿐 결론이 아닙니다. 오행상 ${weakest} 기운을 보완해야 하므로, 컨디션이 흔들릴 때는 공부량보다 반복 규칙이 먼저입니다. 특히 어려운 단원은 감으로 버티지 말고 풀이 순서를 종이에 고정하세요.`,
-    timingHint: `${bestYear}년 전후로 ${subject} 학습 흐름을 끌어올리기 좋습니다. 새 교재를 계속 늘리기보다 같은 문제 묶음을 반복해 정확도를 올리세요. 흐름이 약한 해에는 시험 범위를 더 작게 쪼개고, 과부하가 오기 전에 쉬는 날을 먼저 배치하는 편이 안전합니다.`,
+    timingHint: `지금 시험운에서 중요한 타이밍은 먼 흐름보다 가까운 반복 주기입니다. 앞으로 2~4주 동안 새 교재를 계속 늘리기보다 같은 문제 묶음을 반복해 정확도를 올리세요. 흐름이 약한 날에는 시험 범위를 더 작게 쪼개고, 과부하가 오기 전에 쉬는 날을 먼저 배치하는 편이 안전합니다.`,
     detailedReport,
     detailedSections,
-    yearlyGuidance,
-    modelVersion: `exam-engine-v1+${analysis.modelVersion}`,
+    yearlyGuidance: [],
+    modelVersion: `exam-engine-v2+${analysis.modelVersion}`,
     scoreRationales: {
-      exam: `시험 점수는 과목 궁합, 오행 균형, 일간 강약, 연도 흐름을 함께 본 값입니다. ${subject}는 ${subjectProfile.primaryElementLabel}과 ${subjectProfile.supportElementLabel} 기운을 함께 쓰는 과목이라, 해당 기운의 분포가 공부 체감 난이도에 영향을 줍니다. 이 점수는 합격을 보장하는 숫자가 아니라 어떤 루틴으로 점수를 회수할지 알려주는 기준입니다.`,
+      exam: `${expectedOutcome.label}는 과목 궁합, 오행 균형, 일간 강약을 함께 본 값입니다. ${subject}는 ${subjectProfile.primaryElementLabel}과 ${subjectProfile.supportElementLabel} 기운을 함께 쓰는 과목이라, 해당 기운의 분포가 공부 체감 난이도에 영향을 줍니다. 이 값은 결과를 보장하는 판정이 아니라 어떤 루틴으로 성과를 회수할지 알려주는 기준입니다.`,
       subjectFit: `과목 궁합은 ${subjectProfile.fitReason} 현재 ${subject}와의 궁합은 ${subjectFitScore}점으로 계산되었습니다. 궁합이 낮은 부분은 재능 부족이 아니라 공부 방식을 더 잘게 쪼개야 하는 지점입니다.`,
       effort: `노력 보정은 ${effortScore}점입니다. 이 값이 높을수록 벼락치기보다 반복 루틴, 오답 분류, 시간 제한 훈련이 중요합니다. ${subject}가 버겁게 느껴지는 날에는 공부 시간을 늘리기보다 시작 단위를 작게 만드는 편이 효과적입니다.`,
     },
@@ -300,7 +303,7 @@ export function buildExamResult(input: LoveJobInput): ExamJobResult {
     },
     generationMeta: {
       provider: 'engine',
-      model: `exam-engine-v1+${analysis.modelVersion}`,
+      model: `exam-engine-v2+${analysis.modelVersion}`,
       attempts: 0,
       generatedAt: Date.now(),
     },

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { FortuneType, LoveJobPublic, RelationshipStatus } from '../lib/saju/love-job-types';
+import type { ExamResultFormat, FortuneType, LoveJobPublic, RelationshipStatus } from '../lib/saju/love-job-types';
 
 const TIME_REGEX = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
@@ -19,6 +19,7 @@ const requestFormSchema = z
     birthPlace: z.string().trim().min(2, '출생지는 2자 이상 입력해 주세요.').max(50, '출생지는 50자 이하로 입력해 주세요.'),
     concern: z.string().trim().max(200, '고민은 200자 이하로 입력해 주세요.').optional(),
     examSubject: z.string().trim().max(80, '과목은 80자 이하로 입력해 주세요.').optional(),
+    examResultFormat: z.enum(['grade', 'score']),
     relationshipStatus: z.enum(['none', 'interested', 'dating', 'unknown'], {
       required_error: '현재 관계 상태를 선택해 주세요.'
     })
@@ -66,6 +67,11 @@ const relationshipOptions: Array<{ value: RelationshipStatus; label: string; des
   { value: 'interested', label: '관심 있는 사람이 있음', description: '호감 상대와 가능성을 탐색 중인 상태' },
   { value: 'dating', label: '연애 중', description: '현재 연애를 더 안정적으로 이어가고 싶은 상태' },
   { value: 'unknown', label: '잘 모르겠음', description: '관계 상태를 아직 정리하지 못한 상태' }
+];
+
+const examResultFormatOptions: Array<{ value: ExamResultFormat; label: string; description: string }> = [
+  { value: 'grade', label: '예상 학점', description: '대학생 과목처럼 A/B/C 학점 감각으로 받아요.' },
+  { value: 'score', label: '예상 점수', description: '시험·자격증처럼 100점 기준 점수 감각으로 받아요.' }
 ];
 
 async function parseJson<T>(response: Response): Promise<T> {
@@ -127,6 +133,7 @@ export default function SajuLovePage() {
       birthPlace: '',
       concern: '',
       examSubject: '',
+      examResultFormat: 'grade',
       relationshipStatus: 'unknown'
     }
   });
@@ -136,6 +143,7 @@ export default function SajuLovePage() {
   const selectedGender = requestForm.watch('gender');
   const selectedCalendarType = requestForm.watch('calendarType');
   const selectedRelationship = requestForm.watch('relationshipStatus');
+  const selectedExamResultFormat = requestForm.watch('examResultFormat');
   const birthTimeUnknown = requestForm.watch('birthTimeUnknown');
   const concernLength = watched.concern?.length ?? 0;
   const examSubjectLength = watched.examSubject?.length ?? 0;
@@ -202,7 +210,8 @@ export default function SajuLovePage() {
               birthPlace: values.birthPlace,
               relationshipStatus: values.fortuneType === 'love' ? values.relationshipStatus : 'unknown',
               concern: values.fortuneType === 'love' && values.concern?.trim() ? values.concern.trim() : undefined,
-              examSubject: values.fortuneType === 'exam' && values.examSubject?.trim() ? values.examSubject.trim() : undefined
+              examSubject: values.fortuneType === 'exam' && values.examSubject?.trim() ? values.examSubject.trim() : undefined,
+              examResultFormat: values.fortuneType === 'exam' ? values.examResultFormat : undefined
             }
           })
         })
@@ -233,6 +242,7 @@ export default function SajuLovePage() {
       birthPlace: '',
       concern: '',
       examSubject: '',
+      examResultFormat: 'grade',
       relationshipStatus: 'unknown'
     });
     setRequestState(null);
@@ -336,6 +346,7 @@ export default function SajuLovePage() {
                         if (option.value === 'exam') {
                           requestForm.setValue('concern', '', { shouldValidate: true, shouldDirty: true });
                           requestForm.setValue('relationshipStatus', 'unknown', { shouldValidate: true, shouldDirty: true });
+                          requestForm.setValue('examResultFormat', requestForm.getValues('examResultFormat') ?? 'grade', { shouldValidate: true, shouldDirty: true });
                         } else {
                           requestForm.setValue('examSubject', '', { shouldValidate: true, shouldDirty: true });
                         }
@@ -473,21 +484,45 @@ export default function SajuLovePage() {
                 )}
               </div>
             ) : (
-              <label className="grid gap-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-zinc-700">고민중인 과목 *</span>
-                  <span className="text-xs text-zinc-500">{examSubjectLength}/80</span>
+              <div className="grid gap-3">
+                <label className="grid gap-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-zinc-700">고민중인 과목 *</span>
+                    <span className="text-xs text-zinc-500">{examSubjectLength}/80</span>
+                  </div>
+                  <input
+                    type="text"
+                    maxLength={80}
+                    placeholder="예: 컴퓨터, 수학, 영어, 한국사"
+                    {...requestForm.register('examSubject')}
+                    className="h-11 rounded-md border border-line bg-white px-3 outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-900/10"
+                  />
+                  <span className="text-xs leading-[1.55] text-zinc-500">오행상 과목 궁합과 보완 루틴을 재밌게 풀어드립니다.</span>
+                  {requestForm.formState.errors.examSubject && <em className="text-xs not-italic text-red-600 animate-toast-slide">{requestForm.formState.errors.examSubject.message}</em>}
+                </label>
+
+                <div className="grid gap-1.5">
+                  <span className="text-sm font-medium text-zinc-700">결과를 어떤 기준으로 받을까요? *</span>
+                  <div className="grid gap-2 rounded-md border border-line bg-soft p-1 md:grid-cols-2" role="group" aria-label="시험운 결과 기준 선택">
+                    {examResultFormatOptions.map((option) => {
+                      const active = selectedExamResultFormat === option.value;
+                      return (
+                        <button
+                          type="button"
+                          key={option.value}
+                          onClick={() => requestForm.setValue('examResultFormat', option.value, { shouldValidate: true, shouldDirty: true })}
+                          className={`rounded-md px-3 py-2.5 text-left transition-all duration-300 ${
+                            active ? 'scale-[1.01] bg-zinc-900 text-white' : 'bg-transparent text-zinc-700 hover:bg-zinc-200'
+                          }`}
+                        >
+                          <strong className="block text-sm">{option.label}</strong>
+                          <span className={`mt-1 block text-xs leading-[1.5] ${active ? 'text-zinc-200' : 'text-zinc-500'}`}>{option.description}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-                <input
-                  type="text"
-                  maxLength={80}
-                  placeholder="예: 컴퓨터, 수학, 영어, 한국사"
-                  {...requestForm.register('examSubject')}
-                  className="h-11 rounded-md border border-line bg-white px-3 outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-900/10"
-                />
-                <span className="text-xs leading-[1.55] text-zinc-500">오행상 과목 궁합과 보완 루틴을 재밌게 풀어드립니다.</span>
-                {requestForm.formState.errors.examSubject && <em className="text-xs not-italic text-red-600 animate-toast-slide">{requestForm.formState.errors.examSubject.message}</em>}
-              </label>
+              </div>
             )}
 
             <label className="grid gap-1.5">
@@ -542,7 +577,7 @@ export default function SajuLovePage() {
 
           <section className="rounded-md border border-line bg-soft px-4 py-3 text-xs leading-[1.6] text-zinc-600 md:text-[13px]">
             수집 항목: 이름, 이메일, 생년월일/시각, 출생지,
-            {selectedFortuneType === 'exam' ? ' 고민중인 과목' : ' 관계 상태(고민 내용은 선택)'}만 수집합니다.
+            {selectedFortuneType === 'exam' ? ' 고민중인 과목과 결과 기준' : ' 관계 상태(고민 내용은 선택)'}만 수집합니다.
             <br />
             처리 목적: 사주 {selectedFortuneType === 'exam' ? '시험운' : '연애운'} 분석 및 결과 이메일 발송 목적으로만 이용합니다.
             <br />

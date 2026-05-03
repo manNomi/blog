@@ -162,6 +162,7 @@ test('renderLoveResultEmail renders exam report blocks without internal keys', a
     birthPlace: '서울특별시',
     relationshipStatus: 'unknown',
     examSubject: '컴퓨터',
+    examResultFormat: 'grade',
   });
   const rendered = await renderLoveResultEmail({
     requestId: 'exam-123',
@@ -171,13 +172,14 @@ test('renderLoveResultEmail renders exam report blocks without internal keys', a
 
   assert.match(rendered.text, /사주 시험운 리포트/);
   assert.match(rendered.text, /컴퓨터/);
-  assert.match(rendered.text, /시험 점수/);
+  assert.match(rendered.text, /예상 학점/);
+  assert.match(rendered.text, /[ABCDF][+0]?|F 위험권/);
   assert.match(rendered.text, /과목 궁합/);
   assert.match(rendered.text, /노력 보정/);
   assert.match(rendered.text, /과목 맞춤 해석/);
   assert.match(rendered.text, /공부 전략/);
-  assert.match(rendered.text, /연도별 학습/);
+  assert.match(rendered.text, /짧은 루틴/);
   assert.match(rendered.text, /바로 해볼 행동/);
-  assert.doesNotMatch(rendered.text, /confidence|traces|elementProfile|studyFlow|overloadRisk|generationMeta/);
+  assert.doesNotMatch(rendered.text, /연도별 학습|학습 흐름 타임라인|confidence|traces|elementProfile|studyFlow|overloadRisk|generationMeta/);
   assert.doesNotMatch(rendered.text, /절대 못함|불합격 확정|무조건 떨어/);
 });
