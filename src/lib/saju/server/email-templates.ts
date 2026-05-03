@@ -147,6 +147,53 @@ function scoreCard(label: string, score: number, barColor: string, rationale?: s
   );
 }
 
+function examOutcomeCard(result: ExamJobResult) {
+  const outcome = result.expectedOutcome;
+  const safeScore = clampPercent(outcome?.score ?? result.examScore);
+  const rationaleLead = firstSentence(result.scoreRationales?.exam);
+
+  return h(
+    Column,
+    { width: '33.33%', style: { padding: '6px' } },
+    h(
+      Section,
+      {
+        style: {
+          border: `1px solid ${BORDER_COLOR}`,
+          borderRadius: CARD_RADIUS,
+          backgroundColor: SECTION_BG,
+          padding: '15px 14px',
+        },
+      },
+      h(Text, { style: { margin: '0 0 8px', color: TEXT_SOFT, fontSize: '12px', fontWeight: 700 } }, outcome?.label ?? '예상 점수'),
+      h(Text, { style: { margin: '0', color: TEXT_DARK, fontSize: '25px', fontWeight: 800, lineHeight: '1.2' } }, outcome?.value ?? `${safeScore}점대`),
+      h(Text, { style: { margin: '6px 0 0', color: TEXT_SOFT, fontSize: '12px', lineHeight: '1.45' } }, outcome?.description ?? '100점 기준으로 체감 점수대를 잡은 값입니다.'),
+      h(
+        Section,
+        {
+          style: {
+            marginTop: '10px',
+            height: '8px',
+            borderRadius: '999px',
+            overflow: 'hidden',
+            backgroundColor: SOFT_BG,
+          },
+        },
+        h(Section, {
+          style: {
+            width: `${safeScore}%`,
+            height: '8px',
+            backgroundColor: TEXT_DARK,
+          },
+        }),
+      ),
+      rationaleLead
+        ? h(Text, { style: { margin: '10px 0 0', color: TEXT_MUTED, fontSize: '12px', lineHeight: '1.55' } }, rationaleLead)
+        : null,
+    ),
+  );
+}
+
 function metricBadge(label: string, value: string, toneColor = TEXT_DARK) {
   return h(
     'span',
@@ -549,11 +596,11 @@ function yearlyChartBlock(yearlyGuidance: LoveJobResult['yearlyGuidance']) {
   );
 }
 
-function sortedExamGuidance(yearlyGuidance: ExamJobResult['yearlyGuidance']) {
+function sortedExamGuidance(yearlyGuidance: NonNullable<ExamJobResult['yearlyGuidance']>) {
   return [...yearlyGuidance].sort((a, b) => a.year - b.year);
 }
 
-function bestStudyYear(yearlyGuidance: ExamJobResult['yearlyGuidance']) {
+function bestStudyYear(yearlyGuidance: NonNullable<ExamJobResult['yearlyGuidance']>) {
   return [...yearlyGuidance].sort((a, b) => b.studyFlow - b.overloadRisk * 0.35 - (a.studyFlow - a.overloadRisk * 0.35))[0] ?? null;
 }
 
@@ -621,7 +668,7 @@ function subjectAnswerBlock(result: ExamJobResult) {
   );
 }
 
-function examYearlyChartBlock(yearlyGuidance: ExamJobResult['yearlyGuidance']) {
+function examYearlyChartBlock(yearlyGuidance: NonNullable<ExamJobResult['yearlyGuidance']>) {
   const sorted = sortedExamGuidance(yearlyGuidance);
   const bestYear = bestStudyYear(yearlyGuidance);
   const firstYear = sorted[0]?.year;
@@ -770,7 +817,7 @@ function examResultTemplate(payload: ExamOnlyResultEmailPayload) {
       h(
         Row,
         null,
-        scoreCard('시험 점수', result.examScore, TEXT_DARK, result.scoreRationales?.exam),
+        examOutcomeCard(result),
         scoreCard('과목 궁합', result.subjectFitScore, '#52525b', result.scoreRationales?.subjectFit),
         scoreCard('노력 보정', result.effortScore, '#a1a1aa', result.scoreRationales?.effort),
       ),
@@ -843,7 +890,7 @@ function examResultTemplate(payload: ExamOnlyResultEmailPayload) {
         h(Text, { style: { margin: '0 0 12px', fontSize: '14px', color: TEXT_MUTED, lineHeight: '1.72' } }, result.highlight),
         h(Text, { style: { margin: '0 0 8px', fontSize: '12px', color: TEXT_SOFT, fontWeight: 700 } }, '주의 포인트'),
         h(Text, { style: { margin: '0 0 12px', fontSize: '14px', color: TEXT_MUTED, lineHeight: '1.72' } }, result.caution),
-        h(Text, { style: { margin: '0 0 8px', fontSize: '12px', color: TEXT_SOFT, fontWeight: 700 } }, '타이밍 힌트'),
+        h(Text, { style: { margin: '0 0 8px', fontSize: '12px', color: TEXT_SOFT, fontWeight: 700 } }, '루틴 타이밍'),
         h(Text, { style: { margin: '0', fontSize: '14px', color: TEXT_MUTED, lineHeight: '1.72' } }, result.timingHint),
       ),
       subjectAnswerBlock(result),
@@ -862,20 +909,22 @@ function examResultTemplate(payload: ExamOnlyResultEmailPayload) {
         h(Text, { style: { margin: '0 0 10px', fontSize: '15px', color: TEXT_DARK, fontWeight: 800 } }, '공부 전략'),
         ...detailedSections.map((section) => sectionCard(section.title, section.body)),
       ),
-      h(
-        Section,
-        {
-          style: {
-            marginTop: '12px',
-            border: `1px solid ${BORDER_COLOR}`,
-            borderRadius: CARD_RADIUS,
-            backgroundColor: SECTION_BG,
-            padding: '16px',
-          },
-        },
-        h(Text, { style: { margin: '0 0 10px', fontSize: '15px', color: TEXT_DARK, fontWeight: 800 } }, '연도별 학습 포인트 (열기/닫기)'),
-        ...yearlyGuidance.map((row) => detailsBlock(`${row.year}년 · 학습 ${ratioToPercent(row.studyFlow)}% / 과부하 ${ratioToPercent(row.overloadRisk)}%`, row.focus)),
-      ),
+      yearlyGuidance.length > 0
+        ? h(
+            Section,
+            {
+              style: {
+                marginTop: '12px',
+                border: `1px solid ${BORDER_COLOR}`,
+                borderRadius: CARD_RADIUS,
+                backgroundColor: SECTION_BG,
+                padding: '16px',
+              },
+            },
+            h(Text, { style: { margin: '0 0 10px', fontSize: '15px', color: TEXT_DARK, fontWeight: 800 } }, '연도별 학습 포인트 (열기/닫기)'),
+            ...yearlyGuidance.map((row) => detailsBlock(`${row.year}년 · 학습 ${ratioToPercent(row.studyFlow)}% / 과부하 ${ratioToPercent(row.overloadRisk)}%`, row.focus)),
+          )
+        : null,
       h(
         Text,
         {
@@ -1051,7 +1100,7 @@ function adminSummaryTemplate(payload: AdminSummaryEmailPayload) {
   const statusColor = payload.status === 'completed' ? '#16a34a' : '#dc2626';
   const scoreSummary = payload.result
     ? payload.result.fortuneType === 'exam'
-      ? `시험 ${clampPercent(payload.result.examScore)} / 과목 ${clampPercent(payload.result.subjectFitScore)} / 노력 ${clampPercent(payload.result.effortScore)}`
+      ? `${payload.result.expectedOutcome?.label ?? '시험'} ${payload.result.expectedOutcome?.value ?? clampPercent(payload.result.examScore)} / 과목 ${clampPercent(payload.result.subjectFitScore)} / 노력 ${clampPercent(payload.result.effortScore)}`
       : `연애 ${clampPercent(payload.result.loveScore)} / 결혼 ${clampPercent(payload.result.marriageScore)} / 리스크 ${clampPercent(payload.result.riskScore)}`
     : '점수 없음';
 

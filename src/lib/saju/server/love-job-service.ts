@@ -3,7 +3,9 @@ import { buildExamResult } from '../exam-result';
 import { buildLoveResult } from '../love-result';
 import { MAX_LLM_RETRIES, personalizeLoveResult } from './love-llm-personalizer';
 import {
+  EXAM_RESULT_FORMATS,
   RELATIONSHIP_STATUSES,
+  type ExamResultFormat,
   type LoveJob,
   type LoveJobInput,
   type LoveJobPublic,
@@ -26,6 +28,11 @@ function normalizeRelationshipStatus(value: unknown): RelationshipStatus {
   return RELATIONSHIP_STATUSES.includes(value as RelationshipStatus) ? (value as RelationshipStatus) : 'unknown';
 }
 
+function normalizeExamResultFormat(value: unknown): ExamResultFormat {
+  if (typeof value !== 'string') return 'score';
+  return EXAM_RESULT_FORMATS.includes(value as ExamResultFormat) ? (value as ExamResultFormat) : 'score';
+}
+
 function normalizeInput(input: Partial<LoveJobInput> | LoveJobInput): LoveJobInput {
   const fortuneType = input.fortuneType === 'exam' ? 'exam' : 'love';
   const normalizedConcern = input.concern?.trim();
@@ -43,6 +50,7 @@ function normalizeInput(input: Partial<LoveJobInput> | LoveJobInput): LoveJobInp
     relationshipStatus: normalizeRelationshipStatus(input.relationshipStatus),
     concern: fortuneType === 'love' && normalizedConcern ? normalizedConcern : undefined,
     examSubject: fortuneType === 'exam' && normalizedExamSubject ? normalizedExamSubject : undefined,
+    examResultFormat: fortuneType === 'exam' ? normalizeExamResultFormat(input.examResultFormat) : undefined,
   };
 }
 

@@ -26,12 +26,15 @@ function combinedResultText(result) {
     result.caution,
     result.timingHint,
     result.detailedReport,
+    result.expectedOutcome?.label,
+    result.expectedOutcome?.value,
+    result.expectedOutcome?.description,
     result.scoreRationales?.exam,
     result.scoreRationales?.subjectFit,
     result.scoreRationales?.effort,
     result.subjectAnswer?.answer,
     ...(result.subjectAnswer?.actionItems ?? []),
-    ...result.yearlyGuidance.map((row) => row.focus),
+    ...(result.yearlyGuidance ?? []).map((row) => row.focus),
   ].filter(Boolean).join('\n');
 }
 
@@ -44,8 +47,30 @@ test('buildExamResult classifies 컴퓨터 as water and metal subject', () => {
   assert.equal(result.subjectProfile.supportElement, 'metal');
   assert.equal(result.subjectProfile.primaryElementLabel, '수');
   assert.equal(result.subjectProfile.supportElementLabel, '금');
-  assert.equal(result.yearlyGuidance.length, 10);
-  assert.ok(result.yearlyGuidance.every((row) => row.focus.includes('컴퓨터')));
+  assert.equal(result.examResultFormat, 'score');
+  assert.equal(result.expectedOutcome.label, '예상 점수');
+  assert.match(result.expectedOutcome.value, /\d+점대/);
+  assert.deepEqual(result.yearlyGuidance, []);
+  assert.deepEqual(result.topYears, []);
+});
+
+test('buildExamResult can return expected grade when requested', () => {
+  const result = buildExamResult(baseInput({ examResultFormat: 'grade' }));
+
+  assert.equal(result.examResultFormat, 'grade');
+  assert.equal(result.expectedOutcome.label, '예상 학점');
+  assert.match(result.expectedOutcome.value, /[ABCDF][+0]?|F 위험권/);
+  assert.match(combinedResultText(result), /예상 학점/);
+});
+
+test('buildExamResult does not reuse love-only yearly or relationship signals', () => {
+  const result = buildExamResult(baseInput({ examSubject: '컴퓨터' }));
+  const text = combinedResultText(result);
+
+  assert.doesNotMatch(text, /연도별 학습|학습 흐름 타임라인|배우자궁|배우자별|도화|홍란|홍염|연애|이별/);
+  assert.deepEqual(result.yearlyGuidance, []);
+  assert.deepEqual(result.topYears, []);
+  assert.ok(result.evidenceCodes.every((code) => !code.startsWith('R_')));
 });
 
 test('buildExamResult strengthens effort coaching when weak element overlaps subject element', () => {
