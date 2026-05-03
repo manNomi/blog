@@ -17,7 +17,7 @@
     "sync:check": "node scripts/sync-notion.mjs --check",
     "worker:once": "node scripts/codex-worker.mjs --once --max=3",
     "worker:loop": "node scripts/codex-worker.mjs --loop --interval=45 --max=3",
-    "test:saju": "node --test tests/*.test.mjs",
+    "test:saju": "node --import tsx --test tests/*.test.mjs",
     "trend:once": "node scripts/sync-hada-trends.mjs",
     "trend:once:heuristic": "node scripts/sync-hada-trends.mjs --analysis=heuristic",
     "trend:once:codex": "node scripts/sync-hada-trends.mjs --analysis=codex"

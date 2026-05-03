@@ -1,4 +1,5 @@
 import { nanoid } from 'nanoid';
+import { buildExamResult } from '../exam-result';
 import { buildLoveResult } from '../love-result';
 import { MAX_LLM_RETRIES, personalizeLoveResult } from './love-llm-personalizer';
 import {
@@ -6,8 +7,8 @@ import {
   type LoveJob,
   type LoveJobInput,
   type LoveJobPublic,
-  type LoveJobResult,
-  type RelationshipStatus
+  type RelationshipStatus,
+  type SajuJobResult
 } from '../love-job-types';
 import {
   claimQueuedLoveJob,
@@ -26,9 +27,12 @@ function normalizeRelationshipStatus(value: unknown): RelationshipStatus {
 }
 
 function normalizeInput(input: Partial<LoveJobInput> | LoveJobInput): LoveJobInput {
+  const fortuneType = input.fortuneType === 'exam' ? 'exam' : 'love';
   const normalizedConcern = input.concern?.trim();
+  const normalizedExamSubject = input.examSubject?.trim();
 
   return {
+    fortuneType,
     name: input.name?.trim() ?? '',
     email: input.email?.trim().toLowerCase() ?? '',
     gender: input.gender === 'male' ? 'male' : 'female',
@@ -37,7 +41,8 @@ function normalizeInput(input: Partial<LoveJobInput> | LoveJobInput): LoveJobInp
     birthTime: input.birthTime?.trim() || '',
     birthPlace: input.birthPlace?.trim() ?? '',
     relationshipStatus: normalizeRelationshipStatus(input.relationshipStatus),
-    concern: normalizedConcern ? normalizedConcern : undefined,
+    concern: fortuneType === 'love' && normalizedConcern ? normalizedConcern : undefined,
+    examSubject: fortuneType === 'exam' && normalizedExamSubject ? normalizedExamSubject : undefined,
   };
 }
 
@@ -87,8 +92,12 @@ export function validateLoveInput(input: LoveJobInput) {
     throw new Error('calendar_type_invalid');
   }
 
-  if (!RELATIONSHIP_STATUSES.includes(input.relationshipStatus)) {
+  if (input.fortuneType === 'love' && !RELATIONSHIP_STATUSES.includes(input.relationshipStatus)) {
     throw new Error('relationship_status_invalid');
+  }
+
+  if (input.fortuneType === 'exam' && !input.examSubject?.trim()) {
+    throw new Error('exam_subject_required');
   }
 
   if (
@@ -96,7 +105,8 @@ export function validateLoveInput(input: LoveJobInput) {
     input.birthTime.length > 10 ||
     input.birthPlace.length > 120 ||
     input.email.length > 200 ||
-    (input.concern?.length ?? 0) > 200
+    (input.concern?.length ?? 0) > 200 ||
+    (input.examSubject?.length ?? 0) > 80
   ) {
     throw new Error('input_length_invalid');
   }
@@ -203,31 +213,61 @@ export async function processLoveJob(jobId: string, source: ProcessSource = 'api
     return refreshed ? sanitizeLoveJob(refreshed) : null;
   }
 
-  const baselineResult = buildLoveResult(normalizedInput);
-  let result: LoveJobResult | null = null;
+  let result: SajuJobResult | null = null;
   let sentEmail: { provider: 'resend' | 'console'; messageId: string | null; sentAt: number } | null = null;
   let llmFailureMessage: string | null = null;
   let retryCount = job.retryCount ?? 0;
 
   try {
-    try {
-      result = await personalizeLoveResult(normalizedInput, baselineResult, {
-        preferCodex: source === 'worker',
-      });
-    } catch (error) {
-      llmFailureMessage = error instanceof Error ? error.message : 'llm_personalization_failed';
-      retryCount += 1;
+    if (normalizedInput.fortuneType === 'exam') {
+      result = buildExamResult(normalizedInput);
+    } else {
+      const baselineResult = buildLoveResult(normalizedInput);
+      try {
+        result = await personalizeLoveResult(normalizedInput, baselineResult, {
+          preferCodex: source === 'worker',
+        });
+      } catch (error) {
+        llmFailureMessage = error instanceof Error ? error.message : 'llm_personalization_failed';
+        retryCount += 1;
 
-      if (retryCount < MAX_LLM_RETRIES) {
+        if (retryCount < MAX_LLM_RETRIES) {
+          await updateLoveJob(job.id, {
+            status: 'queued',
+            input: normalizedInput,
+            result: null,
+            error: llmFailureMessage,
+            retryCount,
+            updatedAt: Date.now(),
+            processingStartedAt: null,
+            processingCompletedAt: null,
+            email: {
+              ...job.email,
+              sent: false,
+              error: llmFailureMessage,
+            },
+          });
+
+          logEvent('warn', 'saju_request_retry_queued', {
+            requestId: job.id,
+            retryCount,
+            maxRetries: MAX_LLM_RETRIES,
+            message: llmFailureMessage,
+            source,
+          });
+
+          const refreshedQueued = await getLoveJobById(job.id);
+          return refreshedQueued ? sanitizeLoveJob(refreshedQueued) : null;
+        }
+
         await updateLoveJob(job.id, {
-          status: 'queued',
+          status: 'failed',
           input: normalizedInput,
           result: null,
           error: llmFailureMessage,
           retryCount,
           updatedAt: Date.now(),
-          processingStartedAt: null,
-          processingCompletedAt: null,
+          processingCompletedAt: Date.now(),
           email: {
             ...job.email,
             sent: false,
@@ -235,7 +275,7 @@ export async function processLoveJob(jobId: string, source: ProcessSource = 'api
           },
         });
 
-        logEvent('warn', 'saju_request_retry_queued', {
+        logEvent('error', 'saju_request_generation_failed_no_user_email', {
           requestId: job.id,
           retryCount,
           maxRetries: MAX_LLM_RETRIES,
@@ -243,57 +283,31 @@ export async function processLoveJob(jobId: string, source: ProcessSource = 'api
           source,
         });
 
-        const refreshedQueued = await getLoveJobById(job.id);
-        return refreshedQueued ? sanitizeLoveJob(refreshedQueued) : null;
+        try {
+          await sendAdminJobSummaryEmail({
+            requestId: job.id,
+            requesterName: normalizedInput.name,
+            requesterEmail: normalizedInput.email,
+            status: 'failed',
+            error: llmFailureMessage,
+            source,
+            result: null,
+          });
+        } catch (notifyError) {
+          logEvent('warn', 'admin_summary_email_failed', {
+            requestId: job.id,
+            source,
+            message: notifyError instanceof Error ? notifyError.message : 'unknown',
+          });
+        }
+
+        const refreshedFailed = await getLoveJobById(job.id);
+        return refreshedFailed ? sanitizeLoveJob(refreshedFailed) : null;
       }
 
-      await updateLoveJob(job.id, {
-        status: 'failed',
-        input: normalizedInput,
-        result: null,
-        error: llmFailureMessage,
-        retryCount,
-        updatedAt: Date.now(),
-        processingCompletedAt: Date.now(),
-        email: {
-          ...job.email,
-          sent: false,
-          error: llmFailureMessage,
-        },
-      });
-
-      logEvent('error', 'saju_request_generation_failed_no_user_email', {
-        requestId: job.id,
-        retryCount,
-        maxRetries: MAX_LLM_RETRIES,
-        message: llmFailureMessage,
-        source,
-      });
-
-      try {
-        await sendAdminJobSummaryEmail({
-          requestId: job.id,
-          requesterName: normalizedInput.name,
-          requesterEmail: normalizedInput.email,
-          status: 'failed',
-          error: llmFailureMessage,
-          source,
-          result: null,
-        });
-      } catch (notifyError) {
-        logEvent('warn', 'admin_summary_email_failed', {
-          requestId: job.id,
-          source,
-          message: notifyError instanceof Error ? notifyError.message : 'unknown',
-        });
+      if (!result) {
+        result = baselineResult;
       }
-
-      const refreshedFailed = await getLoveJobById(job.id);
-      return refreshedFailed ? sanitizeLoveJob(refreshedFailed) : null;
-    }
-
-    if (!result) {
-      result = baselineResult;
     }
 
     const emailResult = await sendLoveResultEmail({

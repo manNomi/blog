@@ -15,7 +15,7 @@ function json(body: unknown, status = 200) {
   });
 }
 
-function mapCreateErrorToMessage(code: string) {
+export function mapCreateErrorToMessage(code: string) {
   switch (code) {
     case 'name_required':
       return '이름을 입력해 주세요.';
@@ -33,6 +33,8 @@ function mapCreateErrorToMessage(code: string) {
       return '역법 값이 바르지 아니하옵니다.';
     case 'relationship_status_invalid':
       return '연애 상태 값을 다시 골라 주시옵소서.';
+    case 'exam_subject_required':
+      return '고민중인 과목을 입력해 주세요.';
     case 'input_length_invalid':
       return '입력 길이를 다시 확인해 주세요.';
     default:

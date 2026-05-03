@@ -2,12 +2,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { LoveJobPublic, RelationshipStatus } from '../lib/saju/love-job-types';
+import type { FortuneType, LoveJobPublic, RelationshipStatus } from '../lib/saju/love-job-types';
 
 const TIME_REGEX = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
 const requestFormSchema = z
   .object({
+    fortuneType: z.enum(['love', 'exam']),
     name: z.string().trim().min(2, '이름은 2자 이상 입력해 주세요.').max(30, '이름은 30자 이하로 입력해 주세요.'),
     email: z.string().trim().email('올바른 이메일 형식을 입력해 주세요.'),
     gender: z.enum(['female', 'male']),
@@ -17,6 +18,7 @@ const requestFormSchema = z
     birthTimeUnknown: z.boolean(),
     birthPlace: z.string().trim().min(2, '출생지는 2자 이상 입력해 주세요.').max(50, '출생지는 50자 이하로 입력해 주세요.'),
     concern: z.string().trim().max(200, '고민은 200자 이하로 입력해 주세요.').optional(),
+    examSubject: z.string().trim().max(80, '과목은 80자 이하로 입력해 주세요.').optional(),
     relationshipStatus: z.enum(['none', 'interested', 'dating', 'unknown'], {
       required_error: '현재 관계 상태를 선택해 주세요.'
     })
@@ -29,6 +31,14 @@ const requestFormSchema = z
         message: '출생 시간을 입력해 주세요.'
       });
     }
+
+    if (data.fortuneType === 'exam' && !data.examSubject?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['examSubject'],
+        message: '고민중인 과목을 입력해 주세요.'
+      });
+    }
   });
 
 type RequestFormValues = z.infer<typeof requestFormSchema>;
@@ -39,6 +49,11 @@ type CreateResponse = {
 };
 
 const REQUIRED_COUNT = 8;
+
+const fortuneOptions: Array<{ value: FortuneType; label: string; description: string }> = [
+  { value: 'love', label: '연애운', description: '관계 상태와 고민을 바탕으로 연애 리포트를 받아요.' },
+  { value: 'exam', label: '시험운', description: '고민중인 과목과 오행 궁합을 재밌게 풀어봐요.' }
+];
 
 const stepLabels: Array<{ key: Step; label: string; caption: string }> = [
   { key: 'landing', label: '01 안내', caption: '흐름 확인' },
@@ -101,6 +116,7 @@ export default function SajuLovePage() {
     resolver: zodResolver(requestFormSchema),
     mode: 'onChange',
     defaultValues: {
+      fortuneType: 'love',
       name: '',
       email: '',
       gender: 'female',
@@ -110,16 +126,19 @@ export default function SajuLovePage() {
       birthTimeUnknown: false,
       birthPlace: '',
       concern: '',
+      examSubject: '',
       relationshipStatus: 'unknown'
     }
   });
 
   const watched = requestForm.watch();
+  const selectedFortuneType = requestForm.watch('fortuneType');
   const selectedGender = requestForm.watch('gender');
   const selectedCalendarType = requestForm.watch('calendarType');
   const selectedRelationship = requestForm.watch('relationshipStatus');
   const birthTimeUnknown = requestForm.watch('birthTimeUnknown');
   const concernLength = watched.concern?.length ?? 0;
+  const examSubjectLength = watched.examSubject?.length ?? 0;
 
   useEffect(() => {
     if (!notice) return;
@@ -140,7 +159,7 @@ export default function SajuLovePage() {
       watched.birthPlace?.trim().length > 0,
       watched.gender === 'female' || watched.gender === 'male',
       watched.calendarType === 'solar' || watched.calendarType === 'lunar',
-      Boolean(watched.relationshipStatus),
+      watched.fortuneType === 'exam' ? Boolean(watched.examSubject?.trim()) : Boolean(watched.relationshipStatus),
       watched.birthTimeUnknown || TIME_REGEX.test(watched.birthTime || '')
     ];
 
@@ -150,6 +169,8 @@ export default function SajuLovePage() {
     watched.email,
     watched.birthDate,
     watched.birthPlace,
+    watched.examSubject,
+    watched.fortuneType,
     watched.gender,
     watched.calendarType,
     watched.relationshipStatus,
@@ -171,6 +192,7 @@ export default function SajuLovePage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             input: {
+              fortuneType: values.fortuneType,
               name: values.name,
               email: values.email,
               gender: values.gender,
@@ -178,8 +200,9 @@ export default function SajuLovePage() {
               birthDate: values.birthDate,
               birthTime: values.birthTimeUnknown ? '00:00' : values.birthTime,
               birthPlace: values.birthPlace,
-              relationshipStatus: values.relationshipStatus,
-              concern: values.concern?.trim() ? values.concern.trim() : undefined
+              relationshipStatus: values.fortuneType === 'love' ? values.relationshipStatus : 'unknown',
+              concern: values.fortuneType === 'love' && values.concern?.trim() ? values.concern.trim() : undefined,
+              examSubject: values.fortuneType === 'exam' && values.examSubject?.trim() ? values.examSubject.trim() : undefined
             }
           })
         })
@@ -187,7 +210,11 @@ export default function SajuLovePage() {
 
       setRequestState(created.request);
       setStep('submitted');
-      setNotice('요청이 접수되었습니다. 분석이 완료되면 입력하신 이메일로 결과를 보내드립니다.');
+      setNotice(
+        values.fortuneType === 'exam'
+          ? '요청이 접수되었습니다. 분석이 완료되면 입력하신 이메일로 시험운 리포트를 보내드립니다.'
+          : '요청이 접수되었습니다. 분석이 완료되면 입력하신 이메일로 결과를 보내드립니다.'
+      );
     } catch (requestError) {
       setApiError(requestError instanceof Error ? requestError.message : '요청 접수 중 오류가 발생했습니다.');
     }
@@ -195,6 +222,7 @@ export default function SajuLovePage() {
 
   const resetForNewRequest = () => {
     requestForm.reset({
+      fortuneType: 'love',
       name: '',
       email: '',
       gender: 'female',
@@ -204,6 +232,7 @@ export default function SajuLovePage() {
       birthTimeUnknown: false,
       birthPlace: '',
       concern: '',
+      examSubject: '',
       relationshipStatus: 'unknown'
     });
     setRequestState(null);
@@ -221,10 +250,10 @@ export default function SajuLovePage() {
 
         <p className="kicker animate-step-enter">Saju Atelier</p>
         <h1 className="mt-2 text-[32px] font-semibold leading-[1.1] tracking-[-0.03em] text-zinc-900 md:text-[52px] [animation-delay:80ms] animate-step-enter">
-          사주 연애운 요청
+          사주 운세 요청
         </h1>
         <p className="mt-3 max-w-[780px] text-[15px] leading-[1.58] text-zinc-600 md:text-[17px] [animation-delay:140ms] animate-step-enter">
-          3단계 입력 흐름으로 정보를 정리하고, 완료된 리포트를 이메일로 받아보세요.
+          연애운과 시험운 중 하나를 고르고, 완료된 리포트를 이메일로 받아보세요.
         </p>
 
         <div className="mt-4 grid gap-2.5 md:mt-5 md:grid-cols-3" role="list" aria-label="사주 요청 단계">
@@ -255,7 +284,7 @@ export default function SajuLovePage() {
           <div className="grid gap-2.5 md:grid-cols-3">
             <article className="rounded-md border border-line bg-soft p-3.5 transition-transform duration-200 hover:-translate-y-0.5">
               <h3 className="text-sm font-semibold text-zinc-900">필수 입력</h3>
-              <p className="mt-1 text-[13px] leading-[1.55] text-zinc-600">이름, 이메일, 생년월일/시각, 출생지, 관계 상태를 입력해 주세요.</p>
+              <p className="mt-1 text-[13px] leading-[1.55] text-zinc-600">이름, 이메일, 생년월일/시각, 출생지와 운세별 추가 정보를 입력해 주세요.</p>
             </article>
             <article className="rounded-md border border-line bg-soft p-3.5 transition-transform duration-200 hover:-translate-y-0.5">
               <h3 className="text-sm font-semibold text-zinc-900">비동기 처리</h3>
@@ -293,6 +322,36 @@ export default function SajuLovePage() {
           </div>
 
           <form className="grid gap-4" onSubmit={submitRequest}>
+            <div className="grid gap-1.5">
+              <span className="text-sm font-medium text-zinc-700">보고 싶은 운세 *</span>
+              <div className="grid gap-2 rounded-md border border-line bg-soft p-1 md:grid-cols-2" role="group" aria-label="운세 종류 선택">
+                {fortuneOptions.map((option) => {
+                  const active = selectedFortuneType === option.value;
+                  return (
+                    <button
+                      type="button"
+                      key={option.value}
+                      onClick={() => {
+                        requestForm.setValue('fortuneType', option.value, { shouldValidate: true, shouldDirty: true });
+                        if (option.value === 'exam') {
+                          requestForm.setValue('concern', '', { shouldValidate: true, shouldDirty: true });
+                          requestForm.setValue('relationshipStatus', 'unknown', { shouldValidate: true, shouldDirty: true });
+                        } else {
+                          requestForm.setValue('examSubject', '', { shouldValidate: true, shouldDirty: true });
+                        }
+                      }}
+                      className={`rounded-md px-3 py-2.5 text-left transition-all duration-300 ${
+                        active ? 'scale-[1.01] bg-zinc-900 text-white' : 'bg-transparent text-zinc-700 hover:bg-zinc-200'
+                      }`}
+                    >
+                      <strong className="block text-sm">{option.label}</strong>
+                      <span className={`mt-1 block text-xs leading-[1.5] ${active ? 'text-zinc-200' : 'text-zinc-500'}`}>{option.description}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <div className="grid gap-3 md:grid-cols-2">
               <label className="grid gap-1.5">
                 <span className="text-sm font-medium text-zinc-700">이름 *</span>
@@ -388,30 +447,48 @@ export default function SajuLovePage() {
               </div>
             </div>
 
-            <div className="grid gap-1.5">
-              <span className="text-sm font-medium text-zinc-700">관계 상태 *</span>
-              <div className="grid gap-2 md:grid-cols-2">
-                {relationshipOptions.map((option) => {
-                  const active = selectedRelationship === option.value;
-                  return (
-                    <button
-                      type="button"
-                      key={option.value}
-                      onClick={() => requestForm.setValue('relationshipStatus', option.value, { shouldValidate: true, shouldDirty: true })}
-                      className={`rounded-md border p-3 text-left transition-all duration-300 ${
-                        active ? 'scale-[1.01] border-zinc-900 bg-zinc-900 text-white' : 'border-line bg-soft text-zinc-700 hover:bg-zinc-200'
-                      }`}
-                    >
-                      <strong className="block text-sm">{option.label}</strong>
-                      <span className={`mt-1 block text-xs leading-[1.5] ${active ? 'text-zinc-200' : 'text-zinc-500'}`}>{option.description}</span>
-                    </button>
-                  );
-                })}
+            {selectedFortuneType === 'love' ? (
+              <div className="grid gap-1.5">
+                <span className="text-sm font-medium text-zinc-700">관계 상태 *</span>
+                <div className="grid gap-2 md:grid-cols-2">
+                  {relationshipOptions.map((option) => {
+                    const active = selectedRelationship === option.value;
+                    return (
+                      <button
+                        type="button"
+                        key={option.value}
+                        onClick={() => requestForm.setValue('relationshipStatus', option.value, { shouldValidate: true, shouldDirty: true })}
+                        className={`rounded-md border p-3 text-left transition-all duration-300 ${
+                          active ? 'scale-[1.01] border-zinc-900 bg-zinc-900 text-white' : 'border-line bg-soft text-zinc-700 hover:bg-zinc-200'
+                        }`}
+                      >
+                        <strong className="block text-sm">{option.label}</strong>
+                        <span className={`mt-1 block text-xs leading-[1.5] ${active ? 'text-zinc-200' : 'text-zinc-500'}`}>{option.description}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {requestForm.formState.errors.relationshipStatus && (
+                  <em className="text-xs not-italic text-red-600 animate-toast-slide">{requestForm.formState.errors.relationshipStatus.message}</em>
+                )}
               </div>
-              {requestForm.formState.errors.relationshipStatus && (
-                <em className="text-xs not-italic text-red-600 animate-toast-slide">{requestForm.formState.errors.relationshipStatus.message}</em>
-              )}
-            </div>
+            ) : (
+              <label className="grid gap-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-zinc-700">고민중인 과목 *</span>
+                  <span className="text-xs text-zinc-500">{examSubjectLength}/80</span>
+                </div>
+                <input
+                  type="text"
+                  maxLength={80}
+                  placeholder="예: 컴퓨터, 수학, 영어, 한국사"
+                  {...requestForm.register('examSubject')}
+                  className="h-11 rounded-md border border-line bg-white px-3 outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-900/10"
+                />
+                <span className="text-xs leading-[1.55] text-zinc-500">오행상 과목 궁합과 보완 루틴을 재밌게 풀어드립니다.</span>
+                {requestForm.formState.errors.examSubject && <em className="text-xs not-italic text-red-600 animate-toast-slide">{requestForm.formState.errors.examSubject.message}</em>}
+              </label>
+            )}
 
             <label className="grid gap-1.5">
               <span className="text-sm font-medium text-zinc-700">출생 지역 *</span>
@@ -424,20 +501,22 @@ export default function SajuLovePage() {
               {requestForm.formState.errors.birthPlace && <em className="text-xs not-italic text-red-600 animate-toast-slide">{requestForm.formState.errors.birthPlace.message}</em>}
             </label>
 
-            <label className="grid gap-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-zinc-700">요즘 가장 고민되는 연애 이슈 (선택)</span>
-                <span className="text-xs text-zinc-500">{concernLength}/200</span>
-              </div>
-              <textarea
-                rows={4}
-                maxLength={200}
-                placeholder="요즘 가장 고민되는 연애 이슈"
-                {...requestForm.register('concern')}
-                className="rounded-md border border-line bg-white px-3 py-2.5 text-sm leading-[1.55] outline-none transition resize-y min-h-[112px] focus:border-zinc-500 focus:ring-2 focus:ring-zinc-900/10"
-              />
-              {requestForm.formState.errors.concern && <em className="text-xs not-italic text-red-600 animate-toast-slide">{requestForm.formState.errors.concern.message}</em>}
-            </label>
+            {selectedFortuneType === 'love' && (
+              <label className="grid gap-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-zinc-700">요즘 가장 고민되는 연애 이슈 (선택)</span>
+                  <span className="text-xs text-zinc-500">{concernLength}/200</span>
+                </div>
+                <textarea
+                  rows={4}
+                  maxLength={200}
+                  placeholder="요즘 가장 고민되는 연애 이슈"
+                  {...requestForm.register('concern')}
+                  className="rounded-md border border-line bg-white px-3 py-2.5 text-sm leading-[1.55] outline-none transition resize-y min-h-[112px] focus:border-zinc-500 focus:ring-2 focus:ring-zinc-900/10"
+                />
+                {requestForm.formState.errors.concern && <em className="text-xs not-italic text-red-600 animate-toast-slide">{requestForm.formState.errors.concern.message}</em>}
+              </label>
+            )}
 
             <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:items-center">
               <button
@@ -462,9 +541,10 @@ export default function SajuLovePage() {
           </form>
 
           <section className="rounded-md border border-line bg-soft px-4 py-3 text-xs leading-[1.6] text-zinc-600 md:text-[13px]">
-            수집 항목: 이름, 이메일, 생년월일/시각, 출생지, 관계 상태(고민 내용은 선택)만 수집합니다.
+            수집 항목: 이름, 이메일, 생년월일/시각, 출생지,
+            {selectedFortuneType === 'exam' ? ' 고민중인 과목' : ' 관계 상태(고민 내용은 선택)'}만 수집합니다.
             <br />
-            처리 목적: 사주 연애운 분석 및 결과 이메일 발송 목적으로만 이용합니다.
+            처리 목적: 사주 {selectedFortuneType === 'exam' ? '시험운' : '연애운'} 분석 및 결과 이메일 발송 목적으로만 이용합니다.
             <br />
             보관 정책: 처리 완료 건 90일, 처리 실패 건 30일 보관 후 파기(현재 운영정책 기준)합니다.
           </section>
@@ -474,7 +554,9 @@ export default function SajuLovePage() {
       {step === 'submitted' && (
         <section className="page-card grid gap-4 px-4 py-5 md:px-7 md:py-6 animate-result-pop">
           <h2 className="text-[26px] font-semibold tracking-[-0.02em] text-zinc-900 md:text-[30px]">접수가 완료되었습니다</h2>
-          <p className="text-[15px] leading-[1.6] text-zinc-600">분석 완료 시 전자우편(이메일)로 결과를 보내드립니다. 스팸함도 함께 확인해 주세요.</p>
+          <p className="text-[15px] leading-[1.6] text-zinc-600">
+            분석 완료 시 전자우편(이메일)로 {requestState?.input.fortuneType === 'exam' ? '시험운 리포트' : '결과'}를 보내드립니다. 스팸함도 함께 확인해 주세요.
+          </p>
 
           {requestState && (
             <div className={`rounded-md border p-4 text-sm leading-[1.6] ${statusTone(requestState.status)}`}>

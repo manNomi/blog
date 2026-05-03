@@ -1,8 +1,11 @@
 export const RELATIONSHIP_STATUSES = ['none', 'interested', 'dating', 'unknown'] as const;
+export const FORTUNE_TYPES = ['love', 'exam'] as const;
 
 export type RelationshipStatus = (typeof RELATIONSHIP_STATUSES)[number];
+export type FortuneType = (typeof FORTUNE_TYPES)[number];
 
 export type LoveJobInput = {
+  fortuneType?: FortuneType;
   name: string;
   email: string;
   gender: 'male' | 'female';
@@ -12,6 +15,7 @@ export type LoveJobInput = {
   birthPlace: string;
   relationshipStatus: RelationshipStatus;
   concern?: string;
+  examSubject?: string;
 };
 
 export type LoveResultSection = {
@@ -84,6 +88,7 @@ export type LoveGenerationMeta = {
 };
 
 export type LoveJobResult = {
+  fortuneType?: 'love';
   loveScore: number;
   marriageScore: number;
   riskScore: number;
@@ -106,6 +111,62 @@ export type LoveJobResult = {
   generationMeta?: LoveGenerationMeta;
 };
 
+export type ExamSubjectProfile = {
+  subject: string;
+  category: string;
+  primaryElement: string;
+  supportElement: string;
+  primaryElementLabel: string;
+  supportElementLabel: string;
+  fitReason: string;
+};
+
+export type ExamYearGuide = {
+  year: number;
+  studyFlow: number;
+  overloadRisk: number;
+  focus: string;
+};
+
+export type ExamScoreRationales = {
+  exam: string;
+  subjectFit: string;
+  effort: string;
+};
+
+export type ExamSubjectAnswer = {
+  subject: string;
+  answer: string;
+  actionItems: string[];
+};
+
+export type ExamJobResult = {
+  fortuneType: 'exam';
+  examScore: number;
+  subjectFitScore: number;
+  effortScore: number;
+  confidence: number;
+  dominantElement: string;
+  weakestElement: string;
+  subjectProfile: ExamSubjectProfile;
+  topYears: Array<{ year: number; studyFlow: number; overloadRisk: number }>;
+  evidenceCodes: string[];
+  summary: string;
+  highlight: string;
+  caution: string;
+  timingHint: string;
+  detailedReport: string;
+  detailedSections: LoveResultSection[];
+  yearlyGuidance: ExamYearGuide[];
+  modelVersion: string;
+  scoreRationales?: ExamScoreRationales;
+  sajuSnapshot?: LoveSajuSnapshot;
+  subjectAnswer?: ExamSubjectAnswer;
+  generationMeta?: LoveGenerationMeta;
+};
+
+export type SajuJobResult = LoveJobResult | ExamJobResult;
+
 export type LoveJobStatus = 'queued' | 'processing' | 'completed' | 'failed';
 
 export type LoveEmailInfo = {
@@ -121,7 +182,7 @@ export type LoveJob = {
   id: string;
   status: LoveJobStatus;
   input: LoveJobInput;
-  result: LoveJobResult | null;
+  result: SajuJobResult | null;
   error: string | null;
   email: LoveEmailInfo;
   accessTokenHash: string;

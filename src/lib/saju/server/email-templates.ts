@@ -13,13 +13,21 @@ import {
   Text,
 } from '@react-email/components';
 import { render, toPlainText } from '@react-email/render';
-import type { LoveJobResult } from '../love-job-types';
+import type { ExamJobResult, LoveJobResult, SajuJobResult } from '../love-job-types';
 
 type LoveResultEmailPayload = {
   requestId: string;
   name: string;
   concern?: string;
+  result: SajuJobResult;
+};
+
+type LoveOnlyResultEmailPayload = Omit<LoveResultEmailPayload, 'result'> & {
   result: LoveJobResult;
+};
+
+type ExamOnlyResultEmailPayload = Omit<LoveResultEmailPayload, 'result'> & {
+  result: ExamJobResult;
 };
 
 type AdminSummaryEmailPayload = {
@@ -29,7 +37,7 @@ type AdminSummaryEmailPayload = {
   status: 'completed' | 'failed';
   error: string | null;
   source: 'api' | 'worker';
-  result: LoveJobResult | null;
+  result: SajuJobResult | null;
 };
 
 type RenderedEmail = {
@@ -541,7 +549,350 @@ function yearlyChartBlock(yearlyGuidance: LoveJobResult['yearlyGuidance']) {
   );
 }
 
-function loveResultTemplate(payload: LoveResultEmailPayload) {
+function sortedExamGuidance(yearlyGuidance: ExamJobResult['yearlyGuidance']) {
+  return [...yearlyGuidance].sort((a, b) => a.year - b.year);
+}
+
+function bestStudyYear(yearlyGuidance: ExamJobResult['yearlyGuidance']) {
+  return [...yearlyGuidance].sort((a, b) => b.studyFlow - b.overloadRisk * 0.35 - (a.studyFlow - a.overloadRisk * 0.35))[0] ?? null;
+}
+
+function examScoreRationaleBlock(result: ExamJobResult) {
+  const rationales = result.scoreRationales;
+  if (!rationales) return null;
+
+  const items = [
+    ['시험 점수 근거', rationales.exam],
+    ['과목 궁합 근거', rationales.subjectFit],
+    ['노력 보정 근거', rationales.effort],
+  ];
+
+  return h(
+    Section,
+    {
+      style: {
+        marginTop: '12px',
+        border: `1px solid ${BORDER_COLOR}`,
+        borderRadius: CARD_RADIUS,
+        backgroundColor: SECTION_BG,
+        padding: '16px',
+      },
+    },
+    h(Text, { style: { margin: '0 0 10px', fontSize: '15px', color: TEXT_DARK, fontWeight: 800 } }, '왜 이 점수인가'),
+    ...items.map(([title, body]) =>
+      h(
+        Section,
+        { key: title, style: { marginTop: '10px', padding: '12px', borderRadius: '10px', backgroundColor: SOFT_BG } },
+        h(Text, { style: { margin: '0 0 6px', fontSize: '13px', color: TEXT_DARK, fontWeight: 800 } }, title),
+        h(Text, { style: { margin: 0, fontSize: '13px', color: TEXT_MUTED, lineHeight: '1.68' } }, body),
+      ),
+    ),
+  );
+}
+
+function subjectAnswerBlock(result: ExamJobResult) {
+  const answer = result.subjectAnswer;
+  if (!answer?.answer) return null;
+
+  return h(
+    Section,
+    {
+      style: {
+        marginTop: '12px',
+        border: `1px solid ${BORDER_COLOR}`,
+        borderRadius: CARD_RADIUS,
+        backgroundColor: '#f7f2ea',
+        padding: '16px',
+      },
+    },
+    h(Text, { style: { margin: '0 0 8px', fontSize: '15px', color: TEXT_DARK, fontWeight: 800 } }, '과목에 대한 직접 답변'),
+    h(Text, { style: { margin: '0 0 10px', fontSize: '13px', color: TEXT_SOFT, lineHeight: '1.6' } }, `고민중인 과목: ${answer.subject}`),
+    h(Text, { style: { margin: '0 0 12px', fontSize: '14px', color: TEXT_MUTED, lineHeight: '1.75' } }, answer.answer),
+    answer.actionItems.length > 0
+      ? h(
+          Section,
+          { style: { marginTop: '8px' } },
+          h(Text, { style: { margin: '0 0 8px', fontSize: '12px', color: TEXT_SOFT, fontWeight: 800 } }, '바로 해볼 행동'),
+          ...answer.actionItems.map((item, index) =>
+            h(Text, { key: item, style: { margin: '0 0 6px', fontSize: '13px', color: TEXT_MUTED, lineHeight: '1.6' } }, `${index + 1}. ${item}`),
+          ),
+        )
+      : null,
+  );
+}
+
+function examYearlyChartBlock(yearlyGuidance: ExamJobResult['yearlyGuidance']) {
+  const sorted = sortedExamGuidance(yearlyGuidance);
+  const bestYear = bestStudyYear(yearlyGuidance);
+  const firstYear = sorted[0]?.year;
+  const lastYear = sorted[sorted.length - 1]?.year;
+  const title = firstYear && lastYear ? `${firstYear}~${lastYear} 학습 흐름 타임라인` : '연도별 학습 흐름 타임라인';
+  const bestFlow = bestYear ? ratioToPercent(bestYear.studyFlow) : null;
+  const rows = sorted.map((row) => {
+    const flow = ratioToPercent(row.studyFlow);
+    const risk = ratioToPercent(row.overloadRisk);
+    const riskTone = getRiskTone(risk);
+    const isBest = bestYear?.year === row.year;
+
+    return h(
+      'tr',
+      { key: row.year },
+      h(
+        'td',
+        { style: { padding: '12px 0', borderTop: `1px solid ${BORDER_COLOR}`, verticalAlign: 'top', width: '72px' } },
+        h(Text, { style: { margin: 0, color: TEXT_DARK, fontSize: '13px', fontWeight: 800 } }, `${row.year}년`),
+        isBest
+          ? h(
+              'span',
+              {
+                style: {
+                  display: 'inline-block',
+                  marginTop: '6px',
+                  padding: '3px 7px',
+                  borderRadius: '999px',
+                  backgroundColor: '#18181b',
+                  color: '#ffffff',
+                  fontSize: '11px',
+                  fontWeight: 800,
+                },
+              },
+              '학습 탄력',
+            )
+          : null,
+      ),
+      h(
+        'td',
+        { style: { padding: '12px 10px', borderTop: `1px solid ${BORDER_COLOR}`, verticalAlign: 'top' } },
+        h(
+          'table',
+          { role: 'presentation', width: '100%', cellPadding: 0, cellSpacing: 0, style: { borderCollapse: 'collapse' } },
+          h(
+            'tbody',
+            null,
+            h(
+              'tr',
+              null,
+              h(
+                'td',
+                {
+                  style: {
+                    height: '12px',
+                    borderRadius: '999px',
+                    overflow: 'hidden',
+                    backgroundColor: SOFT_BG,
+                    border: `1px solid ${BORDER_COLOR}`,
+                  },
+                },
+                h('div', {
+                  style: {
+                    width: `${flow}%`,
+                    height: '12px',
+                    backgroundColor: isBest ? '#18181b' : '#71717a',
+                    borderRadius: '999px',
+                  },
+                }),
+              ),
+              h('td', { style: { width: '48px', paddingLeft: '8px', color: TEXT_DARK, fontSize: '13px', fontWeight: 800 } }, `${flow}%`),
+            ),
+          ),
+        ),
+        h(Text, { style: { margin: '8px 0 0', color: TEXT_MUTED, fontSize: '13px', lineHeight: '1.6' } }, row.focus),
+      ),
+      h(
+        'td',
+        {
+          style: {
+            padding: '12px 0',
+            borderTop: `1px solid ${BORDER_COLOR}`,
+            verticalAlign: 'top',
+            width: '82px',
+            textAlign: 'right',
+          },
+        },
+        h(
+          'span',
+          {
+            style: {
+              display: 'inline-block',
+              padding: '3px 8px',
+              borderRadius: '999px',
+              backgroundColor: riskTone.bg,
+              color: riskTone.color,
+              fontSize: '12px',
+              fontWeight: 700,
+            },
+          },
+          `과부하 ${risk}%`,
+        ),
+      ),
+    );
+  });
+
+  return h(
+    Section,
+    {
+      style: {
+        marginTop: '12px',
+        border: `1px solid ${BORDER_COLOR}`,
+        borderRadius: CARD_RADIUS,
+        backgroundColor: '#ffffff',
+        padding: '16px',
+      },
+    },
+    h(Text, { style: { margin: '0 0 4px', fontSize: '16px', color: TEXT_DARK, fontWeight: 900 } }, title),
+    bestYear
+      ? h(Text, { style: { margin: '0 0 8px', fontSize: '13px', color: TEXT_MUTED, lineHeight: '1.6' } }, `${bestYear.year}년이 학습 흐름 ${bestFlow}%로 가장 탄력이 붙는 구간입니다.`)
+      : null,
+    h(Text, { style: { margin: '0 0 12px', fontSize: '13px', color: TEXT_SOFT, lineHeight: '1.55' } }, '막대는 학습 흐름, 배지는 과부하 리스크입니다. 숫자는 참고용이며, 공부 루틴을 조정하기 위한 기준으로만 봐 주세요.'),
+    h('table', { role: 'presentation', width: '100%', cellPadding: 0, cellSpacing: 0, style: { borderCollapse: 'collapse' } }, h('tbody', null, ...rows)),
+  );
+}
+
+function examResultTemplate(payload: ExamOnlyResultEmailPayload) {
+  const result = payload.result;
+  const detailedSections = result.detailedSections ?? [];
+  const yearlyGuidance = sortedExamGuidance(result.yearlyGuidance ?? []);
+  const overloadTone = getRiskTone(clampPercent(result.effortScore));
+
+  return baseLayout(
+    `${payload.name}님의 시험운 리포트가 도착했습니다`,
+    h(
+      Section,
+      { style: { padding: '20px 20px 18px' } },
+      h(
+        Heading,
+        { as: 'h1', style: { margin: '0 0 6px', fontSize: '25px', lineHeight: '1.32', color: TEXT_DARK, fontWeight: 800 } },
+        `${payload.name || '고객'}님의 사주 시험운 리포트`,
+      ),
+      h(Text, { style: { margin: '0', fontSize: '12px', color: TEXT_SOFT } }, `요청 ID: ${payload.requestId}`),
+      h(Text, { style: { margin: '10px 0 0', fontSize: '15px', color: TEXT_MUTED, lineHeight: '1.7' } }, result.summary),
+      h(Hr, { style: { borderColor: BORDER_COLOR, margin: '14px 0' } }),
+      h(
+        Row,
+        null,
+        scoreCard('시험 점수', result.examScore, TEXT_DARK, result.scoreRationales?.exam),
+        scoreCard('과목 궁합', result.subjectFitScore, '#52525b', result.scoreRationales?.subjectFit),
+        scoreCard('노력 보정', result.effortScore, '#a1a1aa', result.scoreRationales?.effort),
+      ),
+      h(
+        Section,
+        {
+          style: {
+            marginTop: '12px',
+            border: `1px solid ${BORDER_COLOR}`,
+            borderRadius: CARD_RADIUS,
+            backgroundColor: SECTION_BG,
+            padding: '16px',
+          },
+        },
+        h(Text, { style: { margin: '0 0 10px', fontSize: '15px', color: TEXT_DARK, fontWeight: 800 } }, '과목 맞춤 해석'),
+        metricBadge('과목', result.subjectProfile.subject),
+        metricBadge('분류', result.subjectProfile.category),
+        metricBadge('중심 오행', result.subjectProfile.primaryElementLabel),
+        metricBadge('보조 오행', result.subjectProfile.supportElementLabel),
+        h(Text, { style: { margin: '10px 0 0', fontSize: '14px', color: TEXT_MUTED, lineHeight: '1.72' } }, result.subjectProfile.fitReason),
+      ),
+      h(
+        Section,
+        {
+          style: {
+            marginTop: '12px',
+            border: `1px solid ${BORDER_COLOR}`,
+            borderRadius: CARD_RADIUS,
+            backgroundColor: SECTION_BG,
+            padding: '16px',
+          },
+        },
+        h(Text, { style: { margin: '0 0 8px', fontSize: '12px', color: TEXT_SOFT, fontWeight: 700 } }, '노력 보정 상태'),
+        h(
+          Text,
+          { style: { margin: '0', fontSize: '14px', color: TEXT_MUTED, lineHeight: '1.7' } },
+          '현재 노력 보정은 ',
+          h(
+            'span',
+            {
+              style: {
+                display: 'inline-block',
+                padding: '2px 8px',
+                borderRadius: '999px',
+                backgroundColor: overloadTone.bg,
+                color: overloadTone.color,
+                fontWeight: 700,
+              },
+            },
+            `${clampPercent(result.effortScore)}점 (${overloadTone.label})`,
+          ),
+          ' 구간입니다. 높게 나올수록 벼락치기보다 루틴 설계가 중요합니다.',
+        ),
+      ),
+      examScoreRationaleBlock(result),
+      h(
+        Section,
+        {
+          style: {
+            marginTop: '12px',
+            border: `1px solid ${BORDER_COLOR}`,
+            borderRadius: CARD_RADIUS,
+            backgroundColor: SECTION_BG,
+            padding: '16px',
+          },
+        },
+        h(Text, { style: { margin: '0 0 10px', fontSize: '15px', color: TEXT_DARK, fontWeight: 800 } }, '핵심 요약'),
+        h(Text, { style: { margin: '0 0 12px', fontSize: '15px', color: TEXT_MUTED, lineHeight: '1.75' } }, result.summary),
+        h(Text, { style: { margin: '12px 0 8px', fontSize: '12px', color: TEXT_SOFT, fontWeight: 700 } }, '좋은 흐름'),
+        h(Text, { style: { margin: '0 0 12px', fontSize: '14px', color: TEXT_MUTED, lineHeight: '1.72' } }, result.highlight),
+        h(Text, { style: { margin: '0 0 8px', fontSize: '12px', color: TEXT_SOFT, fontWeight: 700 } }, '주의 포인트'),
+        h(Text, { style: { margin: '0 0 12px', fontSize: '14px', color: TEXT_MUTED, lineHeight: '1.72' } }, result.caution),
+        h(Text, { style: { margin: '0 0 8px', fontSize: '12px', color: TEXT_SOFT, fontWeight: 700 } }, '타이밍 힌트'),
+        h(Text, { style: { margin: '0', fontSize: '14px', color: TEXT_MUTED, lineHeight: '1.72' } }, result.timingHint),
+      ),
+      subjectAnswerBlock(result),
+      yearlyGuidance.length > 0 ? examYearlyChartBlock(yearlyGuidance) : null,
+      h(
+        Section,
+        {
+          style: {
+            marginTop: '12px',
+            border: `1px solid ${BORDER_COLOR}`,
+            borderRadius: CARD_RADIUS,
+            backgroundColor: SECTION_BG,
+            padding: '16px',
+          },
+        },
+        h(Text, { style: { margin: '0 0 10px', fontSize: '15px', color: TEXT_DARK, fontWeight: 800 } }, '공부 전략'),
+        ...detailedSections.map((section) => sectionCard(section.title, section.body)),
+      ),
+      h(
+        Section,
+        {
+          style: {
+            marginTop: '12px',
+            border: `1px solid ${BORDER_COLOR}`,
+            borderRadius: CARD_RADIUS,
+            backgroundColor: SECTION_BG,
+            padding: '16px',
+          },
+        },
+        h(Text, { style: { margin: '0 0 10px', fontSize: '15px', color: TEXT_DARK, fontWeight: 800 } }, '연도별 학습 포인트 (열기/닫기)'),
+        ...yearlyGuidance.map((row) => detailsBlock(`${row.year}년 · 학습 ${ratioToPercent(row.studyFlow)}% / 과부하 ${ratioToPercent(row.overloadRisk)}%`, row.focus)),
+      ),
+      h(
+        Text,
+        {
+          style: {
+            margin: '14px 0 0',
+            color: TEXT_SOFT,
+            fontSize: '12px',
+            lineHeight: '1.6',
+          },
+        },
+        '이 결과는 참고용 해석이며, 실제 시험 준비는 학습 계획과 건강 관리를 우선해 주세요.',
+      ),
+    ),
+  );
+}
+
+function loveResultTemplate(payload: LoveOnlyResultEmailPayload) {
   const result = payload.result;
   const riskScore = clampPercent(result.riskScore);
   const riskTone = getRiskTone(riskScore);
@@ -699,7 +1050,9 @@ function adminSummaryTemplate(payload: AdminSummaryEmailPayload) {
   const statusLabel = payload.status === 'completed' ? '성공' : '실패';
   const statusColor = payload.status === 'completed' ? '#16a34a' : '#dc2626';
   const scoreSummary = payload.result
-    ? `연애 ${clampPercent(payload.result.loveScore)} / 결혼 ${clampPercent(payload.result.marriageScore)} / 리스크 ${clampPercent(payload.result.riskScore)}`
+    ? payload.result.fortuneType === 'exam'
+      ? `시험 ${clampPercent(payload.result.examScore)} / 과목 ${clampPercent(payload.result.subjectFitScore)} / 노력 ${clampPercent(payload.result.effortScore)}`
+      : `연애 ${clampPercent(payload.result.loveScore)} / 결혼 ${clampPercent(payload.result.marriageScore)} / 리스크 ${clampPercent(payload.result.riskScore)}`
     : '점수 없음';
 
   return baseLayout(
@@ -730,7 +1083,7 @@ function adminSummaryTemplate(payload: AdminSummaryEmailPayload) {
 }
 
 export async function renderLoveResultEmail(payload: LoveResultEmailPayload): Promise<RenderedEmail> {
-  const html = (await render(loveResultTemplate(payload))).replace(/\u0000/g, '');
+  const html = (await render(payload.result.fortuneType === 'exam' ? examResultTemplate(payload as ExamOnlyResultEmailPayload) : loveResultTemplate(payload as LoveOnlyResultEmailPayload))).replace(/\u0000/g, '');
   return {
     html,
     text: cleanPlainText(toPlainText(html)),
