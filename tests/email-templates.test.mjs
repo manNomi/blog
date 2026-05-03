@@ -5,6 +5,7 @@ import {
   renderAdminSummaryEmail,
   renderLoveResultEmail,
 } from '../src/lib/saju/server/email-templates.ts';
+import { buildExamResult } from '../src/lib/saju/exam-result.ts';
 
 function sampleYearlyGuidance() {
   return [
@@ -147,4 +148,36 @@ test('renderAdminSummaryEmail can describe failed generation without user result
   assert.match(rendered.text, /사주 처리 실패/);
   assert.match(rendered.text, /report_generation_failed/);
   assert.match(rendered.text, /점수:\s*점수 없음/);
+});
+
+test('renderLoveResultEmail renders exam report blocks without internal keys', async () => {
+  const result = buildExamResult({
+    fortuneType: 'exam',
+    name: '시험러',
+    email: 'exam@example.com',
+    gender: 'female',
+    calendarType: 'solar',
+    birthDate: '1993-07-12',
+    birthTime: '08:30',
+    birthPlace: '서울특별시',
+    relationshipStatus: 'unknown',
+    examSubject: '컴퓨터',
+  });
+  const rendered = await renderLoveResultEmail({
+    requestId: 'exam-123',
+    name: '시험러',
+    result,
+  });
+
+  assert.match(rendered.text, /사주 시험운 리포트/);
+  assert.match(rendered.text, /컴퓨터/);
+  assert.match(rendered.text, /시험 점수/);
+  assert.match(rendered.text, /과목 궁합/);
+  assert.match(rendered.text, /노력 보정/);
+  assert.match(rendered.text, /과목 맞춤 해석/);
+  assert.match(rendered.text, /공부 전략/);
+  assert.match(rendered.text, /연도별 학습/);
+  assert.match(rendered.text, /바로 해볼 행동/);
+  assert.doesNotMatch(rendered.text, /confidence|traces|elementProfile|studyFlow|overloadRisk|generationMeta/);
+  assert.doesNotMatch(rendered.text, /절대 못함|불합격 확정|무조건 떨어/);
 });

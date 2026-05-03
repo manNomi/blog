@@ -1,4 +1,4 @@
-import type { LoveJobResult } from '../love-job-types';
+import type { SajuJobResult } from '../love-job-types';
 import { createHash } from "node:crypto";
 import { renderAdminSummaryEmail, renderLoveResultEmail } from './email-templates';
 
@@ -7,7 +7,7 @@ type EmailSendPayload = {
   name: string;
   requestId: string;
   concern?: string;
-  result: LoveJobResult;
+  result: SajuJobResult;
 };
 
 type EmailSendResult = {
@@ -22,7 +22,7 @@ type AdminSummaryPayload = {
   status: "completed" | "failed";
   error: string | null;
   source: "api" | "worker";
-  result: LoveJobResult | null;
+  result: SajuJobResult | null;
 };
 
 const ADMIN_NOTIFY_EMAIL = "hanmw110@naver.com";
@@ -46,18 +46,19 @@ async function sendWithResend(payload: EmailSendPayload): Promise<EmailSendResul
     concern: payload.concern,
     result: payload.result,
   });
+  const isExam = payload.result.fortuneType === "exam";
 
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
-      "Idempotency-Key": toAsciiIdempotencyKey("love-job", payload.requestId),
+      "Idempotency-Key": toAsciiIdempotencyKey(isExam ? "exam-job" : "love-job", payload.requestId),
     },
     body: JSON.stringify({
       from,
       to: [payload.to],
-      subject: "[사주 리포트] 연애운 분석 결과가 도착했습니다",
+      subject: isExam ? "[사주 리포트] 시험운 분석 결과가 도착했습니다" : "[사주 리포트] 연애운 분석 결과가 도착했습니다",
       text: rendered.text,
       html: rendered.html,
     }),
@@ -136,6 +137,7 @@ export async function sendLoveResultEmail(payload: EmailSendPayload): Promise<Em
       event: "email_console_preview",
       to: payload.to,
       requestId: payload.requestId,
+      fortuneType: payload.result.fortuneType ?? "love",
       summary: payload.result.summary,
     }),
   );
