@@ -4,20 +4,37 @@ import '../styles/global.css';
 interface Props {
   title: string;
   description?: string;
+  keywords?: string[];
+  author?: string;
   image?: string;
+  imageAlt?: string;
+  imageWidth?: number;
+  imageHeight?: number;
   canonicalURL?: string;
+  ogType?: 'website' | 'article';
+  robots?: string;
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 }
 
 const {
   title,
-  description = '기술 글월 누리집',
+  description = '프론트엔드 개발과 제품 개발 경험을 기록하는 기술 블로그입니다.',
+  keywords = [],
+  author = '한만욱',
   image = '/og-image.png',
-  canonicalURL = Astro.url.pathname
+  imageAlt = title,
+  imageWidth = 1200,
+  imageHeight = 630,
+  canonicalURL = Astro.url.pathname,
+  ogType = 'website',
+  robots = 'index, follow',
+  jsonLd
 } = Astro.props;
 
-const siteURL = Astro.site || 'https://yourblog.com';
+const siteURL = Astro.site || Astro.url.origin;
 const fullURL = new URL(canonicalURL, siteURL).href;
 const ogImage = new URL(image, siteURL).href;
+const jsonLdPayload = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : undefined;
 ---
 
 <!DOCTYPE html>
@@ -26,16 +43,23 @@ const ogImage = new URL(image, siteURL).href;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
+    {keywords.length > 0 && <meta name="keywords" content={keywords.join(', ')} />}
+    <meta name="author" content={author} />
+    <meta name="robots" content={robots} />
     <link rel="canonical" href={fullURL} />
     <title>{title}</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preload" href="/fonts/ChosunCentennial.ttf" as="font" type="font/ttf" crossorigin />
 
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
     <meta property="og:url" content={fullURL} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={ogImage} />
+    <meta property="og:image:alt" content={imageAlt} />
+    <meta property="og:image:width" content={String(imageWidth)} />
+    <meta property="og:image:height" content={String(imageHeight)} />
+    <meta property="og:site_name" content="Nomi Journal" />
     <meta property="og:locale" content="ko_KR" />
 
     <meta name="twitter:card" content="summary_large_image" />
@@ -43,6 +67,8 @@ const ogImage = new URL(image, siteURL).href;
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={imageAlt} />
+    {jsonLdPayload && <script type="application/ld+json" set:html={jsonLdPayload} is:inline />}
   </head>
   <body>
     <slot />

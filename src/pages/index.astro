@@ -24,6 +24,48 @@ const allPosts = (await getCollection('blog'))
 
 const pinnedPosts = allPosts.filter((post) => post.data.pinned);
 const featuredPosts = pinnedPosts.slice(0, 4);
+const siteURL = Astro.site || Astro.url.origin;
+const homeURL = new URL('/', siteURL).href;
+const ogImageURL = new URL('/og-image.png', siteURL).href;
+const seoTitle = '한만욱의 이모저모 | Nomi Journal';
+const seoDescription =
+  '프론트엔드 개발자 한만욱이 웹 성능, 번들링, 웹뷰, 협업, 제품 개발 과정에서 배운 내용을 기록하는 기술 블로그입니다.';
+const seoKeywords = ['프론트엔드', '웹 성능', 'React', 'Astro', '웹뷰', '개발 블로그', '한만욱'];
+const homeJsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      '@id': `${homeURL}#website`,
+      url: homeURL,
+      name: 'Nomi Journal',
+      inLanguage: 'ko-KR',
+      description: seoDescription,
+      publisher: {
+        '@id': `${homeURL}#person`
+      }
+    },
+    {
+      '@type': 'Person',
+      '@id': `${homeURL}#person`,
+      name: '한만욱',
+      url: homeURL,
+      sameAs: ['https://github.com/manNomi']
+    },
+    {
+      '@type': 'Blog',
+      '@id': `${homeURL}#blog`,
+      url: homeURL,
+      name: '한만욱의 이모저모',
+      description: seoDescription,
+      image: ogImageURL,
+      inLanguage: 'ko-KR',
+      author: {
+        '@id': `${homeURL}#person`
+      }
+    }
+  ]
+};
 
 const valueCards = [
   {
@@ -58,7 +100,15 @@ const toCategory = (tags: string[] | undefined) => {
 };
 ---
 
-<BaseLayout title="Nomi Journal" description="프론트엔드 개발과 일상에 대해서 이야기를 적고 있습니다.">
+<BaseLayout
+  title={seoTitle}
+  description={seoDescription}
+  keywords={seoKeywords}
+  image="/og-image.png"
+  imageAlt="한만욱의 이모저모 Nomi Journal"
+  canonicalURL="/"
+  jsonLd={homeJsonLd}
+>
   <Header />
 
   <main class="main-shell">
