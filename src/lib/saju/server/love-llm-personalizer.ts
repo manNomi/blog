@@ -18,6 +18,7 @@ const FORBIDDEN_TONE_PATTERNS = [
   /도착했사옵니다/,
   /무조건\s*(헤어|만나|결혼|성공|실패)/,
   /반드시\s*(헤어|만나|결혼|성공|실패)/,
+  /절대\s*(못|안|불가|실패|헤어|만나|결혼|성공)/,
   /파국/,
   /재앙/,
   /망합니다/,
@@ -40,6 +41,12 @@ const FORBIDDEN_INTERNAL_PATTERNS = [
   /\belementBalance\b/i,
   /\bspousePalace\b/i,
   /\bspouseStar\b/i,
+];
+const FORBIDDEN_UNGROUNDED_PATTERNS = [
+  /입력에\s*없는\s*(천간|지지|오행|십성|대운|세운|사주|명식)[^.!?。！？]*(생성|창작|추론|계산|만들)/,
+  /제공되지\s*않은\s*(천간|지지|오행|십성|대운|세운|사주|명식)[^.!?。！？]*(생성|창작|추론|계산|만들)/,
+  /생년월일을\s*보고\s*(년주|월주|일주|시주|대운|세운)[^.!?。！？]*(계산|산출)/,
+  /임의로\s*(대운|세운|월운|십성|오행|명식)[^.!?。！？]*(계산|산출|추가)/,
 ];
 
 export const MAX_LLM_RETRIES = 3;
@@ -91,12 +98,59 @@ type PersonalizeOptions = {
   preferCodex?: boolean;
 };
 
-type ProviderResult = {
-  personalized: PersonalizedLoveText;
-  model: string;
-  provider: ReportProvider;
-  attempts: number;
-};
+const SYSTEM_PROMPT = [
+  '너는 사주 계산자가 아니라, 이미 계산된 사주 데이터를 바탕으로 연애 리포트를 작성하는 상담형 해석자다.',
+  '입력 데이터에 없는 천간, 지지, 오행, 십성, 대운, 세운, 합충형파해를 임의로 만들지 않는다.',
+  '만세력 근거와 엔진 수치를 바탕으로 상세하고 이해 쉬운 해설을 작성하되, 점수와 연도는 절대 바꾸지 않는다.',
+  '반드시 JSON만 출력한다.',
+].join('\n');
+
+const INTERPRETATION_GUIDE = [
+  '- 모든 해석은 결론 → 사주적 근거 → 현실적 조언 순서로 쓴다',
+  '- 사주 용어를 쓰면 바로 괄호나 다음 문장으로 쉬운 뜻을 풀어준다',
+  '- 배우자궁, 배우자별, 도화, 홍란, 홍염, 일간 강약, 오행 균형 중 실제 입력에 있는 근거를 우선 사용한다',
+  '- 근거가 충분하지 않은 항목은 억지로 확정하지 말고 "제공된 정보만으로는 판단이 제한적입니다"라는 취지로 설명한다',
+  '- 같은 입력에서 핵심 방향이 크게 달라지지 않도록 점수, 추천 연도, 기존 엔진 판단과 모순되지 않게 작성한다',
+].join('\n');
+
+const SAFETY_AND_LIMITATION_RULES = [
+  '- 생년월일을 보고 년주, 월주, 일주, 시주를 직접 계산하지 않는다',
+  '- 음력/양력 변환, 대운, 세운, 월운을 직접 계산하지 않는다',
+  '- 입력 JSON에 없는 오행 점수, 십성 분포, 합충형파해를 만들어내지 않는다',
+  '- pillars, fiveElements, tenGods, daeWoon, seWoon, relationFlags, strengthFlags 같은 구조화 데이터는 제공된 경우에만 근거로 사용한다',
+  '- 제공되지 않은 구조화 데이터는 있는 것처럼 말하지 않고, 판단이 제한적이라고 표현한다',
+  '- birthTime이 00:00이거나 시주 정보가 제공되지 않았거나 확인 불가로 표시된 경우 시주 기반 해석을 확정 근거로 쓰지 않는다',
+  '- "반드시", "무조건", "큰일 난다", "망한다", "파국"처럼 단정적이거나 불안감을 키우는 표현을 쓰지 않는다',
+  '- 가능성, 경향성, 주의점, 활용법 중심으로 표현한다',
+].join('\n');
+
+function OUTPUT_FORMAT_PROMPT(guidanceRange: string) {
+  return [
+    '[출력해야 하는 키]',
+    '- summary',
+    '- highlight',
+    '- caution',
+    '- timingHint',
+    '- scoreRationales: { love, marriage, risk }',
+    '- concernAnswer: { concern, answer, actionItems }',
+    '- detailedSections[{title, body}]',
+    `- yearlyGuidance[{year, focus}] (${guidanceRange} 전체)`,
+  ].join('\n');
+}
+
+function USER_DATA_PROMPT_TEMPLATE(input: LoveJobInput, birthPlace: string, concern: string, baselineResult: LoveJobResult) {
+  return [
+    `[relationshipStatus]: ${input.relationshipStatus}`,
+    `[birthPlace]: ${birthPlace}`,
+    `[birthTime]: ${input.birthTime || '미입력'}`,
+    `[concern]: ${concern}`,
+    '[출생지 맞춤 가이드]',
+    buildBirthPlaceGuide(birthPlace),
+    '',
+    '[사용자용으로 정리한 엔진 산출값 및 만세력 요약(JSON)]',
+    JSON.stringify(baselineForPrompt(baselineResult), null, 2),
+  ].join('\n');
+}
 
 function normalizeConcern(input: LoveJobInput) {
   const concern = input.concern?.trim();
@@ -283,15 +337,7 @@ function buildPersonalizerPrompt(input: LoveJobInput, baselineResult: LoveJobRes
     '아래 엔진 산출값과 만세력 요약을 바탕으로 이메일로 보낼 사주 연애 리포트 문장을 새로 작성하세요.',
     '반드시 JSON으로만 응답하세요. 마크다운, 설명문, 코드블록은 금지합니다.',
     '',
-    '[출력해야 하는 키]',
-    '- summary',
-    '- highlight',
-    '- caution',
-    '- timingHint',
-    '- scoreRationales: { love, marriage, risk }',
-    '- concernAnswer: { concern, answer, actionItems }',
-    '- detailedSections[{title, body}]',
-    `- yearlyGuidance[{year, focus}] (${guidanceRange} 전체)`,
+    OUTPUT_FORMAT_PROMPT(guidanceRange),
     '',
     '[절대 규칙: 엔진 값 보존]',
     '- 출력 JSON 키는 영어로 유지하되, 각 값에 들어가는 문장은 반드시 한국어 자연문으로 작성한다',
@@ -301,6 +347,12 @@ function buildPersonalizerPrompt(input: LoveJobInput, baselineResult: LoveJobRes
     `- yearlyGuidance는 연도별_가이드의 year를 그대로 유지하고 ${guidanceRange}를 하나도 빠뜨리지 않는다`,
     '- confidence, presence, balance, stability, conflictRisk, traces, evidenceCodes, spouseRelations, loveChance, breakupRisk 같은 내부 키 이름을 문장에 쓰지 말 것',
     '- 0.688095238 같은 소수 원자료를 절대 쓰지 말 것. 필요한 경우 69%, 보통, 중간 이상, 낮은 편처럼 사용자용 표현만 쓸 것',
+    '',
+    '[역할 및 해석 원칙]',
+    INTERPRETATION_GUIDE,
+    '',
+    '[계산 금지 및 안전 규칙]',
+    SAFETY_AND_LIMITATION_RULES,
     '',
     '[문체 규칙]',
     '- 상담사가 직접 설명하는 듯한 자연스러운 존댓말로 쓴다',
@@ -322,14 +374,7 @@ function buildPersonalizerPrompt(input: LoveJobInput, baselineResult: LoveJobRes
       ? '- concern이 입력되어 있으므로 summary, caution, timingHint, concernAnswer, 상세 섹션, 연도별 가이드가 이 고민과 연결되어야 한다'
       : '- concern이 없으므로 concernAnswer는 concern="", answer="", actionItems=[]로 둔다. 고민을 지어내지 않는다',
     '',
-    `[relationshipStatus]: ${input.relationshipStatus}`,
-    `[birthPlace]: ${birthPlace}`,
-    `[concern]: ${concern}`,
-    '[출생지 맞춤 가이드]',
-    buildBirthPlaceGuide(birthPlace),
-    '',
-    '[사용자용으로 정리한 엔진 산출값 및 만세력 요약(JSON)]',
-    JSON.stringify(baselineForPrompt(baselineResult), null, 2),
+    USER_DATA_PROMPT_TEMPLATE(input, birthPlace, concern, baselineResult),
   ].join('\n');
 }
 
@@ -368,6 +413,15 @@ function assertNoInternalLeak(value: string) {
   for (const pattern of FORBIDDEN_INTERNAL_PATTERNS) {
     if (pattern.test(compact)) {
       throw new Error('llm_internal_metric_leak');
+    }
+  }
+}
+
+function assertNoUngroundedCalculation(value: string) {
+  const compact = compactText(value);
+  for (const pattern of FORBIDDEN_UNGROUNDED_PATTERNS) {
+    if (pattern.test(compact)) {
+      throw new Error('llm_ungrounded_saju_claim');
     }
   }
 }
@@ -452,6 +506,7 @@ function assertOutputQuality(input: LoveJobInput, personalized: PersonalizedLove
   for (const text of texts) {
     assertNoForbiddenTone(text);
     assertNoInternalLeak(text);
+    assertNoUngroundedCalculation(text);
     assertNoRepeatedSentences(text);
   }
 
@@ -652,8 +707,7 @@ async function requestOpenAiPersonalizedText(input: LoveJobInput, baselineResult
         input: [
           {
             role: 'system',
-            content:
-              '너는 사주 연애 리포트를 사람다운 상담 문장으로 작성하는 에디터다. 만세력 근거와 엔진 수치를 바탕으로 상세하고 이해 쉬운 해설을 작성하되, 수치와 연도는 절대 바꾸지 않는다. 반드시 JSON만 출력한다.',
+            content: SYSTEM_PROMPT,
           },
           {
             role: 'user',
@@ -763,6 +817,9 @@ async function requestCodexPersonalizedText(input: LoveJobInput, baselineResult:
     '당신은 로컬 Codex 에이전트입니다.',
     '아래 요청은 저장소를 수정하는 일이 아닙니다. 제공된 엔진 산출값만 근거로 이메일 리포트용 JSON을 작성하세요.',
     '파일을 읽거나 수정하지 말고, 출력 스키마에 맞는 JSON만 마지막 메시지로 남기세요.',
+    '',
+    '[시스템 역할]',
+    SYSTEM_PROMPT,
     '',
     buildPersonalizerPrompt(input, baselineResult),
   ].join('\n');

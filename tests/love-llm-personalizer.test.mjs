@@ -171,9 +171,20 @@ test('personalizeLoveResult keeps numeric engine fields fixed and rewrites rich 
     );
     assert.equal(result.generationMeta?.provider, 'openai');
     assert.match(result.modelVersion, /saju-love-v2\+llm:openai-gpt-test-mini/);
-    const requestBody = JSON.stringify(getRequestBody());
-    const prompt = getRequestBody().input[1].content;
+    const rawRequestBody = getRequestBody();
+    const requestBody = JSON.stringify(rawRequestBody);
+    const systemPrompt = rawRequestBody.input[0].content;
+    const prompt = rawRequestBody.input[1].content;
     const userFacingContext = prompt.split('[사용자용으로 정리한 엔진 산출값 및 만세력 요약(JSON)]')[1] ?? '';
+    assert.equal(rawRequestBody.temperature, 0.35);
+    assert.equal(rawRequestBody.top_p, undefined);
+    assert.match(systemPrompt, /사주 계산자가 아니라/);
+    assert.match(systemPrompt, /입력 데이터에 없는 천간, 지지, 오행, 십성, 대운, 세운/);
+    assert.match(prompt, /생년월일을 보고 년주, 월주, 일주, 시주를 직접 계산하지 않는다/);
+    assert.match(prompt, /입력 JSON에 없는 오행 점수, 십성 분포, 합충형파해를 만들어내지 않는다/);
+    assert.match(prompt, /제공된 경우에만 근거로 사용한다/);
+    assert.match(prompt, /birthTime이 00:00이거나 시주 정보가 제공되지 않았거나 확인 불가/);
+    assert.match(prompt, /모든 해석은 결론 → 사주적 근거 → 현실적 조언 순서/);
     assert.match(requestBody, /연락 템포 고민/);
     assert.match(requestBody, /만세력 요약/);
     assert.doesNotMatch(userFacingContext, /presence|confidence|traces|evidenceCodes|loveChance|breakupRisk/);
@@ -321,6 +332,32 @@ test('personalizeLoveResult rejects raw internal metrics in generated prose', as
           createBaselineResult(),
         ),
       /llm_internal_metric_leak/,
+    );
+  });
+});
+
+test('personalizeLoveResult rejects prose that invents missing saju data', async () => {
+  const invented = generatedPayload();
+  invented.summary = `${invented.summary} 입력에 없는 대운 정보를 임의로 계산했습니다.`;
+
+  await withMockedOpenAi(invented, async () => {
+    await assert.rejects(
+      () =>
+        personalizeLoveResult(
+          {
+            name: '홍길동',
+            email: 'test@example.com',
+            gender: 'male',
+            calendarType: 'solar',
+            birthDate: '1991-01-01',
+            birthTime: '08:30',
+            birthPlace: '부산',
+            relationshipStatus: 'dating',
+            concern: '연락 템포 고민',
+          },
+          createBaselineResult(),
+        ),
+      /llm_ungrounded_saju_claim/,
     );
   });
 });
