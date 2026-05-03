@@ -37,6 +37,26 @@ type Backend =
 
 let backendCache: Backend | null = null;
 
+export function sanitizeFirestoreData<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value
+      .filter((item) => item !== undefined)
+      .map((item) => sanitizeFirestoreData(item)) as T;
+  }
+
+  if (value && typeof value === "object") {
+    if (value instanceof Date) return value;
+
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .filter(([, entryValue]) => entryValue !== undefined)
+        .map(([key, entryValue]) => [key, sanitizeFirestoreData(entryValue)]),
+    ) as T;
+  }
+
+  return value;
+}
+
 function createAdminBackend(): Backend | null {
   try {
     const hasExplicitAdminEnv = Boolean(
@@ -132,13 +152,14 @@ export function getFirestoreBackendMode() {
 
 export async function createLoveJob(job: LoveJob) {
   const backend = resolveBackend();
+  const safeJob = sanitizeFirestoreData(job);
 
   if (backend.mode === "admin") {
-    await backend.db.collection(LOVE_JOBS_COLLECTION).doc(job.id).set(job);
+    await backend.db.collection(LOVE_JOBS_COLLECTION).doc(job.id).set(safeJob);
     return;
   }
 
-  await setDoc(doc(backend.db, LOVE_JOBS_COLLECTION, job.id), job);
+  await setDoc(doc(backend.db, LOVE_JOBS_COLLECTION, job.id), safeJob);
 }
 
 export async function getLoveJobById(jobId: string): Promise<LoveJob | null> {
@@ -201,13 +222,14 @@ export async function claimQueuedLoveJob(jobId: string, now: number): Promise<Lo
 
 export async function updateLoveJob(jobId: string, patch: Partial<LoveJob>) {
   const backend = resolveBackend();
+  const safePatch = sanitizeFirestoreData(patch);
 
   if (backend.mode === "admin") {
-    await backend.db.collection(LOVE_JOBS_COLLECTION).doc(jobId).update(patch);
+    await backend.db.collection(LOVE_JOBS_COLLECTION).doc(jobId).update(safePatch);
     return;
   }
 
-  await updateDoc(doc(backend.db, LOVE_JOBS_COLLECTION, jobId), patch as Record<string, unknown>);
+  await updateDoc(doc(backend.db, LOVE_JOBS_COLLECTION, jobId), safePatch as Record<string, unknown>);
 }
 
 export async function findProcessableLoveJobs(limitCount: number) {
