@@ -179,7 +179,44 @@ test('renderLoveResultEmail renders exam report blocks without internal keys', a
   assert.match(rendered.text, /과목 맞춤 해석/);
   assert.match(rendered.text, /공부 전략/);
   assert.match(rendered.text, /짧은 루틴/);
+  assert.match(rendered.text, /해석 리포트/);
+  assert.match(rendered.text, /근거/);
+  assert.match(rendered.text, /현실적 의미/);
+  assert.match(rendered.text, /실행 조언/);
+  assert.match(rendered.text, /시험 준비 타임라인/);
+  assert.match(rendered.text, /지금부터 할 일/);
+  assert.match(rendered.text, /시험 1주 전/);
+  assert.match(rendered.text, /시험 전날/);
+  assert.match(rendered.text, /시험 당일/);
   assert.match(rendered.text, /바로 해볼 행동/);
   assert.doesNotMatch(rendered.text, /연도별 학습|학습 흐름 타임라인|confidence|traces|elementProfile|studyFlow|overloadRisk|generationMeta/);
   assert.doesNotMatch(rendered.text, /절대 못함|불합격 확정|무조건 떨어/);
+});
+
+test('renderLoveResultEmail falls back to legacy exam detailedSections', async () => {
+  const result = buildExamResult({
+    fortuneType: 'exam',
+    name: '레거시시험러',
+    email: 'legacy-exam@example.com',
+    gender: 'female',
+    calendarType: 'solar',
+    birthDate: '1993-07-12',
+    birthTime: '08:30',
+    birthPlace: '서울특별시',
+    relationshipStatus: 'unknown',
+    examSubject: '컴퓨터',
+  });
+  delete result.interpretationSections;
+  delete result.preparationTimeline;
+
+  const rendered = await renderLoveResultEmail({
+    requestId: 'exam-legacy-123',
+    name: '레거시시험러',
+    result,
+  });
+
+  assert.match(rendered.text, /공부 전략/);
+  assert.match(rendered.text, /결론:/);
+  assert.doesNotMatch(rendered.text, /시험 준비 타임라인/);
+  assert.doesNotMatch(rendered.text, /confidence|traces|elementProfile|generationMeta/);
 });

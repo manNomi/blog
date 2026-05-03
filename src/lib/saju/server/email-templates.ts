@@ -13,7 +13,7 @@ import {
   Text,
 } from '@react-email/components';
 import { render, toPlainText } from '@react-email/render';
-import type { ExamJobResult, LoveJobResult, SajuJobResult } from '../love-job-types';
+import type { ExamJobResult, ExamPreparationTimelineItem, LoveJobResult, ResultSection, SajuJobResult } from '../love-job-types';
 
 type LoveResultEmailPayload = {
   requestId: string;
@@ -444,6 +444,71 @@ function sectionCard(title: string, body: string) {
   );
 }
 
+function resultSectionCard(section: ResultSection) {
+  const evidence = section.evidence ?? [];
+  const advice = section.advice ?? [];
+  const confidenceLabel = section.confidence === 'high' ? '근거 충분' : section.confidence === 'medium' ? '근거 보통' : section.confidence === 'low' ? '근거 제한' : null;
+
+  return h(
+    Section,
+    {
+      key: section.id,
+      style: {
+        marginBottom: '12px',
+        border: `1px solid ${BORDER_COLOR}`,
+        borderRadius: CARD_RADIUS,
+        backgroundColor: SECTION_BG,
+        padding: '15px',
+      },
+    },
+    h(
+      Row,
+      null,
+      h(Column, null, h(Text, { style: { margin: '0 0 8px', fontSize: '15px', color: TEXT_DARK, fontWeight: 900 } }, section.title)),
+      confidenceLabel
+        ? h(
+            Column,
+            { style: { textAlign: 'right' } },
+            h(
+              'span',
+              {
+                style: {
+                  display: 'inline-block',
+                  padding: '3px 8px',
+                  borderRadius: '999px',
+                  backgroundColor: SOFT_BG,
+                  color: TEXT_SOFT,
+                  fontSize: '11px',
+                  fontWeight: 800,
+                },
+              },
+              confidenceLabel,
+            ),
+          )
+        : null,
+    ),
+    h(Text, { style: { margin: '0 0 12px', fontSize: '14px', color: TEXT_DARK, lineHeight: '1.7', fontWeight: 700 } }, section.summary),
+    evidence.length > 0
+      ? h(
+          Section,
+          { style: { margin: '0 0 12px', padding: '11px 12px', borderRadius: '10px', backgroundColor: SOFT_BG } },
+          h(Text, { style: { margin: '0 0 6px', fontSize: '12px', color: TEXT_SOFT, fontWeight: 900 } }, '근거'),
+          ...evidence.map((item) => h(Text, { key: item, style: { margin: '0 0 4px', fontSize: '13px', color: TEXT_MUTED, lineHeight: '1.55' } }, `- ${item}`)),
+        )
+      : null,
+    h(Text, { style: { margin: '0 0 8px', fontSize: '12px', color: TEXT_SOFT, fontWeight: 900 } }, '현실적 의미'),
+    h(Text, { style: { margin: '0 0 12px', fontSize: '14px', color: TEXT_MUTED, lineHeight: '1.75' } }, section.detail),
+    advice.length > 0
+      ? h(
+          Section,
+          { style: { marginTop: '8px' } },
+          h(Text, { style: { margin: '0 0 8px', fontSize: '12px', color: TEXT_SOFT, fontWeight: 900 } }, '실행 조언'),
+          ...advice.map((item, index) => h(Text, { key: item, style: { margin: '0 0 5px', fontSize: '13px', color: TEXT_MUTED, lineHeight: '1.6' } }, `${index + 1}. ${item}`)),
+        )
+      : null,
+  );
+}
+
 function yearlyChartBlock(yearlyGuidance: LoveJobResult['yearlyGuidance']) {
   const sorted = sortedYearlyGuidance(yearlyGuidance);
   const bestYear = bestOpportunityYear(yearlyGuidance);
@@ -795,9 +860,53 @@ function examYearlyChartBlock(yearlyGuidance: NonNullable<ExamJobResult['yearlyG
   );
 }
 
+function preparationTimelineBlock(timeline: ExamPreparationTimelineItem[]) {
+  if (timeline.length <= 0) return null;
+
+  return h(
+    Section,
+    {
+      style: {
+        marginTop: '12px',
+        border: `1px solid ${BORDER_COLOR}`,
+        borderRadius: CARD_RADIUS,
+        backgroundColor: SECTION_BG,
+        padding: '16px',
+      },
+    },
+    h(Text, { style: { margin: '0 0 4px', fontSize: '16px', color: TEXT_DARK, fontWeight: 900 } }, '시험 준비 타임라인'),
+    h(Text, { style: { margin: '0 0 12px', fontSize: '13px', color: TEXT_SOFT, lineHeight: '1.55' } }, '연도별 운세 대신 시험 준비 흐름에 맞춰 바로 실행할 루틴을 정리했습니다.'),
+    ...timeline.map((item, index) =>
+      h(
+        Section,
+        {
+          key: item.id,
+          style: {
+            marginTop: index === 0 ? 0 : '10px',
+            padding: '13px',
+            borderRadius: '10px',
+            backgroundColor: index % 2 === 0 ? SOFT_BG : '#ffffff',
+            border: `1px solid ${BORDER_COLOR}`,
+          },
+        },
+        h(Text, { style: { margin: '0 0 6px', fontSize: '14px', color: TEXT_DARK, fontWeight: 900 } }, item.title),
+        h(Text, { style: { margin: '0 0 10px', fontSize: '13px', color: TEXT_MUTED, lineHeight: '1.65' } }, item.summary),
+        item.actions.map((action, actionIndex) =>
+          h(Text, { key: action, style: { margin: '0 0 5px', fontSize: '13px', color: TEXT_MUTED, lineHeight: '1.55' } }, `${actionIndex + 1}. ${action}`),
+        ),
+        item.caution
+          ? h(Text, { style: { margin: '8px 0 0', fontSize: '12px', color: TEXT_SOFT, lineHeight: '1.55', fontWeight: 700 } }, `주의: ${item.caution}`)
+          : null,
+      ),
+    ),
+  );
+}
+
 function examResultTemplate(payload: ExamOnlyResultEmailPayload) {
   const result = payload.result;
   const detailedSections = result.detailedSections ?? [];
+  const interpretationSections = result.interpretationSections ?? [];
+  const preparationTimeline = result.preparationTimeline ?? [];
   const yearlyGuidance = sortedExamGuidance(result.yearlyGuidance ?? []);
   const overloadTone = getRiskTone(clampPercent(result.effortScore));
 
@@ -894,6 +1003,7 @@ function examResultTemplate(payload: ExamOnlyResultEmailPayload) {
         h(Text, { style: { margin: '0', fontSize: '14px', color: TEXT_MUTED, lineHeight: '1.72' } }, result.timingHint),
       ),
       subjectAnswerBlock(result),
+      preparationTimeline.length > 0 ? preparationTimelineBlock(preparationTimeline) : null,
       yearlyGuidance.length > 0 ? examYearlyChartBlock(yearlyGuidance) : null,
       h(
         Section,
@@ -906,8 +1016,10 @@ function examResultTemplate(payload: ExamOnlyResultEmailPayload) {
             padding: '16px',
           },
         },
-        h(Text, { style: { margin: '0 0 10px', fontSize: '15px', color: TEXT_DARK, fontWeight: 800 } }, '공부 전략'),
-        ...detailedSections.map((section) => sectionCard(section.title, section.body)),
+        h(Text, { style: { margin: '0 0 10px', fontSize: '15px', color: TEXT_DARK, fontWeight: 800 } }, interpretationSections.length > 0 ? '해석 리포트' : '공부 전략'),
+        ...(interpretationSections.length > 0
+          ? interpretationSections.map((section) => resultSectionCard(section))
+          : detailedSections.map((section) => sectionCard(section.title, section.body))),
       ),
       yearlyGuidance.length > 0
         ? h(

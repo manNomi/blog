@@ -26,6 +26,24 @@ export type LoveResultSection = {
   body: string;
 };
 
+export type ResultSection = {
+  id: string;
+  title: string;
+  summary: string;
+  evidence: string[];
+  detail: string;
+  advice: string[];
+  confidence?: 'high' | 'medium' | 'low';
+};
+
+export type ExamPreparationTimelineItem = {
+  id: string;
+  title: string;
+  summary: string;
+  actions: string[];
+  caution?: string;
+};
+
 export type LoveYearGuide = {
   year: number;
   loveChance: number;
@@ -127,6 +145,7 @@ export type LoveJobResult = {
   timingHint: string;
   detailedReport: string;
   detailedSections: LoveResultSection[];
+  interpretationSections?: ResultSection[];
   yearlyGuidance: LoveYearGuide[];
   modelVersion: string;
   scoreRationales?: LoveScoreRationales;
@@ -191,6 +210,8 @@ export type ExamJobResult = {
   timingHint: string;
   detailedReport: string;
   detailedSections: LoveResultSection[];
+  interpretationSections?: ResultSection[];
+  preparationTimeline?: ExamPreparationTimelineItem[];
   yearlyGuidance?: ExamYearGuide[];
   modelVersion: string;
   scoreRationales?: ExamScoreRationales;

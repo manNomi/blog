@@ -32,6 +32,19 @@ function combinedResultText(result) {
     result.scoreRationales?.exam,
     result.scoreRationales?.subjectFit,
     result.scoreRationales?.effort,
+    ...(result.interpretationSections ?? []).flatMap((section) => [
+      section.title,
+      section.summary,
+      section.detail,
+      ...(section.evidence ?? []),
+      ...(section.advice ?? []),
+    ]),
+    ...(result.preparationTimeline ?? []).flatMap((item) => [
+      item.title,
+      item.summary,
+      ...(item.actions ?? []),
+      item.caution,
+    ]),
     result.subjectAnswer?.answer,
     ...(result.subjectAnswer?.actionItems ?? []),
     ...(result.yearlyGuidance ?? []).map((row) => row.focus),
@@ -50,6 +63,35 @@ test('buildExamResult classifies 컴퓨터 as water and metal subject', () => {
   assert.equal(result.examResultFormat, 'score');
   assert.equal(result.expectedOutcome.label, '예상 점수');
   assert.match(result.expectedOutcome.value, /\d+점대/);
+  assert.deepEqual(result.yearlyGuidance, []);
+  assert.deepEqual(result.topYears, []);
+});
+
+test('buildExamResult creates structured interpretation sections and preparation timeline', () => {
+  const result = buildExamResult(baseInput({ examSubject: '컴퓨터' }));
+
+  assert.deepEqual(result.interpretationSections.map((section) => section.id), [
+    'subject-fit',
+    'current-strength',
+    'score-risk',
+    'study-strategy',
+    'pre-exam-actions',
+    'final-coaching',
+  ]);
+  for (const section of result.interpretationSections) {
+    assert.equal(typeof section.title, 'string');
+    assert.ok(section.summary.length > 0, `${section.id} should have summary`);
+    assert.ok(section.evidence.length > 0, `${section.id} should have evidence`);
+    assert.ok(section.detail.length > 0, `${section.id} should have detail`);
+    assert.ok(section.advice.length > 0, `${section.id} should have advice`);
+    assert.ok(['high', 'medium', 'low'].includes(section.confidence), `${section.id} should have confidence`);
+  }
+  assert.deepEqual(result.preparationTimeline.map((item) => item.id), ['now', 'one-week-before', 'day-before', 'exam-day']);
+  for (const item of result.preparationTimeline) {
+    assert.ok(item.title.length > 0);
+    assert.ok(item.summary.length > 0);
+    assert.ok(item.actions.length > 0);
+  }
   assert.deepEqual(result.yearlyGuidance, []);
   assert.deepEqual(result.topYears, []);
 });
