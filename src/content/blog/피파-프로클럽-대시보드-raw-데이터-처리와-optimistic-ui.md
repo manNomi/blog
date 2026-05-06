@@ -580,17 +580,19 @@ const TournamentDashboard = () => {
 ## 📊 React Query 직접 구현 vs 실제 React Query
 
 
-| 구현 내용             | 직접 구현 (내가 한 것)    | React Query            |
-| ----------------- | ----------------- | ---------------------- |
-| Optimistic Update | 200줄 + 복잡한 ref 관리 | `onMutate` 몇 줄         |
-| 캐싱 시스템            | 100줄 + Map 관리     | `queryKey` 자동          |
-| 전역 상태 동기화         | 구독 패턴 직접 구현       | 자동 동기화                 |
-| 로딩/에러 처리          | 매번 반복 코드          | 자동 제공                  |
-| 의존성 관리            | 수동 계산 + 업데이트      | `invalidateQueries`    |
-| 백그라운드 동기화         | 직접 구현 필요          | `refetchInterval`      |
-| Window Focus      | 직접 구현 필요          | `refetchOnWindowFocus` |
-| Retry 로직          | 직접 구현 필요          | `retry` 옵션             |
-| **총 코드량**         | **~1000줄**        | **~50줄**               |
+
+| 구현 내용 | 직접 구현 (내가 한 것) | React Query |
+| --- | --- | --- |
+| Optimistic Update | 200줄 + 복잡한 ref 관리 | `onMutate` 몇 줄 |
+| 캐싱 시스템 | 100줄 + Map 관리 | `queryKey` 자동 |
+| 전역 상태 동기화 | 구독 패턴 직접 구현 | 자동 동기화 |
+| 로딩/에러 처리 | 매번 반복 코드 | 자동 제공 |
+| 의존성 관리 | 수동 계산 + 업데이트 | `invalidateQueries` |
+| 백그라운드 동기화 | 직접 구현 필요 | `refetchInterval` |
+| Window Focus | 직접 구현 필요 | `refetchOnWindowFocus` |
+| Retry 로직 | 직접 구현 필요 | `retry` 옵션 |
+| **총 코드량** | **~1000줄** | **~50줄** |
+
 
 
 ## 🎓 React Query 딥다이브의 교훈
