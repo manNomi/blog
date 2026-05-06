@@ -28,6 +28,7 @@ Node.js 런타임에서는 문제없던 코드들이 Cloudflare Workers의 ESM-o
 ## 1. 전체 타임라인
 
 
+
 | **내용** |
 | --- |
 | CJS interop 패턴 빌드 수정 |
@@ -37,6 +38,7 @@ Node.js 런타임에서는 문제없던 코드들이 Cloudflare Workers의 ESM-o
 | wrangler.toml 설정 수정 |
 | vite.config worker name 주석 처리 |
 | wrangler + GitHub Actions 워크플로우 통합 수정 |
+
 
 
 ---
@@ -298,12 +300,14 @@ vars: notInheritable(
 ### Before vs. After
 
 
+
 | 비교 항목 | 기존 (Post-build Fix) | 최종 (스택 최신화) |
 | --- | --- | --- |
 | **CJS interop 해결** | 빌드 후 정규식으로 패치 | Vite 7.0 + @cloudflare/vite-plugin이 근본 해결 |
 | **빌드 파이프라인** | build → fix → deploy (3단계) | build → deploy (2단계) |
 | **유지보수** | 정규식 패턴 관리 필요 | 추가 관리 불필요 |
 | **안정성** | Vite 업데이트 시 깨질 위험 | 공식 플러그인 기반으로 안정적 |
+
 
 
 ---

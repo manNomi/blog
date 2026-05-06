@@ -137,14 +137,16 @@ SPA 프레임워크의 `stepPush`/`stepPop`으로 동일 Activity 내에서 URL 
 세 가지 방식을 비교 분석했어요.
 
 
-| **항목**             | **페이지로 전환**     | **Step (쿼리스트링) 기반** | **네이티브 브릿지 가로채기** |
-| ------------------ | --------------- | ------------------- | ----------------- |
-| **브라우저 히스토리 조작**   | ❌ Activity push | ⚠️ step push (쿼리파람) | ✅ 없음              |
-| **isActive 변경**    | ❌ 발생            | ✅ 없음                | ✅ 없음              |
-| **URL 변화**         | ❌ 페이지 변경        | ⚠️ 쿼리파람 추가          | ✅ 없음              |
-| **iOS 지원**         | ✅               | ✅                   | ❌ Android 전용      |
-| **AlertDialog 적용** | ❌               | ⚠️ 의미론적 문제          | ✅ 동일 패턴           |
-| **중첩 오버레이 순서**     | ❌               | ⚠️ key 분리 필요        | ✅ priority + LIFO |
+
+| **항목** | **페이지로 전환** | **Step (쿼리스트링) 기반** | **네이티브 브릿지 가로채기** |
+| --- | --- | --- | --- |
+| **브라우저 히스토리 조작** | ❌ Activity push | ⚠️ step push (쿼리파람) | ✅ 없음 |
+| **isActive 변경** | ❌ 발생 | ✅ 없음 | ✅ 없음 |
+| **URL 변화** | ❌ 페이지 변경 | ⚠️ 쿼리파람 추가 | ✅ 없음 |
+| **iOS 지원** | ✅ | ✅ | ❌ Android 전용 |
+| **AlertDialog 적용** | ❌ | ⚠️ 의미론적 문제 | ✅ 동일 패턴 |
+| **중첩 오버레이 순서** | ❌ | ⚠️ key 분리 필요 | ✅ priority + LIFO |
+
 
 
 ---
@@ -271,16 +273,18 @@ close()함수는 stale 해지지 않도록 항상 ref로 관리되며 전역 인
 ### 수정한 버그 8개
 
 
-| **#** | **버그**                          | **원인**                             | **해결**                                           |
-| ----- | ------------------------------- | ---------------------------------- | ------------------------------------------------ |
-| 1     | 연속 백버튼 중복 실행                    | 핸들러 실행 중 다음 이벤트 수신                 | 실행 중 플래그로 중복 방지했어요                               |
-| 2     | `activate()` 영구 고착              | Promise reject 시 체인 끊김             | catch로 항상 pendingOp을 갱신했어요                       |
-| 3     | 비활성 activity 핸들러 누출             | `isActive=false` 전환 시 해제 누락        | useEffect deps에 isActive를 추가했어요                  |
-| 4     | 포그라운드 복귀 시 블로커 미재등록             | 앱 백그라운드 → 포그라운드 시 상태 초기화           | visibility change 이벤트 감지 후 재등록했어요                |
-| 5     | `defaultOpen=true` 백버튼 미등록      | 초기 렌더 시 isOpen=true인데 핸들러 미등록      | mount 시점 isOpen 체크를 추가했어요                        |
-| 6     | promise chain 중간 끊김             | 연쇄 activate/deactivate 중 중간 reject | pendingOp 체인을 항상 이어가도록 했어요                       |
-| 7     | `deactivate` 시 불필요한 feature 재체크 | deactivate 후에도 브릿지 기능 확인 호출        | deactivate 경로에서 feature 체크를 스킵했어요                |
-| 8     | `useActivity()` null 크래시        | SPA 프레임워크 컨텍스트 밖에서 호출              | optional chaining + isActiveOverride 파라미터를 적용했어요 |
+
+| **#** | **버그** | **원인** | **해결** |
+| --- | --- | --- | --- |
+| 1 | 연속 백버튼 중복 실행 | 핸들러 실행 중 다음 이벤트 수신 | 실행 중 플래그로 중복 방지했어요 |
+| 2 | `activate()` 영구 고착 | Promise reject 시 체인 끊김 | catch로 항상 pendingOp을 갱신했어요 |
+| 3 | 비활성 activity 핸들러 누출 | `isActive=false` 전환 시 해제 누락 | useEffect deps에 isActive를 추가했어요 |
+| 4 | 포그라운드 복귀 시 블로커 미재등록 | 앱 백그라운드 → 포그라운드 시 상태 초기화 | visibility change 이벤트 감지 후 재등록했어요 |
+| 5 | `defaultOpen=true` 백버튼 미등록 | 초기 렌더 시 isOpen=true인데 핸들러 미등록 | mount 시점 isOpen 체크를 추가했어요 |
+| 6 | promise chain 중간 끊김 | 연쇄 activate/deactivate 중 중간 reject | pendingOp 체인을 항상 이어가도록 했어요 |
+| 7 | `deactivate` 시 불필요한 feature 재체크 | deactivate 후에도 브릿지 기능 확인 호출 | deactivate 경로에서 feature 체크를 스킵했어요 |
+| 8 | `useActivity()` null 크래시 | SPA 프레임워크 컨텍스트 밖에서 호출 | optional chaining + isActiveOverride 파라미터를 적용했어요 |
+
 
 
 ### 버전 호환성 검증

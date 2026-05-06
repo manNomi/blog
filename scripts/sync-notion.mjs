@@ -119,6 +119,90 @@ function createMarkdownTable(rows, { hasColumnHeader, expectedWidth }) {
   return lines.join('\n');
 }
 
+function isFenceLine(line) {
+  return /^(```+|~~~+)/.test((line || '').trim());
+}
+
+function isMarkdownTableLine(line) {
+  const trimmed = (line || '').trim();
+  return trimmed.startsWith('|') && trimmed.endsWith('|') && (trimmed.match(/\|/g) || []).length >= 2;
+}
+
+function isMarkdownTableDividerLine(line) {
+  const trimmed = (line || '').trim();
+  if (!isMarkdownTableLine(trimmed)) {
+    return false;
+  }
+
+  const cells = trimmed
+    .slice(1, -1)
+    .split('|')
+    .map((cell) => cell.trim());
+
+  return cells.length > 0 && cells.every((cell) => /^:?-{3,}:?$/.test(cell));
+}
+
+function normalizeTableSpacing(markdown) {
+  if (typeof markdown !== 'string' || markdown.length === 0) {
+    return markdown;
+  }
+
+  const lines = markdown.split(/\r?\n/);
+  const normalized = [];
+  let inFence = false;
+  let fencePrefix = '';
+
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index];
+    const trimmed = line.trim();
+
+    if (isFenceLine(line)) {
+      const marker = trimmed.startsWith('```') ? '```' : '~~~';
+      if (!inFence) {
+        inFence = true;
+        fencePrefix = marker;
+      } else if (trimmed.startsWith(fencePrefix)) {
+        inFence = false;
+        fencePrefix = '';
+      }
+
+      normalized.push(line);
+      continue;
+    }
+
+    const isTableStart =
+      !inFence &&
+      isMarkdownTableLine(line) &&
+      index + 1 < lines.length &&
+      isMarkdownTableDividerLine(lines[index + 1]);
+
+    if (!isTableStart) {
+      normalized.push(line);
+      continue;
+    }
+
+    if (normalized.length > 0 && normalized[normalized.length - 1].trim() !== '') {
+      normalized.push('');
+    }
+
+    while (index < lines.length && isMarkdownTableLine(lines[index])) {
+      normalized.push(lines[index]);
+      index += 1;
+    }
+
+    const nextLine = lines[index];
+    if (typeof nextLine === 'string' && nextLine.trim() !== '') {
+      normalized.push('');
+    }
+
+    if (typeof nextLine === 'string') {
+      index -= 1;
+    }
+  }
+
+  return normalized.join('\n');
+}
+
 // 커스텀 변환기 설정 - URL 멘션/북마크/표 블록 지원
 n2m.setCustomTransformer('table', async (block) => {
   if (!block?.id || block?.type !== 'table') {
@@ -148,10 +232,16 @@ n2m.setCustomTransformer('table', async (block) => {
     parsedRows.push(parsedRow);
   }
 
-  return createMarkdownTable(parsedRows, {
+  const tableMarkdown = createMarkdownTable(parsedRows, {
     hasColumnHeader: block.table?.has_column_header === true,
     expectedWidth: block.table?.table_width
   });
+
+  if (!tableMarkdown) {
+    return '';
+  }
+
+  return `\n${tableMarkdown}\n`;
 });
 
 // 커스텀 변환기 설정 - URL 멘션/북마크 블록 지원
@@ -793,6 +883,9 @@ async function syncNotion() {
       for (const { original, replacement } of htmlReplacements) {
         mdString.parent = mdString.parent.replace(original, replacement);
       }
+
+      // 표 블록 경계(앞/뒤 빈 줄)를 정규화해 마크다운 파서가 표를 안정적으로 인식하도록 보정
+      mdString.parent = normalizeTableSpacing(mdString.parent);
 
       // Frontmatter 생성
       const frontmatter = [

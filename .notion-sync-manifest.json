@@ -1,7 +1,7 @@
 {
   "databaseId": "2af7cf19a36480648f08f4072d1246c5",
   "totalPages": 26,
-  "hash": "42f540e8236bc59669f001d6e1547d4cb59673a1014056929e18e360055c9cb3",
+  "hash": "86551d4d9c8b54629877f83fbbe8313d567fc61da220b48b457955f675828ad2",
   "pages": [
     {
       "notionId": "2af7cf19-a364-8004-a41a-dc5735d98b2b",
@@ -149,7 +149,7 @@
     },
     {
       "notionId": "3307cf19-a364-8008-b795-e6aa1582d2c7",
-      "lastEditedTime": "2026-03-30T05:39:00.000Z",
+      "lastEditedTime": "2026-04-22T13:16:00.000Z",
       "createdTime": "2026-03-27T08:25:00.000Z",
       "title": "AI 토큰을 낭비하지 않는 삶 "
     },
@@ -160,7 +160,7 @@
       "title": "QA를 필요한 사람이 하게 하자 "
     }
   ],
-  "syncedAt": "2026-05-03T14:20:36.512Z",
+  "syncedAt": "2026-05-06T06:05:41.579Z",
   "files": [
     {
       "notionId": "2af7cf19-a364-8004-a41a-dc5735d98b2b",
@@ -616,7 +616,7 @@
       "notionId": "3307cf19-a364-8008-b795-e6aa1582d2c7",
       "filename": "ai-토큰을-낭비하지-않는-삶.md",
       "title": "AI 토큰을 낭비하지 않는 삶 ",
-      "lastEditedTime": "2026-03-30T05:39:00.000Z",
+      "lastEditedTime": "2026-04-22T13:16:00.000Z",
       "heroImage": "",
       "heroImageSourceKey": "",
       "imageAssets": [
