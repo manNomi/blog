@@ -1,7 +1,7 @@
 {
   "databaseId": "2af7cf19a36480648f08f4072d1246c5",
   "totalPages": 26,
-  "hash": "86551d4d9c8b54629877f83fbbe8313d567fc61da220b48b457955f675828ad2",
+  "hash": "40999e1015b8d88e25dcd7872fed85799f878a59d8233fb0f8bc58a6361d49b2",
   "pages": [
     {
       "notionId": "2af7cf19-a364-8004-a41a-dc5735d98b2b",
@@ -47,7 +47,7 @@
     },
     {
       "notionId": "2b37cf19-a364-80c5-b300-e83b14efdcc0",
-      "lastEditedTime": "2026-01-11T16:04:00.000Z",
+      "lastEditedTime": "2026-05-13T04:36:00.000Z",
       "createdTime": "2025-11-22T10:40:00.000Z",
       "title": "i18n 부채 청산기 "
     },
@@ -160,7 +160,7 @@
       "title": "QA를 필요한 사람이 하게 하자 "
     }
   ],
-  "syncedAt": "2026-05-06T06:05:41.579Z",
+  "syncedAt": "2026-05-13T04:38:08.296Z",
   "files": [
     {
       "notionId": "2af7cf19-a364-8004-a41a-dc5735d98b2b",
@@ -401,7 +401,7 @@
       "notionId": "2b37cf19-a364-80c5-b300-e83b14efdcc0",
       "filename": "i18n-부채-청산기.md",
       "title": "i18n 부채 청산기 ",
-      "lastEditedTime": "2026-01-11T16:04:00.000Z",
+      "lastEditedTime": "2026-05-13T04:36:00.000Z",
       "heroImage": "",
       "heroImageSourceKey": "",
       "imageAssets": []
