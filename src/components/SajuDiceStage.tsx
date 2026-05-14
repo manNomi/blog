@@ -82,6 +82,7 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.domElement.style.display = 'block';
     renderer.domElement.style.touchAction = 'none';
     renderer.domElement.style.userSelect = 'none';
     renderer.domElement.setAttribute('aria-label', '주사위 굴림 캔버스');
@@ -137,8 +138,8 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
 
     function resize() {
       const rect = root.getBoundingClientRect();
-      const width = Math.max(300, Math.floor(rect.width));
-      const height = Math.max(300, Math.floor(rect.height));
+      const width = Math.max(1, Math.floor(root.clientWidth || rect.width));
+      const height = Math.max(1, Math.floor(root.clientHeight || rect.height));
       const aspect = width / height;
 
       camera.left = (-FRUSTUM_SIZE * aspect) / 2;
@@ -146,7 +147,7 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
       camera.top = FRUSTUM_SIZE / 2;
       camera.bottom = -FRUSTUM_SIZE / 2;
       camera.updateProjectionMatrix();
-      renderer.setSize(width, height, false);
+      renderer.setSize(width, height);
     }
 
     function createDice() {
