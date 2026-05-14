@@ -1,6 +1,7 @@
 ---
 title: "bruno API용 codegen 을 만들자 ! "
 pubDate: 2026-03-28T00:00:00.000Z
+tags: ["솔리드 커넥션"]
 notionId: "32f7cf19-a364-809a-a74c-c696c0967a3c"
 ---
 # **Bruno를 단일 소스로 쓰되, React Query는 생성하지 않기로 한 이유**

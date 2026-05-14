@@ -2,6 +2,7 @@
 title: "피파 프로클럽 대시보드: Raw 데이터 처리와 Optimistic UI"
 description: "게임과 같은 실시간 반응성을 위한 웹 "
 pubDate: 2025-04-30T00:00:00.000Z
+tags: ["풋볼스퀘어"]
 notionId: "2af7cf19-a364-8004-a41a-dc5735d98b2b"
 ---
 ## 들어가며

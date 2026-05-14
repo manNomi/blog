@@ -1,6 +1,7 @@
 ---
 title: "Framer Motion에서 CSS Transition으로"
 pubDate: 2026-01-16T00:00:00.000Z
+tags: ["당근마켓"]
 notionId: "32f7cf19-a364-8058-a586-fb77b7db1ae3"
 ---
 ## 들어가며
