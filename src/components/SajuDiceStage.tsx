@@ -20,9 +20,19 @@ type DiceObject = {
 };
 
 const FRUSTUM_SIZE = 22;
-const SAFE_LIMIT = 8.8;
-const WALL_DISTANCE = 11.5;
-const BOX_SIZE = 2.35;
+const CAMERA_DISTANCE = 58;
+const RETURN_RELEASE_LIMIT = 1.1;
+const WALL_DISTANCE = 6.2;
+const BOX_SIZE = 2.1;
+const ARENA_LIMIT = WALL_DISTANCE - BOX_SIZE * 0.55;
+const SAFE_LIMIT = ARENA_LIMIT;
+const SETTLE_LIMIT = ARENA_LIMIT;
+const DICE_SPACING = 1.7;
+const CAMERA_TARGET_Y = 1.1;
+const HOLD_HEIGHT = 8;
+const THROW_HEIGHT = 7.5;
+const HOLD_LIMIT = SETTLE_LIMIT - BOX_SIZE * 0.35;
+const DROP_LIMIT = SETTLE_LIMIT - BOX_SIZE * 0.45;
 const dicePalette = ['#EAA14D', '#E05A47', '#4D9BEA', '#5FB376', '#D869A8', '#F2C94C', '#8D6FE8', '#FFFFFF'];
 const faceValues = [1, 6, 2, 5, 3, 4];
 const faceNormals = [
@@ -63,18 +73,19 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
     let isRolling = false;
     const mouse = new THREE.Vector2();
     const raycaster = new THREE.Raycaster();
-    const dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -14);
+    const dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -HOLD_HEIGHT);
     const diceObjects: DiceObject[] = [];
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color('#F6F3EB');
 
     const camera = new THREE.OrthographicCamera(-10, 10, 10, -10, 1, 1000);
-    camera.position.set(48, 48, 48);
-    camera.lookAt(0, 0, 0);
+    camera.position.set(CAMERA_DISTANCE, CAMERA_DISTANCE, CAMERA_DISTANCE);
+    camera.lookAt(0, CAMERA_TARGET_Y, 0);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.domElement.style.display = 'block';
     renderer.domElement.style.touchAction = 'none';
     renderer.domElement.style.userSelect = 'none';
     renderer.domElement.setAttribute('aria-label', '주사위 굴림 캔버스');
@@ -130,8 +141,8 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
 
     function resize() {
       const rect = root.getBoundingClientRect();
-      const width = Math.max(300, Math.floor(rect.width));
-      const height = Math.max(300, Math.floor(rect.height));
+      const width = Math.max(1, Math.floor(root.clientWidth || rect.width));
+      const height = Math.max(1, Math.floor(root.clientHeight || rect.height));
       const aspect = width / height;
 
       camera.left = (-FRUSTUM_SIZE * aspect) / 2;
@@ -139,7 +150,7 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
       camera.top = FRUSTUM_SIZE / 2;
       camera.bottom = -FRUSTUM_SIZE / 2;
       camera.updateProjectionMatrix();
-      renderer.setSize(width, height, false);
+      renderer.setSize(width, height);
     }
 
     function createDice() {
@@ -156,12 +167,12 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
         const mesh = new THREE.Mesh(geometry, materials);
         const outline = new THREE.Mesh(outlineGeometry, outlineMaterial);
         const shadow = new THREE.Mesh(shadowGeometry, shadowMaterial);
-        const startX = (index - (diceCount - 1) / 2) * 2.45;
+        const startPosition = getDiceSpawnPosition(index, diceCount);
         const body = new CANNON.Body({
           mass: 5,
           material: diceMaterial,
           shape,
-          position: new CANNON.Vec3(startX, BOX_SIZE + 0.8, 0),
+          position: new CANNON.Vec3(startPosition.x, BOX_SIZE + 1.5, startPosition.z),
           sleepSpeedLimit: 0.45
         });
 
@@ -234,9 +245,10 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
       onRollStartRef.current();
 
       diceObjects.forEach((object, index) => {
+        const startPosition = getDiceSpawnPosition(index, diceObjects.length);
         object.isReturning = false;
         object.body.wakeUp();
-        object.body.position.set((index - (diceObjects.length - 1) / 2) * 2.3, 9 + Math.random() * 4, (Math.random() - 0.5) * 4);
+        object.body.position.set(startPosition.x, THROW_HEIGHT + Math.random() * 1.4, startPosition.z + (Math.random() - 0.5) * 0.6);
         object.body.quaternion.setFromEuler(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
         applyThrowForce(object.body);
       });
@@ -249,14 +261,12 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
     function releaseDice() {
       diceObjects.forEach((object) => {
         const { body } = object;
-        const isOutside = Math.abs(body.position.x) > SAFE_LIMIT || Math.abs(body.position.z) > SAFE_LIMIT;
+        const releasePoint = clampStagePoint(body.position.x, body.position.z, DROP_LIMIT);
 
-        if (isOutside) {
-          object.isReturning = true;
-          return;
-        }
-
+        object.isReturning = false;
         body.wakeUp();
+        body.position.set(releasePoint.x, Math.max(body.position.y, THROW_HEIGHT) + Math.random() * 0.7, releasePoint.z);
+        body.quaternion.setFromEuler(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
         applyThrowForce(body);
       });
 
@@ -277,11 +287,12 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
           const time = performance.now() * 0.01;
 
           diceObjects.forEach((object, index) => {
-            const offsetX = Math.sin(time + index) * 1.0;
-            const offsetZ = Math.cos(time + index * 2) * 1.0;
-            object.body.position.x += (targetPoint.x + offsetX - object.body.position.x) * 0.25;
-            object.body.position.y += (14 - object.body.position.y) * 0.25;
-            object.body.position.z += (targetPoint.z + offsetZ - object.body.position.z) * 0.25;
+            const offsetX = Math.sin(time + index) * 0.85;
+            const offsetZ = Math.cos(time + index * 2) * 0.85;
+            const { x: targetX, z: targetZ } = clampStagePoint(targetPoint.x + offsetX, targetPoint.z + offsetZ, HOLD_LIMIT);
+            object.body.position.x += (targetX - object.body.position.x) * 0.25;
+            object.body.position.y += (HOLD_HEIGHT - object.body.position.y) * 0.25;
+            object.body.position.z += (targetZ - object.body.position.z) * 0.25;
             object.body.quaternion.setFromEuler(time * 2 + object.spinOffset, time * 3 + object.spinOffset, time * 1.5);
             object.body.velocity.set(0, 0, 0);
             object.body.angularVelocity.set(0, 0, 0);
@@ -296,12 +307,12 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
 
           object.body.position.x += (0 - object.body.position.x) * 0.15;
           object.body.position.z += (0 - object.body.position.z) * 0.15;
-          object.body.position.y += (12 - object.body.position.y) * 0.1;
+          object.body.position.y += (HOLD_HEIGHT - object.body.position.y) * 0.1;
           object.body.quaternion.setFromEuler(time * 5, time * 5, 0);
           object.body.velocity.set(0, 0, 0);
           object.body.angularVelocity.set(0, 0, 0);
 
-          if (Math.abs(object.body.position.x) < SAFE_LIMIT && Math.abs(object.body.position.z) < SAFE_LIMIT) {
+          if (Math.abs(object.body.position.x) < RETURN_RELEASE_LIMIT && Math.abs(object.body.position.z) < RETURN_RELEASE_LIMIT) {
             object.isReturning = false;
             object.body.wakeUp();
             applyThrowForce(object.body);
@@ -309,6 +320,8 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
         });
 
         world.step(1 / 60);
+        keepDiceInsideArena(diceObjects);
+        markOffstageDiceForReturn(diceObjects);
       }
 
       syncMeshes();
@@ -430,8 +443,8 @@ function applyThrowForce(body: CANNON.Body) {
   const xDist = -body.position.x;
   const zDist = -body.position.z;
 
-  body.velocity.set(xDist * 1.45 + (Math.random() - 0.5) * 15, -14 - Math.random() * 10, zDist * 1.45 + (Math.random() - 0.5) * 15);
-  body.angularVelocity.set((Math.random() - 0.5) * 34, (Math.random() - 0.5) * 34, (Math.random() - 0.5) * 34);
+  body.velocity.set(xDist * 1.65 + (Math.random() - 0.5) * 7, -11 - Math.random() * 6, zDist * 1.65 + (Math.random() - 0.5) * 7);
+  body.angularVelocity.set((Math.random() - 0.5) * 26, (Math.random() - 0.5) * 26, (Math.random() - 0.5) * 26);
 }
 
 function calculateResultForDice(mesh: THREE.Mesh) {
@@ -456,9 +469,63 @@ function calculateResult(diceObjects: DiceObject[]) {
 function isDiceStopped(object: DiceObject) {
   return (
     !object.isReturning &&
+    Math.abs(object.body.position.x) <= SETTLE_LIMIT &&
+    Math.abs(object.body.position.z) <= SETTLE_LIMIT &&
     object.body.velocity.lengthSquared() <= 0.1 &&
     object.body.angularVelocity.lengthSquared() <= 0.1
   );
+}
+
+function markOffstageDiceForReturn(diceObjects: DiceObject[]) {
+  diceObjects.forEach((object) => {
+    if (object.isReturning) return;
+
+    const isFarOutside = Math.abs(object.body.position.x) > SAFE_LIMIT || Math.abs(object.body.position.z) > SAFE_LIMIT;
+
+    if (isFarOutside) {
+      object.isReturning = true;
+    }
+  });
+}
+
+function keepDiceInsideArena(diceObjects: DiceObject[]) {
+  diceObjects.forEach(({ body }) => {
+    if (body.position.x > ARENA_LIMIT) {
+      body.position.x = ARENA_LIMIT;
+      body.velocity.x = Math.min(0, body.velocity.x) * 0.45;
+    } else if (body.position.x < -ARENA_LIMIT) {
+      body.position.x = -ARENA_LIMIT;
+      body.velocity.x = Math.max(0, body.velocity.x) * 0.45;
+    }
+
+    if (body.position.z > ARENA_LIMIT) {
+      body.position.z = ARENA_LIMIT;
+      body.velocity.z = Math.min(0, body.velocity.z) * 0.45;
+    } else if (body.position.z < -ARENA_LIMIT) {
+      body.position.z = -ARENA_LIMIT;
+      body.velocity.z = Math.max(0, body.velocity.z) * 0.45;
+    }
+  });
+}
+
+function clampStagePoint(x: number, z: number, limit: number) {
+  return {
+    x: Math.max(-limit, Math.min(limit, x)),
+    z: Math.max(-limit, Math.min(limit, z))
+  };
+}
+
+function getDiceSpawnPosition(index: number, total: number) {
+  const columns = Math.min(total, 3);
+  const rows = Math.ceil(total / columns);
+  const column = index % columns;
+  const row = Math.floor(index / columns);
+  const spacing = Math.min(DICE_SPACING, SAFE_LIMIT - BOX_SIZE * 0.72);
+
+  return {
+    x: (column - (columns - 1) / 2) * spacing,
+    z: (row - (rows - 1) / 2) * spacing
+  };
 }
 
 function disposeMaterial(material: THREE.Material | THREE.Material[]) {
