@@ -61,19 +61,21 @@ const articleBodyClass = [
   '[&_pre.astro-code]:!bg-zinc-900 [&_pre.astro-code]:[--shiki-background-color:#18181b] [&_pre.astro-code]:[--shiki-color:#e5e7eb]',
   '[&_pre_code]:text-[13px] [&_pre_code]:leading-[1.55] [&_pre_code]:text-zinc-100',
   '[&_img]:mx-auto [&_img]:my-5 [&_img]:rounded-md',
+  '[&_table]:my-5 [&_table]:min-w-full [&_table]:w-max [&_table]:border-collapse [&_table]:text-[15px] [&_table]:leading-[1.5]',
+  '[&_thead]:bg-zinc-100 [&_th]:border [&_th]:border-zinc-300 [&_th]:px-3 [&_th]:py-2.5 [&_th]:text-left [&_th]:font-semibold [&_td]:border [&_td]:border-zinc-300 [&_td]:px-3 [&_td]:py-2.5 [&_td]:text-left [&_td]:align-top',
   '[&_hr]:my-6 [&_hr]:border-0 [&_hr]:border-t [&_hr]:border-zinc-300'
 ].join(' ');
 ---
 
-<BaseLayout title={`${title} - Nomi Journal`} description={description || 'Editorial detail page'} canonicalURL={`/blog/${slug}`}>
+<BaseLayout title={`${title} - Nomi Journal`} description={description || '아티클 상세 페이지'} canonicalURL={`/blog/${slug}`}>
   <Header />
 
   <main class="main-shell">
     <article id="detail-root" class="mx-auto grid w-full max-w-[1080px] animate-fade-up gap-10 font-sans">
       <section class="page-card grid gap-4 px-4 py-5 md:gap-5 md:px-8 md:py-7">
         <div class="flex flex-wrap items-center justify-between gap-2 text-[13px] text-zinc-600">
-          <a href="/posts" class="underline-offset-2 hover:underline">← Back to Articles</a>
-          <p>Share · Bookmark</p>
+          <a href="/posts" class="underline-offset-2 hover:underline">← 글 목록으로</a>
+          <p>공유 · 북마크</p>
         </div>
 
         <div class="h-px w-full bg-zinc-200"></div>
@@ -96,17 +98,17 @@ const articleBodyClass = [
               <a href={`/tags?tag=${tag}`} class="chip">#{tag}</a>
             ))
           ) : (
-            <span class="chip">#editorial</span>
+            <span class="chip">#개발문화</span>
           )}
         </div>
       </section>
 
       <section class="grid items-start gap-6 xl:grid-cols-[220px_minmax(0,1fr)] xl:gap-12">
-        <aside class="page-card sticky top-24 hidden p-4 xl:block" aria-label="On this page">
-          <h2 class="text-[24px] font-semibold leading-tight tracking-[-0.01em] text-zinc-900">On this page</h2>
+        <aside class="page-card sticky top-24 hidden p-4 xl:block" aria-label="이 페이지 목차">
+          <h2 class="text-[24px] font-semibold leading-tight tracking-[-0.01em] text-zinc-900">이 페이지 목차</h2>
           <div class="my-3 h-px w-full bg-zinc-300"></div>
           <ol class="grid gap-2 text-[13px] leading-[1.4] text-zinc-700" data-toc-list>
-            <li>Preparing sections…</li>
+            <li>목차를 준비하고 있습니다…</li>
           </ol>
 
           <div class="mt-5">
@@ -116,17 +118,17 @@ const articleBodyClass = [
               aria-pressed="true"
               class="w-full rounded-md border border-line bg-soft px-3 py-2 text-xs text-zinc-700 transition hover:bg-zinc-200"
             >
-              Use Newspaper Font
+              신문체 보기
             </button>
           </div>
         </aside>
 
         <div class="min-w-0 grid gap-6">
           <details class="page-card xl:hidden">
-            <summary class="cursor-pointer list-none px-4 py-3 text-sm font-semibold text-zinc-800">On this page</summary>
+            <summary class="cursor-pointer list-none px-4 py-3 text-sm font-semibold text-zinc-800">이 페이지 목차</summary>
             <div class="border-t border-line px-4 py-3">
               <ol class="grid gap-2 text-sm text-zinc-700" data-toc-list>
-                <li>Preparing sections…</li>
+                <li>목차를 준비하고 있습니다…</li>
               </ol>
               <button
                 type="button"
@@ -134,21 +136,17 @@ const articleBodyClass = [
                 aria-pressed="true"
                 class="mt-3 w-full rounded-md border border-line bg-soft px-3 py-2 text-xs text-zinc-700 transition hover:bg-zinc-200"
               >
-                Use Newspaper Font
+                신문체 보기
               </button>
             </div>
           </details>
-
-          <div class="rounded-card border border-line bg-soft px-4 py-4 text-[20px] leading-[1.3] text-zinc-900 md:text-[28px]">
-            {description || 'The detail body is designed as a calm reading field where each section breathes.'}
-          </div>
 
           <div class={articleBodyClass}>
             <slot />
           </div>
 
           <div class="page-card flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-            <p class="text-[13px] text-zinc-700">Share · Comment · Subscribe</p>
+            <p class="text-[13px] text-zinc-700">공유 · 댓글 · 구독</p>
             <ShareButtons title={title} url={`/blog/${slug}`} />
           </div>
         </div>
@@ -157,23 +155,23 @@ const articleBodyClass = [
       <section class="grid gap-5 md:gap-6">
         <div class="grid gap-3 md:grid-cols-2 md:gap-5">
           <a href={previousPost ? `/blog/${previousPost.slug}` : '/posts'} class="grid min-h-[76px] content-center gap-1.5 rounded-card border border-line bg-soft px-4 py-4 transition hover:border-zinc-400">
-            <span class="text-[11px] text-zinc-500">Previous</span>
-            <strong class="text-[16px] leading-[1.3] text-zinc-900 md:text-[18px]">{previousPost?.title || 'View all posts'}</strong>
+            <span class="text-[11px] text-zinc-500">이전 글</span>
+            <strong class="text-[16px] leading-[1.3] text-zinc-900 md:text-[18px]">{previousPost?.title || '전체 글 보기'}</strong>
           </a>
 
           <a
             href={nextPost ? `/blog/${nextPost.slug}` : '/posts'}
             class="grid min-h-[76px] content-center gap-1.5 rounded-card border border-zinc-900 bg-zinc-900 px-4 py-4 transition hover:bg-zinc-800"
           >
-            <span class="text-[11px] text-zinc-400">Next</span>
-            <strong class="text-[16px] leading-[1.3] text-white md:text-[18px]">{nextPost?.title || 'Explore next story'}</strong>
+            <span class="text-[11px] text-zinc-400">다음 글</span>
+            <strong class="text-[16px] leading-[1.3] text-white md:text-[18px]">{nextPost?.title || '다음 글 보러가기'}</strong>
           </a>
         </div>
 
-        <h2 class="text-[22px] font-semibold leading-tight tracking-[-0.01em] text-zinc-900 md:text-[26px]">Related Stories</h2>
+        <h2 class="text-[22px] font-semibold leading-tight tracking-[-0.01em] text-zinc-900 md:text-[26px]">관련 글</h2>
 
         <div class="grid gap-3 md:grid-cols-3 md:gap-4">
-          {(relatedPosts.length > 0 ? relatedPosts : [{ title: 'No related stories yet', slug: 'posts' }]).slice(0, 3).map((post) => (
+          {(relatedPosts.length > 0 ? relatedPosts : [{ title: '아직 관련 글이 없습니다', slug: 'posts' }]).slice(0, 3).map((post) => (
             <a href={post.slug === 'posts' ? '/posts' : `/blog/${post.slug}`} class="grid gap-2 rounded-card border border-line bg-surface p-3 transition hover:border-zinc-400">
               <div class="h-[100px] rounded-md border border-zinc-300 bg-zinc-200 md:h-[120px]"></div>
               <p class="text-[14px] font-semibold leading-[1.35] text-zinc-900">{post.title}</p>
@@ -182,7 +180,7 @@ const articleBodyClass = [
         </div>
 
         <div class="page-card flex flex-col gap-2 px-4 py-3 text-xs text-zinc-700 md:flex-row md:items-center md:justify-between md:text-[13px]">
-          <p>Share · Comment · Subscribe</p>
+          <p>공유 · 댓글 · 구독</p>
           <p>댓글 보기</p>
         </div>
 
@@ -270,6 +268,10 @@ const articleBodyClass = [
   const articleRoot = document.getElementById('detail-root');
   const tocLists = Array.from(document.querySelectorAll('[data-toc-list]'));
   const fontToggleButtons = Array.from(document.querySelectorAll('[data-font-toggle]'));
+  const floatingTocToggle = document.querySelector('[data-floating-toc-toggle]');
+  const floatingTocPanel = document.querySelector('[data-floating-toc-panel]');
+  const floatingTocBackdrop = document.querySelector('[data-floating-toc-backdrop]');
+  const floatingTocClose = document.querySelector('[data-floating-toc-close]');
   const FONT_MODE_KEY = 'blog_detail_font_mode';
   const floatingTocQuery = window.matchMedia('(max-width: 1360px) and (min-width: 1025px)');
 
@@ -301,7 +303,7 @@ const articleBodyClass = [
 
     fontToggleButtons.forEach((button) => {
       button.setAttribute('aria-pressed', useBasic ? 'true' : 'false');
-      button.textContent = useBasic ? 'Use Newspaper Font' : 'Use Basic Font';
+      button.textContent = useBasic ? '신문체 보기' : '기본체 보기';
     });
   };
 
@@ -367,13 +369,6 @@ const articleBodyClass = [
       wrapper.className = 'table-scroll my-5 overflow-x-auto rounded-md border border-zinc-300 bg-white';
       table.parentNode?.insertBefore(wrapper, table);
       wrapper.appendChild(table);
-      table.className = 'min-w-full w-max border-collapse text-[15px] leading-[1.5]';
-      table.querySelectorAll('th').forEach((th) => {
-        th.classList.add('border', 'border-zinc-300', 'bg-zinc-100', 'px-3', 'py-2.5', 'text-left', 'font-semibold');
-      });
-      table.querySelectorAll('td').forEach((td) => {
-        td.classList.add('border', 'border-zinc-300', 'px-3', 'py-2.5', 'text-left', 'align-top');
-      });
     }
 
     for (const paragraph of articleBody.querySelectorAll('p')) {
@@ -390,7 +385,7 @@ const articleBodyClass = [
         frame.loading = 'lazy';
         frame.allowFullscreen = true;
         frame.referrerPolicy = 'strict-origin-when-cross-origin';
-        frame.title = anchor?.textContent?.trim() || 'Embedded video';
+        frame.title = anchor?.textContent?.trim() || '삽입된 동영상';
 
         const wrapper = document.createElement('figure');
         wrapper.className = 'my-5 overflow-hidden rounded-md border border-zinc-300 bg-zinc-100';
@@ -429,7 +424,7 @@ const articleBodyClass = [
 
       if (headings.length === 0) {
         const fallback = document.createElement('li');
-        fallback.textContent = 'No sections detected';
+        fallback.textContent = '목차가 없습니다';
         tocList.appendChild(fallback);
         return;
       }
@@ -444,7 +439,7 @@ const articleBodyClass = [
 
         const anchor = document.createElement('a');
         anchor.href = `#${heading.id}`;
-        anchor.textContent = `${index + 1}. ${heading.textContent || 'Untitled section'}`;
+        anchor.textContent = `${index + 1}. ${heading.textContent || '제목 없는 섹션'}`;
         anchor.className = 'hover:underline underline-offset-2';
 
         item.appendChild(anchor);
