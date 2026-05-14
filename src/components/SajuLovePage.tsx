@@ -310,7 +310,7 @@ export default function SajuLovePage() {
             <button type="button" onClick={() => setStep('input')} className="btn-pill-dark transition-transform duration-200 hover:-translate-y-0.5">
               입력 시작하기
             </button>
-            <a href="/saju/dice" className="btn-pill-soft transition-transform duration-200 hover:-translate-y-0.5">
+            <a href="/saju-dice" className="btn-pill-soft transition-transform duration-200 hover:-translate-y-0.5">
               개인정보 없이 주사위로 보기
             </a>
           </div>
