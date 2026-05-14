@@ -25,6 +25,9 @@ const SETTLE_LIMIT = 4.4;
 const WALL_DISTANCE = 6.2;
 const BOX_SIZE = 2.1;
 const DICE_SPACING = 1.7;
+const CAMERA_TARGET_Y = 1.1;
+const HOLD_HEIGHT = 8;
+const THROW_HEIGHT = 7.5;
 const dicePalette = ['#EAA14D', '#E05A47', '#4D9BEA', '#5FB376', '#D869A8', '#F2C94C', '#8D6FE8', '#FFFFFF'];
 const faceValues = [1, 6, 2, 5, 3, 4];
 const faceNormals = [
@@ -65,7 +68,7 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
     let isRolling = false;
     const mouse = new THREE.Vector2();
     const raycaster = new THREE.Raycaster();
-    const dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -10);
+    const dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -CAMERA_TARGET_Y);
     const diceObjects: DiceObject[] = [];
 
     const scene = new THREE.Scene();
@@ -73,7 +76,7 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
 
     const camera = new THREE.OrthographicCamera(-10, 10, 10, -10, 1, 1000);
     camera.position.set(42, 42, 42);
-    camera.lookAt(0, 1.1, 0);
+    camera.lookAt(0, CAMERA_TARGET_Y, 0);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -238,7 +241,7 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
       diceObjects.forEach((object, index) => {
         object.isReturning = false;
         object.body.wakeUp();
-        object.body.position.set((index - (diceObjects.length - 1) / 2) * DICE_SPACING, 7.5 + Math.random() * 2.5, (Math.random() - 0.5) * 1.8);
+        object.body.position.set((index - (diceObjects.length - 1) / 2) * DICE_SPACING, THROW_HEIGHT + Math.random() * 2.5, (Math.random() - 0.5) * 1.8);
         object.body.quaternion.setFromEuler(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
         applyThrowForce(object.body);
       });
@@ -284,7 +287,7 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
             const targetX = clamp(targetPoint.x + offsetX, -SAFE_LIMIT, SAFE_LIMIT);
             const targetZ = clamp(targetPoint.z + offsetZ, -SAFE_LIMIT, SAFE_LIMIT);
             object.body.position.x += (targetX - object.body.position.x) * 0.25;
-            object.body.position.y += (10 - object.body.position.y) * 0.25;
+            object.body.position.y += (HOLD_HEIGHT - object.body.position.y) * 0.25;
             object.body.position.z += (targetZ - object.body.position.z) * 0.25;
             object.body.quaternion.setFromEuler(time * 2 + object.spinOffset, time * 3 + object.spinOffset, time * 1.5);
             object.body.velocity.set(0, 0, 0);
@@ -300,7 +303,7 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
 
           object.body.position.x += (0 - object.body.position.x) * 0.15;
           object.body.position.z += (0 - object.body.position.z) * 0.15;
-          object.body.position.y += (8 - object.body.position.y) * 0.1;
+          object.body.position.y += (HOLD_HEIGHT - object.body.position.y) * 0.1;
           object.body.quaternion.setFromEuler(time * 5, time * 5, 0);
           object.body.velocity.set(0, 0, 0);
           object.body.angularVelocity.set(0, 0, 0);
