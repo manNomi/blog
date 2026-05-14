@@ -12,7 +12,6 @@ export default {
       },
       fontFamily: {
         sans: ['Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', 'sans-serif'],
-        newspaper: ['ChosunCentennial', 'Noto Serif KR', 'serif'],
         mono: ['IBM Plex Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
       },
       borderRadius: {
