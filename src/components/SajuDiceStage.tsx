@@ -20,14 +20,15 @@ type DiceObject = {
 };
 
 const FRUSTUM_SIZE = 18;
-const SAFE_LIMIT = 4.9;
-const SETTLE_LIMIT = 4.4;
-const WALL_DISTANCE = 6.2;
+const SAFE_LIMIT = 3.4;
+const SETTLE_LIMIT = 3.15;
+const RETURN_RELEASE_LIMIT = 1.1;
+const WALL_DISTANCE = 4.5;
 const BOX_SIZE = 2.1;
 const DICE_SPACING = 1.7;
-const CAMERA_TARGET_Y = 1.1;
-const HOLD_HEIGHT = 8;
-const THROW_HEIGHT = 7.5;
+const CAMERA_TARGET_Y = 3.2;
+const HOLD_HEIGHT = CAMERA_TARGET_Y;
+const THROW_HEIGHT = 4.7;
 const dicePalette = ['#EAA14D', '#E05A47', '#4D9BEA', '#5FB376', '#D869A8', '#F2C94C', '#8D6FE8', '#FFFFFF'];
 const faceValues = [1, 6, 2, 5, 3, 4];
 const faceNormals = [
@@ -161,12 +162,12 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
         const mesh = new THREE.Mesh(geometry, materials);
         const outline = new THREE.Mesh(outlineGeometry, outlineMaterial);
         const shadow = new THREE.Mesh(shadowGeometry, shadowMaterial);
-        const startX = (index - (diceCount - 1) / 2) * DICE_SPACING;
+        const startPosition = getDiceSpawnPosition(index, diceCount);
         const body = new CANNON.Body({
           mass: 5,
           material: diceMaterial,
           shape,
-          position: new CANNON.Vec3(startX, BOX_SIZE + 1.5, 0),
+          position: new CANNON.Vec3(startPosition.x, BOX_SIZE + 1.5, startPosition.z),
           sleepSpeedLimit: 0.45
         });
 
@@ -239,9 +240,10 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
       onRollStartRef.current();
 
       diceObjects.forEach((object, index) => {
+        const startPosition = getDiceSpawnPosition(index, diceObjects.length);
         object.isReturning = false;
         object.body.wakeUp();
-        object.body.position.set((index - (diceObjects.length - 1) / 2) * DICE_SPACING, THROW_HEIGHT + Math.random() * 2.5, (Math.random() - 0.5) * 1.8);
+        object.body.position.set(startPosition.x, THROW_HEIGHT + Math.random() * 1.4, startPosition.z + (Math.random() - 0.5) * 0.6);
         object.body.quaternion.setFromEuler(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
         applyThrowForce(object.body);
       });
@@ -308,7 +310,7 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
           object.body.velocity.set(0, 0, 0);
           object.body.angularVelocity.set(0, 0, 0);
 
-          if (Math.abs(object.body.position.x) < SAFE_LIMIT && Math.abs(object.body.position.z) < SAFE_LIMIT) {
+          if (Math.abs(object.body.position.x) < RETURN_RELEASE_LIMIT && Math.abs(object.body.position.z) < RETURN_RELEASE_LIMIT) {
             object.isReturning = false;
             object.body.wakeUp();
             applyThrowForce(object.body);
@@ -485,6 +487,19 @@ function markOffstageDiceForReturn(diceObjects: DiceObject[]) {
       object.isReturning = true;
     }
   });
+}
+
+function getDiceSpawnPosition(index: number, total: number) {
+  const columns = Math.min(total, 3);
+  const rows = Math.ceil(total / columns);
+  const column = index % columns;
+  const row = Math.floor(index / columns);
+  const spacing = Math.min(DICE_SPACING, SAFE_LIMIT - BOX_SIZE * 0.72);
+
+  return {
+    x: (column - (columns - 1) / 2) * spacing,
+    z: (row - (rows - 1) / 2) * spacing
+  };
 }
 
 function disposeMaterial(material: THREE.Material | THREE.Material[]) {
