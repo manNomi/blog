@@ -1,19 +1,19 @@
 ---
 const navItems = [
-  { href: '/posts', label: 'All Posts' },
-  { href: '/tags', label: 'Tags' },
-  { href: '/saju', label: 'Saju' }
+  { href: '/posts', label: '글' },
+  { href: '/tags', label: '태그' },
+  { href: '/saju', label: '사주' }
 ];
 ---
 
 <header class="fixed inset-x-0 top-0 z-50 border-b border-line/90 bg-page/95 backdrop-blur">
   <div class="container-shell flex h-[62px] items-center justify-between gap-4 md:h-[64px]">
-    <a class="inline-flex min-w-0 flex-col" href="/" aria-label="Nomi Journal Home">
-      <span class="truncate text-[17px] font-bold leading-none tracking-[-0.02em] text-zinc-900">Nomi Journal</span>
-      <span class="mt-0.5 hidden text-[11px] text-zinc-500 md:block">Editorial Developer Notes</span>
+    <a class="inline-flex min-w-0 flex-col" href="/" aria-label="홈">
+      <span class="truncate text-[17px] font-bold leading-none tracking-[-0.02em] text-zinc-900">한만욱의 이모저모</span>
+      <span class="mt-0.5 hidden text-[11px] text-zinc-500 md:block">개발과 일상 기록</span>
     </a>
 
-    <nav class="hidden md:block" aria-label="Primary">
+    <nav class="hidden md:block" aria-label="주요 메뉴">
       <ul class="flex items-center gap-1">
         {navItems.map((item) => (
           <li>
@@ -35,7 +35,7 @@ const navItems = [
       aria-controls="mobile-nav"
       id="mobileNavToggle"
     >
-      <span class="sr-only">Open navigation</span>
+      <span class="sr-only">메뉴 열기</span>
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
         <line x1="4" y1="7" x2="20" y2="7"></line>
         <line x1="4" y1="12" x2="20" y2="12"></line>
@@ -53,7 +53,7 @@ const navItems = [
       <ul class="grid gap-2">
         <li>
           <a href="/" class="block rounded-md border border-line bg-surface px-3 py-2.5 text-sm text-zinc-700 transition hover:bg-zinc-100">
-            Home
+            홈
           </a>
         </li>
         {navItems.map((item) => (
