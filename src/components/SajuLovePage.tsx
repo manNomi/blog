@@ -258,7 +258,7 @@ export default function SajuLovePage() {
         <div className="pointer-events-none absolute right-5 top-5 h-2.5 w-2.5 animate-float-dot rounded-full bg-zinc-300" aria-hidden="true" />
         <div className="pointer-events-none absolute right-10 top-9 h-1.5 w-1.5 animate-soft-pulse rounded-full bg-zinc-400" aria-hidden="true" />
 
-        <p className="kicker animate-step-enter">Saju Atelier</p>
+        <p className="kicker animate-step-enter">사주 운세 요청</p>
         <h1 className="mt-2 text-[32px] font-semibold leading-[1.1] tracking-[-0.03em] text-zinc-900 md:text-[52px] [animation-delay:80ms] animate-step-enter">
           사주 운세 요청
         </h1>
@@ -609,7 +609,7 @@ export default function SajuLovePage() {
       )}
 
       <section className="rounded-md border border-line bg-soft px-4 py-3 text-xs leading-[1.65] text-zinc-600 md:text-[13px]">
-        요청 상태는 시스템 처리 순서에 따라 queued → processing → completed 또는 failed로 진행됩니다.
+        요청 상태는 접수 → 처리 중 → 완료 또는 실패 순서로 진행됩니다.
       </section>
 
       <div className="pointer-events-none fixed right-4 top-24 z-[70] flex w-[min(92vw,360px)] flex-col gap-2">
