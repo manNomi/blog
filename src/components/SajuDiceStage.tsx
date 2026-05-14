@@ -19,10 +19,12 @@ type DiceObject = {
   isReturning: boolean;
 };
 
-const FRUSTUM_SIZE = 22;
-const SAFE_LIMIT = 8.8;
-const WALL_DISTANCE = 11.5;
-const BOX_SIZE = 2.35;
+const FRUSTUM_SIZE = 18;
+const SAFE_LIMIT = 4.9;
+const SETTLE_LIMIT = 4.4;
+const WALL_DISTANCE = 6.2;
+const BOX_SIZE = 2.1;
+const DICE_SPACING = 1.7;
 const dicePalette = ['#EAA14D', '#E05A47', '#4D9BEA', '#5FB376', '#D869A8', '#F2C94C', '#8D6FE8', '#FFFFFF'];
 const faceValues = [1, 6, 2, 5, 3, 4];
 const faceNormals = [
@@ -63,15 +65,15 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
     let isRolling = false;
     const mouse = new THREE.Vector2();
     const raycaster = new THREE.Raycaster();
-    const dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -14);
+    const dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -10);
     const diceObjects: DiceObject[] = [];
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color('#F6F3EB');
 
     const camera = new THREE.OrthographicCamera(-10, 10, 10, -10, 1, 1000);
-    camera.position.set(48, 48, 48);
-    camera.lookAt(0, 0, 0);
+    camera.position.set(42, 42, 42);
+    camera.lookAt(0, 1.1, 0);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -156,12 +158,12 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
         const mesh = new THREE.Mesh(geometry, materials);
         const outline = new THREE.Mesh(outlineGeometry, outlineMaterial);
         const shadow = new THREE.Mesh(shadowGeometry, shadowMaterial);
-        const startX = (index - (diceCount - 1) / 2) * 2.45;
+        const startX = (index - (diceCount - 1) / 2) * DICE_SPACING;
         const body = new CANNON.Body({
           mass: 5,
           material: diceMaterial,
           shape,
-          position: new CANNON.Vec3(startX, BOX_SIZE + 0.8, 0),
+          position: new CANNON.Vec3(startX, BOX_SIZE + 1.5, 0),
           sleepSpeedLimit: 0.45
         });
 
@@ -236,7 +238,7 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
       diceObjects.forEach((object, index) => {
         object.isReturning = false;
         object.body.wakeUp();
-        object.body.position.set((index - (diceObjects.length - 1) / 2) * 2.3, 9 + Math.random() * 4, (Math.random() - 0.5) * 4);
+        object.body.position.set((index - (diceObjects.length - 1) / 2) * DICE_SPACING, 7.5 + Math.random() * 2.5, (Math.random() - 0.5) * 1.8);
         object.body.quaternion.setFromEuler(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
         applyThrowForce(object.body);
       });
@@ -277,11 +279,13 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
           const time = performance.now() * 0.01;
 
           diceObjects.forEach((object, index) => {
-            const offsetX = Math.sin(time + index) * 1.0;
-            const offsetZ = Math.cos(time + index * 2) * 1.0;
-            object.body.position.x += (targetPoint.x + offsetX - object.body.position.x) * 0.25;
-            object.body.position.y += (14 - object.body.position.y) * 0.25;
-            object.body.position.z += (targetPoint.z + offsetZ - object.body.position.z) * 0.25;
+            const offsetX = Math.sin(time + index) * 0.85;
+            const offsetZ = Math.cos(time + index * 2) * 0.85;
+            const targetX = clamp(targetPoint.x + offsetX, -SAFE_LIMIT, SAFE_LIMIT);
+            const targetZ = clamp(targetPoint.z + offsetZ, -SAFE_LIMIT, SAFE_LIMIT);
+            object.body.position.x += (targetX - object.body.position.x) * 0.25;
+            object.body.position.y += (10 - object.body.position.y) * 0.25;
+            object.body.position.z += (targetZ - object.body.position.z) * 0.25;
             object.body.quaternion.setFromEuler(time * 2 + object.spinOffset, time * 3 + object.spinOffset, time * 1.5);
             object.body.velocity.set(0, 0, 0);
             object.body.angularVelocity.set(0, 0, 0);
@@ -296,7 +300,7 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
 
           object.body.position.x += (0 - object.body.position.x) * 0.15;
           object.body.position.z += (0 - object.body.position.z) * 0.15;
-          object.body.position.y += (12 - object.body.position.y) * 0.1;
+          object.body.position.y += (8 - object.body.position.y) * 0.1;
           object.body.quaternion.setFromEuler(time * 5, time * 5, 0);
           object.body.velocity.set(0, 0, 0);
           object.body.angularVelocity.set(0, 0, 0);
@@ -309,6 +313,7 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
         });
 
         world.step(1 / 60);
+        markOffstageDiceForReturn(diceObjects);
       }
 
       syncMeshes();
@@ -430,8 +435,8 @@ function applyThrowForce(body: CANNON.Body) {
   const xDist = -body.position.x;
   const zDist = -body.position.z;
 
-  body.velocity.set(xDist * 1.45 + (Math.random() - 0.5) * 15, -14 - Math.random() * 10, zDist * 1.45 + (Math.random() - 0.5) * 15);
-  body.angularVelocity.set((Math.random() - 0.5) * 34, (Math.random() - 0.5) * 34, (Math.random() - 0.5) * 34);
+  body.velocity.set(xDist * 1.65 + (Math.random() - 0.5) * 7, -11 - Math.random() * 6, zDist * 1.65 + (Math.random() - 0.5) * 7);
+  body.angularVelocity.set((Math.random() - 0.5) * 26, (Math.random() - 0.5) * 26, (Math.random() - 0.5) * 26);
 }
 
 function calculateResultForDice(mesh: THREE.Mesh) {
@@ -456,9 +461,27 @@ function calculateResult(diceObjects: DiceObject[]) {
 function isDiceStopped(object: DiceObject) {
   return (
     !object.isReturning &&
+    Math.abs(object.body.position.x) <= SETTLE_LIMIT &&
+    Math.abs(object.body.position.z) <= SETTLE_LIMIT &&
     object.body.velocity.lengthSquared() <= 0.1 &&
     object.body.angularVelocity.lengthSquared() <= 0.1
   );
+}
+
+function markOffstageDiceForReturn(diceObjects: DiceObject[]) {
+  diceObjects.forEach((object) => {
+    if (object.isReturning) return;
+
+    const isOffstage = Math.abs(object.body.position.x) > SETTLE_LIMIT || Math.abs(object.body.position.z) > SETTLE_LIMIT;
+    if (!isOffstage) return;
+
+    const isQuiet = object.body.velocity.lengthSquared() <= 0.7 && object.body.angularVelocity.lengthSquared() <= 0.7;
+    const isFarOutside = Math.abs(object.body.position.x) > SAFE_LIMIT || Math.abs(object.body.position.z) > SAFE_LIMIT;
+
+    if (isQuiet || isFarOutside) {
+      object.isReturning = true;
+    }
+  });
 }
 
 function disposeMaterial(material: THREE.Material | THREE.Material[]) {
@@ -468,4 +491,8 @@ function disposeMaterial(material: THREE.Material | THREE.Material[]) {
   }
 
   material.dispose();
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
 }
