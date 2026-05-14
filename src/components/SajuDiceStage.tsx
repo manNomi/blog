@@ -21,15 +21,18 @@ type DiceObject = {
 
 const FRUSTUM_SIZE = 22;
 const CAMERA_DISTANCE = 58;
-const SAFE_LIMIT = 4.9;
-const SETTLE_LIMIT = 4.4;
 const RETURN_RELEASE_LIMIT = 1.1;
 const WALL_DISTANCE = 6.2;
 const BOX_SIZE = 2.1;
+const ARENA_LIMIT = WALL_DISTANCE - BOX_SIZE * 0.55;
+const SAFE_LIMIT = ARENA_LIMIT;
+const SETTLE_LIMIT = ARENA_LIMIT;
 const DICE_SPACING = 1.7;
 const CAMERA_TARGET_Y = 1.1;
 const HOLD_HEIGHT = 8;
 const THROW_HEIGHT = 7.5;
+const HOLD_LIMIT = SETTLE_LIMIT - BOX_SIZE * 0.35;
+const DROP_LIMIT = SETTLE_LIMIT - BOX_SIZE * 0.45;
 const dicePalette = ['#EAA14D', '#E05A47', '#4D9BEA', '#5FB376', '#D869A8', '#F2C94C', '#8D6FE8', '#FFFFFF'];
 const faceValues = [1, 6, 2, 5, 3, 4];
 const faceNormals = [
@@ -256,13 +259,13 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
     }
 
     function releaseDice() {
-      diceObjects.forEach((object, index) => {
-        const startPosition = getDiceSpawnPosition(index, diceObjects.length);
+      diceObjects.forEach((object) => {
         const { body } = object;
+        const releasePoint = clampStagePoint(body.position.x, body.position.z, DROP_LIMIT);
 
         object.isReturning = false;
         body.wakeUp();
-        body.position.set(startPosition.x, THROW_HEIGHT + Math.random() * 1.4, startPosition.z + (Math.random() - 0.5) * 0.6);
+        body.position.set(releasePoint.x, Math.max(body.position.y, THROW_HEIGHT) + Math.random() * 0.7, releasePoint.z);
         body.quaternion.setFromEuler(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
         applyThrowForce(body);
       });
@@ -286,8 +289,7 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
           diceObjects.forEach((object, index) => {
             const offsetX = Math.sin(time + index) * 0.85;
             const offsetZ = Math.cos(time + index * 2) * 0.85;
-            const targetX = targetPoint.x + offsetX;
-            const targetZ = targetPoint.z + offsetZ;
+            const { x: targetX, z: targetZ } = clampStagePoint(targetPoint.x + offsetX, targetPoint.z + offsetZ, HOLD_LIMIT);
             object.body.position.x += (targetX - object.body.position.x) * 0.25;
             object.body.position.y += (HOLD_HEIGHT - object.body.position.y) * 0.25;
             object.body.position.z += (targetZ - object.body.position.z) * 0.25;
@@ -478,38 +480,39 @@ function markOffstageDiceForReturn(diceObjects: DiceObject[]) {
   diceObjects.forEach((object) => {
     if (object.isReturning) return;
 
-    const isOffstage = Math.abs(object.body.position.x) > SETTLE_LIMIT || Math.abs(object.body.position.z) > SETTLE_LIMIT;
-    if (!isOffstage) return;
-
-    const isQuiet = object.body.velocity.lengthSquared() <= 0.7 && object.body.angularVelocity.lengthSquared() <= 0.7;
     const isFarOutside = Math.abs(object.body.position.x) > SAFE_LIMIT || Math.abs(object.body.position.z) > SAFE_LIMIT;
 
-    if (isQuiet || isFarOutside) {
+    if (isFarOutside) {
       object.isReturning = true;
     }
   });
 }
 
 function keepDiceInsideArena(diceObjects: DiceObject[]) {
-  const hardLimit = WALL_DISTANCE - BOX_SIZE * 0.55;
-
   diceObjects.forEach(({ body }) => {
-    if (body.position.x > hardLimit) {
-      body.position.x = hardLimit;
+    if (body.position.x > ARENA_LIMIT) {
+      body.position.x = ARENA_LIMIT;
       body.velocity.x = Math.min(0, body.velocity.x) * 0.45;
-    } else if (body.position.x < -hardLimit) {
-      body.position.x = -hardLimit;
+    } else if (body.position.x < -ARENA_LIMIT) {
+      body.position.x = -ARENA_LIMIT;
       body.velocity.x = Math.max(0, body.velocity.x) * 0.45;
     }
 
-    if (body.position.z > hardLimit) {
-      body.position.z = hardLimit;
+    if (body.position.z > ARENA_LIMIT) {
+      body.position.z = ARENA_LIMIT;
       body.velocity.z = Math.min(0, body.velocity.z) * 0.45;
-    } else if (body.position.z < -hardLimit) {
-      body.position.z = -hardLimit;
+    } else if (body.position.z < -ARENA_LIMIT) {
+      body.position.z = -ARENA_LIMIT;
       body.velocity.z = Math.max(0, body.velocity.z) * 0.45;
     }
   });
+}
+
+function clampStagePoint(x: number, z: number, limit: number) {
+  return {
+    x: Math.max(-limit, Math.min(limit, x)),
+    z: Math.max(-limit, Math.min(limit, z))
+  };
 }
 
 function getDiceSpawnPosition(index: number, total: number) {
