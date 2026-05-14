@@ -19,7 +19,8 @@ type DiceObject = {
   isReturning: boolean;
 };
 
-const FRUSTUM_SIZE = 18;
+const FRUSTUM_SIZE = 22;
+const CAMERA_DISTANCE = 58;
 const SAFE_LIMIT = 4.9;
 const SETTLE_LIMIT = 4.4;
 const RETURN_RELEASE_LIMIT = 1.1;
@@ -76,7 +77,7 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
     scene.background = new THREE.Color('#F6F3EB');
 
     const camera = new THREE.OrthographicCamera(-10, 10, 10, -10, 1, 1000);
-    camera.position.set(42, 42, 42);
+    camera.position.set(CAMERA_DISTANCE, CAMERA_DISTANCE, CAMERA_DISTANCE);
     camera.lookAt(0, CAMERA_TARGET_Y, 0);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
