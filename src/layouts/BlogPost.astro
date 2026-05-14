@@ -110,17 +110,6 @@ const articleBodyClass = [
           <ol class="grid gap-2 text-[13px] leading-[1.4] text-zinc-700" data-toc-list>
             <li>목차를 준비하고 있습니다…</li>
           </ol>
-
-          <div class="mt-5">
-            <button
-              type="button"
-              data-font-toggle
-              aria-pressed="true"
-              class="w-full rounded-md border border-line bg-soft px-3 py-2 text-xs text-zinc-700 transition hover:bg-zinc-200"
-            >
-              신문체 보기
-            </button>
-          </div>
         </aside>
 
         <div class="min-w-0 grid gap-6">
@@ -130,14 +119,6 @@ const articleBodyClass = [
               <ol class="grid gap-2 text-sm text-zinc-700" data-toc-list>
                 <li>목차를 준비하고 있습니다…</li>
               </ol>
-              <button
-                type="button"
-                data-font-toggle
-                aria-pressed="true"
-                class="mt-3 w-full rounded-md border border-line bg-soft px-3 py-2 text-xs text-zinc-700 transition hover:bg-zinc-200"
-              >
-                신문체 보기
-              </button>
             </div>
           </details>
 
@@ -265,14 +246,11 @@ const articleBodyClass = [
       .replace(/-+/g, '-');
 
   const articleBody = document.querySelector('.article-body');
-  const articleRoot = document.getElementById('detail-root');
   const tocLists = Array.from(document.querySelectorAll('[data-toc-list]'));
-  const fontToggleButtons = Array.from(document.querySelectorAll('[data-font-toggle]'));
   const floatingTocToggle = document.querySelector('[data-floating-toc-toggle]');
   const floatingTocPanel = document.querySelector('[data-floating-toc-panel]');
   const floatingTocBackdrop = document.querySelector('[data-floating-toc-backdrop]');
   const floatingTocClose = document.querySelector('[data-floating-toc-close]');
-  const FONT_MODE_KEY = 'blog_detail_font_mode';
   const floatingTocQuery = window.matchMedia('(max-width: 1360px) and (min-width: 1025px)');
 
   const setFloatingTocOpen = (open) => {
@@ -293,46 +271,6 @@ const articleBodyClass = [
     floatingTocToggle.style.display = 'none';
     setFloatingTocOpen(false);
   };
-
-  const applyFontMode = (mode) => {
-    if (!articleRoot) return;
-
-    const useBasic = mode === 'basic';
-    articleRoot.classList.toggle('font-sans', useBasic);
-    articleRoot.classList.toggle('font-newspaper', !useBasic);
-
-    fontToggleButtons.forEach((button) => {
-      button.setAttribute('aria-pressed', useBasic ? 'true' : 'false');
-      button.textContent = useBasic ? '신문체 보기' : '기본체 보기';
-    });
-  };
-
-  const readSavedFontMode = () => {
-    try {
-      const saved = window.localStorage.getItem(FONT_MODE_KEY);
-      return saved === 'newspaper' ? 'newspaper' : 'basic';
-    } catch {
-      return 'basic';
-    }
-  };
-
-  const saveFontMode = (mode) => {
-    try {
-      window.localStorage.setItem(FONT_MODE_KEY, mode);
-    } catch {
-      // ignore storage failure
-    }
-  };
-
-  applyFontMode(readSavedFontMode());
-
-  fontToggleButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-      const nextMode = articleRoot?.classList.contains('font-sans') ? 'newspaper' : 'basic';
-      applyFontMode(nextMode);
-      saveFontMode(nextMode);
-    });
-  });
 
   floatingTocToggle?.addEventListener('click', () => {
     const nextOpen = floatingTocPanel?.getAttribute('data-open') !== 'true';
