@@ -21,11 +21,12 @@ type DiceObject = {
 
 const FRUSTUM_SIZE = 22;
 const CAMERA_DISTANCE = 58;
-const SAFE_LIMIT = 4.9;
-const SETTLE_LIMIT = 4.4;
 const RETURN_RELEASE_LIMIT = 1.1;
 const WALL_DISTANCE = 6.2;
 const BOX_SIZE = 2.1;
+const ARENA_LIMIT = WALL_DISTANCE - BOX_SIZE * 0.55;
+const SAFE_LIMIT = ARENA_LIMIT;
+const SETTLE_LIMIT = ARENA_LIMIT;
 const DICE_SPACING = 1.7;
 const CAMERA_TARGET_Y = 1.1;
 const HOLD_HEIGHT = 8;
@@ -479,35 +480,29 @@ function markOffstageDiceForReturn(diceObjects: DiceObject[]) {
   diceObjects.forEach((object) => {
     if (object.isReturning) return;
 
-    const isOffstage = Math.abs(object.body.position.x) > SETTLE_LIMIT || Math.abs(object.body.position.z) > SETTLE_LIMIT;
-    if (!isOffstage) return;
-
-    const isQuiet = object.body.velocity.lengthSquared() <= 0.7 && object.body.angularVelocity.lengthSquared() <= 0.7;
     const isFarOutside = Math.abs(object.body.position.x) > SAFE_LIMIT || Math.abs(object.body.position.z) > SAFE_LIMIT;
 
-    if (isQuiet || isFarOutside) {
+    if (isFarOutside) {
       object.isReturning = true;
     }
   });
 }
 
 function keepDiceInsideArena(diceObjects: DiceObject[]) {
-  const hardLimit = WALL_DISTANCE - BOX_SIZE * 0.55;
-
   diceObjects.forEach(({ body }) => {
-    if (body.position.x > hardLimit) {
-      body.position.x = hardLimit;
+    if (body.position.x > ARENA_LIMIT) {
+      body.position.x = ARENA_LIMIT;
       body.velocity.x = Math.min(0, body.velocity.x) * 0.45;
-    } else if (body.position.x < -hardLimit) {
-      body.position.x = -hardLimit;
+    } else if (body.position.x < -ARENA_LIMIT) {
+      body.position.x = -ARENA_LIMIT;
       body.velocity.x = Math.max(0, body.velocity.x) * 0.45;
     }
 
-    if (body.position.z > hardLimit) {
-      body.position.z = hardLimit;
+    if (body.position.z > ARENA_LIMIT) {
+      body.position.z = ARENA_LIMIT;
       body.velocity.z = Math.min(0, body.velocity.z) * 0.45;
-    } else if (body.position.z < -hardLimit) {
-      body.position.z = -hardLimit;
+    } else if (body.position.z < -ARENA_LIMIT) {
+      body.position.z = -ARENA_LIMIT;
       body.velocity.z = Math.max(0, body.velocity.z) * 0.45;
     }
   });
