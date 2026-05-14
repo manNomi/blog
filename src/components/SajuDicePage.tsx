@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import SajuDiceStage from './SajuDiceStage';
-import { buildDiceFortune, parseFavoriteNumbers, type DiceFortuneResult } from '../lib/saju/dice-fortune';
+import { buildDiceFortune, normalizeDiceKeyword, parseFavoriteNumbers, type DiceFortuneResult } from '../lib/saju/dice-fortune';
 
 const diceCountOptions = [2, 3, 4, 5, 6];
 
@@ -11,10 +11,33 @@ export default function SajuDicePage() {
   const [rollSignal, setRollSignal] = useState(0);
   const [isRolling, setIsRolling] = useState(false);
   const [fortune, setFortune] = useState<DiceFortuneResult | null>(null);
+  const [rolledSelectionKeys, setRolledSelectionKeys] = useState<Set<string>>(() => new Set());
+  const activeRollRef = useRef<{ favoriteNumbers: string; key: string; keyword: string } | null>(null);
 
   const parsedNumbers = useMemo(() => parseFavoriteNumbers(favoriteNumbers), [favoriteNumbers]);
+  const normalizedKeyword = useMemo(() => normalizeDiceKeyword(keyword), [keyword]);
+  const selectionKey = useMemo(() => buildSelectionKey(parsedNumbers, normalizedKeyword, diceCount), [diceCount, normalizedKeyword, parsedNumbers]);
+  const previousSelectionKeyRef = useRef(selectionKey);
+  const isSelectionRolled = rolledSelectionKeys.has(selectionKey);
+  const statusLabel = isRolling ? '회전 중' : fortune ? '완료' : isSelectionRolled ? '잠김' : '대기';
+
+  useEffect(() => {
+    if (previousSelectionKeyRef.current === selectionKey) return;
+
+    previousSelectionKeyRef.current = selectionKey;
+    activeRollRef.current = null;
+    setFortune(null);
+    setIsRolling(false);
+  }, [selectionKey]);
 
   const rollDice = () => {
+    if (isRolling || isSelectionRolled) return;
+
+    activeRollRef.current = {
+      favoriteNumbers,
+      key: selectionKey,
+      keyword
+    };
     setRollSignal((signal) => signal + 1);
   };
 
@@ -41,7 +64,8 @@ export default function SajuDicePage() {
                 placeholder="7, 14, 22"
                 inputMode="numeric"
                 maxLength={32}
-                className="h-11 rounded-md border border-line bg-white px-3 outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-900/10"
+                disabled={isRolling}
+                className="h-11 rounded-md border border-line bg-white px-3 outline-none transition disabled:cursor-not-allowed disabled:bg-zinc-100 focus:border-zinc-500 focus:ring-2 focus:ring-zinc-900/10"
               />
               <span className="text-xs text-zinc-500">앞에서부터 최대 3개만 반영됩니다.</span>
             </label>
@@ -53,7 +77,8 @@ export default function SajuDicePage() {
                 onChange={(event) => setKeyword(event.target.value)}
                 placeholder="연애, 집중, 이직"
                 maxLength={32}
-                className="h-11 rounded-md border border-line bg-white px-3 outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-900/10"
+                disabled={isRolling}
+                className="h-11 rounded-md border border-line bg-white px-3 outline-none transition disabled:cursor-not-allowed disabled:bg-zinc-100 focus:border-zinc-500 focus:ring-2 focus:ring-zinc-900/10"
               />
             </label>
 
@@ -63,10 +88,9 @@ export default function SajuDicePage() {
                 value={diceCount}
                 onChange={(event) => {
                   setDiceCount(Number(event.target.value));
-                  setFortune(null);
-                  setIsRolling(false);
                 }}
-                className="h-11 rounded-md border border-line bg-white px-3 outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-900/10"
+                disabled={isRolling}
+                className="h-11 rounded-md border border-line bg-white px-3 outline-none transition disabled:cursor-not-allowed disabled:bg-zinc-100 focus:border-zinc-500 focus:ring-2 focus:ring-zinc-900/10"
               >
                 {diceCountOptions.map((option) => (
                   <option key={option} value={option}>
@@ -80,11 +104,17 @@ export default function SajuDicePage() {
           <button
             type="button"
             onClick={rollDice}
-            disabled={isRolling}
+            disabled={isRolling || isSelectionRolled}
             className="btn-pill-dark h-12 transition-transform duration-200 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isRolling ? '굴리는 중...' : '주사위 굴리기'}
+            {isRolling ? '굴리는 중...' : isSelectionRolled ? '이미 굴린 선택' : '주사위 굴리기'}
           </button>
+
+          {isSelectionRolled && (
+            <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-3 text-xs leading-[1.65] text-amber-900">
+              이 선택은 이미 굴렸어요. 숫자, 키워드, 주사위 수 중 하나를 바꿔주세요.
+            </div>
+          )}
 
           <div className="rounded-md border border-line bg-soft px-3 py-3 text-xs leading-[1.65] text-zinc-600">
             개인정보를 넣지 않는 오락용 결과입니다. 이름, 생년월일, 이메일, 출생지 같은 정보는 입력하지 않아도 됩니다.
@@ -99,13 +129,24 @@ export default function SajuDicePage() {
               setIsRolling(true);
             }}
             onRollResult={(diceValues) => {
+              const activeRoll = activeRollRef.current ?? {
+                favoriteNumbers,
+                key: selectionKey,
+                keyword
+              };
+
               setFortune(
                 buildDiceFortune({
-                  favoriteNumbers,
-                  keyword,
+                  favoriteNumbers: activeRoll.favoriteNumbers,
+                  keyword: activeRoll.keyword,
                   diceValues
                 })
               );
+              setRolledSelectionKeys((currentKeys) => {
+                const nextKeys = new Set(currentKeys);
+                nextKeys.add(activeRoll.key);
+                return nextKeys;
+              });
               setIsRolling(false);
             }}
           />
@@ -121,7 +162,7 @@ export default function SajuDicePage() {
             </div>
             <div className="rounded-md border border-line bg-soft px-2 py-2">
               <span className="block text-[11px] text-zinc-500">상태</span>
-              <strong className="mt-1 block text-sm text-zinc-900">{isRolling ? '회전 중' : fortune ? '완료' : '대기'}</strong>
+              <strong className="mt-1 block text-sm text-zinc-900">{statusLabel}</strong>
             </div>
           </div>
         </div>
@@ -133,6 +174,10 @@ export default function SajuDicePage() {
       </section>
     </div>
   );
+}
+
+function buildSelectionKey(favoriteNumbers: number[], keyword: string, diceCount: number) {
+  return `${favoriteNumbers.join(',')}|${keyword}|${diceCount}`;
 }
 
 function EmptyResult() {
