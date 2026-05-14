@@ -1,6 +1,7 @@
 ---
 title: "React Compiler 도입"
 pubDate: 2025-11-25T00:00:00.000Z
+tags: ["주식회사 업사이트"]
 notionId: "2cd7cf19-a364-802f-b3b7-f410efbd3024"
 ---
 ![1*s2DJaXzcBACanvz9jzzJkA.png](https://cdn-images-1.medium.com/max/1600/1*s2DJaXzcBACanvz9jzzJkA.png)
