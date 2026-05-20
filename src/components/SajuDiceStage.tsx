@@ -19,18 +19,18 @@ type DiceObject = {
   isReturning: boolean;
 };
 
-const FRUSTUM_SIZE = 22;
+const FRUSTUM_SIZE = 26;
 const CAMERA_DISTANCE = 58;
 const RETURN_RELEASE_LIMIT = 1.1;
-const WALL_DISTANCE = 6.2;
+const WALL_DISTANCE = 8;
 const BOX_SIZE = 2.1;
 const ARENA_LIMIT = WALL_DISTANCE - BOX_SIZE * 0.55;
 const SAFE_LIMIT = ARENA_LIMIT;
 const SETTLE_LIMIT = ARENA_LIMIT;
 const DICE_SPACING = 1.7;
 const CAMERA_TARGET_Y = 1.1;
-const HOLD_HEIGHT = 8;
-const THROW_HEIGHT = 7.5;
+const HOLD_HEIGHT = 7.2;
+const THROW_HEIGHT = 6.5;
 const HOLD_LIMIT = SETTLE_LIMIT - BOX_SIZE * 0.35;
 const DROP_LIMIT = SETTLE_LIMIT - BOX_SIZE * 0.45;
 const dicePalette = ['#EAA14D', '#E05A47', '#4D9BEA', '#5FB376', '#D869A8', '#F2C94C', '#8D6FE8', '#FFFFFF'];
@@ -97,7 +97,7 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
     scene.add(ambientLight, keyLight);
 
     const world = new CANNON.World();
-    world.gravity.set(0, -38, 0);
+    world.gravity.set(0, -30, 0);
     world.broadphase = new CANNON.NaiveBroadphase();
     (world.solver as unknown as { iterations: number }).iterations = 20;
     world.allowSleep = true;
@@ -443,8 +443,8 @@ function applyThrowForce(body: CANNON.Body) {
   const xDist = -body.position.x;
   const zDist = -body.position.z;
 
-  body.velocity.set(xDist * 1.65 + (Math.random() - 0.5) * 7, -11 - Math.random() * 6, zDist * 1.65 + (Math.random() - 0.5) * 7);
-  body.angularVelocity.set((Math.random() - 0.5) * 26, (Math.random() - 0.5) * 26, (Math.random() - 0.5) * 26);
+  body.velocity.set(xDist * 1.35 + (Math.random() - 0.5) * 5, -8 - Math.random() * 4, zDist * 1.35 + (Math.random() - 0.5) * 5);
+  body.angularVelocity.set((Math.random() - 0.5) * 18, (Math.random() - 0.5) * 18, (Math.random() - 0.5) * 18);
 }
 
 function calculateResultForDice(mesh: THREE.Mesh) {

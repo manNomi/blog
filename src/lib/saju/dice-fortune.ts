@@ -21,6 +21,10 @@ export type DiceFortuneResult = {
   luckyScore: number;
   title: string;
   summary: string;
+  detailCards: Array<{
+    title: string;
+    body: string;
+  }>;
   actionCards: string[];
   caution: string;
   luckyTokens: string[];
@@ -72,6 +76,14 @@ const actionPool: Record<DiceElement, string[]> = {
   earth: ['책상이나 메모함 하나 정리하기', '오늘 꼭 지킬 작은 약속 정하기', '돈과 시간을 쓰기 전에 한 번 더 확인하기'],
   metal: ['하지 않을 일을 하나 정하기', '선택 기준을 세 문장으로 줄이기', '애매한 답변을 분명하게 고쳐 쓰기'],
   water: ['짧은 산책으로 생각 비우기', '감정이 올라오는 이유를 한 줄로 적기', '답장을 보내기 전 5분 쉬기']
+};
+
+const usageByElement: Record<DiceElement, string> = {
+  wood: '새로운 일을 크게 벌리기보다 첫 줄을 쓰는 감각이 좋습니다. 작게 시작하면 다음 선택지가 자연스럽게 따라옵니다.',
+  fire: '속도감은 살리되 말과 선택은 짧게 끊어가세요. 바로 반응해야 할 일과 잠깐 식혀야 할 일을 나누면 흐름이 살아납니다.',
+  earth: '흩어진 일정을 한곳에 모으기 좋습니다. 오늘은 대단한 전환보다 다시 지킬 수 있는 기준을 만드는 쪽이 유리합니다.',
+  metal: '선택지를 덜어내면 운이 선명해집니다. 하지 않을 일을 먼저 정하면 남은 일의 가치가 또렷해집니다.',
+  water: '생각을 밀어붙이기보다 잠깐 띄워두는 편이 좋습니다. 기록, 산책, 조용한 확인처럼 여백이 있는 행동이 잘 맞습니다.'
 };
 
 const cautionByBucket: Record<DiceFortuneResult['resultBucket'], string[]> = {
@@ -127,7 +139,8 @@ export function buildDiceFortune(input: DiceFortuneInput): DiceFortuneResult {
     luckyScore,
     title: titleOptions[seed % titleOptions.length],
     summary: summaryOptions[(seed + total) % summaryOptions.length],
-    actionCards: pickRotating(actionOptions, seed, 2),
+    detailCards: buildDetailCards({ favoriteNumbers, keyword, diceValues, total, resultBucket, element, seed }),
+    actionCards: pickRotating(actionOptions, seed, 3),
     caution: cautionByBucket[resultBucket][0],
     luckyTokens: buildLuckyTokens({ favoriteNumbers, keyword, diceValues, seed })
   };
@@ -145,6 +158,49 @@ function getResultBucket(total: number, diceCount: number): DiceFortuneResult['r
 
 function pickRotating(values: string[], seed: number, count: number) {
   return Array.from({ length: count }, (_, index) => values[(seed + index) % values.length]);
+}
+
+function buildDetailCards({
+  favoriteNumbers,
+  keyword,
+  diceValues,
+  total,
+  resultBucket,
+  element,
+  seed
+}: {
+  favoriteNumbers: number[];
+  keyword: string;
+  diceValues: number[];
+  total: number;
+  resultBucket: DiceFortuneResult['resultBucket'];
+  element: DiceFortuneResult['element'];
+  seed: number;
+}): DiceFortuneResult['detailCards'] {
+  const favoriteSignal = favoriteNumbers.length > 0 ? `좋아하는 숫자 ${favoriteNumbers.join(', ')}가 합계 ${total}에 개인 리듬을 더합니다.` : '좋아하는 숫자를 비워두어 주사위 합계 자체의 흐름이 더 또렷하게 보입니다.';
+  const bucketSignal = {
+    low: '낮은 합은 속도를 낮추고 준비 동작을 정교하게 만들라는 쪽에 가깝습니다.',
+    middle: '중간 합은 균형이 살아 있어 방향을 한 번 정하면 흐름이 안정적으로 이어집니다.',
+    high: '높은 합은 추진력이 강하게 붙는 신호라 결정을 미루기보다 작은 실행으로 옮기기 좋습니다.'
+  }[resultBucket];
+  const dicePattern = diceValues.join(', ');
+  const keywordLead = keyword.split(' ')[0] || DEFAULT_KEYWORD;
+  const keywordTone = seed % 2 === 0 ? '바깥으로 표현할수록' : '조용히 정리할수록';
+
+  return [
+    {
+      title: '숫자 흐름',
+      body: `${diceValues.length}개의 주사위가 ${dicePattern}로 멈춰 합계 ${total}을 만들었습니다. ${bucketSignal} ${favoriteSignal}`
+    },
+    {
+      title: '키워드 해석',
+      body: `오늘의 키워드 "${keyword}"는 ${element.label}의 기운과 만나 ${element.mood}으로 읽힙니다. 특히 "${keywordLead}"에 관한 선택은 ${keywordTone} 운의 방향이 선명해집니다.`
+    },
+    {
+      title: '오늘의 사용법',
+      body: usageByElement[element.key]
+    }
+  ];
 }
 
 function buildLuckyTokens({
