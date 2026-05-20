@@ -212,7 +212,16 @@ function FortuneResult({ result }: { result: DiceFortuneResult }) {
           <p className="mt-3 text-[15px] leading-[1.7] text-zinc-600">{result.summary}</p>
         </div>
 
-        <div className="grid gap-2 md:grid-cols-2">
+        <div className="grid gap-2 md:grid-cols-3">
+          {result.detailCards.map((card) => (
+            <article key={card.title} className="rounded-md border border-line bg-white px-3 py-3">
+              <h3 className="text-sm font-semibold text-zinc-900">{card.title}</h3>
+              <p className="mt-2 text-[13px] leading-[1.6] text-zinc-600">{card.body}</p>
+            </article>
+          ))}
+        </div>
+
+        <div className="grid gap-2 md:grid-cols-3">
           {result.actionCards.map((action) => (
             <div key={action} className="rounded-md border border-line bg-soft px-3 py-3 text-sm font-medium leading-[1.55] text-zinc-800">
               {action}
