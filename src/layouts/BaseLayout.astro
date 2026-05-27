@@ -36,6 +36,21 @@ const siteURL = Astro.site || Astro.url.origin;
 const fullURL = new URL(canonicalURL, siteURL).href;
 const ogImage = new URL(image, siteURL).href;
 const jsonLdPayload = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : undefined;
+const gaMeasurementId =
+  typeof import.meta.env.PUBLIC_GA_MEASUREMENT_ID === 'string'
+    ? import.meta.env.PUBLIC_GA_MEASUREMENT_ID.trim()
+    : '';
+const gaScriptSrc = gaMeasurementId
+  ? `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gaMeasurementId)}`
+  : undefined;
+const gaScriptPayload = gaMeasurementId
+  ? `
+window.dataLayer = window.dataLayer || [];
+function gtag(){window.dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', ${JSON.stringify(gaMeasurementId)});
+`
+  : undefined;
 ---
 
 <!DOCTYPE html>
@@ -69,6 +84,14 @@ const jsonLdPayload = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') :
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
     <meta name="twitter:image:alt" content={imageAlt} />
+    {
+      gaMeasurementId && (
+        <>
+          <script is:inline async src={gaScriptSrc}></script>
+          <script is:inline set:html={gaScriptPayload} />
+        </>
+      )
+    }
     {jsonLdPayload && <script type="application/ld+json" set:html={jsonLdPayload} is:inline />}
   </head>
   <body>
