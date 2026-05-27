@@ -308,7 +308,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             { css: { rotation: '70deg' } }
           ),
           TweenMax.staggerTo($('#veyron_hold_box'), 5, { css: { left: 7 } }),
-          TweenMax.staggerTo($('#stage_2'), 5, { css: { left: 82 } }),
+          TweenMax.staggerTo($('#stage_2'), 5, { css: { left: 102 } }),
 
           TweenMax.staggerFromTo(
             rulers,
@@ -403,6 +403,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     margin: 50px auto 0;
     position: relative;
     width: 980px;
+    float: left;
     transform: scale(var(--aim-scale));
     transform-origin: top left;
   }
