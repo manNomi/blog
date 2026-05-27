@@ -1,0 +1,754 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="AIM 화이팅 | Nomi Journal" description="김용준, 문승재 AIM 레이스 응원 페이지" robots="noindex, follow">
+  <main class="aim-page">
+    <section id="animation_holder" aria-label="AIM race day support animation">
+      <div class="cheer-banner">
+        <div class="banner-bolt banner-bolt-left" aria-hidden="true"></div>
+        <div class="banner-bolt banner-bolt-right" aria-hidden="true"></div>
+
+        <div class="banner-photos" aria-label="AIM 축하 사진">
+          <figure class="banner-photo banner-photo-main">
+            <img src="/images/aim/aim-cheer-1.png" alt="레고 F1 자동차 선물을 든 김용준" />
+          </figure>
+          <figure class="banner-photo">
+            <img src="/images/aim/aim-cheer-2.png" alt="김용준과 문승재의 셀피" />
+          </figure>
+          <figure class="banner-photo banner-photo-mono">
+            <img src="/images/aim/aim-cheer-3.png" alt="문승재 프로필 사진" />
+          </figure>
+        </div>
+
+        <div class="banner-copy">
+          <div class="cheer-kicker">INHA UNIVERSITY RACE DAY</div>
+          <h1>인하대 <span>AIM</span></h1>
+          <h2>가보자<span>GO</span></h2>
+          <p>김용준 문승재는 현대차 할인 해줄것</p>
+        </div>
+      </div>
+
+      <section id="bugatti_v">
+        <section id="carhold_1">
+          <section id="veyron_ruler_holer_box">
+            <div id="ruler_1_wrap"></div>
+            <section id="ruler_horizontal_2"></section>
+          </section>
+
+          <section id="veyron_hold_box">
+            <img id="veyron_bumper" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/49174/veyron_bumper.png" alt="" />
+            <img id="veyron_frame" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/49174/veyron_frame.png" alt="" />
+            <img id="veyron_siding" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/49174/veyron_siding.png" alt="" />
+            <img id="veyron_fender" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/49174/veyron_s_fender.png" alt="" />
+            <img id="veyron_tire" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/49174/veyron_tire.png" alt="" />
+            <img id="veyron_tire_2" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/49174/veyron_tire.png" alt="" />
+            <img id="veyron_window" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/49174/veyron_windows.png" alt="" />
+            <img id="veyron_front_break" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/49174/veyron_brake.png" alt="" />
+            <img id="veyron_rear_break" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/49174/veyron_brake.png" alt="" />
+
+          </section>
+
+          <section id="stage_2">
+            <img id="bugatti_veyron" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/49174/bugatti_v.png" alt="Bugatti Veyron assembled race car" />
+            <img id="bugatti_v_tire" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/49174/bugatti_v_tire.png" alt="" />
+            <img id="bugatti_v_tire_2" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/49174/bugatti_v_tire.png" alt="" />
+            <div id="aim_final">AIM</div>
+          </section>
+        </section>
+      </section>
+    </section>
+  </main>
+
+  <script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.20.3/TweenMax.min.js"></script>
+
+  <script is:inline>
+    window.addEventListener('load', function () {
+      var $ = window.jQuery;
+      if (!$ || !window.TweenMax || !window.TimelineLite) return;
+
+      var stage = document.getElementById('bugatti_v');
+      function updateStageMetrics() {
+        if (!stage) return;
+
+        var availableWidth = Math.min(980, Math.max(320, window.innerWidth - 32));
+        var scale = availableWidth / 980;
+        stage.style.width = availableWidth + 'px';
+        stage.style.height = 420 * scale + 'px';
+        stage.style.setProperty('--aim-scale', String(scale));
+      }
+
+      updateStageMetrics();
+      window.addEventListener('resize', updateStageMetrics);
+
+      var miniBoxesHolder = $('#ruler_1_wrap');
+      for (var n = 0; n < 12; n += 1) {
+        miniBoxesHolder.append('<div class="ruler_box_1"></div>');
+      }
+
+      var rulers = $('.ruler_box_1');
+
+      new TimelineLite()
+        .appendMultiple([
+          TweenMax.staggerFromTo(
+            rulers,
+            0.3,
+            {
+              css: {
+                height: 0,
+                top: 0,
+                backgroundColor: '#000',
+                borderColor: '#555',
+                rotation: 720,
+                autoAlpha: 0
+              }
+            },
+            {
+              css: {
+                height: 330,
+                backgroundColor: 'transparent',
+                transformOrigin: 'bottom',
+                borderColor: '#777',
+                rotation: 0,
+                autoAlpha: 0.3
+              },
+              ease: Back.easeOut,
+              immediateRender: true
+            },
+            0.1
+          )
+        ])
+        .appendMultiple(
+          [
+            TweenMax.fromTo(
+              $('#veyron_rear_break'),
+              1.2,
+              { css: { opacity: 0, right: -1000 }, immediateRender: true },
+              { css: { right: 166, opacity: 1 }, ease: SlowMo.ease }
+            ),
+            TweenMax.fromTo(
+              $('#veyron_front_break'),
+              2.1,
+              { css: { opacity: 0, right: -1900 }, immediateRender: true },
+              { css: { right: 678, opacity: 1, delay: 1 }, ease: SlowMo.ease }
+            ),
+            TweenMax.fromTo(
+              $('#veyron_bumper'),
+              1,
+              { css: { opacity: 0, right: -1100, top: -9 }, immediateRender: true },
+              { css: { right: -97, top: -9, opacity: 0.7 }, ease: SlowMo.ease }
+            ),
+            TweenMax.fromTo(
+              $('#veyron_frame'),
+              2.5,
+              { css: { opacity: 0, right: -1100, top: -5 }, immediateRender: true },
+              {
+                css: { right: -76, top: -5, opacity: 0.7 },
+                ease: SlowMo.ease,
+                delay: 1
+              }
+            ),
+            TweenMax.fromTo(
+              $('#veyron_siding'),
+              1.2,
+              {
+                css: { opacity: 0, right: -1200, top: -135 },
+                immediateRender: true
+              },
+              { css: { right: -335, top: -135, opacity: 0.7 }, ease: SlowMo.ease }
+            ),
+            TweenMax.fromTo(
+              $('#veyron_fender'),
+              1.9,
+              {
+                css: { opacity: 0, right: -1200, top: -158 },
+                immediateRender: true
+              },
+              { css: { right: 274, top: -158, opacity: 0.7 }, ease: Back.easeIn }
+            ),
+            TweenMax.fromTo(
+              $('#veyron_window'),
+              2.4,
+              {
+                css: { opacity: 0, right: -100, top: -341 },
+                immediateRender: true
+              },
+              { css: { right: 6, top: -341, opacity: 0.7 }, ease: Back.easeOut }
+            ),
+            TweenMax.staggerFromTo(
+              $('#ruler_horizontal_2'),
+              2,
+              {
+                css: {
+                  height: 0,
+                  left: 900,
+                  backgroundColor: '#fff',
+                  rotation: 400,
+                  autoAlpha: 0
+                }
+              },
+              {
+                css: {
+                  height: 1,
+                  width: 891,
+                  bottom: 85,
+                  left: 5,
+                  transformOrigin: 'top',
+                  backgroundColor: '#777',
+                  rotation: 1080,
+                  opacity: 0.2,
+                  autoAlpha: 0.4
+                },
+                ease: Back.easeOut,
+                immediateRender: true
+              },
+              0.1
+            ),
+            TweenMax.staggerFromTo(
+              $('#veyron_tire'),
+              2.5,
+              { css: { opacity: 0, right: -2991, top: -301 } },
+              {
+                css: { right: -191, top: -301, opacity: 0.7 },
+                ease: SlowMo.ease,
+                immediateRender: true
+              }
+            ),
+            TweenMax.staggerFromTo(
+              $('#veyron_tire_2'),
+              3,
+              { css: { opacity: 0, right: -2558, top: -301 } },
+              {
+                css: { right: -558, top: -301, opacity: 0.7 },
+                ease: Back.easeOut,
+                immediateRender: true
+              },
+              0.9
+            ),
+            TweenMax.staggerFromTo(
+              $('#veyron_head_1'),
+              1,
+              { css: { left: 44, top: -1579, autoAlpha: 0 } },
+              {
+                css: { left: 44, top: -976, autoAlpha: 0.9 },
+                ease: SlowMo.ease,
+                immediateRender: true
+              },
+              2
+            )
+          ],
+          -2
+        )
+        .appendMultiple([
+          TweenMax.staggerFromTo(
+            $('#bugatti_veyron'),
+            4,
+            { css: { opacity: 0 }, immediateRender: true },
+            { css: { opacity: 0.9 } },
+            5
+          ),
+          TweenMax.fromTo(
+            $('#aim_final'),
+            1.2,
+            {
+              css: {
+                autoAlpha: 0,
+                scale: 0.35,
+                rotation: -8
+              },
+              immediateRender: true
+            },
+            {
+              css: {
+                autoAlpha: 1,
+                scale: 1,
+                rotation: 0
+              },
+              ease: Back.easeOut,
+              delay: 4.2
+            }
+          ),
+          TweenMax.staggerFromTo(
+            $('#bugatti_v_tire'),
+            0.1,
+            { css: { opacity: 0 }, immediateRender: true },
+            { css: { opacity: 1 } }
+          ),
+          TweenMax.staggerFromTo(
+            $('#bugatti_v_tire_2'),
+            0.1,
+            { css: { opacity: 0 }, immediateRender: true },
+            { css: { opacity: 1 } }
+          ),
+
+          TweenMax.staggerTo($('#bugatti_veyron'), 0.1, {
+            css: { opacity: 0.4 },
+            immediateRender: true
+          })
+        ])
+
+        .appendMultiple([
+          TweenMax.staggerTo($('#veyron_hold_box'), 5, {
+            css: { zIndex: '77777', opacity: 1 }
+          }),
+          TweenMax.staggerTo($('#veyron_hold_box'), 1, { css: { opacity: 0 } }),
+
+          TweenMax.staggerFromTo(
+            $('#bugatti_v_tire'),
+            5,
+            { css: { rotation: '0deg' } },
+            { css: { rotation: '70deg' }, immediateRender: true }
+          ),
+
+          TweenMax.staggerFromTo(
+            $('#bugatti_v_tire_2'),
+            5,
+            { css: { rotation: '0deg' }, immediateRender: true },
+            { css: { rotation: '70deg' } }
+          ),
+          TweenMax.staggerTo($('#veyron_hold_box'), 5, { css: { left: 7 } }),
+          TweenMax.staggerTo($('#stage_2'), 5, { css: { left: 102 } }),
+
+          TweenMax.staggerFromTo(
+            rulers,
+            3,
+            { css: { autoAlpha: 0.3, rotation: '0deg' } },
+            {
+              css: { autoAlpha: 0, rotation: '4000deg' },
+              ease: Back.easeOut,
+              immediateRender: true
+            },
+            0.2
+          )
+        ]);
+    });
+  </script>
+</BaseLayout>
+
+<style>
+  .aim-page {
+    min-height: 100vh;
+    overflow: hidden;
+    background:
+      url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/49174/hexabump.png'),
+      #191919;
+    padding: 1px 0 0;
+  }
+
+  #animation_holder {
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    min-height: 100vh;
+  }
+
+  #animation_holder img {
+    max-width: none;
+  }
+
+  #bugatti_veyron {
+    position: relative;
+    float: left;
+    width: 100%;
+  }
+
+  #bugatti_v {
+    --aim-scale: 1;
+    display: block;
+    width: min(980px, calc(100vw - 32px));
+    position: relative;
+    height: 420px;
+    margin: 0 auto;
+  }
+
+  #veyron_rear_break,
+  #veyron_front_break {
+    position: absolute;
+    bottom: 35px;
+  }
+
+  #stage_2 {
+    position: absolute;
+    left: 45px;
+    width: 816px;
+    top: 52px;
+  }
+
+  img#bugatti_v_tire {
+    top: -133px;
+    left: 101px;
+  }
+
+  img#bugatti_v_tire_2 {
+    left: 476px;
+    top: -133px;
+  }
+
+  #veyron_bumper,
+  #veyron_frame,
+  #veyron_siding,
+  #veyron_fender,
+  #veyron_tire,
+  #veyron_tire_2,
+  #veyron_window,
+  #bugatti_v_tire,
+  #bugatti_v_tire_2 {
+    position: relative;
+  }
+
+  #carhold_1 {
+    border: 1px solid transparent;
+    height: 352px;
+    margin: 50px auto 0;
+    position: relative;
+    width: 980px;
+    float: left;
+    transform: scale(var(--aim-scale));
+    transform-origin: top left;
+  }
+
+  #divider {
+    width: 500px;
+    height: 500px;
+    display: block;
+    margin: auto;
+  }
+
+  #veyron_ruler_holer_box {
+    width: 900px;
+    height: 340px;
+    margin: 0 auto;
+    z-index: 1;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  #ruler_1_wrap {
+    height: 370px;
+    position: relative;
+    width: 1000px;
+    z-index: 9999;
+  }
+
+  #ruler_horizontal_1,
+  #ruler_horizontal_2 {
+    position: relative;
+  }
+
+  #veyron_hold_box {
+    width: 978px;
+    height: 229px;
+    position: absolute;
+    top: 60px;
+    left: -50px;
+  }
+
+  #veyron_hold_box img {
+    display: inline;
+    filter: grayscale(1);
+    opacity: 0;
+  }
+
+  #stage_2 img {
+    display: inline;
+    filter: grayscale(1);
+  }
+
+  .ruler_box_1 {
+    position: relative;
+    float: left;
+    width: 65px;
+    height: 347px;
+    margin: 4px;
+    border-left: 1px dashed #777;
+    border-right: 1px dashed #777;
+  }
+
+  .ruler_mark {
+    border-left: 2px dotted #ccc;
+    border-right: 2px dotted #ccc;
+    height: 22px;
+    margin: 11px auto;
+    width: 33px;
+  }
+
+  .ruler_mark_2 {
+    border-left: 2px dotted rgba(204, 204, 204, 0.32);
+    height: 50px;
+    margin: 8px auto 0;
+    width: 1px;
+  }
+
+  .cheer-banner {
+    position: relative;
+    z-index: 999999;
+    display: grid;
+    grid-template-columns: minmax(210px, 0.8fr) minmax(0, 1.25fr);
+    gap: clamp(16px, 3vw, 30px);
+    width: min(94vw, 1080px);
+    margin: 24px auto 0;
+    padding: clamp(16px, 2.5vw, 28px);
+    text-align: center;
+    font-family: 'Arial Black', Impact, sans-serif;
+    color: #242424;
+    border: 3px solid #2c2c2c;
+    border-radius: 8px;
+    background: #dedede;
+    box-shadow:
+      0 18px 44px rgba(0, 0, 0, 0.34),
+      inset 0 0 0 6px rgba(255, 255, 255, 0.38);
+    animation: cheerIntro 1.1s ease-out both;
+  }
+
+  .cheer-banner::before {
+    content: '';
+    position: absolute;
+    inset: -16px 8%;
+    z-index: -1;
+    background: rgba(255, 255, 255, 0.08);
+    filter: blur(8px);
+  }
+
+  .cheer-banner::after {
+    content: '';
+    position: absolute;
+    inset: 9px;
+    border: 2px dashed rgba(36, 36, 36, 0.26);
+    border-radius: 4px;
+    pointer-events: none;
+  }
+
+  .banner-bolt {
+    position: absolute;
+    top: 16px;
+    width: 18px;
+    height: 18px;
+    border: 3px solid #2b2b2b;
+    border-radius: 999px;
+    background: #cfcfcf;
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.54);
+  }
+
+  .banner-bolt-left {
+    left: 16px;
+  }
+
+  .banner-bolt-right {
+    right: 16px;
+  }
+
+  .banner-photos {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1.05fr 0.8fr;
+    grid-template-rows: repeat(2, minmax(94px, 1fr));
+    gap: 0;
+    min-height: 228px;
+  }
+
+  .banner-photo {
+    position: relative;
+    overflow: visible;
+    margin: 0;
+    background: transparent;
+    transform: rotate(2deg) translateX(-2px);
+    filter:
+      grayscale(1)
+      drop-shadow(0 10px 0 rgba(96, 96, 96, 0.58))
+      drop-shadow(0 14px 18px rgba(0, 0, 0, 0.32));
+  }
+
+  .banner-photo-main {
+    grid-row: 1 / span 2;
+    transform: rotate(-4deg) translate(-6px, 4px);
+    z-index: 2;
+  }
+
+  .banner-photo-mono {
+    transform: rotate(-2deg) translate(-8px, -2px);
+  }
+
+  #animation_holder .banner-photo img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+  }
+
+  .banner-photo-main img {
+    object-position: 50% 50%;
+  }
+
+  .banner-photo:not(.banner-photo-main) img {
+    object-position: 50% 50%;
+  }
+
+  .banner-photo-mono img {
+    object-position: 50% 50%;
+  }
+
+  .banner-copy {
+    position: relative;
+    z-index: 1;
+    align-self: center;
+  }
+
+  .cheer-kicker {
+    display: inline-block;
+    padding: 7px 16px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(48, 48, 48, 0.24);
+    border-radius: 999px;
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: #444;
+    background: rgba(255, 255, 255, 0.54);
+    text-shadow: none;
+  }
+
+  .cheer-banner h1 {
+    margin: 0;
+    font-size: clamp(32px, 6vw, 72px);
+    letter-spacing: 0;
+    text-shadow:
+      0 2px 0 rgba(255, 255, 255, 0.62),
+      0 8px 22px rgba(0, 0, 0, 0.1);
+  }
+
+  .cheer-banner h1 span {
+    color: #4a4a4a;
+    text-shadow:
+      0 2px 0 rgba(255, 255, 255, 0.62),
+      0 8px 22px rgba(0, 0, 0, 0.1);
+  }
+
+  .cheer-banner h2 {
+    margin: 2px 0 0;
+    font-size: clamp(42px, 6vw, 76px);
+    letter-spacing: 0;
+    color: #242424;
+    text-shadow:
+      0 2px 0 rgba(255, 255, 255, 0.62),
+      0 8px 22px rgba(0, 0, 0, 0.1);
+  }
+
+  .cheer-banner h2 span {
+    color: #4a4a4a;
+    margin-left: 4px;
+    text-shadow:
+      0 2px 0 rgba(255, 255, 255, 0.62),
+      0 8px 22px rgba(0, 0, 0, 0.1);
+  }
+
+  .cheer-banner p {
+    margin: 10px 0 0;
+    font-family: Arial, sans-serif;
+    font-size: clamp(15px, 2vw, 21px);
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: rgba(36, 36, 36, 0.72);
+  }
+
+  #aim_final {
+    position: absolute;
+    left: 41%;
+    top: 40%;
+    z-index: 30;
+    opacity: 0;
+    transform: translate(-50%, -50%) skewX(-10deg);
+    font-family: 'Arial Black', Impact, sans-serif;
+    font-size: 58px;
+    line-height: 1;
+    letter-spacing: 6px;
+    color: #f2f2f2;
+    text-shadow:
+      0 0 8px rgba(255, 255, 255, 0.9),
+      0 0 18px rgba(210, 210, 210, 0.68),
+      3px 4px 0 rgba(0, 0, 0, 0.66);
+    pointer-events: none;
+  }
+
+  @keyframes cheerIntro {
+    from {
+      opacity: 0;
+      transform: translateY(-25px) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @media (max-width: 900px) {
+    #bugatti_v {
+      --aim-scale: 0.82;
+      height: 380px;
+    }
+
+    #carhold_1 {
+      margin-top: 40px;
+    }
+
+    .cheer-banner {
+      grid-template-columns: 1fr;
+    }
+
+    .banner-photos {
+      max-width: 620px;
+      margin: 0 auto;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .aim-page {
+      min-height: 100svh;
+    }
+
+    #animation_holder {
+      min-height: 100svh;
+    }
+
+    .cheer-banner {
+      margin-top: 22px;
+      padding: 16px;
+    }
+
+    .cheer-banner h1 {
+      font-size: clamp(30px, 10vw, 44px);
+    }
+
+    #bugatti_v {
+      --aim-scale: 0.52;
+      height: 265px;
+    }
+
+    #carhold_1 {
+      margin-top: 32px;
+    }
+
+    .banner-photos {
+      grid-template-rows: repeat(2, minmax(76px, 1fr));
+      min-height: 172px;
+    }
+
+    .cheer-kicker {
+      font-size: 11px;
+      letter-spacing: 2px;
+    }
+  }
+
+  @media (max-width: 420px) {
+    #bugatti_v {
+      --aim-scale: 0.36;
+      height: 205px;
+    }
+
+    .banner-photos {
+      min-height: 150px;
+    }
+  }
+</style>
