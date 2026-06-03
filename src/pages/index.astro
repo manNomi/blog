@@ -66,33 +66,6 @@ const homeJsonLd = {
   ]
 };
 
-const valueCards = [
-  {
-    title: 'Rapid Setup',
-    description: 'Get projects running quickly with a calm, dependable baseline.'
-  },
-  {
-    title: 'Editorial Flow',
-    description: 'Structure content with restrained rhythm and clear visual hierarchy.'
-  },
-  {
-    title: 'Measured Contrast',
-    description: 'Off-white surfaces keep the interface quiet while preserving depth.'
-  },
-  {
-    title: 'Quiet Components',
-    description: 'Minimal cards support scanning without introducing visual noise.'
-  },
-  {
-    title: 'Balanced Spacing',
-    description: 'Consistent gaps and padding create a composed editorial cadence.'
-  },
-  {
-    title: 'Soft Elevation',
-    description: 'A subtle shadow adds depth while maintaining a calm visual tone.'
-  }
-];
-
 const toCategory = (tags: string[] | undefined) => {
   if (!tags || tags.length === 0) return 'Editorial';
   return tags[0].toUpperCase();
@@ -171,29 +144,6 @@ const toCategory = (tags: string[] | undefined) => {
               </div>
             )}
           </div>
-        </section>
-
-        <section class="grid justify-items-center gap-5 text-center md:gap-7">
-          <div class="h-px w-24 bg-zinc-300"></div>
-          <p class="max-w-[840px] text-balance text-[28px] font-semibold leading-[1.32] tracking-[-0.02em] text-zinc-900 sm:text-[34px] md:text-[44px] lg:text-[52px]">
-            Consider the postage stamp: its usefulness consists in the ability to stick to one thing till it gets there.
-            <br />
-            <span class="mt-3 inline-block text-[0.78em] font-medium italic tracking-[-0.01em]">- Josh Billings -</span>
-          </p>
-          <div class="h-px w-24 bg-zinc-300"></div>
-        </section>
-
-        <section class="grid grid-cols-1 gap-4 px-0 md:grid-cols-2 md:gap-5 lg:grid-cols-3 lg:gap-6 lg:px-6" aria-label="Editorial principles">
-          {valueCards.map((card, index) => (
-            <article
-              class="rounded-card border border-line bg-[#fcfbf8] p-5 shadow-card transition duration-200 hover:-translate-y-0.5"
-              style={`animation-delay:${index * 55}ms`}
-            >
-              <span class="inline-block h-2 w-2 animate-float-dot rounded-full bg-[#c3b8a8]" aria-hidden="true"></span>
-              <h3 class="mt-3 text-[18px] font-medium leading-tight text-[#2b2a28]">{card.title}</h3>
-              <p class="mt-2.5 text-[14px] leading-[1.55] text-[#6d675f]">{card.description}</p>
-            </article>
-          ))}
         </section>
 
         <section class="grid justify-items-center gap-6 px-0 py-8 text-center md:gap-8 md:py-14">
