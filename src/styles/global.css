@@ -1,6 +1,7 @@
 @font-face {
-  font-family: 'ChosunCentennial';
-  src: url('/fonts/ChosunCentennial.ttf') format('truetype');
+  font-family: 'Pretendard Variable';
+  src: url('/fonts/PretendardVariable.woff2') format('woff2');
+  font-weight: 45 920;
   font-display: swap;
 }
 
