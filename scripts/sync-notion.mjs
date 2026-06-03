@@ -534,6 +534,61 @@ function getPageProperty(page, propertyName) {
   }
 }
 
+function normalizeTagValues(rawTags, { splitText = false } = {}) {
+  const values = Array.isArray(rawTags) ? rawTags : [rawTags];
+  const seen = new Set();
+  const tags = [];
+
+  for (const value of values) {
+    if (typeof value !== 'string') {
+      continue;
+    }
+
+    const candidates = splitText ? value.split(/[,;\n\r]+/) : [value];
+    for (const candidate of candidates) {
+      const tag = candidate.trim().replace(/^#+/, '').trim();
+      if (!tag) {
+        continue;
+      }
+
+      const key = tag.toLowerCase();
+      if (seen.has(key)) {
+        continue;
+      }
+
+      seen.add(key);
+      tags.push(tag);
+    }
+  }
+
+  return tags;
+}
+
+function getPageTags(page, propertyName = 'Tags') {
+  const property = page.properties[propertyName];
+  if (!property) {
+    return [];
+  }
+
+  switch (property.type) {
+    case 'multi_select':
+      return normalizeTagValues(
+        Array.isArray(property.multi_select) ? property.multi_select.map((item) => item?.name) : [],
+        { splitText: false },
+      );
+    case 'select':
+      return normalizeTagValues(property.select?.name || '', { splitText: false });
+    case 'rich_text':
+      return normalizeTagValues(richTextToPlainText(property.rich_text), { splitText: true });
+    default:
+      return [];
+  }
+}
+
+function escapeYamlString(value) {
+  return String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+}
+
 // 메인 동기화 함수
 async function syncNotion() {
   try {
@@ -714,11 +769,7 @@ async function syncNotion() {
       const title = getPageProperty(page, 'Name') || getPageProperty(page, 'Title');
       const description = getPageProperty(page, 'Description');
       const pubDate = getPageProperty(page, 'Created') || new Date().toISOString();
-      // Tags 속성 안전하게 처리
-      let tags = getPageProperty(page, 'Tags');
-      if (!Array.isArray(tags)) {
-        tags = [];
-      }
+      const tags = getPageTags(page, 'Tags');
       const heroImageUrl = getPageProperty(page, 'Cover');
       // Pinned 속성 안전하게 처리 (checkbox 타입)
       const pinned = getPageProperty(page, 'Pinned') === true;
@@ -894,7 +945,7 @@ async function syncNotion() {
         description ? `description: "${description.replace(/"/g, '\\"')}"` : '',
         `pubDate: ${new Date(pubDate).toISOString()}`,
         heroImage ? `heroImage: "${heroImage}"` : '',
-        tags.length > 0 ? `tags: [${tags.map(t => `"${t}"`).join(', ')}]` : '',
+        tags.length > 0 ? `tags: [${tags.map((tag) => `"${escapeYamlString(tag)}"`).join(', ')}]` : '',
         pinned ? `pinned: true` : '',
         `notionId: "${page.id}"`,
         '---',

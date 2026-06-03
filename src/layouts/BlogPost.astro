@@ -44,100 +44,82 @@ const formattedUpdatedDate = updatedDate
     }).format(updatedDate)
   : null;
 
+const safeTags = (tags || []).filter((tag): tag is string => Boolean(tag?.trim()));
+
 const articleBodyClass = [
-  'article-body min-w-0 text-[16px] leading-[1.72] text-zinc-800 md:text-[17px] md:leading-[1.78]',
-  '[&_h1]:mt-10 [&_h1]:mb-3 [&_h1]:text-[32px] [&_h1]:font-semibold [&_h1]:leading-[1.16] [&_h1]:tracking-[-0.02em] md:[&_h1]:text-[44px]',
-  '[&_h2]:mt-9 [&_h2]:mb-3 [&_h2]:text-[28px] [&_h2]:font-semibold [&_h2]:leading-[1.2] [&_h2]:tracking-[-0.01em] md:[&_h2]:text-[34px]',
-  '[&_h3]:mt-8 [&_h3]:mb-2.5 [&_h3]:text-[24px] [&_h3]:font-semibold [&_h3]:leading-[1.24] md:[&_h3]:text-[28px]',
-  '[&_h4]:mt-7 [&_h4]:mb-2 [&_h4]:text-[21px] [&_h4]:font-semibold [&_h4]:leading-[1.26]',
-  '[&_h5]:mt-7 [&_h5]:mb-2 [&_h5]:text-[19px] [&_h5]:font-semibold [&_h5]:leading-[1.26]',
-  '[&_h6]:mt-7 [&_h6]:mb-2 [&_h6]:text-[18px] [&_h6]:font-semibold [&_h6]:leading-[1.26]',
-  '[&_p]:mb-3 [&_p:empty]:hidden',
-  '[&_ul]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:mb-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:mb-1',
-  '[&_a]:border-b [&_a]:border-zinc-400 [&_a]:text-zinc-900 hover:[&_a]:border-zinc-900',
-  '[&_blockquote]:my-4 [&_blockquote]:border-l-[3px] [&_blockquote]:border-zinc-400 [&_blockquote]:pl-4 [&_blockquote]:text-zinc-600',
-  '[&_code]:font-mono [&_code]:text-[0.9em] [&_:not(pre)>code]:rounded [&_:not(pre)>code]:border [&_:not(pre)>code]:border-zinc-300 [&_:not(pre)>code]:bg-zinc-100 [&_:not(pre)>code]:px-1.5 [&_:not(pre)>code]:py-0.5',
-  '[&_pre]:my-5 [&_pre]:overflow-x-auto [&_pre]:rounded-md [&_pre]:border [&_pre]:border-zinc-700 [&_pre]:!bg-zinc-900 [&_pre]:p-4 [&_pre]:shadow-soft',
+  'article-body mx-auto w-full max-w-[760px] min-w-0 break-words text-[17px] leading-[1.88] text-zinc-800 md:text-[18px] md:leading-[1.9]',
+  '[&_h1]:mt-12 [&_h1]:mb-5 [&_h1]:text-[32px] [&_h1]:font-bold [&_h1]:leading-[1.22] md:[&_h1]:text-[42px]',
+  '[&_h2]:mt-14 [&_h2]:mb-5 [&_h2]:border-b [&_h2]:border-zinc-200 [&_h2]:pb-3 [&_h2]:text-[27px] [&_h2]:font-bold [&_h2]:leading-[1.28] [&_h2]:text-zinc-950 md:[&_h2]:text-[32px]',
+  '[&_h3]:mt-11 [&_h3]:mb-4 [&_h3]:text-[23px] [&_h3]:font-bold [&_h3]:leading-[1.34] [&_h3]:text-zinc-950 md:[&_h3]:text-[26px]',
+  '[&_h4]:mt-9 [&_h4]:mb-3 [&_h4]:text-[21px] [&_h4]:font-semibold [&_h4]:leading-[1.36] [&_h4]:text-zinc-950',
+  '[&_h5]:mt-8 [&_h5]:mb-3 [&_h5]:text-[19px] [&_h5]:font-semibold [&_h5]:leading-[1.38] [&_h5]:text-zinc-950',
+  '[&_h6]:mt-8 [&_h6]:mb-3 [&_h6]:text-[18px] [&_h6]:font-semibold [&_h6]:leading-[1.38] [&_h6]:text-zinc-950',
+  '[&_p]:my-5 [&_p:empty]:hidden',
+  '[&_ul]:my-5 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:my-5 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-2 [&_li]:pl-1',
+  '[&_a]:border-b [&_a]:border-zinc-300 [&_a]:font-medium [&_a]:text-zinc-950 hover:[&_a]:border-zinc-900',
+  '[&_blockquote]:my-7 [&_blockquote]:border-l-4 [&_blockquote]:border-zinc-300 [&_blockquote]:bg-zinc-50 [&_blockquote]:py-1 [&_blockquote]:pl-5 [&_blockquote]:text-zinc-600',
+  '[&_code]:font-mono [&_code]:text-[0.9em] [&_:not(pre)>code]:rounded-md [&_:not(pre)>code]:border [&_:not(pre)>code]:border-zinc-200 [&_:not(pre)>code]:bg-zinc-100 [&_:not(pre)>code]:px-1.5 [&_:not(pre)>code]:py-0.5',
+  '[&_pre]:my-7 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:border [&_pre]:border-zinc-800 [&_pre]:!bg-zinc-950 [&_pre]:p-4 md:[&_pre]:p-5',
   '[&_pre.astro-code]:!bg-zinc-900 [&_pre.astro-code]:[--shiki-background-color:#18181b] [&_pre.astro-code]:[--shiki-color:#e5e7eb]',
-  '[&_pre_code]:text-[13px] [&_pre_code]:leading-[1.55] [&_pre_code]:text-zinc-100',
-  '[&_img]:mx-auto [&_img]:my-5 [&_img]:rounded-md',
-  '[&_table]:my-5 [&_table]:min-w-full [&_table]:w-max [&_table]:border-collapse [&_table]:text-[15px] [&_table]:leading-[1.5]',
+  '[&_pre_code]:text-[13px] [&_pre_code]:leading-[1.65] [&_pre_code]:text-zinc-100',
+  '[&_img]:mx-auto [&_img]:my-8 [&_img]:rounded-lg',
+  '[&_table]:my-7 [&_table]:min-w-full [&_table]:w-max [&_table]:border-collapse [&_table]:text-[14px] [&_table]:leading-[1.55]',
   '[&_thead]:bg-zinc-100 [&_th]:border [&_th]:border-zinc-300 [&_th]:px-3 [&_th]:py-2.5 [&_th]:text-left [&_th]:font-semibold [&_td]:border [&_td]:border-zinc-300 [&_td]:px-3 [&_td]:py-2.5 [&_td]:text-left [&_td]:align-top',
-  '[&_hr]:my-6 [&_hr]:border-0 [&_hr]:border-t [&_hr]:border-zinc-300'
+  '[&_hr]:my-10 [&_hr]:border-0 [&_hr]:border-t [&_hr]:border-zinc-200'
 ].join(' ');
 ---
 
-<BaseLayout title={`${title} - Nomi Journal`} description={description || '아티클 상세 페이지'} canonicalURL={`/blog/${slug}`}>
+<BaseLayout
+  title={`${title} - Nomi Journal`}
+  description={description || '아티클 상세 페이지'}
+  canonicalURL={`/blog/${slug}`}
+  keywords={safeTags}
+  ogType="article"
+>
   <Header />
 
-  <main class="main-shell">
-    <article id="detail-root" class="mx-auto grid w-full max-w-[1080px] animate-fade-up gap-10 font-sans">
-      <section class="page-card grid gap-4 px-4 py-5 md:gap-5 md:px-8 md:py-7">
-        <div class="flex flex-wrap items-center justify-between gap-2 text-[13px] text-zinc-600">
-          <a href="/posts" class="underline-offset-2 hover:underline">← 글 목록으로</a>
-          <p>공유 · 북마크</p>
-        </div>
+  <main class="main-shell bg-white px-5 md:px-8 xl:px-0">
+    <article id="detail-root" class="mx-auto grid w-full max-w-[1120px] gap-9 font-sans md:gap-12">
+      <header class="mx-auto w-full max-w-[760px] pt-4 md:pt-8">
+        <a href="/posts" class="inline-flex text-[14px] font-medium text-zinc-500 underline-offset-4 transition hover:text-zinc-900 hover:underline">
+          ← 글 목록
+        </a>
 
-        <div class="h-px w-full bg-zinc-200"></div>
-
-        <p class="kicker text-zinc-600">개발 문화</p>
-        <h1 class="text-balance text-[40px] font-semibold leading-[1.06] tracking-[-0.03em] text-zinc-900 md:text-[60px] lg:text-[72px]">{title}</h1>
-
-        {description && <p class="max-w-[760px] text-[16px] leading-[1.5] text-zinc-700 md:text-[18px]">{description}</p>}
-
-        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-zinc-600">
+        <div class="mt-8 flex flex-wrap items-center gap-x-3 gap-y-2 text-[13px] text-zinc-500">
           <time datetime={pubDate.toISOString()}>발행 {formattedDate}</time>
           {formattedUpdatedDate && <span>수정 {formattedUpdatedDate}</span>}
           <span>읽는 시간 {readingTime}분</span>
           <ViewCounter client:load slug={slug} />
         </div>
 
-        <div class="flex flex-wrap items-center gap-2">
-          {tags && tags.length > 0 ? (
-            tags.map((tag) => (
-              <a href={`/tags?tag=${tag}`} class="chip">#{tag}</a>
-            ))
-          ) : (
-            <span class="chip">#개발문화</span>
-          )}
-        </div>
-      </section>
+        <h1 class="mt-5 text-balance text-[34px] font-bold leading-[1.2] text-zinc-950 md:text-[48px] md:leading-[1.16] lg:text-[54px]">
+          {title}
+        </h1>
 
-      <section class="grid items-start gap-6 xl:grid-cols-[220px_minmax(0,1fr)] xl:gap-12">
-        <aside class="page-card sticky top-24 hidden p-4 xl:block" aria-label="이 페이지 목차">
-          <h2 class="text-[24px] font-semibold leading-tight tracking-[-0.01em] text-zinc-900">이 페이지 목차</h2>
-          <div class="my-3 h-px w-full bg-zinc-300"></div>
-          <ol class="grid gap-2 text-[13px] leading-[1.4] text-zinc-700" data-toc-list>
-            <li>목차를 준비하고 있습니다…</li>
-          </ol>
+        {description && <p class="mt-5 text-[18px] leading-[1.72] text-zinc-600 md:text-[20px] md:leading-[1.72]">{description}</p>}
 
-          <div class="mt-5">
-            <button
-              type="button"
-              data-font-toggle
-              aria-pressed="true"
-              class="w-full rounded-md border border-line bg-soft px-3 py-2 text-xs text-zinc-700 transition hover:bg-zinc-200"
-            >
-              신문체 보기
-            </button>
-          </div>
-        </aside>
+        {safeTags.length > 0 && (
+          <nav class="mt-7 flex flex-wrap gap-2" aria-label="글 태그">
+            {safeTags.map((tag) => (
+              <a href={`/tags?tag=${tag}`} class="inline-flex h-8 items-center rounded-full bg-zinc-100 px-3 text-[13px] font-medium text-zinc-600 transition hover:bg-zinc-200 hover:text-zinc-950">
+                #{tag}
+              </a>
+            ))}
+          </nav>
+        )}
+      </header>
 
-        <div class="min-w-0 grid gap-6">
-          <details class="page-card xl:hidden">
-            <summary class="cursor-pointer list-none px-4 py-3 text-sm font-semibold text-zinc-800">이 페이지 목차</summary>
-            <div class="border-t border-line px-4 py-3">
-              <ol class="grid gap-2 text-sm text-zinc-700" data-toc-list>
+      <section class="grid items-start gap-8 lg:grid-cols-[minmax(0,760px)_200px] lg:justify-center lg:gap-16">
+        <div class="min-w-0">
+          <details class="group mb-8 rounded-lg border border-zinc-200 bg-zinc-50 lg:hidden">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-zinc-800">
+              <span>이 페이지 목차</span>
+              <span aria-hidden="true" class="text-zinc-400 transition group-open:rotate-180">⌄</span>
+            </summary>
+            <div class="border-t border-zinc-200 px-4 py-3">
+              <ol class="grid gap-2 text-sm leading-[1.5] text-zinc-600" data-toc-list>
                 <li>목차를 준비하고 있습니다…</li>
               </ol>
-              <button
-                type="button"
-                data-font-toggle
-                aria-pressed="true"
-                class="mt-3 w-full rounded-md border border-line bg-soft px-3 py-2 text-xs text-zinc-700 transition hover:bg-zinc-200"
-              >
-                신문체 보기
-              </button>
             </div>
           </details>
 
@@ -145,41 +127,48 @@ const articleBodyClass = [
             <slot />
           </div>
 
-          <div class="page-card flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-            <p class="text-[13px] text-zinc-700">공유 · 댓글 · 구독</p>
+          <div class="mx-auto mt-12 flex w-full max-w-[760px] flex-col gap-3 border-t border-zinc-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
+            <p class="text-[13px] text-zinc-500">공유 · 댓글 · 구독</p>
             <ShareButtons title={title} url={`/blog/${slug}`} />
           </div>
         </div>
+
+        <aside class="sticky top-24 hidden max-h-[calc(100vh-120px)] overflow-y-auto border-l border-zinc-200 pl-5 lg:block" aria-label="이 페이지 목차">
+          <h2 class="text-[13px] font-bold text-zinc-950">목차</h2>
+          <ol class="mt-3 grid gap-2 text-[13px] leading-[1.45] text-zinc-500" data-toc-list>
+            <li>목차를 준비하고 있습니다…</li>
+          </ol>
+        </aside>
       </section>
 
-      <section class="grid gap-5 md:gap-6">
+      <section class="mx-auto grid w-full max-w-[900px] gap-6 border-t border-zinc-200 pt-8 md:gap-7">
         <div class="grid gap-3 md:grid-cols-2 md:gap-5">
-          <a href={previousPost ? `/blog/${previousPost.slug}` : '/posts'} class="grid min-h-[76px] content-center gap-1.5 rounded-card border border-line bg-soft px-4 py-4 transition hover:border-zinc-400">
+          <a href={previousPost ? `/blog/${previousPost.slug}` : '/posts'} class="grid min-h-[82px] content-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-4 transition hover:border-zinc-400">
             <span class="text-[11px] text-zinc-500">이전 글</span>
             <strong class="text-[16px] leading-[1.3] text-zinc-900 md:text-[18px]">{previousPost?.title || '전체 글 보기'}</strong>
           </a>
 
           <a
             href={nextPost ? `/blog/${nextPost.slug}` : '/posts'}
-            class="grid min-h-[76px] content-center gap-1.5 rounded-card border border-zinc-900 bg-zinc-900 px-4 py-4 transition hover:bg-zinc-800"
+            class="grid min-h-[82px] content-center gap-1.5 rounded-lg border border-zinc-900 bg-zinc-900 px-4 py-4 transition hover:bg-zinc-800"
           >
             <span class="text-[11px] text-zinc-400">다음 글</span>
             <strong class="text-[16px] leading-[1.3] text-white md:text-[18px]">{nextPost?.title || '다음 글 보러가기'}</strong>
           </a>
         </div>
 
-        <h2 class="text-[22px] font-semibold leading-tight tracking-[-0.01em] text-zinc-900 md:text-[26px]">관련 글</h2>
+        <h2 class="text-[22px] font-semibold leading-tight text-zinc-900 md:text-[26px]">관련 글</h2>
 
         <div class="grid gap-3 md:grid-cols-3 md:gap-4">
           {(relatedPosts.length > 0 ? relatedPosts : [{ title: '아직 관련 글이 없습니다', slug: 'posts' }]).slice(0, 3).map((post) => (
-            <a href={post.slug === 'posts' ? '/posts' : `/blog/${post.slug}`} class="grid gap-2 rounded-card border border-line bg-surface p-3 transition hover:border-zinc-400">
-              <div class="h-[100px] rounded-md border border-zinc-300 bg-zinc-200 md:h-[120px]"></div>
+            <a href={post.slug === 'posts' ? '/posts' : `/blog/${post.slug}`} class="grid gap-2 rounded-lg border border-zinc-200 bg-white p-3 transition hover:border-zinc-400">
+              <div class="h-[100px] rounded-md bg-zinc-100 md:h-[120px]"></div>
               <p class="text-[14px] font-semibold leading-[1.35] text-zinc-900">{post.title}</p>
             </a>
           ))}
         </div>
 
-        <div class="page-card flex flex-col gap-2 px-4 py-3 text-xs text-zinc-700 md:flex-row md:items-center md:justify-between md:text-[13px]">
+        <div class="flex flex-col gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 text-xs text-zinc-600 md:flex-row md:items-center md:justify-between md:text-[13px]">
           <p>공유 · 댓글 · 구독</p>
           <p>댓글 보기</p>
         </div>
@@ -265,100 +254,7 @@ const articleBodyClass = [
       .replace(/-+/g, '-');
 
   const articleBody = document.querySelector('.article-body');
-  const articleRoot = document.getElementById('detail-root');
   const tocLists = Array.from(document.querySelectorAll('[data-toc-list]'));
-  const fontToggleButtons = Array.from(document.querySelectorAll('[data-font-toggle]'));
-  const floatingTocToggle = document.querySelector('[data-floating-toc-toggle]');
-  const floatingTocPanel = document.querySelector('[data-floating-toc-panel]');
-  const floatingTocBackdrop = document.querySelector('[data-floating-toc-backdrop]');
-  const floatingTocClose = document.querySelector('[data-floating-toc-close]');
-  const FONT_MODE_KEY = 'blog_detail_font_mode';
-  const floatingTocQuery = window.matchMedia('(max-width: 1360px) and (min-width: 1025px)');
-
-  const setFloatingTocOpen = (open) => {
-    if (!floatingTocPanel || !floatingTocBackdrop || !floatingTocToggle) return;
-    floatingTocPanel.setAttribute('data-open', open ? 'true' : 'false');
-    floatingTocBackdrop.setAttribute('data-open', open ? 'true' : 'false');
-    floatingTocToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-    floatingTocToggle.textContent = open ? '목차 닫기' : '목차 보기';
-  };
-
-  const syncFloatingTocVisibility = () => {
-    if (!floatingTocToggle) return;
-    if (floatingTocQuery.matches) {
-      floatingTocToggle.style.display = '';
-      return;
-    }
-
-    floatingTocToggle.style.display = 'none';
-    setFloatingTocOpen(false);
-  };
-
-  const applyFontMode = (mode) => {
-    if (!articleRoot) return;
-
-    const useBasic = mode === 'basic';
-    articleRoot.classList.toggle('font-sans', useBasic);
-    articleRoot.classList.toggle('font-newspaper', !useBasic);
-
-    fontToggleButtons.forEach((button) => {
-      button.setAttribute('aria-pressed', useBasic ? 'true' : 'false');
-      button.textContent = useBasic ? '신문체 보기' : '기본체 보기';
-    });
-  };
-
-  const readSavedFontMode = () => {
-    try {
-      const saved = window.localStorage.getItem(FONT_MODE_KEY);
-      return saved === 'newspaper' ? 'newspaper' : 'basic';
-    } catch {
-      return 'basic';
-    }
-  };
-
-  const saveFontMode = (mode) => {
-    try {
-      window.localStorage.setItem(FONT_MODE_KEY, mode);
-    } catch {
-      // ignore storage failure
-    }
-  };
-
-  applyFontMode(readSavedFontMode());
-
-  fontToggleButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-      const nextMode = articleRoot?.classList.contains('font-sans') ? 'newspaper' : 'basic';
-      applyFontMode(nextMode);
-      saveFontMode(nextMode);
-    });
-  });
-
-  floatingTocToggle?.addEventListener('click', () => {
-    const nextOpen = floatingTocPanel?.getAttribute('data-open') !== 'true';
-    setFloatingTocOpen(nextOpen);
-  });
-
-  floatingTocBackdrop?.addEventListener('click', () => setFloatingTocOpen(false));
-  floatingTocClose?.addEventListener('click', () => setFloatingTocOpen(false));
-
-  floatingTocPanel?.addEventListener('click', (event) => {
-    const target = event.target;
-    if (target instanceof HTMLAnchorElement) {
-      setFloatingTocOpen(false);
-    }
-  });
-
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') {
-      setFloatingTocOpen(false);
-    }
-  });
-
-  syncFloatingTocVisibility();
-  if (typeof floatingTocQuery.addEventListener === 'function') {
-    floatingTocQuery.addEventListener('change', syncFloatingTocVisibility);
-  }
 
   if (articleBody) {
     for (const table of articleBody.querySelectorAll('table')) {
