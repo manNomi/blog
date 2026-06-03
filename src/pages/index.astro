@@ -66,33 +66,6 @@ const homeJsonLd = {
   ]
 };
 
-const valueCards = [
-  {
-    title: 'Rapid Setup',
-    description: 'Get projects running quickly with a calm, dependable baseline.'
-  },
-  {
-    title: 'Editorial Flow',
-    description: 'Structure content with restrained rhythm and clear visual hierarchy.'
-  },
-  {
-    title: 'Measured Contrast',
-    description: 'Off-white surfaces keep the interface quiet while preserving depth.'
-  },
-  {
-    title: 'Quiet Components',
-    description: 'Minimal cards support scanning without introducing visual noise.'
-  },
-  {
-    title: 'Balanced Spacing',
-    description: 'Consistent gaps and padding create a composed editorial cadence.'
-  },
-  {
-    title: 'Soft Elevation',
-    description: 'A subtle shadow adds depth while maintaining a calm visual tone.'
-  }
-];
-
 const toCategory = (tags: string[] | undefined) => {
   if (!tags || tags.length === 0) return 'Editorial';
   return tags[0].toUpperCase();
@@ -121,7 +94,19 @@ const toCategory = (tags: string[] | undefined) => {
             <p class="max-w-[760px] text-balance text-[15px] leading-[1.55] text-zinc-600 md:text-lg">
               프론트엔드 개발과 일상에 대해서 이야기를 적고 있습니다.
             </p>
-            <a href="/posts" class="btn-pill-dark">View Selected Work</a>
+            <a
+              href="/posts"
+              class="group flex w-full max-w-[860px] items-center justify-between gap-4 rounded-card border border-zinc-900 bg-zinc-900 px-4 py-3 text-left text-white shadow-soft transition duration-200 hover:-translate-y-0.5 hover:bg-zinc-800 md:px-5 md:py-4"
+              aria-label="블로그 포스팅 전체 보기"
+            >
+              <span class="min-w-0">
+                <span class="block text-[11px] font-medium uppercase leading-none tracking-[0.14em] text-zinc-400">Blog Posts</span>
+                <span class="mt-1.5 block text-[17px] font-semibold leading-[1.25] tracking-[-0.01em] md:text-[20px]">블로그 포스팅 전체 보기</span>
+              </span>
+              <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-[18px] font-semibold text-zinc-900 transition duration-200 group-hover:translate-x-0.5" aria-hidden="true">
+                →
+              </span>
+            </a>
           </div>
 
           <section class="relative overflow-hidden rounded-card border border-line bg-soft px-4 py-4 text-left md:px-5 md:py-5" aria-label="처음 방문자를 위한 사주 안내">
@@ -173,46 +158,6 @@ const toCategory = (tags: string[] | undefined) => {
           </div>
         </section>
 
-        <section class="grid justify-items-center gap-5 text-center md:gap-7">
-          <div class="h-px w-24 bg-zinc-300"></div>
-          <p class="max-w-[840px] text-balance text-[28px] font-semibold leading-[1.32] tracking-[-0.02em] text-zinc-900 sm:text-[34px] md:text-[44px] lg:text-[52px]">
-            Consider the postage stamp: its usefulness consists in the ability to stick to one thing till it gets there.
-            <br />
-            <span class="mt-3 inline-block text-[0.78em] font-medium italic tracking-[-0.01em]">- Josh Billings -</span>
-          </p>
-          <div class="h-px w-24 bg-zinc-300"></div>
-        </section>
-
-        <section class="grid grid-cols-1 gap-4 px-0 md:grid-cols-2 md:gap-5 lg:grid-cols-3 lg:gap-6 lg:px-6" aria-label="Editorial principles">
-          {valueCards.map((card, index) => (
-            <article
-              class="rounded-card border border-line bg-[#fcfbf8] p-5 shadow-card transition duration-200 hover:-translate-y-0.5"
-              style={`animation-delay:${index * 55}ms`}
-            >
-              <span class="inline-block h-2 w-2 animate-float-dot rounded-full bg-[#c3b8a8]" aria-hidden="true"></span>
-              <h3 class="mt-3 text-[18px] font-medium leading-tight text-[#2b2a28]">{card.title}</h3>
-              <p class="mt-2.5 text-[14px] leading-[1.55] text-[#6d675f]">{card.description}</p>
-            </article>
-          ))}
-        </section>
-
-        <section class="grid justify-items-center gap-6 px-0 py-8 text-center md:gap-8 md:py-14">
-          <span class="kicker">Highlight</span>
-          <h2 class="max-w-[860px] text-balance text-[38px] font-semibold leading-[1.08] tracking-[-0.02em] text-zinc-900 sm:text-[44px] md:text-[56px] lg:text-[64px]">
-            Building Interfaces
-            <br />
-            With Notion API
-          </h2>
-          <p class="max-w-[740px] text-balance text-[15px] leading-[1.6] text-zinc-700 md:text-base">Quiet Sys, Quiet deploy.</p>
-
-          <div class="flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row">
-            <a href="/posts" class="btn-pill-dark w-full sm:w-auto">Read Selected Works</a>
-            <a href="/tags" class="btn-pill-soft w-full sm:w-auto">View Archive</a>
-          </div>
-
-          <div class="h-px w-full bg-zinc-200"></div>
-          <p class="text-[12px] text-zinc-500">Astro · Tailwind CSS · Editorial Layout · Content Systems</p>
-        </section>
       </div>
     </section>
   </main>
