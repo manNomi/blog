@@ -24,7 +24,9 @@ const allPosts = (await getCollection('blog'))
 
 const pinnedPosts = allPosts.filter((post) => post.data.pinned);
 const featuredPosts = pinnedPosts.slice(0, 4);
-const recentPosts = allPosts.filter((post) => !post.data.pinned).slice(0, 3);
+const recentPosts = allPosts.filter((post) => !post.data.pinned);
+const RECENT_POSTS_INITIAL_COUNT = 6;
+const RECENT_POSTS_PAGE_SIZE = 4;
 const siteURL = Astro.site || Astro.url.origin;
 const homeURL = new URL('/', siteURL).href;
 const ogImageURL = new URL('/og-image.png', siteURL).href;
@@ -167,16 +169,26 @@ const toRecentCategory = (tags: string[] | undefined) => tags?.[0] || '에세이
             )}
           </div>
 
-          <section class="-mx-4 -mb-6 bg-zinc-950 px-4 py-8 text-zinc-100 md:-mx-8 md:-mb-9 md:px-8 md:py-10" aria-labelledby="recent-posts-title">
+          <section
+            class="-mx-4 -mb-6 bg-zinc-950 px-4 py-8 text-zinc-100 md:-mx-8 md:-mb-9 md:px-8 md:py-10"
+            aria-labelledby="recent-posts-title"
+            data-recent-posts-root
+            data-initial-count={RECENT_POSTS_INITIAL_COUNT}
+            data-page-size={RECENT_POSTS_PAGE_SIZE}
+          >
             <div class="mb-7 flex items-center justify-between gap-4 md:mb-9">
               <h2 id="recent-posts-title" class="text-[28px] font-semibold leading-none tracking-[-0.02em] md:text-[34px]">Recent Posts</h2>
               <a href="/posts" class="shrink-0 text-[15px] font-medium text-zinc-400 transition hover:text-white md:text-[17px]">View all →</a>
             </div>
 
             {recentPosts.length > 0 ? (
-              <div class="grid">
-                {recentPosts.map((post) => (
-                  <a href={`/blog/${post.slug}`} class="group grid gap-5 border-b border-white/15 py-7 first:pt-0 last:pb-0 md:grid-cols-[minmax(0,1fr)_220px] md:items-center md:gap-8">
+              <div class="grid" data-recent-posts-list>
+                {recentPosts.map((post, index) => (
+                  <a
+                    href={`/blog/${post.slug}`}
+                    class={`group grid gap-5 border-b border-white/15 py-7 first:pt-0 last:pb-0 md:grid-cols-[minmax(0,1fr)_220px] md:items-center md:gap-8 ${index >= RECENT_POSTS_INITIAL_COUNT ? 'hidden' : ''}`}
+                    data-recent-post-item
+                  >
                     <div class="min-w-0">
                       <p class="text-[14px] font-medium text-zinc-400 md:text-[15px]">{toRecentCategory(post.data.tags)}</p>
                       <h3 class="mt-4 text-balance text-[25px] font-semibold leading-[1.22] tracking-[-0.02em] text-zinc-100 transition group-hover:text-white md:text-[32px]">
@@ -197,6 +209,11 @@ const toRecentCategory = (tags: string[] | undefined) => tags?.[0] || '에세이
                     />
                   </a>
                 ))}
+                {recentPosts.length > RECENT_POSTS_INITIAL_COUNT && (
+                  <div class="mt-7 grid place-items-center border border-white/10 bg-white/[0.03] px-4 py-4 text-center text-[14px] text-zinc-500" data-recent-posts-sentinel>
+                    스크롤하면 글을 더 불러옵니다.
+                  </div>
+                )}
               </div>
             ) : (
               <div class="grid min-h-[132px] place-items-center border-y border-white/15 px-5 py-8 text-center text-[15px] text-zinc-400">
@@ -211,4 +228,50 @@ const toRecentCategory = (tags: string[] | undefined) => tags?.[0] || '에세이
   </main>
 
   <Footer />
+
+  <script>
+    const recentPostsRoot = document.querySelector('[data-recent-posts-root]');
+    const recentPostItems = Array.from(recentPostsRoot?.querySelectorAll('[data-recent-post-item]') ?? []);
+    const recentPostSentinel = recentPostsRoot?.querySelector('[data-recent-posts-sentinel]');
+    const initialRecentPostCount = Number(recentPostsRoot?.getAttribute('data-initial-count') ?? 6);
+    const recentPostsPageSize = Number(recentPostsRoot?.getAttribute('data-page-size') ?? 4);
+
+    if (recentPostItems.length === 0 || !recentPostSentinel) {
+      recentPostSentinel?.setAttribute('hidden', '');
+    } else {
+      let visibleRecentPostCount = initialRecentPostCount;
+      let recentPostObserver: IntersectionObserver | undefined;
+
+      const revealRecentPosts = () => {
+        const nextVisibleCount = Math.min(visibleRecentPostCount + recentPostsPageSize, recentPostItems.length);
+
+        for (let index = visibleRecentPostCount; index < nextVisibleCount; index += 1) {
+          recentPostItems[index]?.classList.remove('hidden');
+        }
+
+        visibleRecentPostCount = nextVisibleCount;
+
+        if (visibleRecentPostCount >= recentPostItems.length) {
+          recentPostSentinel.setAttribute('hidden', '');
+          recentPostObserver?.disconnect();
+        }
+      };
+
+      if ('IntersectionObserver' in window) {
+        recentPostObserver = new IntersectionObserver(
+          (entries) => {
+            if (entries.some((entry) => entry.isIntersecting)) {
+              revealRecentPosts();
+            }
+          },
+          { rootMargin: '360px 0px' }
+        );
+
+        recentPostObserver.observe(recentPostSentinel);
+      } else {
+        recentPostItems.forEach((item) => item.classList.remove('hidden'));
+        recentPostSentinel.setAttribute('hidden', '');
+      }
+    }
+  </script>
 </BaseLayout>
