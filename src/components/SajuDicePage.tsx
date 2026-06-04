@@ -43,7 +43,7 @@ export default function SajuDicePage() {
 
   return (
     <div className="mx-auto grid max-w-[1120px] gap-4 text-zinc-800 md:gap-5">
-      <section className="grid gap-4 rounded-md border border-line bg-surface px-4 py-5 shadow-soft md:px-6 md:py-6">
+      <section className="grid gap-4 rounded-md border border-line bg-surface px-4 py-5 shadow-lift md:px-6 md:py-6">
         <div>
           <p className="kicker">Saju Dice</p>
           <h1 className="mt-2 text-[31px] font-semibold leading-[1.1] tracking-[-0.03em] text-zinc-900 md:text-[44px]">주사위 사주</h1>
@@ -169,7 +169,7 @@ export default function SajuDicePage() {
         </div>
       </section>
 
-      <section className="rounded-md border border-line bg-surface px-4 py-5 shadow-soft md:px-6 md:py-6">
+      <section className="rounded-md border border-line bg-surface px-4 py-5 shadow-lift md:px-6 md:py-6">
         {fortune ? <FortuneResult result={fortune} /> : <EmptyResult />}
       </section>
     </div>

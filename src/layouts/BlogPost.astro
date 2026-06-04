@@ -78,7 +78,7 @@ const articleBodyClass = [
 >
   <Header />
 
-  <main class="main-shell bg-white px-5 md:px-8 xl:px-0">
+  <main class="main-shell bg-page px-5 md:px-8 xl:px-0">
     <article id="detail-root" class="mx-auto grid w-full max-w-[1120px] gap-9 font-sans md:gap-12">
       <header class="w-full pt-4 md:pt-8">
         <div class="grid items-start gap-8 lg:grid-cols-[minmax(0,760px)_200px] lg:justify-center lg:gap-16">
@@ -155,10 +155,10 @@ const articleBodyClass = [
 
           <a
             href={nextPost ? `/blog/${nextPost.slug}` : '/posts'}
-            class="grid min-h-[82px] content-center gap-1.5 rounded-lg border border-zinc-900 bg-zinc-900 px-4 py-4 transition hover:bg-zinc-800"
+            class="theme-inverse grid min-h-[82px] content-center gap-1.5 rounded-lg border border-zinc-900 bg-zinc-900 px-4 py-4 transition hover:bg-zinc-800"
           >
-            <span class="text-[11px] text-zinc-400">다음 글</span>
-            <strong class="text-[16px] leading-[1.3] text-white md:text-[18px]">{nextPost?.title || '다음 글 보러가기'}</strong>
+            <span class="theme-inverse-muted text-[11px] text-zinc-400">다음 글</span>
+            <strong class="theme-inverse-text text-[16px] leading-[1.3] text-white md:text-[18px]">{nextPost?.title || '다음 글 보러가기'}</strong>
           </a>
         </div>
 
@@ -289,7 +289,7 @@ const articleBodyClass = [
         frame.title = anchor?.textContent?.trim() || '삽입된 동영상';
 
         const wrapper = document.createElement('figure');
-        wrapper.className = 'my-5 overflow-hidden rounded-md border border-zinc-300 bg-zinc-100';
+        wrapper.className = 'article-video my-5 overflow-hidden rounded-md border border-zinc-300 bg-zinc-100';
         frame.className = 'block aspect-video w-full border-0';
         wrapper.appendChild(frame);
         paragraph.replaceWith(wrapper);
@@ -301,7 +301,7 @@ const articleBodyClass = [
 
       const card = document.createElement('a');
       card.className =
-        'my-5 flex flex-col gap-1.5 rounded-md border border-zinc-300 bg-zinc-50 p-3.5 text-zinc-800 transition hover:border-zinc-400';
+        'article-link-card my-5 flex flex-col gap-1.5 rounded-md border border-zinc-300 bg-zinc-50 p-3.5 text-zinc-800 transition hover:border-zinc-400';
       card.href = href;
       card.target = '_blank';
       card.rel = 'noopener noreferrer';
@@ -359,21 +359,34 @@ const articleBodyClass = [
             if (!pre) continue;
 
             const diagram = document.createElement('div');
-            diagram.className = 'mermaid my-5 overflow-x-auto rounded-md border border-zinc-300 bg-white p-3';
-            diagram.textContent = code.textContent || '';
+            diagram.className = 'article-mermaid mermaid my-5 overflow-x-auto rounded-md border border-zinc-300 bg-white p-3';
+            diagram.dataset.mermaidSource = code.textContent || '';
+            diagram.textContent = diagram.dataset.mermaidSource;
             pre.replaceWith(diagram);
             nodes.push(diagram);
           }
 
           if (nodes.length === 0) return;
 
-          mermaid.initialize({
-            startOnLoad: false,
-            securityLevel: 'loose',
-            theme: 'neutral'
-          });
+          const renderMermaid = () => {
+            for (const node of nodes) {
+              node.removeAttribute('data-processed');
+              node.textContent = node.dataset.mermaidSource || '';
+            }
 
-          mermaid.run({ nodes });
+            mermaid.initialize({
+              startOnLoad: false,
+              securityLevel: 'loose',
+              theme: document.documentElement.classList.contains('dark') ? 'dark' : 'neutral'
+            });
+
+            mermaid.run({ nodes }).catch(() => {
+              // keep the diagram source visible if mermaid fails
+            });
+          };
+
+          renderMermaid();
+          window.addEventListener('themechange', renderMermaid);
         })
         .catch(() => {
           // keep original code block if mermaid fails

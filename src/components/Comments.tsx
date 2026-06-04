@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react';
 
+const resolveGiscusTheme = () => (document.documentElement.classList.contains('dark') ? 'dark_dimmed' : 'light');
+
 export default function Comments() {
   const commentsRef = useRef<HTMLDivElement>(null);
 
@@ -24,12 +26,32 @@ export default function Comments() {
     script.setAttribute('data-reactions-enabled', '1');
     script.setAttribute('data-emit-metadata', '0');
     script.setAttribute('data-input-position', 'bottom');
-    script.setAttribute('data-theme', 'light');
+    script.setAttribute('data-theme', resolveGiscusTheme());
     script.setAttribute('data-lang', 'ko');
     script.setAttribute('crossorigin', 'anonymous');
     script.async = true;
 
     commentsRef.current.appendChild(script);
+
+    const syncGiscusTheme = (event?: Event) => {
+      const nextTheme =
+        event instanceof CustomEvent && event.detail?.theme
+          ? event.detail.theme
+          : document.documentElement.classList.contains('dark')
+            ? 'dark'
+            : 'light';
+      const iframe = commentsRef.current?.querySelector<HTMLIFrameElement>('iframe.giscus-frame');
+      iframe?.contentWindow?.postMessage(
+        { giscus: { setConfig: { theme: nextTheme === 'dark' ? 'dark_dimmed' : 'light' } } },
+        'https://giscus.app'
+      );
+    };
+
+    window.addEventListener('themechange', syncGiscusTheme);
+
+    return () => {
+      window.removeEventListener('themechange', syncGiscusTheme);
+    };
   }, []);
 
   return <div ref={commentsRef} className="comments" />;

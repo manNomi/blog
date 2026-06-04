@@ -108,14 +108,14 @@ const toRecentCategory = (tags: string[] | undefined) => tags?.[0] || '에세이
             </p>
             <a
               href="/posts"
-              class="group flex w-full max-w-[860px] items-center justify-between gap-4 rounded-card border border-zinc-900 bg-zinc-900 px-4 py-3 text-left text-white shadow-soft transition duration-200 hover:-translate-y-0.5 hover:bg-zinc-800 md:px-5 md:py-4"
+              class="group flex w-full max-w-[860px] items-center justify-between gap-4 rounded-card border border-zinc-900 bg-zinc-900 px-4 py-3 text-left text-white shadow-lift transition duration-200 hover:-translate-y-0.5 hover:bg-zinc-800 md:px-5 md:py-4"
               aria-label="블로그 포스팅 전체 보기"
             >
               <span class="min-w-0">
                 <span class="block text-[11px] font-medium uppercase leading-none tracking-[0.14em] text-zinc-400">Blog Posts</span>
                 <span class="mt-1.5 block text-[17px] font-semibold leading-[1.25] tracking-[-0.01em] md:text-[20px]">블로그 포스팅 전체 보기</span>
               </span>
-              <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-[18px] font-semibold text-zinc-900 transition duration-200 group-hover:translate-x-0.5" aria-hidden="true">
+              <span class="theme-inverse inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-[18px] font-semibold text-zinc-900 transition duration-200 group-hover:translate-x-0.5" aria-hidden="true">
                 →
               </span>
             </a>
@@ -147,7 +147,7 @@ const toRecentCategory = (tags: string[] | undefined) => tags?.[0] || '에세이
                 {featuredPosts.map((post, index) => (
                   <a
                     href={`/blog/${post.slug}`}
-                    class="group grid gap-3 rounded-card border border-line bg-elevated p-4 shadow-soft transition duration-200 hover:-translate-y-0.5 hover:border-zinc-400"
+                    class="group grid gap-3 rounded-card border border-line bg-elevated p-4 shadow-lift transition duration-200 hover:-translate-y-0.5 hover:border-zinc-400"
                     style={`animation-delay:${index * 60}ms`}
                   >
                     <img
@@ -163,7 +163,7 @@ const toRecentCategory = (tags: string[] | undefined) => tags?.[0] || '에세이
                 ))}
               </div>
             ) : (
-              <div class="grid min-h-[132px] place-items-center rounded-card border border-line bg-elevated px-5 py-6 text-center text-[15px] text-zinc-500 shadow-soft">
+              <div class="grid min-h-[132px] place-items-center rounded-card border border-line bg-elevated px-5 py-6 text-center text-[15px] text-zinc-500 shadow-lift">
                 고정된 글을 준비 중입니다.
               </div>
             )}

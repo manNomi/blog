@@ -77,7 +77,6 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
     const diceObjects: DiceObject[] = [];
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color('#F6F3EB');
 
     const camera = new THREE.OrthographicCamera(-10, 10, 10, -10, 1, 1000);
     camera.position.set(CAMERA_DISTANCE, CAMERA_DISTANCE, CAMERA_DISTANCE);
@@ -90,6 +89,7 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
     renderer.domElement.style.userSelect = 'none';
     renderer.domElement.setAttribute('aria-label', '주사위 굴림 캔버스');
     root.appendChild(renderer.domElement);
+    updateStageTheme();
 
     const ambientLight = new THREE.AmbientLight('#ffffff', 0.9);
     const keyLight = new THREE.DirectionalLight('#ffffff', 0.55);
@@ -122,6 +122,7 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
     window.addEventListener('pointermove', handlePointerMove, { passive: false });
     window.addEventListener('pointerup', handlePointerUp);
     window.addEventListener('pointercancel', handlePointerUp);
+    window.addEventListener('themechange', updateStageTheme);
 
     rollRef.current = rollFromCenter;
     animate();
@@ -133,11 +134,18 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('pointerup', handlePointerUp);
       window.removeEventListener('pointercancel', handlePointerUp);
+      window.removeEventListener('themechange', updateStageTheme);
       window.cancelAnimationFrame(animationId);
       disposeDice();
       renderer.dispose();
       renderer.domElement.remove();
     };
+
+    function updateStageTheme() {
+      const backgroundColor = document.documentElement.classList.contains('dark') ? '#050505' : '#F6F3EB';
+      scene.background = new THREE.Color(backgroundColor);
+      renderer.setClearColor(backgroundColor, 1);
+    }
 
     function resize() {
       const rect = root.getBoundingClientRect();
@@ -351,7 +359,7 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
     }
   }, [diceCount]);
 
-  return <div ref={containerRef} className="h-[300px] w-full overflow-hidden rounded-md border border-line bg-[#F6F3EB] sm:h-[340px] md:h-[460px]" />;
+  return <div ref={containerRef} className="h-[300px] w-full overflow-hidden rounded-md border border-line bg-[#F6F3EB] dark:bg-zinc-950 sm:h-[340px] md:h-[460px]" />;
 }
 
 function createPhysicsWalls(world: CANNON.World, material: CANNON.Material) {

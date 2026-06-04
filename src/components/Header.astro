@@ -14,35 +14,58 @@ const navItems = [
       <span class="mt-0.5 hidden text-[11px] text-zinc-500 md:block">Editorial Developer Notes</span>
     </a>
 
-    <nav class="hidden md:block" aria-label="Primary">
-      <ul class="flex items-center gap-1">
-        {navItems.map((item) => (
-          <li>
-            <a
-              href={item.href}
-              class="inline-flex h-8 items-center justify-center rounded-full border border-transparent px-3 text-[13px] text-zinc-600 transition hover:border-line hover:bg-soft hover:text-zinc-900"
-            >
-              {item.label}
-            </a>
-          </li>
-        ))}
-      </ul>
-    </nav>
+    <div class="flex items-center gap-2">
+      <nav class="hidden md:block" aria-label="Primary">
+        <ul class="flex items-center gap-1">
+          {navItems.map((item) => (
+            <li>
+              <a
+                href={item.href}
+                class="inline-flex h-8 items-center justify-center rounded-full border border-transparent px-3 text-[13px] text-zinc-600 transition hover:border-line hover:bg-soft hover:text-zinc-900"
+              >
+                {item.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
 
-    <button
-      type="button"
-      class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-line bg-soft text-zinc-700 transition hover:bg-zinc-200 md:hidden"
-      aria-expanded="false"
-      aria-controls="mobile-nav"
-      id="mobileNavToggle"
-    >
-      <span class="sr-only">Open navigation</span>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <line x1="4" y1="7" x2="20" y2="7"></line>
-        <line x1="4" y1="12" x2="20" y2="12"></line>
-        <line x1="4" y1="17" x2="20" y2="17"></line>
-      </svg>
-    </button>
+      <button
+        type="button"
+        class="hidden h-8 items-center gap-2 rounded-full border border-line bg-soft px-3 text-[12px] font-medium text-zinc-700 transition hover:bg-zinc-200 md:inline-flex"
+        aria-label="색상 테마 전환"
+        aria-pressed="false"
+        data-theme-toggle
+      >
+        <span class="h-2 w-2 rounded-full bg-current" aria-hidden="true"></span>
+        <span data-theme-label>Dark</span>
+      </button>
+
+      <button
+        type="button"
+        class="inline-flex h-9 min-w-[3.75rem] items-center justify-center rounded-full border border-line bg-soft px-2 text-[12px] font-semibold text-zinc-700 transition hover:bg-zinc-200 md:hidden"
+        aria-label="색상 테마 전환"
+        aria-pressed="false"
+        data-theme-toggle
+      >
+        <span data-theme-label>Dark</span>
+      </button>
+
+      <button
+        type="button"
+        class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-line bg-soft text-zinc-700 transition hover:bg-zinc-200 md:hidden"
+        aria-expanded="false"
+        aria-controls="mobile-nav"
+        id="mobileNavToggle"
+      >
+        <span class="sr-only">Open navigation</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="4" y1="7" x2="20" y2="7"></line>
+          <line x1="4" y1="12" x2="20" y2="12"></line>
+          <line x1="4" y1="17" x2="20" y2="17"></line>
+        </svg>
+      </button>
+    </div>
   </div>
 
   <div
@@ -71,6 +94,56 @@ const navItems = [
 
 <script>
   // @ts-nocheck
+  const THEME_STORAGE_KEY = 'nomi-theme';
+  const themeButtons = Array.from(document.querySelectorAll('[data-theme-toggle]'));
+  const getTheme = () => (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+  const getStoredTheme = () => {
+    try {
+      const stored = localStorage.getItem(THEME_STORAGE_KEY);
+      return stored === 'dark' || stored === 'light' ? stored : null;
+    } catch {
+      return null;
+    }
+  };
+  const syncThemeButtons = (theme) => {
+    themeButtons.forEach((button) => {
+      button.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
+      button.setAttribute('title', theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환');
+    });
+
+    document.querySelectorAll('[data-theme-label]').forEach((label) => {
+      label.textContent = theme === 'dark' ? 'Light' : 'Dark';
+    });
+  };
+  const applyTheme = (theme, { persist = true } = {}) => {
+    const nextTheme = theme === 'dark' ? 'dark' : 'light';
+    document.documentElement.classList.toggle('dark', nextTheme === 'dark');
+    document.documentElement.style.colorScheme = nextTheme;
+
+    if (persist) {
+      try {
+        localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+      } catch {}
+    }
+
+    syncThemeButtons(nextTheme);
+    window.dispatchEvent(new CustomEvent('themechange', { detail: { theme: nextTheme } }));
+  };
+
+  syncThemeButtons(getTheme());
+
+  themeButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      applyTheme(getTheme() === 'dark' ? 'light' : 'dark');
+    });
+  });
+
+  window.matchMedia?.('(prefers-color-scheme: dark)')?.addEventListener?.('change', (event) => {
+    if (!getStoredTheme()) {
+      applyTheme(event.matches ? 'dark' : 'light', { persist: false });
+    }
+  });
+
   const toggle = document.getElementById('mobileNavToggle');
   const mobileNav = document.getElementById('mobile-nav');
 
