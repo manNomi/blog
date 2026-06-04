@@ -173,45 +173,45 @@ const homeJsonLd = {
       </section>
 
       <section id="i18nexus" class="scroll-mt-28">
-        <article class="rounded-lg border border-zinc-900 bg-zinc-950 p-5 text-white shadow-soft md:p-7">
+        <article class="rounded-lg border border-line bg-page p-5 shadow-soft md:p-7">
           <div class="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)] lg:gap-9">
             <div class="grid content-start gap-3">
               <p class="text-[13px] font-semibold text-zinc-400">{resumeFeatureProject.period}</p>
-              <h2 class="break-keep text-[34px] font-bold leading-[1.08] md:text-[52px]">{resumeFeatureProject.title}</h2>
-              <p class="text-[14px] font-semibold text-emerald-300">Signature Library</p>
+              <h2 class="break-keep text-[34px] font-bold leading-[1.08] text-zinc-950 md:text-[52px]">{resumeFeatureProject.title}</h2>
+              <p class="text-[14px] font-semibold text-emerald-700">Signature Library</p>
             </div>
 
             <div class="grid gap-5">
-              <p class="text-[15px] leading-[1.78] text-zinc-300 md:text-[17px]">{resumeFeatureProject.summary}</p>
+              <p class="text-[15px] leading-[1.78] text-zinc-700 md:text-[17px]">{resumeFeatureProject.summary}</p>
 
-              <div class="grid gap-0 border-y border-white/[0.16] md:grid-cols-3">
+              <div class="grid gap-0 border-y border-line md:grid-cols-3">
                 {resumeFeatureProject.metrics.map((metric) => (
-                  <div class="grid gap-2 border-b border-white/[0.16] py-4 last:border-b-0 md:border-b-0 md:border-r md:px-4 md:first:pl-0 md:last:border-r-0">
-                    <strong class="text-[30px] leading-none text-white">{metric.value}</strong>
-                    <p class="text-[13px] font-semibold text-zinc-200">{metric.label}</p>
-                    <p class="text-[12px] leading-[1.5] text-zinc-400">{metric.detail}</p>
+                  <div class="grid gap-2 border-b border-line py-4 last:border-b-0 md:border-b-0 md:border-r md:px-4 md:first:pl-0 md:last:border-r-0">
+                    <strong class="text-[30px] leading-none text-zinc-950">{metric.value}</strong>
+                    <p class="text-[13px] font-semibold text-zinc-800">{metric.label}</p>
+                    <p class="text-[12px] leading-[1.5] text-zinc-500">{metric.detail}</p>
                   </div>
                 ))}
               </div>
 
               <div class="flex flex-wrap gap-2">
                 {resumeFeatureProject.links.map((link) => (
-                  <a href={link.href} class="rounded-md border border-white/[0.18] px-3 py-1.5 text-[12px] font-semibold text-zinc-100 transition hover:bg-white/10">
+                  <a href={link.href} class="rounded-md border border-line bg-soft px-3 py-1.5 text-[12px] font-semibold text-zinc-700 transition hover:border-zinc-400">
                     {link.label}
                   </a>
                 ))}
               </div>
 
               <details class="group">
-                <summary class="flex cursor-pointer list-none items-center justify-between gap-4 rounded-md bg-white/[0.08] px-4 py-3 text-[14px] font-semibold text-white">
+                <summary class="flex cursor-pointer list-none items-center justify-between gap-4 rounded-md bg-soft px-4 py-3 text-[14px] font-semibold text-zinc-950">
                   구현 상세 펼치기
-                  <span class="text-[18px] leading-none text-zinc-400 transition group-open:rotate-45">+</span>
+                  <span class="text-[18px] leading-none text-zinc-500 transition group-open:rotate-45">+</span>
                 </summary>
-                <div class="mt-4 grid gap-0 border-t border-white/[0.16]">
+                <div class="mt-4 grid gap-0 border-t border-line">
                   {resumeFeatureProject.bullets.map((bullet) => (
-                    <div class="grid gap-2 border-b border-white/[0.16] py-4 last:border-b-0 md:grid-cols-[220px_minmax(0,1fr)]">
-                      <h3 class="break-keep text-[16px] font-semibold leading-[1.35] text-white">{bullet.title}</h3>
-                      <p class="text-[14px] leading-[1.65] text-zinc-300">{bullet.description}</p>
+                    <div class="grid gap-2 border-b border-line py-4 last:border-b-0 md:grid-cols-[220px_minmax(0,1fr)]">
+                      <h3 class="break-keep text-[16px] font-semibold leading-[1.35] text-zinc-950">{bullet.title}</h3>
+                      <p class="text-[14px] leading-[1.65] text-zinc-600">{bullet.description}</p>
                     </div>
                   ))}
                 </div>
