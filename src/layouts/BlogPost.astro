@@ -22,6 +22,7 @@ const {
   description,
   pubDate,
   updatedDate,
+  heroImage,
   tags,
   slug,
   readingTime,
@@ -74,6 +75,8 @@ const articleBodyClass = [
   description={description || '아티클 상세 페이지'}
   canonicalURL={`/blog/${slug}`}
   keywords={safeTags}
+  image={heroImage || '/og/kakao-share.png'}
+  imageAlt={title}
   ogType="article"
 >
   <Header />
