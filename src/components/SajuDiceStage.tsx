@@ -34,6 +34,8 @@ const THROW_HEIGHT = 6.5;
 const HOLD_LIMIT = SETTLE_LIMIT - BOX_SIZE * 0.35;
 const DROP_LIMIT = SETTLE_LIMIT - BOX_SIZE * 0.45;
 const dicePalette = ['#EAA14D', '#E05A47', '#4D9BEA', '#5FB376', '#D869A8', '#F2C94C', '#8D6FE8', '#FFFFFF'];
+const STAGE_BACKGROUND_LIGHT = '#F6F3EB';
+const STAGE_BACKGROUND_DARK = '#2F2F2F';
 const faceValues = [1, 6, 2, 5, 3, 4];
 const faceNormals = [
   new THREE.Vector3(1, 0, 0),
@@ -142,7 +144,7 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
     };
 
     function updateStageTheme() {
-      const backgroundColor = document.documentElement.classList.contains('dark') ? '#050505' : '#F6F3EB';
+      const backgroundColor = document.documentElement.classList.contains('dark') ? STAGE_BACKGROUND_DARK : STAGE_BACKGROUND_LIGHT;
       scene.background = new THREE.Color(backgroundColor);
       renderer.setClearColor(backgroundColor, 1);
     }
@@ -359,7 +361,7 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
     }
   }, [diceCount]);
 
-  return <div ref={containerRef} className="h-[300px] w-full overflow-hidden rounded-md border border-line bg-[#F6F3EB] dark:bg-zinc-950 sm:h-[340px] md:h-[460px]" />;
+  return <div ref={containerRef} className="h-[300px] w-full overflow-hidden rounded-md border border-line bg-[#F6F3EB] dark:bg-[#2F2F2F] sm:h-[340px] md:h-[460px]" />;
 }
 
 function createPhysicsWalls(world: CANNON.World, material: CANNON.Material) {
