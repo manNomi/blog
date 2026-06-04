@@ -1,14 +1,15 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        page: '#f3f3f3',
-        surface: '#fafafa',
-        soft: '#f0f0f0',
-        elevated: '#ffffff',
-        line: '#dfdfdf',
+        page: 'rgb(var(--color-page) / <alpha-value>)',
+        surface: 'rgb(var(--color-surface) / <alpha-value>)',
+        soft: 'rgb(var(--color-soft) / <alpha-value>)',
+        elevated: 'rgb(var(--color-elevated) / <alpha-value>)',
+        line: 'rgb(var(--color-line) / <alpha-value>)',
       },
       fontFamily: {
         sans: ['Pretendard Variable', 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'sans-serif'],
@@ -18,8 +19,8 @@ export default {
         card: '12px',
       },
       boxShadow: {
-        soft: '0 4px 14px rgba(0, 0, 0, 0.06)',
-        card: '0 6px 20px rgba(0, 0, 0, 0.07)',
+        lift: '0 4px 14px rgb(var(--shadow-soft))',
+        card: '0 6px 20px rgb(var(--shadow-card))',
       },
       keyframes: {
         'fade-up': {

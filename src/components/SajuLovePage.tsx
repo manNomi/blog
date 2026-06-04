@@ -617,12 +617,12 @@ export default function SajuLovePage() {
 
       <div className="pointer-events-none fixed right-4 top-24 z-[70] flex w-[min(92vw,360px)] flex-col gap-2">
         {notice && (
-          <div className="pointer-events-auto rounded-md border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 shadow-soft animate-toast-slide" role="status" aria-live="polite">
+          <div className="pointer-events-auto rounded-md border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 shadow-lift animate-toast-slide" role="status" aria-live="polite">
             {notice}
           </div>
         )}
         {apiError && (
-          <div className="pointer-events-auto rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-soft animate-toast-slide" role="alert">
+          <div className="pointer-events-auto rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-lift animate-toast-slide" role="alert">
             {apiError}
           </div>
         )}

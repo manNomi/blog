@@ -88,7 +88,7 @@ const toRecentCategory = (tags: string[] | undefined) => tags?.[0] || '에세이
   title={seoTitle}
   description={seoDescription}
   keywords={seoKeywords}
-  image="/og-image.png"
+  image="/og/kakao-share.png"
   imageAlt="한만욱의 이모저모 Nomi Journal"
   canonicalURL="/"
   jsonLd={homeJsonLd}
@@ -108,14 +108,14 @@ const toRecentCategory = (tags: string[] | undefined) => tags?.[0] || '에세이
             </p>
             <a
               href="/posts"
-              class="group flex w-full max-w-[860px] items-center justify-between gap-4 rounded-card border border-zinc-900 bg-zinc-900 px-4 py-3 text-left text-white shadow-soft transition duration-200 hover:-translate-y-0.5 hover:bg-zinc-800 md:px-5 md:py-4"
+              class="group flex w-full max-w-[860px] items-center justify-between gap-4 rounded-card border border-zinc-900 bg-zinc-900 px-4 py-3 text-left text-white shadow-lift transition duration-200 hover:-translate-y-0.5 hover:bg-zinc-800 md:px-5 md:py-4"
               aria-label="블로그 포스팅 전체 보기"
             >
               <span class="min-w-0">
                 <span class="block text-[11px] font-medium uppercase leading-none tracking-[0.14em] text-zinc-400">Blog Posts</span>
                 <span class="mt-1.5 block text-[17px] font-semibold leading-[1.25] tracking-[-0.01em] md:text-[20px]">블로그 포스팅 전체 보기</span>
               </span>
-              <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-[18px] font-semibold text-zinc-900 transition duration-200 group-hover:translate-x-0.5" aria-hidden="true">
+              <span class="theme-inverse inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-[18px] font-semibold text-zinc-900 transition duration-200 group-hover:translate-x-0.5" aria-hidden="true">
                 →
               </span>
             </a>
@@ -147,7 +147,7 @@ const toRecentCategory = (tags: string[] | undefined) => tags?.[0] || '에세이
                 {featuredPosts.map((post, index) => (
                   <a
                     href={`/blog/${post.slug}`}
-                    class="group grid gap-3 rounded-card border border-line bg-elevated p-4 shadow-soft transition duration-200 hover:-translate-y-0.5 hover:border-zinc-400"
+                    class="group grid gap-3 rounded-card border border-line bg-elevated p-4 shadow-lift transition duration-200 hover:-translate-y-0.5 hover:border-zinc-400"
                     style={`animation-delay:${index * 60}ms`}
                   >
                     <img
@@ -163,14 +163,14 @@ const toRecentCategory = (tags: string[] | undefined) => tags?.[0] || '에세이
                 ))}
               </div>
             ) : (
-              <div class="grid min-h-[132px] place-items-center rounded-card border border-line bg-elevated px-5 py-6 text-center text-[15px] text-zinc-500 shadow-soft">
+              <div class="grid min-h-[132px] place-items-center rounded-card border border-line bg-elevated px-5 py-6 text-center text-[15px] text-zinc-500 shadow-lift">
                 고정된 글을 준비 중입니다.
               </div>
             )}
           </div>
 
           <section
-            class="-mx-4 -mb-6 bg-zinc-950 px-4 py-8 text-zinc-100 md:-mx-8 md:-mb-9 md:px-8 md:py-10"
+            class="-mx-4 -mb-6 border-t border-line bg-elevated px-4 py-8 text-zinc-900 md:-mx-8 md:-mb-9 md:px-8 md:py-10 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-100"
             aria-labelledby="recent-posts-title"
             data-recent-posts-root
             data-initial-count={RECENT_POSTS_INITIAL_COUNT}
@@ -178,7 +178,7 @@ const toRecentCategory = (tags: string[] | undefined) => tags?.[0] || '에세이
           >
             <div class="mb-7 flex items-center justify-between gap-4 md:mb-9">
               <h2 id="recent-posts-title" class="text-[28px] font-semibold leading-none tracking-[-0.02em] md:text-[34px]">Recent Posts</h2>
-              <a href="/posts" class="shrink-0 text-[15px] font-medium text-zinc-400 transition hover:text-white md:text-[17px]">View all →</a>
+              <a href="/posts" class="shrink-0 text-[15px] font-medium text-zinc-500 transition hover:text-zinc-900 md:text-[17px] dark:text-zinc-400 dark:hover:text-white">View all →</a>
             </div>
 
             {recentPosts.length > 0 ? (
@@ -186,15 +186,15 @@ const toRecentCategory = (tags: string[] | undefined) => tags?.[0] || '에세이
                 {recentPosts.map((post, index) => (
                   <a
                     href={`/blog/${post.slug}`}
-                    class={`group grid gap-5 border-b border-white/15 py-7 first:pt-0 last:pb-0 md:grid-cols-[minmax(0,1fr)_220px] md:items-center md:gap-8 ${index >= RECENT_POSTS_INITIAL_COUNT ? 'hidden' : ''}`}
+                    class={`group grid gap-5 border-b border-line py-7 first:pt-0 last:pb-0 md:grid-cols-[minmax(0,1fr)_220px] md:items-center md:gap-8 dark:border-white/15 ${index >= RECENT_POSTS_INITIAL_COUNT ? 'hidden' : ''}`}
                     data-recent-post-item
                   >
                     <div class="min-w-0">
-                      <p class="text-[14px] font-medium text-zinc-400 md:text-[15px]">{toRecentCategory(post.data.tags)}</p>
-                      <h3 class="mt-4 text-balance text-[25px] font-semibold leading-[1.22] tracking-[-0.02em] text-zinc-100 transition group-hover:text-white md:text-[32px]">
+                      <p class="text-[14px] font-medium text-zinc-500 md:text-[15px] dark:text-zinc-400">{toRecentCategory(post.data.tags)}</p>
+                      <h3 class="mt-4 text-balance text-[25px] font-semibold leading-[1.22] tracking-[-0.02em] text-zinc-900 transition group-hover:text-zinc-600 md:text-[32px] dark:text-zinc-100 dark:group-hover:text-white">
                         {post.data.title}
                       </h3>
-                      <p class="mt-3 max-w-[760px] text-[15px] leading-[1.58] text-zinc-400 md:text-[17px]">
+                      <p class="mt-3 max-w-[760px] text-[15px] leading-[1.58] text-zinc-600 md:text-[17px] dark:text-zinc-400">
                         {post.data.description || '글을 읽어보세요.'}
                       </p>
                       <time datetime={post.data.pubDate.toISOString()} class="mt-8 block text-[15px] font-medium text-zinc-500 md:text-[17px]">
@@ -205,18 +205,18 @@ const toRecentCategory = (tags: string[] | undefined) => tags?.[0] || '에세이
                       src={post.data.heroImage || '/images/editorial-fallback.svg'}
                       alt={post.data.title}
                       loading="lazy"
-                      class="h-[150px] w-full rounded-md border border-white/10 object-cover opacity-90 transition group-hover:opacity-100 md:h-[118px] md:w-[220px]"
+                      class="h-[150px] w-full rounded-md border border-line object-cover opacity-90 transition group-hover:opacity-100 md:h-[118px] md:w-[220px] dark:border-white/10"
                     />
                   </a>
                 ))}
                 {recentPosts.length > RECENT_POSTS_INITIAL_COUNT && (
-                  <div class="mt-7 grid place-items-center border border-white/10 bg-white/[0.03] px-4 py-4 text-center text-[14px] text-zinc-500" data-recent-posts-sentinel>
+                  <div class="mt-7 grid place-items-center border border-line bg-soft px-4 py-4 text-center text-[14px] text-zinc-500 dark:border-white/10 dark:bg-white/[0.03]" data-recent-posts-sentinel>
                     스크롤하면 글을 더 불러옵니다.
                   </div>
                 )}
               </div>
             ) : (
-              <div class="grid min-h-[132px] place-items-center border-y border-white/15 px-5 py-8 text-center text-[15px] text-zinc-400">
+              <div class="grid min-h-[132px] place-items-center border-y border-line px-5 py-8 text-center text-[15px] text-zinc-500 dark:border-white/15 dark:text-zinc-400">
                 최근 글을 준비 중입니다.
               </div>
             )}
