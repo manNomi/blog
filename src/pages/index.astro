@@ -24,6 +24,9 @@ const allPosts = (await getCollection('blog'))
 
 const pinnedPosts = allPosts.filter((post) => post.data.pinned);
 const featuredPosts = pinnedPosts.slice(0, 4);
+const recentPosts = allPosts.filter((post) => !post.data.pinned);
+const RECENT_POSTS_INITIAL_COUNT = 6;
+const RECENT_POSTS_PAGE_SIZE = 4;
 const siteURL = Astro.site || Astro.url.origin;
 const homeURL = new URL('/', siteURL).href;
 const ogImageURL = new URL('/og-image.png', siteURL).href;
@@ -70,6 +73,15 @@ const toCategory = (tags: string[] | undefined) => {
   if (!tags || tags.length === 0) return 'Editorial';
   return tags[0].toUpperCase();
 };
+
+const recentDateFormatter = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric'
+});
+
+const formatRecentDate = (date: Date) => recentDateFormatter.format(date);
+const toRecentCategory = (tags: string[] | undefined) => tags?.[0] || '에세이';
 ---
 
 <BaseLayout
@@ -86,7 +98,7 @@ const toCategory = (tags: string[] | undefined) => {
   <main class="main-shell">
     <section class="container-shell">
       <div class="grid animate-fade-up gap-10 md:gap-14 lg:gap-[70px]">
-        <section class="page-card grid gap-10 px-4 py-6 md:gap-12 md:px-8 md:py-9">
+        <section class="page-card grid gap-10 overflow-hidden px-4 py-6 md:gap-12 md:px-8 md:py-9">
           <div class="grid justify-items-center gap-6 text-center">
             <h1 class="max-w-[860px] text-balance text-[42px] font-semibold leading-[1.02] tracking-[-0.03em] text-zinc-900 sm:text-[56px] md:text-[72px] lg:text-[86px]">
               한만욱의 이모저모
@@ -115,10 +127,10 @@ const toCategory = (tags: string[] | undefined) => {
 
             <p class="kicker">First Visit</p>
             <h2 class="mt-1.5 text-balance text-[22px] font-semibold leading-[1.28] tracking-[-0.02em] text-zinc-900 md:text-[26px]">
-              처음 오셨나요? 사주 연애운도 함께 볼 수 있어요.
+              사주로 연애와 시험운을 볼수 있어요 !
             </h2>
             <p class="mt-2 text-[14px] leading-[1.58] text-zinc-600 md:text-[15px]">
-              간단한 입력 후 비동기로 분석되며, 결과는 전자우편(이메일)로 보내드립니다.
+              간단한 입력후 전자우편 (이메일)로 보내드립니다!!
             </p>
 
             <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -156,6 +168,59 @@ const toCategory = (tags: string[] | undefined) => {
               </div>
             )}
           </div>
+
+          <section
+            class="-mx-4 -mb-6 bg-zinc-950 px-4 py-8 text-zinc-100 md:-mx-8 md:-mb-9 md:px-8 md:py-10"
+            aria-labelledby="recent-posts-title"
+            data-recent-posts-root
+            data-initial-count={RECENT_POSTS_INITIAL_COUNT}
+            data-page-size={RECENT_POSTS_PAGE_SIZE}
+          >
+            <div class="mb-7 flex items-center justify-between gap-4 md:mb-9">
+              <h2 id="recent-posts-title" class="text-[28px] font-semibold leading-none tracking-[-0.02em] md:text-[34px]">Recent Posts</h2>
+              <a href="/posts" class="shrink-0 text-[15px] font-medium text-zinc-400 transition hover:text-white md:text-[17px]">View all →</a>
+            </div>
+
+            {recentPosts.length > 0 ? (
+              <div class="grid" data-recent-posts-list>
+                {recentPosts.map((post, index) => (
+                  <a
+                    href={`/blog/${post.slug}`}
+                    class={`group grid gap-5 border-b border-white/15 py-7 first:pt-0 last:pb-0 md:grid-cols-[minmax(0,1fr)_220px] md:items-center md:gap-8 ${index >= RECENT_POSTS_INITIAL_COUNT ? 'hidden' : ''}`}
+                    data-recent-post-item
+                  >
+                    <div class="min-w-0">
+                      <p class="text-[14px] font-medium text-zinc-400 md:text-[15px]">{toRecentCategory(post.data.tags)}</p>
+                      <h3 class="mt-4 text-balance text-[25px] font-semibold leading-[1.22] tracking-[-0.02em] text-zinc-100 transition group-hover:text-white md:text-[32px]">
+                        {post.data.title}
+                      </h3>
+                      <p class="mt-3 max-w-[760px] text-[15px] leading-[1.58] text-zinc-400 md:text-[17px]">
+                        {post.data.description || '글을 읽어보세요.'}
+                      </p>
+                      <time datetime={post.data.pubDate.toISOString()} class="mt-8 block text-[15px] font-medium text-zinc-500 md:text-[17px]">
+                        {formatRecentDate(post.data.pubDate)}
+                      </time>
+                    </div>
+                    <img
+                      src={post.data.heroImage || '/images/editorial-fallback.svg'}
+                      alt={post.data.title}
+                      loading="lazy"
+                      class="h-[150px] w-full rounded-md border border-white/10 object-cover opacity-90 transition group-hover:opacity-100 md:h-[118px] md:w-[220px]"
+                    />
+                  </a>
+                ))}
+                {recentPosts.length > RECENT_POSTS_INITIAL_COUNT && (
+                  <div class="mt-7 grid place-items-center border border-white/10 bg-white/[0.03] px-4 py-4 text-center text-[14px] text-zinc-500" data-recent-posts-sentinel>
+                    스크롤하면 글을 더 불러옵니다.
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div class="grid min-h-[132px] place-items-center border-y border-white/15 px-5 py-8 text-center text-[15px] text-zinc-400">
+                최근 글을 준비 중입니다.
+              </div>
+            )}
+          </section>
         </section>
 
       </div>
@@ -163,4 +228,50 @@ const toCategory = (tags: string[] | undefined) => {
   </main>
 
   <Footer />
+
+  <script>
+    const recentPostsRoot = document.querySelector('[data-recent-posts-root]');
+    const recentPostItems = Array.from(recentPostsRoot?.querySelectorAll('[data-recent-post-item]') ?? []);
+    const recentPostSentinel = recentPostsRoot?.querySelector('[data-recent-posts-sentinel]');
+    const initialRecentPostCount = Number(recentPostsRoot?.getAttribute('data-initial-count') ?? 6);
+    const recentPostsPageSize = Number(recentPostsRoot?.getAttribute('data-page-size') ?? 4);
+
+    if (recentPostItems.length === 0 || !recentPostSentinel) {
+      recentPostSentinel?.setAttribute('hidden', '');
+    } else {
+      let visibleRecentPostCount = initialRecentPostCount;
+      let recentPostObserver: IntersectionObserver | undefined;
+
+      const revealRecentPosts = () => {
+        const nextVisibleCount = Math.min(visibleRecentPostCount + recentPostsPageSize, recentPostItems.length);
+
+        for (let index = visibleRecentPostCount; index < nextVisibleCount; index += 1) {
+          recentPostItems[index]?.classList.remove('hidden');
+        }
+
+        visibleRecentPostCount = nextVisibleCount;
+
+        if (visibleRecentPostCount >= recentPostItems.length) {
+          recentPostSentinel.setAttribute('hidden', '');
+          recentPostObserver?.disconnect();
+        }
+      };
+
+      if ('IntersectionObserver' in window) {
+        recentPostObserver = new IntersectionObserver(
+          (entries) => {
+            if (entries.some((entry) => entry.isIntersecting)) {
+              revealRecentPosts();
+            }
+          },
+          { rootMargin: '360px 0px' }
+        );
+
+        recentPostObserver.observe(recentPostSentinel);
+      } else {
+        recentPostItems.forEach((item) => item.classList.remove('hidden'));
+        recentPostSentinel.setAttribute('hidden', '');
+      }
+    }
+  </script>
 </BaseLayout>
