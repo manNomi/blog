@@ -21,6 +21,9 @@ const featuredPosts = featuredPostSlugs
   .map((slug) => allPosts.find((post) => post.slug === slug))
   .filter((post): post is NonNullable<typeof post> => Boolean(post));
 
+const primaryOpenSource = resumeOpenSourceGroups[0];
+const compactOpenSource = resumeOpenSourceGroups.slice(1);
+
 const siteURL = Astro.site || Astro.url.origin;
 const homeURL = new URL('/', siteURL).href;
 const seoTitle = '한만욱 | Frontend Developer Portfolio';
@@ -61,41 +64,36 @@ const homeJsonLd = {
     <div class="container-shell grid gap-5 pb-16 pt-4 md:gap-6 md:pb-24 md:pt-8">
       <section class="grid gap-5">
         <article class="rounded-lg border border-line bg-page p-5 shadow-soft md:p-8">
-          <div class="grid gap-6">
-            <div class="grid gap-4">
+          <div class="grid gap-8">
+            <div class="grid gap-5">
               <p class="text-[13px] font-semibold text-zinc-500">{portfolioProfile.name} / {portfolioProfile.role}</p>
-              <h1 class="break-keep text-balance text-[36px] font-bold leading-[1.08] text-zinc-950 sm:text-[48px] md:text-[64px]">
-                실제 제품에서 터지는 문제를 끝까지 추적합니다.
+              <h1 class="max-w-[900px] break-keep text-balance text-[38px] font-bold leading-[1.06] text-zinc-950 sm:text-[54px] md:text-[72px]">
+                제품에서 실제로 터지는 문제를 끝까지 추적합니다.
               </h1>
               <p class="max-w-[780px] text-[15px] leading-[1.75] text-zinc-600 md:text-[17px]">
                 {portfolioProfile.intro}
               </p>
             </div>
 
-            <div class="flex flex-wrap gap-2">
-              {portfolioProfile.focus.map((item) => (
-                <span class="rounded-full border border-line bg-soft px-3.5 py-1.5 text-[12px] font-semibold text-zinc-700">
-                  {item}
-                </span>
-              ))}
-            </div>
-
-            <div class="flex flex-col gap-2 border-t border-line pt-5 sm:flex-row">
-              <a href="#experience" class="inline-flex h-10 items-center justify-center rounded-md bg-zinc-950 px-4 text-sm font-semibold text-white transition hover:bg-zinc-800">
-                Resume Cards
-              </a>
-              <a
-                href="#projects"
-                class="inline-flex h-10 items-center justify-center rounded-md border border-zinc-300 px-4 text-sm font-semibold text-zinc-950 transition hover:border-zinc-950"
-              >
-                Project Cards
-              </a>
-              <a
-                href={`mailto:${portfolioProfile.email}`}
-                class="inline-flex h-10 items-center justify-center rounded-md border border-zinc-300 px-4 text-sm font-semibold text-zinc-950 transition hover:border-zinc-950"
-              >
-                Contact
-              </a>
+            <div class="grid gap-4 border-t border-line pt-5">
+              <div class="flex flex-wrap gap-2">
+                {portfolioProfile.focus.map((item) => (
+                  <span class="rounded-full border border-line bg-soft px-3.5 py-1.5 text-[12px] font-semibold text-zinc-700">
+                    {item}
+                  </span>
+                ))}
+              </div>
+              <div class="flex flex-col gap-2 sm:flex-row">
+                <a href="#experience" class="inline-flex h-10 items-center justify-center rounded-md bg-zinc-950 px-4 text-sm font-semibold text-white transition hover:bg-zinc-800">
+                  Impact Deck
+                </a>
+                <a href="#projects" class="inline-flex h-10 items-center justify-center rounded-md border border-zinc-300 px-4 text-sm font-semibold text-zinc-950 transition hover:border-zinc-950">
+                  Side Projects
+                </a>
+                <a href={`mailto:${portfolioProfile.email}`} class="inline-flex h-10 items-center justify-center rounded-md border border-zinc-300 px-4 text-sm font-semibold text-zinc-950 transition hover:border-zinc-950">
+                  Contact
+                </a>
+              </div>
             </div>
           </div>
         </article>
@@ -103,7 +101,7 @@ const homeJsonLd = {
 
       <section class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="핵심 숫자">
         {portfolioMetrics.map((metric) => (
-          <article class="grid min-h-[142px] content-start gap-2 rounded-lg border border-line bg-page p-4 shadow-soft">
+          <article class="grid min-h-[132px] content-start gap-2 rounded-lg border border-line bg-page p-4 shadow-soft">
             <strong class="text-[28px] leading-none text-zinc-950 md:text-[32px]">{metric.value}</strong>
             <p class="text-[14px] font-semibold text-zinc-800">{metric.label}</p>
             <p class="text-[13px] leading-[1.5] text-zinc-500">{metric.detail}</p>
@@ -112,134 +110,129 @@ const homeJsonLd = {
       </section>
 
       <section id="experience" class="scroll-mt-28 grid gap-5">
-        <div class="grid gap-2 px-1">
-          <p class="text-sm font-semibold text-zinc-500">Resume Work</p>
-          <h2 class="break-keep text-[28px] font-bold leading-[1.14] text-zinc-950 md:text-[42px]">
-            경력은 회사별 카드로 묶었습니다.
-          </h2>
+        <div class="grid gap-2 px-1 md:grid-cols-[320px_minmax(0,1fr)] md:items-end md:gap-8">
+          <div>
+            <p class="text-sm font-semibold text-zinc-500">Impact Deck</p>
+            <h2 class="mt-2 break-keep text-[30px] font-bold leading-[1.12] text-zinc-950 md:text-[44px]">
+              대표 작업 카드
+            </h2>
+          </div>
+          <p class="max-w-[680px] text-[15px] leading-[1.7] text-zinc-600">
+            한 번에 읽히는 요약은 카드 상단에, 구체적인 기여와 기술 기록은 카드 안의 펼침 영역에 넣었습니다.
+          </p>
         </div>
 
-        <div class="grid gap-5">
+        <div class="grid gap-5 lg:grid-cols-2">
           {resumeExperiences.map((experience) => (
-            <article class="rounded-lg border border-line bg-page p-5 shadow-soft md:p-6">
-              <div class="grid gap-5 lg:grid-cols-[280px_minmax(0,1fr)] lg:gap-8">
-                <div class="grid content-start gap-3">
-                  <p class="text-[13px] font-semibold text-zinc-500">{experience.period}</p>
-                  <div class="grid gap-1">
-                    <h3 class="break-keep text-[28px] font-bold leading-[1.14] text-zinc-950 md:text-[36px]">{experience.company}</h3>
-                    <p class="text-[14px] font-semibold text-zinc-700">{experience.role}</p>
-                  </div>
+            <article class="grid content-start gap-5 rounded-lg border border-line bg-page p-5 shadow-soft md:p-6">
+              <div class="grid gap-4">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="rounded-full border border-line bg-soft px-3 py-1 text-[12px] font-semibold text-zinc-600">{experience.period}</span>
+                  <span class="rounded-full border border-line bg-soft px-3 py-1 text-[12px] font-semibold text-zinc-600">{experience.role}</span>
+                </div>
+                <div class="grid gap-2">
+                  <h3 class="break-keep text-[30px] font-bold leading-[1.12] text-zinc-950 md:text-[38px]">{experience.company}</h3>
                   <p class="text-[14px] leading-[1.62] text-zinc-500">{experience.team}</p>
-                </div>
-
-                <div class="grid gap-5">
-                  <p class="text-[15px] leading-[1.75] text-zinc-700 md:text-[16px]">{experience.description}</p>
-
-                  <div class="flex flex-wrap gap-2 border-y border-line py-4">
-                    {experience.highlights.slice(0, 3).map((highlight) => (
-                      <span class="rounded-md border border-line bg-soft px-3 py-2 text-[13px] font-semibold text-zinc-800">
-                        {highlight.metric ? `${highlight.metric} · ${highlight.title}` : highlight.title}
-                      </span>
-                    ))}
-                  </div>
-
-                  <details class="group">
-                    <summary class="flex cursor-pointer list-none items-center justify-between gap-4 rounded-md bg-soft px-4 py-3 text-[14px] font-semibold text-zinc-950">
-                      카드 상세 펼치기
-                      <span class="text-[18px] leading-none text-zinc-500 transition group-open:rotate-45">+</span>
-                    </summary>
-                    <div class="mt-4 grid gap-0 border-t border-line">
-                      {experience.highlights.map((highlight) => (
-                        <div class="grid gap-2 border-b border-line py-4 last:border-b-0 md:grid-cols-[220px_minmax(0,1fr)_auto] md:items-start">
-                          <div>
-                            {highlight.metric && <p class="text-[12px] font-semibold text-emerald-700">{highlight.metric}</p>}
-                            <h4 class="break-keep text-[16px] font-semibold leading-[1.35] text-zinc-950">{highlight.title}</h4>
-                          </div>
-                          <p class="text-[14px] leading-[1.62] text-zinc-600">{highlight.description}</p>
-                          {highlight.href && (
-                            <a href={highlight.href} class="w-fit whitespace-nowrap text-[13px] font-semibold text-zinc-950 underline-offset-4 hover:underline">
-                              기술 기록
-                            </a>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </details>
+                  <p class="text-[15px] leading-[1.75] text-zinc-700">{experience.description}</p>
                 </div>
               </div>
-            </article>
-          ))}
-        </div>
-      </section>
 
-      <section id="i18nexus" class="scroll-mt-28">
-        <article class="rounded-lg border border-line bg-page p-5 shadow-soft md:p-7">
-          <div class="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)] lg:gap-9">
-            <div class="grid content-start gap-3">
-              <p class="text-[13px] font-semibold text-zinc-400">{resumeFeatureProject.period}</p>
-              <h2 class="break-keep text-[34px] font-bold leading-[1.08] text-zinc-950 md:text-[52px]">{resumeFeatureProject.title}</h2>
-              <p class="text-[14px] font-semibold text-emerald-700">Signature Library</p>
-            </div>
-
-            <div class="grid gap-5">
-              <p class="text-[15px] leading-[1.78] text-zinc-700 md:text-[17px]">{resumeFeatureProject.summary}</p>
-
-              <div class="grid gap-0 border-y border-line md:grid-cols-3">
-                {resumeFeatureProject.metrics.map((metric) => (
-                  <div class="grid gap-2 border-b border-line py-4 last:border-b-0 md:border-b-0 md:border-r md:px-4 md:first:pl-0 md:last:border-r-0">
-                    <strong class="text-[30px] leading-none text-zinc-950">{metric.value}</strong>
-                    <p class="text-[13px] font-semibold text-zinc-800">{metric.label}</p>
-                    <p class="text-[12px] leading-[1.5] text-zinc-500">{metric.detail}</p>
-                  </div>
-                ))}
-              </div>
-
-              <div class="flex flex-wrap gap-2">
-                {resumeFeatureProject.links.map((link) => (
-                  <a href={link.href} class="rounded-md border border-line bg-soft px-3 py-1.5 text-[12px] font-semibold text-zinc-700 transition hover:border-zinc-400">
-                    {link.label}
-                  </a>
+              <div class="flex flex-wrap gap-2 border-y border-line py-4">
+                {experience.highlights.slice(0, 3).map((highlight) => (
+                  <span class="rounded-md border border-line bg-soft px-3 py-2 text-[13px] font-semibold text-zinc-800">
+                    {highlight.metric ? `${highlight.metric} · ${highlight.title}` : highlight.title}
+                  </span>
                 ))}
               </div>
 
               <details class="group">
                 <summary class="flex cursor-pointer list-none items-center justify-between gap-4 rounded-md bg-soft px-4 py-3 text-[14px] font-semibold text-zinc-950">
-                  구현 상세 펼치기
+                  상세 기여와 기술 기록 보기
                   <span class="text-[18px] leading-none text-zinc-500 transition group-open:rotate-45">+</span>
                 </summary>
                 <div class="mt-4 grid gap-0 border-t border-line">
-                  {resumeFeatureProject.bullets.map((bullet) => (
-                    <div class="grid gap-2 border-b border-line py-4 last:border-b-0 md:grid-cols-[220px_minmax(0,1fr)]">
-                      <h3 class="break-keep text-[16px] font-semibold leading-[1.35] text-zinc-950">{bullet.title}</h3>
-                      <p class="text-[14px] leading-[1.65] text-zinc-600">{bullet.description}</p>
+                  {experience.highlights.map((highlight) => (
+                    <div class="grid gap-2 border-b border-line py-4 last:border-b-0 md:grid-cols-[200px_minmax(0,1fr)_auto] md:items-start">
+                      <div>
+                        {highlight.metric && <p class="text-[12px] font-semibold text-emerald-700">{highlight.metric}</p>}
+                        <h4 class="break-keep text-[16px] font-semibold leading-[1.35] text-zinc-950">{highlight.title}</h4>
+                      </div>
+                      <p class="text-[14px] leading-[1.62] text-zinc-600">{highlight.description}</p>
+                      {highlight.href && (
+                        <a href={highlight.href} class="w-fit whitespace-nowrap text-[13px] font-semibold text-zinc-950 underline-offset-4 hover:underline">
+                          기술 기록
+                        </a>
+                      )}
                     </div>
                   ))}
                 </div>
               </details>
-            </div>
-          </div>
-        </article>
-      </section>
+            </article>
+          ))}
 
-      <section id="open-source" class="scroll-mt-28 grid gap-5">
-        <div class="grid gap-2 px-1">
-          <p class="text-sm font-semibold text-zinc-500">Open Source</p>
-          <h2 class="break-keep text-[28px] font-bold leading-[1.14] text-zinc-950 md:text-[42px]">
-            오픈소스 기여도 카드로 읽습니다.
-          </h2>
-        </div>
-
-        <div class="grid gap-5 lg:grid-cols-3">
-          {resumeOpenSourceGroups.map((group) => (
-            <article class="grid content-start gap-4 rounded-lg border border-line bg-page p-5 shadow-soft">
+          <article id="i18nexus" class="scroll-mt-28 grid content-start gap-5 rounded-lg border border-line bg-page p-5 shadow-soft md:p-6">
+            <div class="grid gap-4">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="rounded-full border border-line bg-soft px-3 py-1 text-[12px] font-semibold text-zinc-600">{resumeFeatureProject.period}</span>
+                <span class="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[12px] font-semibold text-emerald-800">Signature Library</span>
+              </div>
               <div class="grid gap-2">
-                {group.period && <p class="text-[12px] font-semibold text-zinc-500">{group.period}</p>}
-                <h3 class="break-keep text-[24px] font-bold leading-[1.16] text-zinc-950">{group.title}</h3>
-                <p class="text-[14px] leading-[1.65] text-zinc-600">{group.subtitle}</p>
+                <h3 class="break-keep text-[34px] font-bold leading-[1.08] text-zinc-950 md:text-[44px]">{resumeFeatureProject.title}</h3>
+                <p class="text-[15px] leading-[1.78] text-zinc-700">{resumeFeatureProject.summary}</p>
+              </div>
+            </div>
+
+            <div class="grid gap-0 border-y border-line md:grid-cols-3">
+              {resumeFeatureProject.metrics.map((metric) => (
+                <div class="grid gap-2 border-b border-line py-4 last:border-b-0 md:border-b-0 md:border-r md:px-4 md:first:pl-0 md:last:border-r-0">
+                  <strong class="text-[28px] leading-none text-zinc-950">{metric.value}</strong>
+                  <p class="text-[13px] font-semibold text-zinc-800">{metric.label}</p>
+                  <p class="text-[12px] leading-[1.5] text-zinc-500">{metric.detail}</p>
+                </div>
+              ))}
+            </div>
+
+            <div class="flex flex-wrap gap-2">
+              {resumeFeatureProject.links.map((link) => (
+                <a href={link.href} class="rounded-md border border-line bg-soft px-3 py-1.5 text-[12px] font-semibold text-zinc-700 transition hover:border-zinc-400">
+                  {link.label}
+                </a>
+              ))}
+            </div>
+
+            <details class="group">
+              <summary class="flex cursor-pointer list-none items-center justify-between gap-4 rounded-md bg-soft px-4 py-3 text-[14px] font-semibold text-zinc-950">
+                구현 상세 보기
+                <span class="text-[18px] leading-none text-zinc-500 transition group-open:rotate-45">+</span>
+              </summary>
+              <div class="mt-4 grid gap-0 border-t border-line">
+                {resumeFeatureProject.bullets.map((bullet) => (
+                  <div class="grid gap-2 border-b border-line py-4 last:border-b-0 md:grid-cols-[200px_minmax(0,1fr)]">
+                    <h4 class="break-keep text-[16px] font-semibold leading-[1.35] text-zinc-950">{bullet.title}</h4>
+                    <p class="text-[14px] leading-[1.65] text-zinc-600">{bullet.description}</p>
+                  </div>
+                ))}
+              </div>
+            </details>
+          </article>
+
+          {primaryOpenSource && (
+            <article id="open-source" class="scroll-mt-28 grid content-start gap-5 rounded-lg border border-line bg-page p-5 shadow-soft md:p-6">
+              <div class="grid gap-4">
+                <div class="flex flex-wrap items-center gap-2">
+                  {primaryOpenSource.period && (
+                    <span class="rounded-full border border-line bg-soft px-3 py-1 text-[12px] font-semibold text-zinc-600">{primaryOpenSource.period}</span>
+                  )}
+                  <span class="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[12px] font-semibold text-blue-800">Open Source</span>
+                </div>
+                <div class="grid gap-2">
+                  <h3 class="break-keep text-[30px] font-bold leading-[1.12] text-zinc-950 md:text-[38px]">{primaryOpenSource.title}</h3>
+                  <p class="text-[15px] leading-[1.7] text-zinc-600">{primaryOpenSource.subtitle}</p>
+                </div>
               </div>
 
               <div class="grid gap-0 border-y border-line">
-                {group.bullets.slice(0, 2).map((bullet) => (
+                {primaryOpenSource.bullets.slice(0, 3).map((bullet) => (
                   <div class="grid gap-1 border-b border-line py-3 last:border-b-0">
                     {bullet.metric && <p class="text-[12px] font-semibold text-blue-700">{bullet.metric}</p>}
                     <h4 class="break-keep text-[16px] font-semibold leading-[1.35] text-zinc-950">{bullet.title}</h4>
@@ -247,9 +240,9 @@ const homeJsonLd = {
                 ))}
               </div>
 
-              {group.links && (
+              {primaryOpenSource.links && (
                 <div class="flex flex-wrap gap-2">
-                  {group.links.map((link) => (
+                  {primaryOpenSource.links.map((link) => (
                     <a href={link.href} class="rounded-md border border-line bg-soft px-3 py-1.5 text-[12px] font-semibold text-zinc-700 transition hover:border-zinc-400">
                       {link.label}
                     </a>
@@ -259,17 +252,19 @@ const homeJsonLd = {
 
               <details class="group">
                 <summary class="flex cursor-pointer list-none items-center justify-between gap-4 rounded-md bg-soft px-4 py-3 text-[14px] font-semibold text-zinc-950">
-                  상세 기여 펼치기
+                  운영/성능 상세 보기
                   <span class="text-[18px] leading-none text-zinc-500 transition group-open:rotate-45">+</span>
                 </summary>
                 <div class="mt-4 grid gap-0 border-t border-line">
-                  {group.bullets.map((bullet) => (
-                    <div class="grid gap-2 border-b border-line py-4 last:border-b-0">
-                      {bullet.metric && <p class="text-[12px] font-semibold text-blue-700">{bullet.metric}</p>}
-                      <h4 class="break-keep text-[16px] font-semibold leading-[1.35] text-zinc-950">{bullet.title}</h4>
+                  {primaryOpenSource.bullets.map((bullet) => (
+                    <div class="grid gap-2 border-b border-line py-4 last:border-b-0 md:grid-cols-[200px_minmax(0,1fr)_auto] md:items-start">
+                      <div>
+                        {bullet.metric && <p class="text-[12px] font-semibold text-blue-700">{bullet.metric}</p>}
+                        <h4 class="break-keep text-[16px] font-semibold leading-[1.35] text-zinc-950">{bullet.title}</h4>
+                      </div>
                       <p class="text-[14px] leading-[1.62] text-zinc-600">{bullet.description}</p>
                       {bullet.href && (
-                        <a href={bullet.href} class="w-fit text-[13px] font-semibold text-zinc-950 underline-offset-4 hover:underline">
+                        <a href={bullet.href} class="w-fit whitespace-nowrap text-[13px] font-semibold text-zinc-950 underline-offset-4 hover:underline">
                           더 읽기
                         </a>
                       )}
@@ -278,16 +273,44 @@ const homeJsonLd = {
                 </div>
               </details>
             </article>
-          ))}
+          )}
         </div>
       </section>
 
+      {compactOpenSource.length > 0 && (
+        <section class="grid gap-5 lg:grid-cols-2">
+          {compactOpenSource.map((group) => (
+            <article class="grid content-start gap-4 rounded-lg border border-line bg-page p-5 shadow-soft">
+              <div class="grid gap-2">
+                {group.period && <p class="text-[12px] font-semibold text-zinc-500">{group.period}</p>}
+                <h3 class="break-keep text-[24px] font-bold leading-[1.16] text-zinc-950">{group.title}</h3>
+                <p class="text-[14px] leading-[1.65] text-zinc-600">{group.subtitle}</p>
+              </div>
+              <div class="grid gap-0 border-y border-line">
+                {group.bullets.map((bullet) => (
+                  <div class="grid gap-1 border-b border-line py-3 last:border-b-0">
+                    {bullet.metric && <p class="text-[12px] font-semibold text-blue-700">{bullet.metric}</p>}
+                    <h4 class="break-keep text-[16px] font-semibold leading-[1.35] text-zinc-950">{bullet.title}</h4>
+                    <p class="text-[14px] leading-[1.62] text-zinc-600">{bullet.description}</p>
+                  </div>
+                ))}
+              </div>
+            </article>
+          ))}
+        </section>
+      )}
+
       <section id="projects" class="scroll-mt-28 grid gap-5">
-        <div class="grid gap-2 px-1">
-          <p class="text-sm font-semibold text-zinc-500">Side Projects</p>
-          <h2 class="break-keep text-[28px] font-bold leading-[1.14] text-zinc-950 md:text-[42px]">
-            사이드 프로젝트는 이미지 카드로 정리했습니다.
-          </h2>
+        <div class="grid gap-2 px-1 md:grid-cols-[320px_minmax(0,1fr)] md:items-end md:gap-8">
+          <div>
+            <p class="text-sm font-semibold text-zinc-500">Side Projects</p>
+            <h2 class="mt-2 break-keep text-[30px] font-bold leading-[1.12] text-zinc-950 md:text-[44px]">
+              보조 프로젝트 카드
+            </h2>
+          </div>
+          <p class="max-w-[640px] text-[15px] leading-[1.7] text-zinc-600">
+            레쥬메 밖 프로젝트는 작게 배치하고, 필요할 때 케이스스터디로 이동하도록 했습니다.
+          </p>
         </div>
 
         <div class="grid gap-5 lg:grid-cols-3">
@@ -321,7 +344,7 @@ const homeJsonLd = {
 
                 <details class="group">
                   <summary class="flex cursor-pointer list-none items-center justify-between gap-4 rounded-md bg-soft px-4 py-3 text-[14px] font-semibold text-zinc-950">
-                    프로젝트 상세 펼치기
+                    프로젝트 상세 보기
                     <span class="text-[18px] leading-none text-zinc-500 transition group-open:rotate-45">+</span>
                   </summary>
                   <div class="mt-4 grid gap-4">
@@ -351,7 +374,7 @@ const homeJsonLd = {
           <div class="grid gap-5">
             <div class="grid gap-2">
               <p class="text-sm font-semibold text-zinc-500">Technical Writing</p>
-              <h2 class="break-keep text-[28px] font-bold leading-[1.14] text-zinc-950 md:text-[38px]">디버깅 기록도 카드로 묶었습니다.</h2>
+              <h2 class="break-keep text-[28px] font-bold leading-[1.14] text-zinc-950 md:text-[38px]">디버깅 기록</h2>
             </div>
 
             {featuredPosts.length > 0 ? (
@@ -381,7 +404,7 @@ const homeJsonLd = {
 
             <details class="group mt-5 border-t border-line pt-4">
               <summary class="flex cursor-pointer list-none items-center justify-between gap-4 text-[14px] font-semibold text-zinc-950">
-                활동과 기술 스택 펼치기
+                활동과 기술 스택 보기
                 <span class="text-[18px] leading-none text-zinc-500 transition group-open:rotate-45">+</span>
               </summary>
               <div class="mt-4 grid gap-5">
@@ -406,14 +429,14 @@ const homeJsonLd = {
             </details>
           </article>
 
-          <article id="contact" class="scroll-mt-28 rounded-lg border border-zinc-900 bg-zinc-950 p-5 text-white shadow-soft">
-            <p class="text-[13px] font-semibold text-zinc-400">Contact</p>
-            <h3 class="mt-2 break-keep text-[24px] font-bold leading-[1.25]">제품 문제를 깊게 파고드는 프론트엔드 개발자입니다.</h3>
+          <article class="rounded-lg border border-line bg-page p-5 shadow-soft">
+            <p class="text-[13px] font-semibold text-zinc-500">Contact</p>
+            <h3 class="mt-2 break-keep text-[24px] font-bold leading-[1.25] text-zinc-950">제품 문제를 깊게 파고드는 프론트엔드 개발자입니다.</h3>
             <div class="mt-5 grid gap-2">
-              <a href={`mailto:${portfolioProfile.email}`} class="rounded-md bg-white px-4 py-2.5 text-center text-[14px] font-semibold text-zinc-950 transition hover:bg-zinc-200">
+              <a href={`mailto:${portfolioProfile.email}`} class="rounded-md bg-zinc-950 px-4 py-2.5 text-center text-[14px] font-semibold text-white transition hover:bg-zinc-800">
                 Email
               </a>
-              <a href={portfolioProfile.github} target="_blank" rel="noopener noreferrer" class="rounded-md border border-white/[0.22] px-4 py-2.5 text-center text-[14px] font-semibold transition hover:bg-white/10">
+              <a href={portfolioProfile.github} target="_blank" rel="noopener noreferrer" class="rounded-md border border-line bg-soft px-4 py-2.5 text-center text-[14px] font-semibold text-zinc-800 transition hover:border-zinc-400">
                 GitHub
               </a>
             </div>
