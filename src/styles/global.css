@@ -25,15 +25,15 @@
 
   .dark {
     color-scheme: dark;
-    --color-page: 10 10 10;
-    --color-surface: 18 18 18;
-    --color-soft: 27 27 27;
-    --color-elevated: 14 14 14;
-    --color-line: 63 63 63;
-    --color-foreground: 245 245 245;
-    --color-muted: 180 180 180;
-    --shadow-soft: 255 255 255 / 0.04;
-    --shadow-card: 255 255 255 / 0.06;
+    --color-page: 24 25 28;
+    --color-surface: 31 32 36;
+    --color-soft: 39 40 45;
+    --color-elevated: 35 36 40;
+    --color-line: 71 73 81;
+    --color-foreground: 232 233 236;
+    --color-muted: 166 169 176;
+    --shadow-soft: 0 0 0 / 0.18;
+    --shadow-card: 0 0 0 / 0.24;
   }
 
   * {
@@ -131,36 +131,36 @@
 }
 
 .dark .btn-pill-dark {
-  border-color: rgb(244 244 245);
-  background: rgb(244 244 245);
-  color: rgb(9 9 11);
+  border-color: rgb(216 218 222);
+  background: rgb(216 218 222);
+  color: rgb(24 25 28);
 }
 
 .dark .btn-pill-dark:hover {
-  background: rgb(255 255 255);
+  background: rgb(228 230 234);
 }
 
 .dark .btn-pill-soft {
-  color: rgb(244 244 245);
+  color: rgb(232 233 236);
 }
 
 .dark .text-zinc-950,
 .dark .text-zinc-900,
 .dark .text-zinc-800 {
-  color: rgb(245 245 245);
+  color: rgb(232 233 236);
 }
 
 .dark .text-zinc-700 {
-  color: rgb(228 228 231);
+  color: rgb(212 214 220);
 }
 
 .dark .text-zinc-600,
 .dark .text-zinc-500 {
-  color: rgb(180 180 180);
+  color: rgb(166 169 176);
 }
 
 .dark .text-zinc-400 {
-  color: rgb(212 212 216);
+  color: rgb(194 197 204);
 }
 
 .dark .bg-white,
@@ -170,7 +170,7 @@
 }
 
 .dark .bg-zinc-200 {
-  background-color: rgb(39 39 42);
+  background-color: rgb(48 50 56);
 }
 
 .dark .border-zinc-200,
@@ -182,7 +182,7 @@
 .dark .hover\:bg-zinc-50:hover,
 .dark .hover\:bg-zinc-100:hover,
 .dark .hover\:bg-zinc-200:hover {
-  background-color: rgb(39 39 42);
+  background-color: rgb(48 50 56);
 }
 
 .dark .hover\:border-zinc-400:hover {
@@ -191,14 +191,14 @@
 
 .dark .hover\:text-zinc-900:hover,
 .dark .hover\:text-zinc-950:hover {
-  color: rgb(255 255 255);
+  color: rgb(238 239 242);
 }
 
 .dark input,
 .dark textarea,
 .dark select {
-  background-color: rgb(18 18 18);
-  color: rgb(245 245 245);
+  background-color: rgb(var(--color-elevated));
+  color: rgb(var(--color-foreground));
 }
 
 .dark input::placeholder,
@@ -209,14 +209,14 @@
 .dark input:disabled,
 .dark textarea:disabled,
 .dark select:disabled {
-  background-color: rgb(30 30 30);
+  background-color: rgb(var(--color-soft));
   color: rgb(135 135 135);
 }
 
 .dark .tag-rail__button.is-active {
-  border-color: rgb(244 244 245);
-  background-color: rgb(244 244 245);
-  color: rgb(9 9 11);
+  border-color: rgb(216 218 222);
+  background-color: rgb(216 218 222);
+  color: rgb(24 25 28);
 }
 
 .dark .tag-rail__button.is-active span:last-child {
@@ -224,9 +224,9 @@
 }
 
 .dark button.bg-zinc-900 {
-  border-color: rgb(244 244 245);
-  background-color: rgb(244 244 245);
-  color: rgb(9 9 11);
+  border-color: rgb(216 218 222);
+  background-color: rgb(216 218 222);
+  color: rgb(24 25 28);
 }
 
 .dark button.bg-zinc-900 .text-zinc-200 {
@@ -234,17 +234,17 @@
 }
 
 .dark .theme-inverse {
-  border-color: rgb(244 244 245);
-  background-color: rgb(244 244 245);
-  color: rgb(9 9 11);
+  border-color: rgb(216 218 222);
+  background-color: rgb(216 218 222);
+  color: rgb(24 25 28);
 }
 
 .dark .theme-inverse:hover {
-  background-color: rgb(255 255 255);
+  background-color: rgb(228 230 234);
 }
 
 .dark .theme-inverse .theme-inverse-text {
-  color: rgb(9 9 11);
+  color: rgb(24 25 28);
 }
 
 .dark .theme-inverse .theme-inverse-muted {
@@ -252,7 +252,7 @@
 }
 
 .dark .article-body {
-  color: rgb(228 228 231);
+  color: rgb(212 214 220);
 }
 
 .dark .article-body h1,
@@ -261,7 +261,7 @@
 .dark .article-body h4,
 .dark .article-body h5,
 .dark .article-body h6 {
-  color: rgb(250 250 250);
+  color: rgb(232 233 236);
 }
 
 .dark .article-body h2,
@@ -270,28 +270,28 @@
 }
 
 .dark .article-body a {
-  color: rgb(250 250 250);
+  color: rgb(232 233 236);
   border-color: rgb(135 135 135);
 }
 
 .dark .article-body a:hover {
-  border-color: rgb(245 245 245);
+  border-color: rgb(216 218 222);
 }
 
 .dark .article-body blockquote {
   border-color: rgb(113 113 122);
-  background-color: rgb(24 24 27);
-  color: rgb(212 212 216);
+  background-color: rgb(var(--color-soft));
+  color: rgb(194 197 204);
 }
 
 .dark .article-body :not(pre) > code {
   border-color: rgb(var(--color-line));
-  background-color: rgb(39 39 42);
-  color: rgb(250 250 250);
+  background-color: rgb(var(--color-soft));
+  color: rgb(232 233 236);
 }
 
 .dark .article-body thead {
-  background-color: rgb(24 24 27);
+  background-color: rgb(var(--color-soft));
 }
 
 .dark .article-body th,
@@ -304,11 +304,11 @@
 .dark .article-body .article-link-card,
 .dark .article-body .article-mermaid {
   border-color: rgb(var(--color-line));
-  background-color: rgb(18 18 18);
+  background-color: rgb(var(--color-elevated));
 }
 
 .dark .article-body .article-link-card {
-  color: rgb(245 245 245);
+  color: rgb(232 233 236);
 }
 
 @media (prefers-reduced-motion: reduce) {

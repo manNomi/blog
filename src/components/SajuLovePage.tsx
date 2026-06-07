@@ -535,7 +535,7 @@ export default function SajuLovePage() {
                 disabled={phase === 'submitted' || requestForm.formState.isSubmitting || (phase === 'flow' && index > activeStepIndex)}
                 className={`rounded-md border px-3 py-2 text-left transition-all duration-300 animate-step-enter disabled:cursor-not-allowed disabled:opacity-60 ${
                   current
-                    ? 'scale-[1.01] border-zinc-900 bg-zinc-900 text-white dark:border-white dark:bg-white dark:text-zinc-950'
+                    ? 'scale-[1.01] border-zinc-900 bg-zinc-900 text-white dark:border-[#D8DADE] dark:bg-[#D8DADE] dark:text-[#18191C]'
                     : active
                       ? 'border-zinc-400 bg-elevated text-zinc-900'
                       : 'border-line bg-soft text-zinc-600'
@@ -560,7 +560,7 @@ export default function SajuLovePage() {
               </strong>
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-zinc-200">
-              <span className="block h-full rounded-full bg-zinc-900 transition-all duration-500 dark:bg-white" style={{ width: `${Math.max(flowPercent, completionPercent)}%` }} />
+              <span className="block h-full rounded-full bg-zinc-900 transition-all duration-500 dark:bg-[#D8DADE]" style={{ width: `${Math.max(flowPercent, completionPercent)}%` }} />
             </div>
           </div>
         )}
@@ -588,7 +588,7 @@ export default function SajuLovePage() {
                         key={option.value}
                         onClick={() => handleFortuneSelect(option.value)}
                         className={`rounded-md px-4 py-4 text-left transition-all duration-300 ${
-                          active ? 'scale-[1.01] bg-zinc-900 text-white dark:bg-white dark:text-zinc-950' : 'bg-transparent text-zinc-700 hover:bg-zinc-200'
+                          active ? 'scale-[1.01] bg-zinc-900 text-white dark:bg-[#D8DADE] dark:text-[#18191C]' : 'bg-transparent text-zinc-700 hover:bg-zinc-200'
                         }`}
                       >
                         <strong className="block text-[17px]">{option.label}</strong>
@@ -684,14 +684,14 @@ export default function SajuLovePage() {
                     <div className="grid grid-cols-2 gap-2 rounded-md border border-line bg-soft p-1" role="group" aria-label="성별 선택">
                       <button
                         type="button"
-                        className={`h-11 rounded-md text-sm font-medium transition ${selectedGender === 'female' ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-950' : 'bg-transparent text-zinc-700 hover:bg-zinc-200'}`}
+                        className={`h-11 rounded-md text-sm font-medium transition ${selectedGender === 'female' ? 'bg-zinc-900 text-white dark:bg-[#D8DADE] dark:text-[#18191C]' : 'bg-transparent text-zinc-700 hover:bg-zinc-200'}`}
                         onClick={() => requestForm.setValue('gender', 'female', { shouldValidate: true, shouldDirty: true })}
                       >
                         여성
                       </button>
                       <button
                         type="button"
-                        className={`h-11 rounded-md text-sm font-medium transition ${selectedGender === 'male' ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-950' : 'bg-transparent text-zinc-700 hover:bg-zinc-200'}`}
+                        className={`h-11 rounded-md text-sm font-medium transition ${selectedGender === 'male' ? 'bg-zinc-900 text-white dark:bg-[#D8DADE] dark:text-[#18191C]' : 'bg-transparent text-zinc-700 hover:bg-zinc-200'}`}
                         onClick={() => requestForm.setValue('gender', 'male', { shouldValidate: true, shouldDirty: true })}
                       >
                         남성
@@ -704,14 +704,14 @@ export default function SajuLovePage() {
                     <div className="grid grid-cols-2 gap-2 rounded-md border border-line bg-soft p-1" role="group" aria-label="역법 선택">
                       <button
                         type="button"
-                        className={`h-11 rounded-md text-sm font-medium transition ${selectedCalendarType === 'solar' ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-950' : 'bg-transparent text-zinc-700 hover:bg-zinc-200'}`}
+                        className={`h-11 rounded-md text-sm font-medium transition ${selectedCalendarType === 'solar' ? 'bg-zinc-900 text-white dark:bg-[#D8DADE] dark:text-[#18191C]' : 'bg-transparent text-zinc-700 hover:bg-zinc-200'}`}
                         onClick={() => requestForm.setValue('calendarType', 'solar', { shouldValidate: true, shouldDirty: true })}
                       >
                         양력
                       </button>
                       <button
                         type="button"
-                        className={`h-11 rounded-md text-sm font-medium transition ${selectedCalendarType === 'lunar' ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-950' : 'bg-transparent text-zinc-700 hover:bg-zinc-200'}`}
+                        className={`h-11 rounded-md text-sm font-medium transition ${selectedCalendarType === 'lunar' ? 'bg-zinc-900 text-white dark:bg-[#D8DADE] dark:text-[#18191C]' : 'bg-transparent text-zinc-700 hover:bg-zinc-200'}`}
                         onClick={() => requestForm.setValue('calendarType', 'lunar', { shouldValidate: true, shouldDirty: true })}
                       >
                         음력
@@ -736,7 +736,7 @@ export default function SajuLovePage() {
                           onClick={() => requestForm.setValue('relationshipStatus', option.value, { shouldValidate: true, shouldDirty: true })}
                           className={`rounded-md border p-3 text-left transition-all duration-300 ${
                             active
-                              ? 'scale-[1.01] border-zinc-900 bg-zinc-900 text-white dark:border-white dark:bg-white dark:text-zinc-950'
+                              ? 'scale-[1.01] border-zinc-900 bg-zinc-900 text-white dark:border-[#D8DADE] dark:bg-[#D8DADE] dark:text-[#18191C]'
                               : 'border-line bg-soft text-zinc-700 hover:bg-zinc-200'
                           }`}
                         >
@@ -797,7 +797,7 @@ export default function SajuLovePage() {
                           key={option.value}
                           onClick={() => requestForm.setValue('examResultFormat', option.value, { shouldValidate: true, shouldDirty: true })}
                           className={`rounded-md px-3 py-2.5 text-left transition-all duration-300 ${
-                            active ? 'scale-[1.01] bg-zinc-900 text-white dark:bg-white dark:text-zinc-950' : 'bg-transparent text-zinc-700 hover:bg-zinc-200'
+                            active ? 'scale-[1.01] bg-zinc-900 text-white dark:bg-[#D8DADE] dark:text-[#18191C]' : 'bg-transparent text-zinc-700 hover:bg-zinc-200'
                           }`}
                         >
                           <strong className="block text-sm">{option.label}</strong>
