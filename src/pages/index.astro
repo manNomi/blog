@@ -3,448 +3,275 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import {
-  featuredPostSlugs,
-  portfolioMetrics,
-  portfolioProfile,
-  portfolioProjects,
-  resumeActivities,
-  resumeEducation,
-  resumeExperiences,
-  resumeFeatureProject,
-  resumeOpenSourceGroups,
-  resumeSkillGroups
-} from '../data/portfolio';
+import { extractFirstImage } from '../utils/extractFirstImage';
 
-const allPosts = await getCollection('blog');
-const featuredPosts = featuredPostSlugs
-  .map((slug) => allPosts.find((post) => post.slug === slug))
-  .filter((post): post is NonNullable<typeof post> => Boolean(post));
+const allPosts = (await getCollection('blog'))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .map((post) => {
+    if (!post.data.heroImage && post.body) {
+      const extractedImage = extractFirstImage(post.body);
+      return {
+        ...post,
+        data: {
+          ...post.data,
+          heroImage: extractedImage || undefined
+        }
+      };
+    }
 
-const primaryOpenSource = resumeOpenSourceGroups[0];
-const compactOpenSource = resumeOpenSourceGroups.slice(1);
+    return post;
+  });
 
+const pinnedPosts = allPosts.filter((post) => post.data.pinned);
+const featuredPosts = pinnedPosts.slice(0, 4);
+const recentPosts = allPosts.filter((post) => !post.data.pinned);
+const RECENT_POSTS_INITIAL_COUNT = 6;
+const RECENT_POSTS_PAGE_SIZE = 4;
 const siteURL = Astro.site || Astro.url.origin;
 const homeURL = new URL('/', siteURL).href;
-const seoTitle = '한만욱 | Frontend Developer Portfolio';
-const seoDescription =
-  'MAU 800만 서비스의 UX 결함, LCP 최적화, React Activity 크래시, i18n 자동화 라이브러리, 오픈소스 기여를 다룬 프론트엔드 개발자 한만욱의 포트폴리오입니다.';
-const seoKeywords = ['한만욱', '프론트엔드 개발자', '당근마켓', 'I18Nexus', 'React', 'TypeScript', '성능 최적화'];
+const ogImageURL = new URL('/og-image.png', siteURL).href;
+const seoTitle = '한만욱의 이모저모';
+const seoDescription = '프론트엔드 개발과 일상에 대해서 이야기를 적고 있습니다.';
+const seoKeywords = ['프론트엔드', '웹 성능', 'React', 'Astro', '웹뷰', '개발 블로그', '한만욱'];
 const homeJsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'ProfilePage',
-  '@id': `${homeURL}#portfolio`,
-  url: homeURL,
-  name: seoTitle,
-  inLanguage: 'ko-KR',
-  description: seoDescription,
-  mainEntity: {
-    '@type': 'Person',
-    name: portfolioProfile.name,
-    jobTitle: portfolioProfile.role,
-    email: portfolioProfile.email,
-    telephone: portfolioProfile.phone,
-    sameAs: [portfolioProfile.github]
-  }
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      '@id': `${homeURL}#website`,
+      url: homeURL,
+      name: 'Nomi Journal',
+      inLanguage: 'ko-KR',
+      description: seoDescription,
+      publisher: {
+        '@id': `${homeURL}#person`
+      }
+    },
+    {
+      '@type': 'Person',
+      '@id': `${homeURL}#person`,
+      name: '한만욱',
+      url: homeURL,
+      sameAs: ['https://github.com/manNomi']
+    },
+    {
+      '@type': 'Blog',
+      '@id': `${homeURL}#blog`,
+      url: homeURL,
+      name: '한만욱의 이모저모',
+      description: seoDescription,
+      image: ogImageURL,
+      inLanguage: 'ko-KR',
+      author: {
+        '@id': `${homeURL}#person`
+      }
+    }
+  ]
 };
+
+const toCategory = (tags: string[] | undefined) => {
+  if (!tags || tags.length === 0) return 'Editorial';
+  return tags[0].toUpperCase();
+};
+
+const recentDateFormatter = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric'
+});
+
+const formatRecentDate = (date: Date) => recentDateFormatter.format(date);
+const toRecentCategory = (tags: string[] | undefined) => tags?.[0] || '에세이';
 ---
 
 <BaseLayout
   title={seoTitle}
   description={seoDescription}
   keywords={seoKeywords}
-  image="/images/portfolio-case-placeholder.png"
-  imageAlt="한만욱 프론트엔드 포트폴리오"
+  image="/og-image.png"
+  imageAlt="한만욱의 이모저모 Nomi Journal"
   canonicalURL="/"
   jsonLd={homeJsonLd}
 >
   <Header />
 
-  <main class="bg-soft">
-    <div class="container-shell grid gap-5 pb-16 pt-4 md:gap-6 md:pb-24 md:pt-8">
-      <section class="grid gap-5">
-        <article class="rounded-lg border border-line bg-page p-5 shadow-soft md:p-8">
-          <div class="grid gap-8">
-            <div class="grid gap-5">
-              <p class="text-[13px] font-semibold text-zinc-500">{portfolioProfile.name} / {portfolioProfile.role}</p>
-              <h1 class="max-w-[900px] break-keep text-balance text-[38px] font-bold leading-[1.06] text-zinc-950 sm:text-[54px] md:text-[72px]">
-                제품에서 실제로 터지는 문제를 끝까지 추적합니다.
-              </h1>
-              <p class="max-w-[780px] text-[15px] leading-[1.75] text-zinc-600 md:text-[17px]">
-                {portfolioProfile.intro}
-              </p>
-            </div>
-
-            <div class="grid gap-4 border-t border-line pt-5">
-              <div class="flex flex-wrap gap-2">
-                {portfolioProfile.focus.map((item) => (
-                  <span class="rounded-full border border-line bg-soft px-3.5 py-1.5 text-[12px] font-semibold text-zinc-700">
-                    {item}
-                  </span>
-                ))}
-              </div>
-              <div class="flex flex-col gap-2 sm:flex-row">
-                <a href="#experience" class="inline-flex h-10 items-center justify-center rounded-md bg-zinc-950 px-4 text-sm font-semibold text-white transition hover:bg-zinc-800">
-                  Impact Deck
-                </a>
-                <a href="#projects" class="inline-flex h-10 items-center justify-center rounded-md border border-zinc-300 px-4 text-sm font-semibold text-zinc-950 transition hover:border-zinc-950">
-                  Side Projects
-                </a>
-                <a href={`mailto:${portfolioProfile.email}`} class="inline-flex h-10 items-center justify-center rounded-md border border-zinc-300 px-4 text-sm font-semibold text-zinc-950 transition hover:border-zinc-950">
-                  Contact
-                </a>
-              </div>
-            </div>
+  <main class="main-shell">
+    <section class="container-shell">
+      <div class="grid animate-fade-up gap-10 md:gap-14 lg:gap-[70px]">
+        <section class="page-card grid gap-10 overflow-hidden px-4 py-6 md:gap-12 md:px-8 md:py-9">
+          <div class="grid justify-items-center gap-6 text-center">
+            <h1 class="max-w-[860px] text-balance text-[42px] font-semibold leading-[1.02] tracking-[-0.03em] text-zinc-900 sm:text-[56px] md:text-[72px] lg:text-[86px]">
+              한만욱의 이모저모
+            </h1>
+            <p class="max-w-[760px] text-balance text-[15px] leading-[1.55] text-zinc-600 md:text-lg">
+              프론트엔드 개발과 일상에 대해서 이야기를 적고 있습니다.
+            </p>
+            <a
+              href="/posts"
+              class="group flex w-full max-w-[860px] items-center justify-between gap-4 rounded-card border border-zinc-900 bg-zinc-900 px-4 py-3 text-left text-white shadow-soft transition duration-200 hover:-translate-y-0.5 hover:bg-zinc-800 md:px-5 md:py-4"
+              aria-label="블로그 포스팅 전체 보기"
+            >
+              <span class="min-w-0">
+                <span class="block text-[11px] font-medium uppercase leading-none tracking-[0.14em] text-zinc-400">Blog Posts</span>
+                <span class="mt-1.5 block text-[17px] font-semibold leading-[1.25] tracking-[-0.01em] md:text-[20px]">블로그 포스팅 전체 보기</span>
+              </span>
+              <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-[18px] font-semibold text-zinc-900 transition duration-200 group-hover:translate-x-0.5" aria-hidden="true">
+                →
+              </span>
+            </a>
           </div>
-        </article>
-      </section>
 
-      <section class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="핵심 숫자">
-        {portfolioMetrics.map((metric) => (
-          <article class="grid min-h-[132px] content-start gap-2 rounded-lg border border-line bg-page p-4 shadow-soft">
-            <strong class="text-[28px] leading-none text-zinc-950 md:text-[32px]">{metric.value}</strong>
-            <p class="text-[14px] font-semibold text-zinc-800">{metric.label}</p>
-            <p class="text-[13px] leading-[1.5] text-zinc-500">{metric.detail}</p>
-          </article>
-        ))}
-      </section>
+          <section class="relative overflow-hidden rounded-card border border-line bg-soft px-4 py-4 text-left md:px-5 md:py-5" aria-label="처음 방문자를 위한 사주 안내">
+            <span class="pointer-events-none absolute right-5 top-5 h-2 w-2 animate-float-dot rounded-full bg-[#c3b8a8]" aria-hidden="true"></span>
+            <span class="pointer-events-none absolute right-9 top-8 h-1.5 w-1.5 animate-soft-pulse rounded-full bg-zinc-400" aria-hidden="true"></span>
 
-      <section id="experience" class="scroll-mt-28 grid gap-5">
-        <div class="grid gap-2 px-1 md:grid-cols-[320px_minmax(0,1fr)] md:items-end md:gap-8">
-          <div>
-            <p class="text-sm font-semibold text-zinc-500">Impact Deck</p>
-            <h2 class="mt-2 break-keep text-[30px] font-bold leading-[1.12] text-zinc-950 md:text-[44px]">
-              대표 작업 카드
+            <p class="kicker">First Visit</p>
+            <h2 class="mt-1.5 text-balance text-[22px] font-semibold leading-[1.28] tracking-[-0.02em] text-zinc-900 md:text-[26px]">
+              사주로 연애와 시험운을 볼수 있어요 !
             </h2>
-          </div>
-          <p class="max-w-[680px] text-[15px] leading-[1.7] text-zinc-600">
-            한 번에 읽히는 요약은 카드 상단에, 구체적인 기여와 기술 기록은 카드 안의 펼침 영역에 넣었습니다.
-          </p>
-        </div>
+            <p class="mt-2 text-[14px] leading-[1.58] text-zinc-600 md:text-[15px]">
+              간단한 입력후 전자우편 (이메일)로 보내드립니다!!
+            </p>
 
-        <div class="grid gap-5 lg:grid-cols-2">
-          {resumeExperiences.map((experience) => (
-            <article class="grid content-start gap-5 rounded-lg border border-line bg-page p-5 shadow-soft md:p-6">
-              <div class="grid gap-4">
-                <div class="flex flex-wrap items-center gap-2">
-                  <span class="rounded-full border border-line bg-soft px-3 py-1 text-[12px] font-semibold text-zinc-600">{experience.period}</span>
-                  <span class="rounded-full border border-line bg-soft px-3 py-1 text-[12px] font-semibold text-zinc-600">{experience.role}</span>
-                </div>
-                <div class="grid gap-2">
-                  <h3 class="break-keep text-[30px] font-bold leading-[1.12] text-zinc-950 md:text-[38px]">{experience.company}</h3>
-                  <p class="text-[14px] leading-[1.62] text-zinc-500">{experience.team}</p>
-                  <p class="text-[15px] leading-[1.75] text-zinc-700">{experience.description}</p>
-                </div>
-              </div>
-
-              <div class="flex flex-wrap gap-2 border-y border-line py-4">
-                {experience.highlights.slice(0, 3).map((highlight) => (
-                  <span class="rounded-md border border-line bg-soft px-3 py-2 text-[13px] font-semibold text-zinc-800">
-                    {highlight.metric ? `${highlight.metric} · ${highlight.title}` : highlight.title}
-                  </span>
-                ))}
-              </div>
-
-              <details class="group">
-                <summary class="flex cursor-pointer list-none items-center justify-between gap-4 rounded-md bg-soft px-4 py-3 text-[14px] font-semibold text-zinc-950">
-                  상세 기여와 기술 기록 보기
-                  <span class="text-[18px] leading-none text-zinc-500 transition group-open:rotate-45">+</span>
-                </summary>
-                <div class="mt-4 grid gap-0 border-t border-line">
-                  {experience.highlights.map((highlight) => (
-                    <div class="grid gap-2 border-b border-line py-4 last:border-b-0 md:grid-cols-[200px_minmax(0,1fr)_auto] md:items-start">
-                      <div>
-                        {highlight.metric && <p class="text-[12px] font-semibold text-emerald-700">{highlight.metric}</p>}
-                        <h4 class="break-keep text-[16px] font-semibold leading-[1.35] text-zinc-950">{highlight.title}</h4>
-                      </div>
-                      <p class="text-[14px] leading-[1.62] text-zinc-600">{highlight.description}</p>
-                      {highlight.href && (
-                        <a href={highlight.href} class="w-fit whitespace-nowrap text-[13px] font-semibold text-zinc-950 underline-offset-4 hover:underline">
-                          기술 기록
-                        </a>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </details>
-            </article>
-          ))}
-
-          <article id="i18nexus" class="scroll-mt-28 grid content-start gap-5 rounded-lg border border-line bg-page p-5 shadow-soft md:p-6">
-            <div class="grid gap-4">
-              <div class="flex flex-wrap items-center gap-2">
-                <span class="rounded-full border border-line bg-soft px-3 py-1 text-[12px] font-semibold text-zinc-600">{resumeFeatureProject.period}</span>
-                <span class="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[12px] font-semibold text-emerald-800">Signature Library</span>
-              </div>
-              <div class="grid gap-2">
-                <h3 class="break-keep text-[34px] font-bold leading-[1.08] text-zinc-950 md:text-[44px]">{resumeFeatureProject.title}</h3>
-                <p class="text-[15px] leading-[1.78] text-zinc-700">{resumeFeatureProject.summary}</p>
-              </div>
+            <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+              <a href="/saju" class="btn-pill-dark w-full sm:w-auto">사주 보러가기</a>
+              <a href="/privacy" class="btn-pill-soft w-full sm:w-auto">처리방침 보기</a>
             </div>
+          </section>
 
-            <div class="grid gap-0 border-y border-line md:grid-cols-3">
-              {resumeFeatureProject.metrics.map((metric) => (
-                <div class="grid gap-2 border-b border-line py-4 last:border-b-0 md:border-b-0 md:border-r md:px-4 md:first:pl-0 md:last:border-r-0">
-                  <strong class="text-[28px] leading-none text-zinc-950">{metric.value}</strong>
-                  <p class="text-[13px] font-semibold text-zinc-800">{metric.label}</p>
-                  <p class="text-[12px] leading-[1.5] text-zinc-500">{metric.detail}</p>
-                </div>
-              ))}
-            </div>
-
-            <div class="flex flex-wrap gap-2">
-              {resumeFeatureProject.links.map((link) => (
-                <a href={link.href} class="rounded-md border border-line bg-soft px-3 py-1.5 text-[12px] font-semibold text-zinc-700 transition hover:border-zinc-400">
-                  {link.label}
-                </a>
-              ))}
-            </div>
-
-            <details class="group">
-              <summary class="flex cursor-pointer list-none items-center justify-between gap-4 rounded-md bg-soft px-4 py-3 text-[14px] font-semibold text-zinc-950">
-                구현 상세 보기
-                <span class="text-[18px] leading-none text-zinc-500 transition group-open:rotate-45">+</span>
-              </summary>
-              <div class="mt-4 grid gap-0 border-t border-line">
-                {resumeFeatureProject.bullets.map((bullet) => (
-                  <div class="grid gap-2 border-b border-line py-4 last:border-b-0 md:grid-cols-[200px_minmax(0,1fr)]">
-                    <h4 class="break-keep text-[16px] font-semibold leading-[1.35] text-zinc-950">{bullet.title}</h4>
-                    <p class="text-[14px] leading-[1.65] text-zinc-600">{bullet.description}</p>
-                  </div>
-                ))}
-              </div>
-            </details>
-          </article>
-
-          {primaryOpenSource && (
-            <article id="open-source" class="scroll-mt-28 grid content-start gap-5 rounded-lg border border-line bg-page p-5 shadow-soft md:p-6">
-              <div class="grid gap-4">
-                <div class="flex flex-wrap items-center gap-2">
-                  {primaryOpenSource.period && (
-                    <span class="rounded-full border border-line bg-soft px-3 py-1 text-[12px] font-semibold text-zinc-600">{primaryOpenSource.period}</span>
-                  )}
-                  <span class="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[12px] font-semibold text-blue-800">Open Source</span>
-                </div>
-                <div class="grid gap-2">
-                  <h3 class="break-keep text-[30px] font-bold leading-[1.12] text-zinc-950 md:text-[38px]">{primaryOpenSource.title}</h3>
-                  <p class="text-[15px] leading-[1.7] text-zinc-600">{primaryOpenSource.subtitle}</p>
-                </div>
-              </div>
-
-              <div class="grid gap-0 border-y border-line">
-                {primaryOpenSource.bullets.slice(0, 3).map((bullet) => (
-                  <div class="grid gap-1 border-b border-line py-3 last:border-b-0">
-                    {bullet.metric && <p class="text-[12px] font-semibold text-blue-700">{bullet.metric}</p>}
-                    <h4 class="break-keep text-[16px] font-semibold leading-[1.35] text-zinc-950">{bullet.title}</h4>
-                  </div>
-                ))}
-              </div>
-
-              {primaryOpenSource.links && (
-                <div class="flex flex-wrap gap-2">
-                  {primaryOpenSource.links.map((link) => (
-                    <a href={link.href} class="rounded-md border border-line bg-soft px-3 py-1.5 text-[12px] font-semibold text-zinc-700 transition hover:border-zinc-400">
-                      {link.label}
-                    </a>
-                  ))}
-                </div>
-              )}
-
-              <details class="group">
-                <summary class="flex cursor-pointer list-none items-center justify-between gap-4 rounded-md bg-soft px-4 py-3 text-[14px] font-semibold text-zinc-950">
-                  운영/성능 상세 보기
-                  <span class="text-[18px] leading-none text-zinc-500 transition group-open:rotate-45">+</span>
-                </summary>
-                <div class="mt-4 grid gap-0 border-t border-line">
-                  {primaryOpenSource.bullets.map((bullet) => (
-                    <div class="grid gap-2 border-b border-line py-4 last:border-b-0 md:grid-cols-[200px_minmax(0,1fr)_auto] md:items-start">
-                      <div>
-                        {bullet.metric && <p class="text-[12px] font-semibold text-blue-700">{bullet.metric}</p>}
-                        <h4 class="break-keep text-[16px] font-semibold leading-[1.35] text-zinc-950">{bullet.title}</h4>
-                      </div>
-                      <p class="text-[14px] leading-[1.62] text-zinc-600">{bullet.description}</p>
-                      {bullet.href && (
-                        <a href={bullet.href} class="w-fit whitespace-nowrap text-[13px] font-semibold text-zinc-950 underline-offset-4 hover:underline">
-                          더 읽기
-                        </a>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </details>
-            </article>
-          )}
-        </div>
-      </section>
-
-      {compactOpenSource.length > 0 && (
-        <section class="grid gap-5 lg:grid-cols-2">
-          {compactOpenSource.map((group) => (
-            <article class="grid content-start gap-4 rounded-lg border border-line bg-page p-5 shadow-soft">
-              <div class="grid gap-2">
-                {group.period && <p class="text-[12px] font-semibold text-zinc-500">{group.period}</p>}
-                <h3 class="break-keep text-[24px] font-bold leading-[1.16] text-zinc-950">{group.title}</h3>
-                <p class="text-[14px] leading-[1.65] text-zinc-600">{group.subtitle}</p>
-              </div>
-              <div class="grid gap-0 border-y border-line">
-                {group.bullets.map((bullet) => (
-                  <div class="grid gap-1 border-b border-line py-3 last:border-b-0">
-                    {bullet.metric && <p class="text-[12px] font-semibold text-blue-700">{bullet.metric}</p>}
-                    <h4 class="break-keep text-[16px] font-semibold leading-[1.35] text-zinc-950">{bullet.title}</h4>
-                    <p class="text-[14px] leading-[1.62] text-zinc-600">{bullet.description}</p>
-                  </div>
-                ))}
-              </div>
-            </article>
-          ))}
-        </section>
-      )}
-
-      <section id="projects" class="scroll-mt-28 grid gap-5">
-        <div class="grid gap-2 px-1 md:grid-cols-[320px_minmax(0,1fr)] md:items-end md:gap-8">
-          <div>
-            <p class="text-sm font-semibold text-zinc-500">Side Projects</p>
-            <h2 class="mt-2 break-keep text-[30px] font-bold leading-[1.12] text-zinc-950 md:text-[44px]">
-              보조 프로젝트 카드
-            </h2>
-          </div>
-          <p class="max-w-[640px] text-[15px] leading-[1.7] text-zinc-600">
-            레쥬메 밖 프로젝트는 작게 배치하고, 필요할 때 케이스스터디로 이동하도록 했습니다.
-          </p>
-        </div>
-
-        <div class="grid gap-5 lg:grid-cols-3">
-          {portfolioProjects.map((project) => (
-            <article class="overflow-hidden rounded-lg border border-line bg-page shadow-soft">
-              <a href={`/projects/${project.slug}`} class="group block">
-                <img
-                  src={project.image}
-                  alt={project.imageAlt}
-                  width={project.imageWidth}
-                  height={project.imageHeight}
-                  loading="lazy"
-                  class="aspect-[16/10] w-full border-b border-line bg-soft object-cover transition group-hover:scale-[1.02]"
-                />
-              </a>
-              <div class="grid gap-4 p-5">
-                <div class="grid gap-2">
-                  <p class="text-[12px] font-semibold text-zinc-500">{project.eyebrow} · {project.period}</p>
-                  <h3 class="break-keep text-[26px] font-bold leading-[1.14] text-zinc-950">{project.title}</h3>
-                  <p class="text-[14px] leading-[1.68] text-zinc-600">{project.summary}</p>
-                </div>
-
-                <div class="grid gap-0 border-y border-line">
-                  {project.metrics.slice(0, 2).map((metric) => (
-                    <div class="grid gap-1 border-b border-line py-3 last:border-b-0">
-                      <strong class="text-[22px] leading-none text-zinc-950">{metric.value}</strong>
-                      <p class="text-[13px] font-semibold text-zinc-800">{metric.label}</p>
-                    </div>
-                  ))}
-                </div>
-
-                <details class="group">
-                  <summary class="flex cursor-pointer list-none items-center justify-between gap-4 rounded-md bg-soft px-4 py-3 text-[14px] font-semibold text-zinc-950">
-                    프로젝트 상세 보기
-                    <span class="text-[18px] leading-none text-zinc-500 transition group-open:rotate-45">+</span>
-                  </summary>
-                  <div class="mt-4 grid gap-4">
-                    <div class="grid gap-2">
-                      <p class="text-[13px] font-semibold text-zinc-500">Problem</p>
-                      <p class="text-[14px] leading-[1.65] text-zinc-600">{project.problem}</p>
-                    </div>
-                    <div class="grid gap-2">
-                      <p class="text-[13px] font-semibold text-zinc-500">Approach</p>
-                      {project.approach.map((item) => (
-                        <p class="border-t border-line pt-2 text-[14px] leading-[1.62] text-zinc-600">{item}</p>
-                      ))}
-                    </div>
-                    <a href={`/projects/${project.slug}`} class="inline-flex h-10 w-fit items-center justify-center rounded-md border border-zinc-900 px-4 text-sm font-semibold text-zinc-950 transition hover:bg-zinc-950 hover:text-white">
-                      케이스스터디 보기
-                    </a>
-                  </div>
-                </details>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section id="posts" class="scroll-mt-28 grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <article class="rounded-lg border border-line bg-page p-5 shadow-soft md:p-6">
           <div class="grid gap-5">
-            <div class="grid gap-2">
-              <p class="text-sm font-semibold text-zinc-500">Technical Writing</p>
-              <h2 class="break-keep text-[28px] font-bold leading-[1.14] text-zinc-950 md:text-[38px]">디버깅 기록</h2>
-            </div>
+            <h2 class="text-[28px] font-semibold leading-tight tracking-[-0.02em] text-zinc-900 md:text-[30px]">Pinned</h2>
 
             {featuredPosts.length > 0 ? (
-              <div class="grid gap-0 border-y border-line">
-                {featuredPosts.map((post) => (
-                  <a href={`/blog/${post.slug}`} class="grid gap-1 border-b border-line py-4 transition last:border-b-0 hover:px-2">
-                    <p class="text-[12px] text-zinc-500">{post.data.tags?.[0] || 'Article'}</p>
-                    <h3 class="break-keep text-[18px] font-semibold leading-[1.35] text-zinc-950">{post.data.title}</h3>
+              <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4 lg:gap-5">
+                {featuredPosts.map((post, index) => (
+                  <a
+                    href={`/blog/${post.slug}`}
+                    class="group grid gap-3 rounded-card border border-line bg-elevated p-4 shadow-soft transition duration-200 hover:-translate-y-0.5 hover:border-zinc-400"
+                    style={`animation-delay:${index * 60}ms`}
+                  >
+                    <img
+                      src={post.data.heroImage || '/images/editorial-fallback.svg'}
+                      alt={post.data.title}
+                      loading="lazy"
+                      class="h-[150px] w-full rounded-md border border-zinc-200 object-cover"
+                    />
+                    <p class="text-[11px] uppercase leading-none tracking-[0.05em] text-zinc-500">{toCategory(post.data.tags)}</p>
+                    <h3 class="line-clamp-2 text-[20px] font-semibold leading-[1.2] text-zinc-900">{post.data.title}</h3>
+                    <p class="line-clamp-2 text-sm leading-[1.5] text-zinc-600">{post.data.description || 'Open article'}</p>
                   </a>
                 ))}
               </div>
             ) : (
-              <p class="border-y border-line py-4 text-[15px] text-zinc-600">연결할 기술 글을 준비 중입니다. 전체 글은 Posts에서 확인할 수 있습니다.</p>
-            )}
-
-            <a href="/posts" class="inline-flex h-10 w-fit items-center justify-center rounded-md border border-zinc-900 px-4 text-sm font-semibold text-zinc-950 transition hover:bg-zinc-950 hover:text-white">
-              전체 글 보기
-            </a>
-          </div>
-        </article>
-
-        <aside class="grid gap-5">
-          <article class="rounded-lg border border-line bg-page p-5 shadow-soft">
-            <p class="text-[13px] font-semibold text-zinc-500">Profile</p>
-            <h3 class="mt-2 text-[24px] font-bold text-zinc-950">{resumeEducation.school}</h3>
-            <p class="mt-1 text-[15px] leading-[1.6] text-zinc-700">{resumeEducation.major} · {resumeEducation.period} · {resumeEducation.detail}</p>
-
-            <details class="group mt-5 border-t border-line pt-4">
-              <summary class="flex cursor-pointer list-none items-center justify-between gap-4 text-[14px] font-semibold text-zinc-950">
-                활동과 기술 스택 보기
-                <span class="text-[18px] leading-none text-zinc-500 transition group-open:rotate-45">+</span>
-              </summary>
-              <div class="mt-4 grid gap-5">
-                <div class="grid gap-2">
-                  {resumeActivities.map((activity) => (
-                    <p class="text-[14px] leading-[1.6] text-zinc-700">{activity}</p>
-                  ))}
-                </div>
-                <div class="grid gap-3">
-                  {resumeSkillGroups.map((group) => (
-                    <div>
-                      <p class="text-[13px] font-semibold text-zinc-500">{group.title}</p>
-                      <div class="mt-2 flex flex-wrap gap-2">
-                        {group.items.map((item) => (
-                          <span class="rounded-md border border-line bg-soft px-2.5 py-1 text-[12px] font-semibold text-zinc-700">{item}</span>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              <div class="grid min-h-[132px] place-items-center rounded-card border border-line bg-elevated px-5 py-6 text-center text-[15px] text-zinc-500 shadow-soft">
+                고정된 글을 준비 중입니다.
               </div>
-            </details>
-          </article>
+            )}
+          </div>
 
-          <article class="rounded-lg border border-line bg-page p-5 shadow-soft">
-            <p class="text-[13px] font-semibold text-zinc-500">Contact</p>
-            <h3 class="mt-2 break-keep text-[24px] font-bold leading-[1.25] text-zinc-950">제품 문제를 깊게 파고드는 프론트엔드 개발자입니다.</h3>
-            <div class="mt-5 grid gap-2">
-              <a href={`mailto:${portfolioProfile.email}`} class="rounded-md bg-zinc-950 px-4 py-2.5 text-center text-[14px] font-semibold text-white transition hover:bg-zinc-800">
-                Email
-              </a>
-              <a href={portfolioProfile.github} target="_blank" rel="noopener noreferrer" class="rounded-md border border-line bg-soft px-4 py-2.5 text-center text-[14px] font-semibold text-zinc-800 transition hover:border-zinc-400">
-                GitHub
-              </a>
+          <section
+            class="-mx-4 -mb-6 bg-zinc-950 px-4 py-8 text-zinc-100 md:-mx-8 md:-mb-9 md:px-8 md:py-10"
+            aria-labelledby="recent-posts-title"
+            data-recent-posts-root
+            data-initial-count={RECENT_POSTS_INITIAL_COUNT}
+            data-page-size={RECENT_POSTS_PAGE_SIZE}
+          >
+            <div class="mb-7 flex items-center justify-between gap-4 md:mb-9">
+              <h2 id="recent-posts-title" class="text-[28px] font-semibold leading-none tracking-[-0.02em] md:text-[34px]">Recent Posts</h2>
+              <a href="/posts" class="shrink-0 text-[15px] font-medium text-zinc-400 transition hover:text-white md:text-[17px]">View all →</a>
             </div>
-          </article>
-        </aside>
-      </section>
-    </div>
+
+            {recentPosts.length > 0 ? (
+              <div class="grid" data-recent-posts-list>
+                {recentPosts.map((post, index) => (
+                  <a
+                    href={`/blog/${post.slug}`}
+                    class={`group grid gap-5 border-b border-white/15 py-7 first:pt-0 last:pb-0 md:grid-cols-[minmax(0,1fr)_220px] md:items-center md:gap-8 ${index >= RECENT_POSTS_INITIAL_COUNT ? 'hidden' : ''}`}
+                    data-recent-post-item
+                  >
+                    <div class="min-w-0">
+                      <p class="text-[14px] font-medium text-zinc-400 md:text-[15px]">{toRecentCategory(post.data.tags)}</p>
+                      <h3 class="mt-4 text-balance text-[25px] font-semibold leading-[1.22] tracking-[-0.02em] text-zinc-100 transition group-hover:text-white md:text-[32px]">
+                        {post.data.title}
+                      </h3>
+                      <p class="mt-3 max-w-[760px] text-[15px] leading-[1.58] text-zinc-400 md:text-[17px]">
+                        {post.data.description || '글을 읽어보세요.'}
+                      </p>
+                      <time datetime={post.data.pubDate.toISOString()} class="mt-8 block text-[15px] font-medium text-zinc-500 md:text-[17px]">
+                        {formatRecentDate(post.data.pubDate)}
+                      </time>
+                    </div>
+                    <img
+                      src={post.data.heroImage || '/images/editorial-fallback.svg'}
+                      alt={post.data.title}
+                      loading="lazy"
+                      class="h-[150px] w-full rounded-md border border-white/10 object-cover opacity-90 transition group-hover:opacity-100 md:h-[118px] md:w-[220px]"
+                    />
+                  </a>
+                ))}
+                {recentPosts.length > RECENT_POSTS_INITIAL_COUNT && (
+                  <div class="mt-7 grid place-items-center border border-white/10 bg-white/[0.03] px-4 py-4 text-center text-[14px] text-zinc-500" data-recent-posts-sentinel>
+                    스크롤하면 글을 더 불러옵니다.
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div class="grid min-h-[132px] place-items-center border-y border-white/15 px-5 py-8 text-center text-[15px] text-zinc-400">
+                최근 글을 준비 중입니다.
+              </div>
+            )}
+          </section>
+        </section>
+
+      </div>
+    </section>
   </main>
 
   <Footer />
+
+  <script>
+    const recentPostsRoot = document.querySelector('[data-recent-posts-root]');
+    const recentPostItems = Array.from(recentPostsRoot?.querySelectorAll('[data-recent-post-item]') ?? []);
+    const recentPostSentinel = recentPostsRoot?.querySelector('[data-recent-posts-sentinel]');
+    const initialRecentPostCount = Number(recentPostsRoot?.getAttribute('data-initial-count') ?? 6);
+    const recentPostsPageSize = Number(recentPostsRoot?.getAttribute('data-page-size') ?? 4);
+
+    if (recentPostItems.length === 0 || !recentPostSentinel) {
+      recentPostSentinel?.setAttribute('hidden', '');
+    } else {
+      let visibleRecentPostCount = initialRecentPostCount;
+      let recentPostObserver: IntersectionObserver | undefined;
+
+      const revealRecentPosts = () => {
+        const nextVisibleCount = Math.min(visibleRecentPostCount + recentPostsPageSize, recentPostItems.length);
+
+        for (let index = visibleRecentPostCount; index < nextVisibleCount; index += 1) {
+          recentPostItems[index]?.classList.remove('hidden');
+        }
+
+        visibleRecentPostCount = nextVisibleCount;
+
+        if (visibleRecentPostCount >= recentPostItems.length) {
+          recentPostSentinel.setAttribute('hidden', '');
+          recentPostObserver?.disconnect();
+        }
+      };
+
+      if ('IntersectionObserver' in window) {
+        recentPostObserver = new IntersectionObserver(
+          (entries) => {
+            if (entries.some((entry) => entry.isIntersecting)) {
+              revealRecentPosts();
+            }
+          },
+          { rootMargin: '360px 0px' }
+        );
+
+        recentPostObserver.observe(recentPostSentinel);
+      } else {
+        recentPostItems.forEach((item) => item.classList.remove('hidden'));
+        recentPostSentinel.setAttribute('hidden', '');
+      }
+    }
+  </script>
 </BaseLayout>
