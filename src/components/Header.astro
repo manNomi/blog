@@ -1,65 +1,69 @@
 ---
 const navItems = [
-  { href: '/posts', label: 'All Posts' },
-  { href: '/tags', label: 'Tags' },
-  { href: '/saju', label: 'Saju' },
-  { href: '/saju-dice', label: 'Dice' }
+  { href: '/#experience', label: 'Experience' },
+  { href: '/#i18nexus', label: 'I18Nexus' },
+  { href: '/#open-source', label: 'Open Source' },
+  { href: '/#projects', label: 'Projects' },
+  { href: '/posts', label: 'Posts' }
 ];
 ---
 
-<header class="fixed inset-x-0 top-0 z-50 border-b border-line/90 bg-page/95 backdrop-blur">
-  <div class="container-shell flex h-[62px] items-center justify-between gap-4 md:h-[64px]">
-    <a class="inline-flex min-w-0 flex-col" href="/" aria-label="Nomi Journal Home">
-      <span class="truncate text-[17px] font-bold leading-none tracking-[-0.02em] text-zinc-900">Nomi Journal</span>
-      <span class="mt-0.5 hidden text-[11px] text-zinc-500 md:block">Editorial Developer Notes</span>
-    </a>
+<header class="sticky top-0 z-50 py-3">
+  <div class="container-shell">
+    <div class="relative overflow-hidden rounded-full border border-white/60 bg-page/80 px-4 py-3 shadow-soft backdrop-blur-xl ring-1 ring-zinc-950/[0.04] md:px-5">
+      <div class="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/80 to-white/30"></div>
+      <div class="relative z-10 flex items-center justify-between gap-4">
+        <a class="inline-flex min-w-0 flex-col" href="/" aria-label="Han Manwook Portfolio Home">
+          <span class="truncate text-[17px] font-bold leading-none text-zinc-950">Han Manwook</span>
+          <span class="mt-0.5 hidden text-[11px] text-zinc-500 md:block">Frontend Portfolio</span>
+        </a>
 
-    <nav class="hidden md:block" aria-label="Primary">
-      <ul class="flex items-center gap-1">
-        {navItems.map((item) => (
-          <li>
-            <a
-              href={item.href}
-              class="inline-flex h-8 items-center justify-center rounded-full border border-transparent px-3 text-[13px] text-zinc-600 transition hover:border-line hover:bg-soft hover:text-zinc-900"
-            >
-              {item.label}
-            </a>
-          </li>
-        ))}
-      </ul>
-    </nav>
+        <nav class="hidden md:block" aria-label="Primary">
+          <ul class="flex items-center gap-1">
+            {navItems.map((item) => (
+              <li>
+                <a
+                  href={item.href}
+                  class="inline-flex h-8 items-center justify-center rounded-md px-3 text-[13px] font-medium text-zinc-600 transition hover:bg-zinc-950 hover:text-white"
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
 
-    <button
-      type="button"
-      class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-line bg-soft text-zinc-700 transition hover:bg-zinc-200 md:hidden"
-      aria-expanded="false"
-      aria-controls="mobile-nav"
-      id="mobileNavToggle"
+        <button
+          type="button"
+          class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-line bg-white text-zinc-700 transition hover:bg-zinc-100 md:hidden"
+          aria-expanded="false"
+          aria-controls="mobile-nav"
+          id="mobileNavToggle"
+        >
+          <span class="sr-only">Open navigation</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="4" y1="7" x2="20" y2="7"></line>
+            <line x1="4" y1="12" x2="20" y2="12"></line>
+            <line x1="4" y1="17" x2="20" y2="17"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div
+      class="max-h-0 overflow-hidden opacity-0 transition-all duration-300 ease-out md:hidden"
+      id="mobile-nav"
+      data-open="false"
     >
-      <span class="sr-only">Open navigation</span>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <line x1="4" y1="7" x2="20" y2="7"></line>
-        <line x1="4" y1="12" x2="20" y2="12"></line>
-        <line x1="4" y1="17" x2="20" y2="17"></line>
-      </svg>
-    </button>
-  </div>
-
-  <div
-    class="max-h-0 overflow-hidden border-t border-transparent bg-page opacity-0 transition-all duration-300 ease-out md:hidden"
-    id="mobile-nav"
-    data-open="false"
-  >
-    <div class="container-shell py-3">
-      <ul class="grid gap-2">
+      <ul class="mt-2 grid gap-2 rounded-lg border border-line bg-page/95 p-2 shadow-soft backdrop-blur">
         <li>
-          <a href="/" class="block rounded-md border border-line bg-surface px-3 py-2.5 text-sm text-zinc-700 transition hover:bg-zinc-100">
+          <a href="/" class="block rounded-md px-3 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100">
             Home
           </a>
         </li>
         {navItems.map((item) => (
           <li>
-            <a href={item.href} class="block rounded-md border border-line bg-surface px-3 py-2.5 text-sm text-zinc-700 transition hover:bg-zinc-100">
+            <a href={item.href} class="block rounded-md px-3 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100">
               {item.label}
             </a>
           </li>
@@ -82,13 +86,32 @@ const navItems = [
     mobileNav.classList.toggle('max-h-[420px]', open);
     mobileNav.classList.toggle('opacity-0', !open);
     mobileNav.classList.toggle('opacity-100', open);
-    mobileNav.classList.toggle('border-transparent', !open);
-    mobileNav.classList.toggle('border-line', open);
   };
 
   toggle?.addEventListener('click', () => {
     const isOpen = toggle.getAttribute('aria-expanded') === 'true';
     setOpen(!isOpen);
+  });
+
+  document.querySelectorAll('a[href*="#"]').forEach((anchor) => {
+    anchor.addEventListener('click', (event) => {
+      const href = anchor.getAttribute('href');
+      if (!href) return;
+
+      const targetUrl = new URL(href, window.location.href);
+      if (targetUrl.origin !== window.location.origin || targetUrl.pathname !== window.location.pathname || !targetUrl.hash) {
+        return;
+      }
+
+      const target = document.querySelector(targetUrl.hash);
+      if (!target) return;
+
+      event.preventDefault();
+      history.pushState(null, '', targetUrl.hash);
+      const top = target.getBoundingClientRect().top + window.scrollY - 96;
+      window.scrollTo({ top: Math.max(top, 0), behavior: 'smooth' });
+      setOpen(false);
+    });
   });
 
   window.addEventListener('resize', () => {

@@ -1,0 +1,236 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { portfolioProfile, portfolioProjects, type PortfolioProject } from '../../data/portfolio';
+
+export function getStaticPaths() {
+  return portfolioProjects.map((project) => ({
+    params: { slug: project.slug },
+    props: { project }
+  }));
+}
+
+const { project } = Astro.props as { project: PortfolioProject };
+const siteURL = Astro.site || Astro.url.origin;
+const projectURL = new URL(`/projects/${project.slug}`, siteURL).href;
+const ogImage = project.image.endsWith('.svg') ? '/images/portfolio-case-placeholder.png' : project.image;
+const title = `${project.title} | 한만욱 포트폴리오`;
+const description = `${project.summary} ${project.metrics.map((metric) => `${metric.label} ${metric.value}`).join(', ')}`;
+const projectJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CreativeWork',
+  '@id': `${projectURL}#case-study`,
+  url: projectURL,
+  name: project.title,
+  description,
+  inLanguage: 'ko-KR',
+  creator: {
+    '@type': 'Person',
+    name: portfolioProfile.name,
+    email: portfolioProfile.email,
+    sameAs: [portfolioProfile.github]
+  }
+};
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  keywords={[project.title, project.eyebrow, ...project.techStack]}
+  image={ogImage}
+  imageAlt={project.imageAlt}
+  canonicalURL={`/projects/${project.slug}`}
+  jsonLd={projectJsonLd}
+>
+  <Header />
+
+  <main class="pt-[62px] md:pt-[64px]">
+    <section class="relative isolate overflow-hidden bg-zinc-950 text-white">
+      <img
+        src={project.image}
+        alt=""
+        aria-hidden="true"
+        width={project.imageWidth}
+        height={project.imageHeight}
+        class="absolute inset-0 -z-20 h-full w-full object-cover opacity-[0.14]"
+      />
+      <div class="absolute inset-0 -z-10 bg-zinc-950/[0.84]"></div>
+
+      <div class="container-shell grid min-h-[520px] content-center gap-8 py-16 md:min-h-[640px] md:py-20">
+        <a href="/#work" class="w-fit text-sm font-semibold text-zinc-300 underline-offset-4 transition hover:text-white hover:underline">
+          프로젝트 목록으로
+        </a>
+        <div class="grid max-w-[980px] gap-5">
+          <p class="text-sm font-semibold text-emerald-300">{project.eyebrow} · {project.period}</p>
+          <h1 class="break-keep text-balance text-[40px] font-semibold leading-[1.08] sm:text-[54px] md:text-[72px]">{project.title}</h1>
+          <p class="max-w-[820px] text-[18px] font-medium leading-[1.62] text-zinc-100 md:text-[22px]">“{project.quote}”</p>
+          <p class="max-w-[760px] text-[16px] leading-[1.72] text-zinc-300 md:text-[18px]">{project.summary}</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="border-b border-line bg-page py-6">
+      <div class="container-shell grid gap-3 md:grid-cols-3">
+        {project.metrics.map((metric) => (
+          <div class="grid min-h-[136px] gap-2 rounded-lg border border-line bg-surface p-4">
+            <strong class="text-[32px] leading-none text-zinc-950">{metric.value}</strong>
+            <span class="text-[14px] font-semibold text-zinc-800">{metric.label}</span>
+            <p class="text-[13px] leading-[1.5] text-zinc-600">{metric.detail}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section class="bg-surface py-14 md:py-20">
+      <div class="container-shell grid gap-12 lg:grid-cols-[280px_minmax(0,1fr)] lg:gap-16">
+        <aside class="grid content-start gap-5">
+          <div class="rounded-lg border border-line bg-elevated p-5">
+            <h2 class="text-[18px] font-semibold text-zinc-950">Overview</h2>
+            <dl class="mt-4 grid gap-4 text-sm">
+              <div class="grid gap-1">
+                <dt class="text-zinc-500">기간</dt>
+                <dd class="font-semibold text-zinc-900">{project.period}</dd>
+              </div>
+              <div class="grid gap-1">
+                <dt class="text-zinc-500">역할</dt>
+                <dd class="font-semibold leading-[1.45] text-zinc-900">{project.role}</dd>
+              </div>
+              {project.team && (
+                <div class="grid gap-1">
+                  <dt class="text-zinc-500">팀</dt>
+                  <dd class="font-semibold text-zinc-900">{project.team}</dd>
+                </div>
+              )}
+              {project.contribution && (
+                <div class="grid gap-1">
+                  <dt class="text-zinc-500">기여</dt>
+                  <dd class="font-semibold text-zinc-900">{project.contribution}</dd>
+                </div>
+              )}
+            </dl>
+          </div>
+
+          <div class="rounded-lg border border-line bg-elevated p-5">
+            <h2 class="text-[18px] font-semibold text-zinc-950">Stack</h2>
+            <div class="mt-4 flex flex-wrap gap-2">
+              {project.techStack.map((tech) => (
+                <span class="rounded-md border border-line bg-soft px-3 py-1.5 text-[12px] font-medium text-zinc-700">{tech}</span>
+              ))}
+            </div>
+          </div>
+        </aside>
+
+        <div class="grid gap-12">
+          <figure class="grid gap-3">
+            <div class="overflow-hidden rounded-lg border border-line bg-zinc-100">
+              <img
+                src={project.image}
+                alt={project.imageAlt}
+                width={project.imageWidth}
+                height={project.imageHeight}
+                class="aspect-[16/10] w-full object-cover"
+              />
+            </div>
+            <figcaption class="text-[13px] text-zinc-500">
+              실제 프로젝트 이미지는 추후 교체할 수 있도록 고정 비율로 배치했습니다.
+            </figcaption>
+          </figure>
+
+          <section class="grid gap-5">
+            <p class="text-sm font-semibold text-zinc-500">Problem</p>
+            <h2 class="break-keep text-[30px] font-semibold leading-[1.16] text-zinc-950 md:text-[42px]">무엇이 어려웠나</h2>
+            <p class="text-[17px] leading-[1.78] text-zinc-700">{project.problem}</p>
+          </section>
+
+          <section class="grid gap-5">
+            <p class="text-sm font-semibold text-zinc-500">Contribution</p>
+            <h2 class="break-keep text-[30px] font-semibold leading-[1.16] text-zinc-950 md:text-[42px]">맡은 역할과 실제 기여</h2>
+            <div class="grid gap-3">
+              {project.contributions.map((item) => (
+                <div class="rounded-lg border border-line bg-elevated p-4">
+                  <p class="text-[15px] leading-[1.72] text-zinc-700">{item}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section class="grid gap-5">
+            <p class="text-sm font-semibold text-zinc-500">Approach</p>
+            <h2 class="break-keep text-[30px] font-semibold leading-[1.16] text-zinc-950 md:text-[42px]">어떻게 풀었나</h2>
+            <ol class="grid gap-3">
+              {project.approach.map((item, index) => (
+                <li class="grid gap-2 rounded-lg border border-line bg-soft p-4 sm:grid-cols-[44px_1fr]">
+                  <span class="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-950 text-sm font-semibold text-white">{index + 1}</span>
+                  <p class="text-[15px] leading-[1.72] text-zinc-700">{item}</p>
+                </li>
+              ))}
+            </ol>
+          </section>
+
+          <section class="grid gap-5">
+            <p class="text-sm font-semibold text-zinc-500">Impact</p>
+            <h2 class="break-keep text-[30px] font-semibold leading-[1.16] text-zinc-950 md:text-[42px]">성과</h2>
+            <div class="overflow-hidden rounded-lg border border-line bg-elevated">
+              {project.results.map((result, index) => (
+                <div class={`grid gap-3 p-4 md:grid-cols-[1fr_1fr_1fr] ${index > 0 ? 'border-t border-line' : ''}`}>
+                  <div>
+                    <p class="text-[12px] text-zinc-500">항목</p>
+                    <p class="mt-1 font-semibold text-zinc-950">{result.label}</p>
+                  </div>
+                  <div>
+                    <p class="text-[12px] text-zinc-500">{result.before ? '이전' : '결과'}</p>
+                    <p class="mt-1 text-[15px] text-zinc-700">{result.before || result.after}</p>
+                  </div>
+                  <div>
+                    <p class="text-[12px] text-zinc-500">{result.before ? '개선 후' : '효과'}</p>
+                    <p class="mt-1 text-[15px] font-semibold text-zinc-950">{result.before ? result.after : result.effect}</p>
+                    {result.before && result.effect && <p class="mt-1 text-[13px] text-zinc-500">{result.effect}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section class="grid gap-5">
+            <p class="text-sm font-semibold text-zinc-500">Highlights</p>
+            <h2 class="break-keep text-[30px] font-semibold leading-[1.16] text-zinc-950 md:text-[42px]">핵심 구현 포인트</h2>
+            <div class="grid gap-3 md:grid-cols-3">
+              {project.highlights.map((highlight) => (
+                <div class="rounded-lg border border-line bg-elevated p-4">
+                  <p class="text-[15px] leading-[1.65] text-zinc-700">{highlight}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section class="grid gap-4 rounded-lg border border-zinc-900 bg-zinc-950 p-5 text-white md:p-7">
+            <p class="text-sm font-semibold text-emerald-300">Takeaway</p>
+            <p class="text-[20px] font-semibold leading-[1.45] md:text-[26px]">{project.takeaway}</p>
+            <div class="flex flex-wrap gap-3 pt-2">
+              {project.links.length > 0 ? (
+                project.links.map((link) => (
+                  <a
+                    href={link.href}
+                    target={link.external ? '_blank' : undefined}
+                    rel={link.external ? 'noopener noreferrer' : undefined}
+                    class="inline-flex h-10 items-center justify-center rounded-md bg-white px-4 text-sm font-semibold text-zinc-950 transition hover:bg-zinc-200"
+                  >
+                    {link.label}
+                  </a>
+                ))
+              ) : (
+                <span class="inline-flex h-10 items-center rounded-md border border-white/20 px-4 text-sm text-zinc-300">관련 링크 준비 중</span>
+              )}
+              <a href="/#contact" class="inline-flex h-10 items-center justify-center rounded-md border border-white/[0.24] px-4 text-sm font-semibold text-white transition hover:bg-white/10">
+                연락하기
+              </a>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</BaseLayout>
