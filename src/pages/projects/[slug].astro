@@ -17,6 +17,7 @@ const nextProject = portfolioProjects[(currentIndex + 1) % portfolioProjects.len
 const siteURL = Astro.site || Astro.url.origin;
 const projectURL = new URL(`/projects/${project.slug}`, siteURL).href;
 const ogImage = project.image.endsWith('.svg') ? '/images/portfolio-case-placeholder.png' : project.image;
+const hasProjectImage = !project.image.includes('portfolio-case-placeholder');
 const title = `${project.title} | 한만욱 포트폴리오`;
 const description = `${project.summary} ${project.metrics.map((metric) => `${metric.label} ${metric.value}`).join(', ')}`;
 const projectJsonLd = {
@@ -81,15 +82,19 @@ const projectJsonLd = {
         </div>
       </header>
 
-      <img
-        src={project.image}
-        alt={project.imageAlt}
-        width={project.imageWidth}
-        height={project.imageHeight}
-        class="project-cover mb-2 rounded-[18px]"
-        loading="eager"
-        decoding="async"
-      />
+      {hasProjectImage ? (
+        <img
+          src={project.image}
+          alt={project.imageAlt}
+          width={project.imageWidth}
+          height={project.imageHeight}
+          class="project-cover mb-2 rounded-[18px]"
+          loading="eager"
+          decoding="async"
+        />
+      ) : (
+        <div class="ph mb-2 rounded-[18px]" data-label={`${project.slug} — cover`} style="aspect-ratio: 16 / 7;"></div>
+      )}
 
       <section class="py-9 pb-1">
         <div class="metric-3">

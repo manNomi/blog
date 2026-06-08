@@ -64,7 +64,7 @@ type PageProps = {
 const { post, previousPost, nextPost, relatedPosts = [] } = Astro.props as PageProps;
 const { Content } = await post.render();
 const readingTime = calculateReadingTime(post.body);
-const heroImage = post.data.heroImage || extractFirstImage(post.body) || '/images/placeholder.svg';
+const heroImage = post.data.heroImage || extractFirstImage(post.body) || undefined;
 ---
 
 <BlogPost

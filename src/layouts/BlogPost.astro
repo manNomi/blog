@@ -85,6 +85,9 @@ const collectionLabel = notes ? '노트 목록' : '글 목록';
             decoding="async"
           />
         )}
+        {!heroImage && (
+          <div class="ph my-8 rounded-2xl" data-label={notes ? 'note cover' : 'post cover'} style="aspect-ratio: 16 / 8;"></div>
+        )}
 
         {description && <p class="text-[1.18rem] leading-[1.8] tracking-[-0.01em]" style="color: var(--text);">{description}</p>}
 

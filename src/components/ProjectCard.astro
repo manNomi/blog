@@ -7,6 +7,7 @@ interface Props {
 }
 
 const { project, index } = Astro.props;
+const hasProjectImage = !project.image.includes('portfolio-case-placeholder');
 ---
 
 <a href={`/projects/${project.slug}`} class="project-card">
@@ -34,13 +35,17 @@ const { project, index } = Astro.props;
     </div>
   </div>
 
-  <img
-    src={project.image}
-    alt={project.imageAlt}
-    width={project.imageWidth}
-    height={project.imageHeight}
-    class="project-image rounded-[14px]"
-    loading="lazy"
-    decoding="async"
-  />
+  {hasProjectImage ? (
+    <img
+      src={project.image}
+      alt={project.imageAlt}
+      width={project.imageWidth}
+      height={project.imageHeight}
+      class="project-image rounded-[14px]"
+      loading="lazy"
+      decoding="async"
+    />
+  ) : (
+    <div class="ph rounded-[14px]" data-label={project.slug} style="aspect-ratio: 4 / 3;"></div>
+  )}
 </a>

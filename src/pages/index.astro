@@ -25,8 +25,8 @@ const formatDate = (date: Date) =>
     day: '2-digit'
   }).format(date);
 
-const fallbackPostImage = '/images/placeholder.svg';
-const getPostImage = (post: (typeof posts)[number]) => post.data.heroImage || extractFirstImage(post.body) || fallbackPostImage;
+const getPostImage = (post: (typeof posts)[number]) => post.data.heroImage || extractFirstImage(post.body) || undefined;
+const featuredPostImage = featuredPost ? getPostImage(featuredPost) : undefined;
 ---
 
 <BaseLayout title="한만욱 · Frontend Developer" description={portfolioProfile.intro}>
@@ -47,13 +47,17 @@ const getPostImage = (post: (typeof posts)[number]) => post.data.heroImage || ex
 
         {featuredPost && (
           <a href={`/blog/${featuredPost.slug}`} class="feat-card">
-            <img
-              src={getPostImage(featuredPost)}
-              alt={`${featuredPost.data.title} 대표 이미지`}
-              class="featured-image"
-              loading="eager"
-              decoding="async"
-            />
+            {featuredPostImage ? (
+              <img
+                src={featuredPostImage}
+                alt={`${featuredPost.data.title} 대표 이미지`}
+                class="featured-image"
+                loading="eager"
+                decoding="async"
+              />
+            ) : (
+              <div class="ph min-h-[320px] border-0 border-r" data-label="featured" style="border-color: var(--border);"></div>
+            )}
             <div class="flex flex-col justify-center gap-4 p-[clamp(26px,3vw,42px)]">
               <div class="flex flex-wrap items-center gap-2">
                 <span class="pill h-6 text-[0.64rem]" style="color: var(--text); border-color: var(--border-strong);">FEATURED POST</span>
@@ -92,6 +96,7 @@ const getPostImage = (post: (typeof posts)[number]) => post.data.heroImage || ex
         <div class="grid-2 grid gap-x-8 gap-y-[clamp(28px,3.5vw,52px)] md:grid-cols-2">
           {posts.map((post) => {
             const defaultVisible = defaultPostSlugs.has(post.slug);
+            const postImage = getPostImage(post);
             return (
             <a
               href={`/blog/${post.slug}`}
@@ -100,13 +105,17 @@ const getPostImage = (post: (typeof posts)[number]) => post.data.heroImage || ex
               data-default-visible={defaultVisible ? 'true' : 'false'}
               data-tags={(post.data.tags || []).join('|')}
             >
-              <img
-                src={getPostImage(post)}
-                alt={`${post.data.title} 썸네일`}
-                class="post-card-image rounded-2xl"
-                loading="lazy"
-                decoding="async"
-              />
+              {postImage ? (
+                <img
+                  src={postImage}
+                  alt={`${post.data.title} 썸네일`}
+                  class="post-card-image rounded-2xl"
+                  loading="lazy"
+                  decoding="async"
+                />
+              ) : (
+                <div class="ph rounded-2xl" data-label="post thumbnail" style="aspect-ratio: 16 / 10;"></div>
+              )}
               <div class="flex flex-col gap-2.5">
                 <div class="flex flex-wrap items-center gap-2">
                   {post.data.pinned && <span class="pill h-[22px] text-[0.62rem]" style="color: var(--text); border-color: var(--border-strong);">FEATURED</span>}
