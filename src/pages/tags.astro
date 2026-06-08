@@ -4,9 +4,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import PostCard from '../components/PostCard.astro';
-import { sortPostsByPubDateDesc } from '../utils/postFilters';
+import { getArticlePosts, isNotePost } from '../utils/postFilters';
 
-const allPosts = sortPostsByPubDateDesc(await getCollection('blog'));
+const allPosts = getArticlePosts(await getCollection('blog'));
 const allTags = [...new Set(allPosts.flatMap((post) => post.data.tags || []))].sort((a, b) => {
   const diff = allPosts.filter((post) => (post.data.tags || []).includes(b)).length - allPosts.filter((post) => (post.data.tags || []).includes(a)).length;
   return diff || a.localeCompare(b, 'ko-KR');
@@ -17,7 +17,7 @@ const tagCounts = allTags.reduce((acc, tag) => {
 }, {} as Record<string, number>);
 ---
 
-<BaseLayout title="태그 | 한만욱" description="주제별로 글과 노트를 탐색하세요.">
+<BaseLayout title="태그 | 한만욱" description="주제별로 일반 글을 탐색하세요.">
   <Header />
 
   <main class="site-main">
@@ -25,7 +25,7 @@ const tagCounts = allTags.reduce((acc, tag) => {
       <header class="page-head rise">
         <div class="eyebrow mb-[18px]">Browse by topic</div>
         <h1>태그</h1>
-        <p>주제별로 글과 노트를 탐색하세요.</p>
+        <p>주제별로 일반 글을 탐색하세요. 노트는 별도 Notes 페이지에서 관리합니다.</p>
       </header>
 
       <hr class="rule" />
@@ -66,7 +66,7 @@ const tagCounts = allTags.reduce((acc, tag) => {
                 pubDate={post.data.pubDate}
                 tags={post.data.tags}
                 pinned={post.data.pinned}
-                notes={post.data.notes}
+                notes={isNotePost(post)}
                 variant="compact"
               />
             </div>

@@ -4,7 +4,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import PostCard from '../components/PostCard.astro';
-import { getNotePosts } from '../utils/postFilters';
+import { getNotePosts, isNotePost } from '../utils/postFilters';
 
 const notes = getNotePosts(await getCollection('blog'));
 ---
@@ -34,7 +34,7 @@ const notes = getNotePosts(await getCollection('blog'));
                 pubDate={post.data.pubDate}
                 tags={post.data.tags}
                 pinned={post.data.pinned}
-                notes={post.data.notes}
+                notes={isNotePost(post)}
                 variant="compact"
               />
             </>

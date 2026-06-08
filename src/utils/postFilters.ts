@@ -2,7 +2,7 @@ import type { CollectionEntry } from 'astro:content';
 
 export type BlogEntry = CollectionEntry<'blog'>;
 
-export const isNotePost = (post: BlogEntry) => post.data.notes === true;
+export const isNotePost = (post: BlogEntry) => post.data.notes === true || post.data.note === true;
 
 export const isArticlePost = (post: BlogEntry) => !isNotePost(post);
 
