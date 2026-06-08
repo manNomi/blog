@@ -2,6 +2,7 @@
 title: "🗺️ 구글 지도 18개를 동시에 렌더링하려다 마주한 WebGL 지옥 탈출기"
 description: "다중지도 렌더링 해결프로세스 "
 pubDate: 2024-12-31T00:00:00.000Z
+tags: ["지도", "성능", "디버깅"]
 notionId: "2af7cf19-a364-80ed-8af5-f8bad16e275a"
 ---> mapId 하나 때문에 2주를 날린 이야기 - 벡터 지도부터 정적 지도까지의 여정
 
@@ -760,4 +761,3 @@ const monitorApiUsage = () => {
 - [WebGL Context Limits](https://webglstats.com/)
 
 _비슷한 문제로 고민하는 개발자들에게 이 글이 도움이 되길 바랍니다. 더 좋은 해결책이나 궁금한 점이 있다면 댓글로 공유해 주세요! 🙏_
-

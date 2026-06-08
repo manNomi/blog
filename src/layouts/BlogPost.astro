@@ -45,6 +45,7 @@ const formattedUpdatedDate = updatedDate
   : null;
 
 const safeTags = (tags || []).filter((tag): tag is string => Boolean(tag?.trim()));
+const toTagHref = (tag: string) => `/tags?tag=${encodeURIComponent(tag)}`;
 
 const articleBodyClass = [
   'article-body mx-auto w-full max-w-[760px] min-w-0 break-words text-[17px] leading-[1.88] text-zinc-800 md:text-[18px] md:leading-[1.9]',
@@ -101,7 +102,7 @@ const articleBodyClass = [
         {safeTags.length > 0 && (
           <nav class="mt-7 flex flex-wrap gap-2" aria-label="글 태그">
             {safeTags.map((tag) => (
-              <a href={`/tags?tag=${tag}`} class="inline-flex h-8 items-center rounded-full bg-zinc-100 px-3 text-[13px] font-medium text-zinc-600 transition hover:bg-zinc-200 hover:text-zinc-950">
+              <a href={toTagHref(tag)} class="inline-flex h-8 max-w-full items-center rounded-full bg-zinc-100 px-3 text-[13px] font-medium text-zinc-600 transition hover:bg-zinc-200 hover:text-zinc-950">
                 #{tag}
               </a>
             ))}

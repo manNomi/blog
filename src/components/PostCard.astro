@@ -10,6 +10,10 @@ interface Props {
 }
 
 const { title, description, slug, pubDate, tags = [], pinned = false, variant = 'list' } = Astro.props;
+const safeTags = tags.filter((tag) => tag.trim().length > 0);
+const visibleTags = safeTags.slice(0, 4);
+const hiddenTagCount = Math.max(safeTags.length - visibleTags.length, 0);
+const toTagHref = (tag: string) => `/tags?tag=${encodeURIComponent(tag)}`;
 
 const formattedDate = new Intl.DateTimeFormat('en-US', {
   month: 'short',
@@ -22,16 +26,35 @@ const titleSize = variant === 'compact' ? 'mt-2 text-[22px] leading-[1.22] md:te
 const descSize = variant === 'compact' ? 'mt-2 text-[15px] leading-[1.52]' : 'mt-2.5 text-[17px] leading-[1.55]';
 ---
 
-<article class="rounded-card border border-line bg-surface transition hover:-translate-y-0.5 hover:border-zinc-400 hover:bg-zinc-50">
-  <a href={`/blog/${slug}`} class={`block ${cardPadding}`}>
+<article class="group rounded-card border border-line bg-surface transition hover:-translate-y-0.5 hover:border-zinc-400 hover:bg-zinc-50">
+  <div class={`grid gap-3 ${cardPadding}`}>
     <div class="flex flex-wrap items-center gap-2 text-xs leading-[1.2] text-zinc-500">
       <span>{formattedDate}</span>
       {pinned && <span class="inline-flex h-5 items-center rounded-full border border-line bg-soft px-2 text-[11px] text-zinc-700">Featured</span>}
-      {tags.length > 0 && <span>{tags.slice(0, 2).join(' · ')}</span>}
     </div>
 
-    <h3 class={`font-semibold tracking-[-0.02em] text-zinc-900 ${titleSize}`}>{title}</h3>
+    <a href={`/blog/${slug}`} class="block">
+      <h3 class={`font-semibold tracking-[-0.02em] text-zinc-900 transition group-hover:text-zinc-600 ${titleSize}`}>{title}</h3>
 
-    {description && <p class={`line-clamp-2 text-zinc-700 ${descSize}`}>{description}</p>}
-  </a>
+      {description && <p class={`line-clamp-2 text-zinc-700 ${descSize}`}>{description}</p>}
+    </a>
+
+    {visibleTags.length > 0 && (
+      <nav class="flex flex-wrap gap-1.5 pt-0.5" aria-label="글 태그">
+        {visibleTags.map((tag) => (
+          <a
+            href={toTagHref(tag)}
+            class="inline-flex min-h-7 max-w-full items-center rounded-full border border-line bg-soft px-2.5 text-[12px] font-medium leading-none text-zinc-600 transition hover:border-zinc-400 hover:bg-zinc-200 hover:text-zinc-950"
+          >
+            <span class="truncate">#{tag}</span>
+          </a>
+        ))}
+        {hiddenTagCount > 0 && (
+          <span class="inline-flex min-h-7 items-center rounded-full border border-line bg-soft px-2.5 text-[12px] font-medium leading-none text-zinc-500">
+            +{hiddenTagCount}
+          </span>
+        )}
+      </nav>
+    )}
+  </div>
 </article>
