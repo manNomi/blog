@@ -81,7 +81,15 @@ const projectJsonLd = {
         </div>
       </header>
 
-      <div class="ph mb-2 rounded-[18px]" data-label={`${project.slug} — cover`} style="aspect-ratio: 16 / 7;"></div>
+      <img
+        src={project.image}
+        alt={project.imageAlt}
+        width={project.imageWidth}
+        height={project.imageHeight}
+        class="project-cover mb-2 rounded-[18px]"
+        loading="eager"
+        decoding="async"
+      />
 
       <section class="py-9 pb-1">
         <div class="metric-3">

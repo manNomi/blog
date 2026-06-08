@@ -34,5 +34,13 @@ const { project, index } = Astro.props;
     </div>
   </div>
 
-  <div class="ph rounded-[14px]" data-label={project.slug} style="aspect-ratio: 4 / 3;"></div>
+  <img
+    src={project.image}
+    alt={project.imageAlt}
+    width={project.imageWidth}
+    height={project.imageHeight}
+    class="project-image rounded-[14px]"
+    loading="lazy"
+    decoding="async"
+  />
 </a>

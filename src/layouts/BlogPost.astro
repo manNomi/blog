@@ -12,6 +12,7 @@ type NavPost = { title: string; slug: string } | null;
 type RelatedPost = { title: string; slug: string; description?: string; pubDate?: Date };
 type Props = CollectionEntry<'blog'>['data'] & {
   slug: string;
+  heroImage?: string;
   readingTime: number;
   previousPost?: NavPost;
   nextPost?: NavPost;
@@ -25,6 +26,7 @@ const {
   updatedDate,
   tags = [],
   slug,
+  heroImage,
   readingTime,
   previousPost = null,
   nextPost = null,
@@ -43,7 +45,14 @@ const collectionPath = notes ? '/notes' : '/';
 const collectionLabel = notes ? '노트 목록' : '글 목록';
 ---
 
-<BaseLayout title={`${title} - 한만욱`} description={description || '아티클 상세 페이지'} canonicalURL={`/blog/${slug}`} ogType="article">
+<BaseLayout
+  title={`${title} - 한만욱`}
+  description={description || '아티클 상세 페이지'}
+  image={heroImage}
+  imageAlt={`${title} 대표 이미지`}
+  canonicalURL={`/blog/${slug}`}
+  ogType="article"
+>
   <Header />
 
   <main class="site-main">
@@ -67,7 +76,15 @@ const collectionLabel = notes ? '노트 목록' : '글 목록';
           {tags.map((tag) => <a href={`/tags?tag=${encodeURIComponent(tag)}`} class="mono text-[0.7rem]" style="color: var(--text-faint);">#{tag}</a>)}
         </div>
 
-        <div class="ph my-8 rounded-2xl" data-label={notes ? 'note cover' : 'post cover'} style="aspect-ratio: 16 / 8;"></div>
+        {heroImage && (
+          <img
+            src={heroImage}
+            alt={`${title} 대표 이미지`}
+            class="post-cover my-8 rounded-2xl"
+            loading="eager"
+            decoding="async"
+          />
+        )}
 
         {description && <p class="text-[1.18rem] leading-[1.8] tracking-[-0.01em]" style="color: var(--text);">{description}</p>}
 
