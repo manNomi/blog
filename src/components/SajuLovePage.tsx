@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,6 +6,7 @@ import type { ExamResultFormat, FortuneType, LoveJobPublic, RelationshipStatus }
 
 const TIME_REGEX = /^([01]\d|2[0-3]):([0-5]\d)$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const BIRTH_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
 const requestFormSchema = z
   .object({
@@ -14,7 +15,7 @@ const requestFormSchema = z
     email: z.string().trim().email('올바른 이메일 형식을 입력해 주세요.'),
     gender: z.enum(['female', 'male']),
     calendarType: z.enum(['solar', 'lunar']),
-    birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '생년월일을 입력해 주세요.'),
+    birthDate: z.string().refine((value) => isValidBirthDate(value), 'YYYY-MM-DD 형식으로 생년월일을 입력해 주세요.'),
     birthTime: z.string(),
     birthTimeUnknown: z.boolean(),
     birthPlace: z.string().trim().min(2, '출생지는 2자 이상 입력해 주세요.').max(50, '출생지는 50자 이하로 입력해 주세요.'),
@@ -60,12 +61,14 @@ const requestFormSchema = z
 type RequestFormValues = z.infer<typeof requestFormSchema>;
 type Step = 'fortune' | 'input' | 'submitted';
 type FlowTarget = 'name' | 'birthDate' | 'birthTime' | 'details' | 'delivery' | 'review';
+type AdvanceableFlowTarget = Exclude<FlowTarget, 'review'>;
 
 type CreateResponse = {
   request: LoveJobPublic;
 };
 
 const REQUIRED_COUNT = 5;
+const flowOrder: FlowTarget[] = ['name', 'birthDate', 'birthTime', 'details', 'delivery', 'review'];
 
 const fortuneOptions: Array<{ value: FortuneType; label: string; description: string }> = [
   { value: 'exam', label: '시험운', description: '과목과 결과 기준에 맞춘 시험 흐름을 받아요.' },
@@ -94,6 +97,26 @@ async function parseJson<T>(response: Response): Promise<T> {
   }
 
   return payload as T;
+}
+
+function formatBirthDateInput(value: string) {
+  const digits = value.replace(/\D/g, '').slice(0, 8);
+
+  if (digits.length <= 4) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 4)}-${digits.slice(4)}`;
+  return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6)}`;
+}
+
+function isValidBirthDate(value: string) {
+  if (!BIRTH_DATE_REGEX.test(value)) return false;
+
+  const [yearText, monthText, dayText] = value.split('-');
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
+  const parsed = new Date(year, month - 1, day);
+
+  return parsed.getFullYear() === year && parsed.getMonth() === month - 1 && parsed.getDate() === day;
 }
 
 function statusText(status: LoveJobPublic['status']) {
@@ -154,8 +177,21 @@ function FlowCard({
   );
 }
 
+function FlowNextButton({ disabled, onClick }: { disabled: boolean; onClick: () => void }) {
+  if (disabled) return null;
+
+  return (
+    <div className="flex justify-end pt-2 animate-step-enter">
+      <button type="button" onClick={onClick} className="btn-pill-dark h-10 w-full transition-transform duration-200 hover:-translate-y-0.5 sm:w-fit">
+        다음
+      </button>
+    </div>
+  );
+}
+
 export default function SajuLovePage() {
   const [step, setStep] = useState<Step>('fortune');
+  const [visibleFlowTarget, setVisibleFlowTarget] = useState<FlowTarget>('name');
   const [requestState, setRequestState] = useState<LoveJobPublic | null>(null);
   const [notice, setNotice] = useState('');
   const [apiError, setApiError] = useState('');
@@ -204,22 +240,40 @@ export default function SajuLovePage() {
   const relationshipLabel = relationshipOptions.find((option) => option.value === selectedRelationship)?.label ?? '미선택';
   const examResultFormatLabel = examResultFormatOptions.find((option) => option.value === selectedExamResultFormat)?.label ?? '예상 학점';
 
-  const hasName = (watched.name?.trim().length ?? 0) >= 2 && (selectedGender === 'female' || selectedGender === 'male') && (selectedCalendarType === 'solar' || selectedCalendarType === 'lunar');
-  const hasBirthDate = /^\d{4}-\d{2}-\d{2}$/.test(watched.birthDate || '');
+  const nameLength = watched.name?.trim().length ?? 0;
+  const birthPlaceLength = watched.birthPlace?.trim().length ?? 0;
+  const hasName = nameLength >= 2 && nameLength <= 30 && (selectedGender === 'female' || selectedGender === 'male') && (selectedCalendarType === 'solar' || selectedCalendarType === 'lunar');
+  const hasBirthDate = isValidBirthDate(watched.birthDate || '');
   const hasBirthTime = Boolean(watched.birthTimeUnknown) || TIME_REGEX.test(watched.birthTime || '');
   const hasBasicInfo = hasName && hasBirthDate && hasBirthTime;
   const hasDetails =
     selectedFortuneType === 'exam'
-      ? Boolean(watched.examSubject?.trim()) && (selectedExamResultFormat === 'grade' || selectedExamResultFormat === 'score')
+      ? Boolean(watched.examSubject?.trim()) && (watched.examSubject?.trim().length ?? 0) <= 80 && (selectedExamResultFormat === 'grade' || selectedExamResultFormat === 'score')
       : selectedFortuneType === 'love'
         ? Boolean(selectedRelationship)
         : false;
-  const hasDelivery = EMAIL_REGEX.test(watched.email?.trim() || '') && (watched.birthPlace?.trim().length ?? 0) >= 2;
+  const hasDelivery = EMAIL_REGEX.test(watched.email?.trim() || '') && birthPlaceLength >= 2 && birthPlaceLength <= 50;
 
   const completedCount = [hasName, hasBirthDate, hasBirthTime, hasDetails, hasDelivery].filter(Boolean).length;
   const completionPercent = Math.round((completedCount / REQUIRED_COUNT) * 100);
 
-  const activeFlowTarget: FlowTarget = !hasName ? 'name' : !hasBirthDate ? 'birthDate' : !hasBirthTime ? 'birthTime' : !hasDetails ? 'details' : !hasDelivery ? 'delivery' : 'review';
+  const firstIncompleteFlowTarget: FlowTarget = !hasName ? 'name' : !hasBirthDate ? 'birthDate' : !hasBirthTime ? 'birthTime' : !hasDetails ? 'details' : !hasDelivery ? 'delivery' : 'review';
+  const visibleFlowIndex = flowOrder.indexOf(visibleFlowTarget);
+  const firstIncompleteFlowIndex = flowOrder.indexOf(firstIncompleteFlowTarget);
+  const renderedFlowTarget = firstIncompleteFlowIndex < visibleFlowIndex ? firstIncompleteFlowTarget : visibleFlowTarget;
+  const renderedFlowIndex = flowOrder.indexOf(renderedFlowTarget);
+  const activeFlowTarget = firstIncompleteFlowIndex <= renderedFlowIndex ? firstIncompleteFlowTarget : renderedFlowTarget;
+  const currentTargetComplete: Record<FlowTarget, boolean> = {
+    name: hasName,
+    birthDate: hasBirthDate,
+    birthTime: hasBirthTime,
+    details: hasDetails,
+    delivery: hasDelivery,
+    review: completionPercent === 100
+  };
+  const isFlowVisible = (target: FlowTarget) => flowOrder.indexOf(target) <= renderedFlowIndex;
+  const shouldShowNext = (target: AdvanceableFlowTarget) => step === 'input' && renderedFlowTarget === target && currentTargetComplete[target] && !isSubmitting;
+  const birthDateField = requestForm.register('birthDate');
 
   useEffect(() => {
     if (!notice) return;
@@ -234,16 +288,47 @@ export default function SajuLovePage() {
 
   useEffect(() => {
     if (step !== 'input') return;
-    if (previousFlowTarget.current === activeFlowTarget) return;
+    if (firstIncompleteFlowIndex < visibleFlowIndex) {
+      setVisibleFlowTarget(firstIncompleteFlowTarget);
+    }
+  }, [firstIncompleteFlowIndex, firstIncompleteFlowTarget, step, visibleFlowIndex]);
 
-    previousFlowTarget.current = activeFlowTarget;
+  useEffect(() => {
+    if (step !== 'input') return;
+    if (previousFlowTarget.current === visibleFlowTarget) return;
+
+    previousFlowTarget.current = visibleFlowTarget;
     window.setTimeout(() => {
-      const node = flowRefs.current[activeFlowTarget];
+      const node = flowRefs.current[visibleFlowTarget];
       node?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       const focusTarget = node?.querySelector<HTMLElement>('input:not([disabled]), textarea:not([disabled]), button:not([disabled])');
       focusTarget?.focus({ preventScroll: true });
     }, 120);
-  }, [activeFlowTarget, step]);
+  }, [step, visibleFlowTarget]);
+
+  const advanceFlow = async (target: AdvanceableFlowTarget) => {
+    if (isSubmitting) return;
+
+    const fieldsByTarget: Record<AdvanceableFlowTarget, Array<keyof RequestFormValues>> = {
+      name: ['name', 'gender', 'calendarType'],
+      birthDate: ['birthDate'],
+      birthTime: ['birthTime', 'birthTimeUnknown'],
+      details: selectedFortuneType === 'exam' ? ['examSubject', 'examResultFormat'] : ['relationshipStatus', 'concern'],
+      delivery: ['email', 'birthPlace']
+    };
+    const isValid = await requestForm.trigger(fieldsByTarget[target]);
+    if (!isValid || !currentTargetComplete[target]) return;
+
+    const nextTarget = flowOrder[flowOrder.indexOf(target) + 1] ?? target;
+    previousFlowTarget.current = null;
+    setVisibleFlowTarget(nextTarget);
+  };
+
+  const handleBirthDateChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatBirthDateInput(event.currentTarget.value);
+    event.currentTarget.value = formatted;
+    void birthDateField.onChange(event);
+  };
 
   const handleFortuneChange = (fortuneType: FortuneType) => {
     if (isSubmitting) return;
@@ -262,6 +347,7 @@ export default function SajuLovePage() {
     }
 
     previousFlowTarget.current = null;
+    setVisibleFlowTarget('name');
     setStep('input');
     window.setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 80);
   };
@@ -326,6 +412,7 @@ export default function SajuLovePage() {
       relationshipStatus: undefined
     });
     previousFlowTarget.current = null;
+    setVisibleFlowTarget('name');
     setRequestState(null);
     setNotice('');
     setApiError('');
@@ -346,7 +433,16 @@ export default function SajuLovePage() {
             </p>
           </div>
           {step === 'input' && (
-            <button type="button" className="pill w-fit" disabled={isSubmitting} onClick={() => setStep('fortune')}>
+            <button
+              type="button"
+              className="pill w-fit"
+              disabled={isSubmitting}
+              onClick={() => {
+                previousFlowTarget.current = null;
+                setVisibleFlowTarget('name');
+                setStep('fortune');
+              }}
+            >
               {fortuneLabel} 변경
             </button>
           )}
@@ -400,9 +496,9 @@ export default function SajuLovePage() {
         <form className="grid gap-4" onSubmit={submitRequest}>
           <FlowCard
             title="기본 정보를 입력해 주세요"
-            description="이름을 입력하면 생년월일, 생년월일을 입력하면 출생시간이 이어서 나타납니다."
+            description="입력한 값이 확인되면 다음 항목으로 이어집니다."
             complete={hasBasicInfo}
-            active={!hasBasicInfo}
+            active={activeFlowTarget === 'name' || activeFlowTarget === 'birthDate' || activeFlowTarget === 'birthTime'}
           >
             <div ref={(node) => { flowRefs.current.name = node; }} className="grid gap-3">
               <label className="grid gap-1.5">
@@ -462,23 +558,28 @@ export default function SajuLovePage() {
                   </div>
                 </div>
               </div>
+              <FlowNextButton disabled={!shouldShowNext('name')} onClick={() => void advanceFlow('name')} />
             </div>
 
-            {hasName && (
+            {isFlowVisible('birthDate') && (
               <label ref={(node) => { flowRefs.current.birthDate = node; }} className="grid gap-1.5 animate-step-enter">
                 <span className="text-sm font-medium text-[var(--text-dim)]">생년월일 *</span>
                 <input
-                  type="date"
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={10}
+                  placeholder="YYYY-MM-DD"
                   disabled={isSubmitting}
-                  {...requestForm.register('birthDate')}
-                  onInput={(event) => requestForm.setValue('birthDate', event.currentTarget.value, { shouldValidate: true, shouldDirty: true })}
+                  {...birthDateField}
+                  onChange={handleBirthDateChange}
                   className="saju-input"
                 />
                 <FieldError message={requestForm.formState.errors.birthDate?.message} />
+                <FlowNextButton disabled={!shouldShowNext('birthDate')} onClick={() => void advanceFlow('birthDate')} />
               </label>
             )}
 
-            {hasBirthDate && (
+            {isFlowVisible('birthTime') && (
               <div ref={(node) => { flowRefs.current.birthTime = node; }} className="grid gap-2 animate-step-enter">
                 <label className="grid gap-1.5">
                   <span className="text-sm font-medium text-[var(--text-dim)]">출생시간 *</span>
@@ -505,16 +606,17 @@ export default function SajuLovePage() {
                   />
                   출생시간을 모릅니다
                 </label>
+                <FlowNextButton disabled={!shouldShowNext('birthTime')} onClick={() => void advanceFlow('birthTime')} />
               </div>
             )}
           </FlowCard>
 
-          {hasBasicInfo && (
+          {isFlowVisible('details') && hasBasicInfo && (
             <FlowCard
               title={selectedFortuneType === 'exam' ? '시험 정보를 입력해 주세요' : '관계 상태를 선택해 주세요'}
               description={selectedFortuneType === 'exam' ? '과목과 결과 기준을 고르면 시험운 리포트가 맞춰집니다.' : '현재 상태를 고르고, 필요하면 고민을 짧게 남겨주세요.'}
               complete={hasDetails}
-              active={!hasDetails}
+              active={activeFlowTarget === 'details'}
               setNode={(node) => {
                 flowRefs.current.details = node;
               }}
@@ -556,6 +658,7 @@ export default function SajuLovePage() {
                       );
                     })}
                   </div>
+                  <FlowNextButton disabled={!shouldShowNext('details')} onClick={() => void advanceFlow('details')} />
                 </>
               ) : (
                 <>
@@ -602,17 +705,18 @@ export default function SajuLovePage() {
                     />
                     <FieldError message={requestForm.formState.errors.concern?.message} />
                   </label>
+                  <FlowNextButton disabled={!shouldShowNext('details')} onClick={() => void advanceFlow('details')} />
                 </>
               )}
             </FlowCard>
           )}
 
-          {hasDetails && (
+          {isFlowVisible('delivery') && hasDetails && (
             <FlowCard
               title="받을 곳을 입력해 주세요"
               description="분석 결과를 보낼 이메일과 출생지를 확인합니다."
               complete={hasDelivery}
-              active={!hasDelivery}
+              active={activeFlowTarget === 'delivery'}
               setNode={(node) => {
                 flowRefs.current.delivery = node;
               }}
@@ -630,10 +734,11 @@ export default function SajuLovePage() {
                   <FieldError message={requestForm.formState.errors.birthPlace?.message} />
                 </label>
               </div>
+              <FlowNextButton disabled={!shouldShowNext('delivery')} onClick={() => void advanceFlow('delivery')} />
             </FlowCard>
           )}
 
-          {hasDelivery && (
+          {isFlowVisible('review') && hasDelivery && (
             <FlowCard
               title="입력 내용을 확인해 주세요"
               description="제출 후 분석이 시작되며 완료된 결과는 이메일로 발송됩니다."
