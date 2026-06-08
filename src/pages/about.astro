@@ -1,0 +1,63 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { portfolioMetrics, portfolioProfile, resumeExperiences } from '../data/portfolio';
+---
+
+<BaseLayout title="소개 | 한만욱" description={portfolioProfile.intro}>
+  <Header />
+
+  <main class="site-main">
+    <div class="wrap">
+      <header class="page-head rise">
+        <div class="eyebrow mb-[18px]">About</div>
+        <h1>{portfolioProfile.name}</h1>
+        <p>{portfolioProfile.headline}</p>
+      </header>
+
+      <p class="m-0 max-w-[62ch] text-[1.05rem] leading-[1.75]" style="color: var(--text-dim);">{portfolioProfile.intro}</p>
+      <div class="focus-row mt-6">
+        {portfolioProfile.focus.map((item) => <span class="focus-chip">{item}</span>)}
+      </div>
+
+      <section class="mt-16">
+        <div class="eyebrow mb-[18px]">Selected impact</div>
+        <div class="grid border-t md:grid-cols-2" style="border-color: var(--border);">
+          {portfolioMetrics.map((metric) => (
+            <div class="border-b py-5 pr-6" style="border-color: var(--border);">
+              <div class="text-[1.7rem] font-bold leading-none tracking-[-0.03em]" style="color: var(--text);">{metric.value}</div>
+              <div class="mt-2 text-[0.9rem] font-semibold" style="color: var(--text);">{metric.label}</div>
+              <div class="mt-1 text-[0.82rem] leading-[1.5]" style="color: var(--text-faint);">{metric.detail}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section class="mt-16">
+        <div class="eyebrow mb-[18px]">Experience</div>
+        {resumeExperiences.map((experience) => (
+          <div class="flow-row !py-[26px]">
+            <div class="mono pt-1" style="color: var(--text-faint);">{experience.period}</div>
+            <div>
+              <h3 class="m-0 text-[1.15rem] font-bold tracking-[-0.02em]" style="color: var(--text);">{experience.company}</h3>
+              <div class="my-1 text-[0.9rem]" style="color: var(--text-dim);">{experience.role}</div>
+              <p class="m-0 max-w-[56ch] text-[0.95rem] leading-[1.6]" style="color: var(--text-dim);">{experience.description}</p>
+            </div>
+          </div>
+        ))}
+        <hr class="rule" />
+      </section>
+
+      <section class="mt-16">
+        <div class="eyebrow mb-[18px]">Contact</div>
+        <div class="flex flex-wrap gap-3">
+          <a href={`mailto:${portfolioProfile.email}`} class="pill h-9" style="color: var(--text); border-color: var(--border-strong);">{portfolioProfile.email}</a>
+          <a href={portfolioProfile.github} target="_blank" rel="noopener noreferrer" class="pill h-9" style="color: var(--text); border-color: var(--border-strong);">GitHub ↗</a>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <Footer />
+</BaseLayout>

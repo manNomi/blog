@@ -4,35 +4,56 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import PostCard from '../components/PostCard.astro';
+import { getArticlePosts } from '../utils/postFilters';
 
-const allPosts = (await getCollection('blog')).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const posts = getArticlePosts(await getCollection('blog'));
+const allTags = [...new Set(posts.flatMap((post) => post.data.tags || []))].sort((a, b) => a.localeCompare(b, 'ko-KR'));
+const tagCounts = allTags.reduce((acc, tag) => {
+  acc[tag] = posts.filter((post) => (post.data.tags || []).includes(tag)).length;
+  return acc;
+}, {} as Record<string, number>);
 ---
 
-<BaseLayout title="All Posts | Nomi Journal" description="Browse all published stories and concise engineering notes.">
+<BaseLayout title="글 | 한만욱" description="성능, 아키텍처 디버깅, DX 자동화, 오픈소스 문제를 추적하고 해결한 기록입니다.">
   <Header />
 
-  <main class="main-shell">
-    <section class="container-shell">
-      <header class="animate-fade-up border-b border-line pb-4 md:pb-5">
-        <p class="kicker">Archive</p>
-        <h1 class="mt-2 text-[46px] font-semibold leading-none tracking-[-0.03em] text-zinc-900 sm:text-[58px] md:text-[78px]">All Posts</h1>
-        <p class="mt-2 text-[16px] leading-[1.45] text-zinc-600 md:mt-3 md:text-[30px]">{allPosts.length} published stories.</p>
+  <main class="site-main">
+    <div class="wrap">
+      <header class="page-head rise">
+        <div class="eyebrow mb-[18px]">All writing · {posts.length}</div>
+        <h1>글</h1>
+        <p>성능, 아키텍처 디버깅, DX 자동화, 오픈소스 — 문제를 추적하고 해결한 기록입니다.</p>
       </header>
 
-      <section class="mt-3 grid animate-fade-up gap-2.5 md:mt-[18px] md:gap-2.5" aria-label="All posts list">
-        {allPosts.map((post) => (
-          <PostCard
-            title={post.data.title}
-            description={post.data.description}
-            slug={post.slug}
-            pubDate={post.data.pubDate}
-            tags={post.data.tags}
-            pinned={post.data.pinned}
-            variant="compact"
-          />
+      <div class="my-2 mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex flex-wrap gap-2">
+          <a href="/posts" class="pill" data-active="true">전체 <span class="opacity-60">{posts.length}</span></a>
+          {allTags.map((tag) => (
+            <a href={`/tags?tag=${encodeURIComponent(tag)}`} class="pill">{tag} <span class="opacity-60">{tagCounts[tag]}</span></a>
+          ))}
+        </div>
+      </div>
+
+      <hr class="rule" />
+
+      <div class="flex flex-col">
+        {posts.map((post, index) => (
+          <>
+            {index > 0 && <hr class="rule" />}
+            <PostCard
+              title={post.data.title}
+              description={post.data.description}
+              slug={post.slug}
+              pubDate={post.data.pubDate}
+              tags={post.data.tags}
+              pinned={post.data.pinned}
+              notes={post.data.notes}
+              variant="compact"
+            />
+          </>
         ))}
-      </section>
-    </section>
+      </div>
+    </div>
   </main>
 
   <Footer />

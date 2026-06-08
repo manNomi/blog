@@ -3,279 +3,165 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { extractFirstImage } from '../utils/extractFirstImage';
+import ProjectCard from '../components/ProjectCard.astro';
+import { portfolioProfile, portfolioProjects } from '../data/portfolio';
+import { getArticlePosts } from '../utils/postFilters';
 
-const allPosts = (await getCollection('blog'))
-  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-  .map((post) => {
-    if (!post.data.heroImage && post.body) {
-      const extractedImage = extractFirstImage(post.body);
-      return {
-        ...post,
-        data: {
-          ...post.data,
-          heroImage: extractedImage || undefined
-        }
-      };
-    }
+const posts = getArticlePosts(await getCollection('blog'));
+const featuredPost = posts.find((post) => post.data.pinned) || posts[0];
+const restPosts = posts.filter((post) => post.slug !== featuredPost?.slug);
+const defaultPostSlugs = new Set(restPosts.slice(0, 8).map((post) => post.slug));
+const allTags = [...new Set(posts.flatMap((post) => post.data.tags || []))].sort((a, b) => a.localeCompare(b, 'ko-KR'));
+const tagCounts = allTags.reduce((acc, tag) => {
+  acc[tag] = posts.filter((post) => (post.data.tags || []).includes(tag)).length;
+  return acc;
+}, {} as Record<string, number>);
 
-    return post;
-  });
-
-const pinnedPosts = allPosts.filter((post) => post.data.pinned);
-const featuredPosts = pinnedPosts.slice(0, 4);
-const recentPosts = allPosts.filter((post) => !post.data.pinned);
-const RECENT_POSTS_INITIAL_COUNT = 6;
-const RECENT_POSTS_PAGE_SIZE = 4;
-const siteURL = Astro.site || Astro.url.origin;
-const homeURL = new URL('/', siteURL).href;
-const ogImageURL = new URL('/og-image.png', siteURL).href;
-const seoTitle = '한만욱의 이모저모';
-const seoDescription = '프론트엔드 개발과 일상에 대해서 이야기를 적고 있습니다.';
-const seoKeywords = ['프론트엔드', '웹 성능', 'React', 'Astro', '웹뷰', '개발 블로그', '한만욱'];
-const homeJsonLd = {
-  '@context': 'https://schema.org',
-  '@graph': [
-    {
-      '@type': 'WebSite',
-      '@id': `${homeURL}#website`,
-      url: homeURL,
-      name: 'Nomi Journal',
-      inLanguage: 'ko-KR',
-      description: seoDescription,
-      publisher: {
-        '@id': `${homeURL}#person`
-      }
-    },
-    {
-      '@type': 'Person',
-      '@id': `${homeURL}#person`,
-      name: '한만욱',
-      url: homeURL,
-      sameAs: ['https://github.com/manNomi']
-    },
-    {
-      '@type': 'Blog',
-      '@id': `${homeURL}#blog`,
-      url: homeURL,
-      name: '한만욱의 이모저모',
-      description: seoDescription,
-      image: ogImageURL,
-      inLanguage: 'ko-KR',
-      author: {
-        '@id': `${homeURL}#person`
-      }
-    }
-  ]
-};
-
-const toCategory = (tags: string[] | undefined) => {
-  if (!tags || tags.length === 0) return 'Editorial';
-  return tags[0].toUpperCase();
-};
-
-const recentDateFormatter = new Intl.DateTimeFormat('en-US', {
-  month: 'short',
-  day: 'numeric',
-  year: 'numeric'
-});
-
-const formatRecentDate = (date: Date) => recentDateFormatter.format(date);
-const toRecentCategory = (tags: string[] | undefined) => tags?.[0] || '에세이';
+const formatDate = (date: Date) =>
+  new Intl.DateTimeFormat('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(date);
 ---
 
-<BaseLayout
-  title={seoTitle}
-  description={seoDescription}
-  keywords={seoKeywords}
-  image="/og-image.png"
-  imageAlt="한만욱의 이모저모 Nomi Journal"
-  canonicalURL="/"
-  jsonLd={homeJsonLd}
->
+<BaseLayout title="한만욱 · Frontend Developer" description={portfolioProfile.intro}>
   <Header />
 
-  <main class="main-shell">
-    <section class="container-shell">
-      <div class="grid animate-fade-up gap-10 md:gap-14 lg:gap-[70px]">
-        <section class="page-card grid gap-10 overflow-hidden px-4 py-6 md:gap-12 md:px-8 md:py-9">
-          <div class="grid justify-items-center gap-6 text-center">
-            <h1 class="max-w-[860px] text-balance text-[42px] font-semibold leading-[1.02] tracking-[-0.03em] text-zinc-900 sm:text-[56px] md:text-[72px] lg:text-[86px]">
-              한만욱의 이모저모
-            </h1>
-            <p class="max-w-[760px] text-balance text-[15px] leading-[1.55] text-zinc-600 md:text-lg">
-              프론트엔드 개발과 일상에 대해서 이야기를 적고 있습니다.
-            </p>
+  <main class="site-main">
+    <div class="wrap">
+      <section class="rise pt-[clamp(44px,7vw,84px)] pb-[clamp(28px,4vw,48px)]">
+        <div class="mb-[34px] flex flex-wrap items-end justify-between gap-5">
+          <h1 class="m-0 max-w-[22ch] text-[clamp(1.6rem,3.4vw,2.3rem)] font-bold leading-[1.25] tracking-[-0.035em]" style="color: var(--text);">
+            {portfolioProfile.headline}
+          </h1>
+
+          <div class="focus-row max-w-[280px] justify-end">
+            {portfolioProfile.focus.map((item) => <span class="focus-chip">{item}</span>)}
+          </div>
+        </div>
+
+        {featuredPost && (
+          <a href={`/blog/${featuredPost.slug}`} class="feat-card">
+            <div class="ph min-h-[320px] border-0 border-r" data-label="featured" style="border-color: var(--border);"></div>
+            <div class="flex flex-col justify-center gap-4 p-[clamp(26px,3vw,42px)]">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="pill h-6 text-[0.64rem]" style="color: var(--text); border-color: var(--border-strong);">FEATURED POST</span>
+                <span class="mono">{formatDate(featuredPost.data.pubDate)}</span>
+              </div>
+              <h2 class="m-0 text-[clamp(1.5rem,2.6vw,2.1rem)] font-bold leading-[1.28] tracking-[-0.03em]" style="color: var(--text);">
+                {featuredPost.data.title}
+              </h2>
+              {featuredPost.data.description && <p class="m-0 text-base leading-[1.65]" style="color: var(--text-dim);">{featuredPost.data.description}</p>}
+              <div class="mt-1 flex flex-wrap gap-2">
+                {(featuredPost.data.tags || []).slice(0, 3).map((tag) => <span class="mono text-[0.68rem]">#{tag}</span>)}
+              </div>
+            </div>
+          </a>
+        )}
+      </section>
+
+      <hr class="rule" />
+
+      <section class="pt-10">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow mb-2">All writing · {posts.length}</div>
+            <h2 class="section-title">글</h2>
+          </div>
+          <a href="/tags" class="mono whitespace-nowrap" style="color: var(--text-dim);">태그 전체 →</a>
+        </div>
+
+        <div class="my-5 flex flex-wrap gap-2" data-home-tag-filter>
+          <button type="button" class="pill" data-home-tag="all" data-active="true">전체 <span class="opacity-60">{posts.length}</span></button>
+          {allTags.slice(0, 10).map((tag) => (
+            <button type="button" class="pill" data-home-tag={tag}>{tag} <span class="opacity-60">{tagCounts[tag]}</span></button>
+          ))}
+        </div>
+
+        <div class="grid-2 grid gap-x-8 gap-y-[clamp(28px,3.5vw,52px)] md:grid-cols-2">
+          {posts.map((post) => {
+            const defaultVisible = defaultPostSlugs.has(post.slug);
+            return (
             <a
-              href="/posts"
-              class="group flex w-full max-w-[860px] items-center justify-between gap-4 rounded-card border border-zinc-900 bg-zinc-900 px-4 py-3 text-left text-white shadow-soft transition duration-200 hover:-translate-y-0.5 hover:bg-zinc-800 md:px-5 md:py-4"
-              aria-label="블로그 포스팅 전체 보기"
+              href={`/blog/${post.slug}`}
+              class={`post-card ${defaultVisible ? '' : 'hidden'}`}
+              data-home-post
+              data-default-visible={defaultVisible ? 'true' : 'false'}
+              data-tags={(post.data.tags || []).join('|')}
             >
-              <span class="min-w-0">
-                <span class="block text-[11px] font-medium uppercase leading-none tracking-[0.14em] text-zinc-400">Blog Posts</span>
-                <span class="mt-1.5 block text-[17px] font-semibold leading-[1.25] tracking-[-0.01em] md:text-[20px]">블로그 포스팅 전체 보기</span>
-              </span>
-              <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-[18px] font-semibold text-zinc-900 transition duration-200 group-hover:translate-x-0.5" aria-hidden="true">
-                →
-              </span>
+              <div class="ph rounded-2xl" data-label="post thumbnail" style="aspect-ratio: 16 / 10;"></div>
+              <div class="flex flex-col gap-2.5">
+                <div class="flex flex-wrap items-center gap-2">
+                  {post.data.pinned && <span class="pill h-[22px] text-[0.62rem]" style="color: var(--text); border-color: var(--border-strong);">FEATURED</span>}
+                  <span class="mono">{formatDate(post.data.pubDate)}</span>
+                </div>
+                <h3 class="post-title m-0 text-[1.2rem] font-bold leading-[1.32] tracking-[-0.025em]">{post.data.title}</h3>
+                {post.data.description && <p class="m-0 max-w-[44ch] text-[0.92rem] leading-[1.6]" style="color: var(--text-dim);">{post.data.description}</p>}
+                <div class="mt-0.5 flex flex-wrap gap-1.5">
+                  {(post.data.tags || []).slice(0, 3).map((tag) => <span class="mono text-[0.66rem]">#{tag}</span>)}
+                </div>
+              </div>
             </a>
+            );
+          })}
+        </div>
+        <p class="mono mt-8 hidden text-[0.78rem]" style="color: var(--text-faint);" data-home-filter-empty>
+          선택한 태그의 글이 없습니다.
+        </p>
+      </section>
+
+      <section class="pt-[84px]">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow mb-2">Case studies · {portfolioProjects.length}</div>
+            <h2 class="section-title">프로젝트</h2>
           </div>
+          <a href="/projects" class="mono whitespace-nowrap" style="color: var(--text-dim);">전체 보기 →</a>
+        </div>
 
-          <section class="relative overflow-hidden rounded-card border border-line bg-soft px-4 py-4 text-left md:px-5 md:py-5" aria-label="처음 방문자를 위한 사주 안내">
-            <span class="pointer-events-none absolute right-5 top-5 h-2 w-2 animate-float-dot rounded-full bg-[#c3b8a8]" aria-hidden="true"></span>
-            <span class="pointer-events-none absolute right-9 top-8 h-1.5 w-1.5 animate-soft-pulse rounded-full bg-zinc-400" aria-hidden="true"></span>
-
-            <p class="kicker">First Visit</p>
-            <h2 class="mt-1.5 text-balance text-[22px] font-semibold leading-[1.28] tracking-[-0.02em] text-zinc-900 md:text-[26px]">
-              사주로 연애와 시험운을 볼수 있어요 !
-            </h2>
-            <p class="mt-2 text-[14px] leading-[1.58] text-zinc-600 md:text-[15px]">
-              간단한 입력후 전자우편 (이메일)로 보내드립니다!!
-            </p>
-
-            <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
-              <a href="/saju" class="btn-pill-dark w-full sm:w-auto">사주 보러가기</a>
-              <a href="/privacy" class="btn-pill-soft w-full sm:w-auto">처리방침 보기</a>
-            </div>
-          </section>
-
-          <div class="grid gap-5">
-            <h2 class="text-[28px] font-semibold leading-tight tracking-[-0.02em] text-zinc-900 md:text-[30px]">Pinned</h2>
-
-            {featuredPosts.length > 0 ? (
-              <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4 lg:gap-5">
-                {featuredPosts.map((post, index) => (
-                  <a
-                    href={`/blog/${post.slug}`}
-                    class="group grid gap-3 rounded-card border border-line bg-elevated p-4 shadow-soft transition duration-200 hover:-translate-y-0.5 hover:border-zinc-400"
-                    style={`animation-delay:${index * 60}ms`}
-                  >
-                    <img
-                      src={post.data.heroImage || '/images/editorial-fallback.svg'}
-                      alt={post.data.title}
-                      loading="lazy"
-                      class="h-[150px] w-full rounded-md border border-zinc-200 object-cover"
-                    />
-                    <span class="inline-flex w-fit max-w-full items-center rounded-full border border-line bg-soft px-2.5 py-1 text-[11px] font-semibold uppercase leading-none tracking-[0.05em] text-zinc-500">
-                      <span class="truncate">{toCategory(post.data.tags)}</span>
-                    </span>
-                    <h3 class="line-clamp-2 text-[20px] font-semibold leading-[1.2] text-zinc-900">{post.data.title}</h3>
-                    <p class="line-clamp-2 text-sm leading-[1.5] text-zinc-600">{post.data.description || 'Open article'}</p>
-                  </a>
-                ))}
-              </div>
-            ) : (
-              <div class="grid min-h-[132px] place-items-center rounded-card border border-line bg-elevated px-5 py-6 text-center text-[15px] text-zinc-500 shadow-soft">
-                고정된 글을 준비 중입니다.
-              </div>
-            )}
-          </div>
-
-          <section
-            class="-mx-4 -mb-6 bg-zinc-950 px-4 py-8 text-zinc-100 md:-mx-8 md:-mb-9 md:px-8 md:py-10 dark:bg-soft"
-            aria-labelledby="recent-posts-title"
-            data-recent-posts-root
-            data-initial-count={RECENT_POSTS_INITIAL_COUNT}
-            data-page-size={RECENT_POSTS_PAGE_SIZE}
-          >
-            <div class="mb-7 flex items-center justify-between gap-4 md:mb-9">
-              <h2 id="recent-posts-title" class="text-[28px] font-semibold leading-none tracking-[-0.02em] md:text-[34px]">Recent Posts</h2>
-              <a href="/posts" class="shrink-0 text-[15px] font-medium text-zinc-400 transition hover:text-white md:text-[17px]">View all →</a>
-            </div>
-
-            {recentPosts.length > 0 ? (
-              <div class="grid" data-recent-posts-list>
-                {recentPosts.map((post, index) => (
-                  <a
-                    href={`/blog/${post.slug}`}
-                    class={`group grid gap-5 border-b border-white/15 py-7 first:pt-0 last:pb-0 md:grid-cols-[minmax(0,1fr)_220px] md:items-center md:gap-8 dark:border-line ${index >= RECENT_POSTS_INITIAL_COUNT ? 'hidden' : ''}`}
-                    data-recent-post-item
-                  >
-                    <div class="min-w-0">
-                      <span class="inline-flex w-fit max-w-full items-center rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[12px] font-medium text-zinc-400 md:text-[13px] dark:border-line dark:bg-surface">
-                        <span class="truncate">{toRecentCategory(post.data.tags)}</span>
-                      </span>
-                      <h3 class="mt-4 text-balance text-[25px] font-semibold leading-[1.22] tracking-[-0.02em] text-zinc-100 transition group-hover:text-white md:text-[32px]">
-                        {post.data.title}
-                      </h3>
-                      <p class="mt-3 max-w-[760px] text-[15px] leading-[1.58] text-zinc-400 md:text-[17px]">
-                        {post.data.description || '글을 읽어보세요.'}
-                      </p>
-                      <time datetime={post.data.pubDate.toISOString()} class="mt-8 block text-[15px] font-medium text-zinc-500 md:text-[17px]">
-                        {formatRecentDate(post.data.pubDate)}
-                      </time>
-                    </div>
-                    <img
-                      src={post.data.heroImage || '/images/editorial-fallback.svg'}
-                      alt={post.data.title}
-                      loading="lazy"
-                      class="h-[150px] w-full rounded-md border border-white/10 object-cover opacity-90 transition group-hover:opacity-100 md:h-[118px] md:w-[220px] dark:border-line"
-                    />
-                  </a>
-                ))}
-                {recentPosts.length > RECENT_POSTS_INITIAL_COUNT && (
-                  <div class="mt-7 grid place-items-center border border-white/10 bg-white/[0.03] px-4 py-4 text-center text-[14px] text-zinc-500 dark:border-line dark:bg-surface" data-recent-posts-sentinel>
-                    스크롤하면 글을 더 불러옵니다.
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div class="grid min-h-[132px] place-items-center border-y border-white/15 px-5 py-8 text-center text-[15px] text-zinc-400 dark:border-line">
-                최근 글을 준비 중입니다.
-              </div>
-            )}
-          </section>
-        </section>
-
-      </div>
-    </section>
+        <div class="mt-5">
+          {portfolioProjects.map((project, index) => <ProjectCard project={project} index={index} />)}
+          <hr class="rule" />
+        </div>
+      </section>
+    </div>
   </main>
 
   <Footer />
-
-  <script>
-    const recentPostsRoot = document.querySelector('[data-recent-posts-root]');
-    const recentPostItems = Array.from(recentPostsRoot?.querySelectorAll('[data-recent-post-item]') ?? []);
-    const recentPostSentinel = recentPostsRoot?.querySelector('[data-recent-posts-sentinel]');
-    const initialRecentPostCount = Number(recentPostsRoot?.getAttribute('data-initial-count') ?? 6);
-    const recentPostsPageSize = Number(recentPostsRoot?.getAttribute('data-page-size') ?? 4);
-
-    if (recentPostItems.length === 0 || !recentPostSentinel) {
-      recentPostSentinel?.setAttribute('hidden', '');
-    } else {
-      let visibleRecentPostCount = initialRecentPostCount;
-      let recentPostObserver: IntersectionObserver | undefined;
-
-      const revealRecentPosts = () => {
-        const nextVisibleCount = Math.min(visibleRecentPostCount + recentPostsPageSize, recentPostItems.length);
-
-        for (let index = visibleRecentPostCount; index < nextVisibleCount; index += 1) {
-          recentPostItems[index]?.classList.remove('hidden');
-        }
-
-        visibleRecentPostCount = nextVisibleCount;
-
-        if (visibleRecentPostCount >= recentPostItems.length) {
-          recentPostSentinel.setAttribute('hidden', '');
-          recentPostObserver?.disconnect();
-        }
-      };
-
-      if ('IntersectionObserver' in window) {
-        recentPostObserver = new IntersectionObserver(
-          (entries) => {
-            if (entries.some((entry) => entry.isIntersecting)) {
-              revealRecentPosts();
-            }
-          },
-          { rootMargin: '360px 0px' }
-        );
-
-        recentPostObserver.observe(recentPostSentinel);
-      } else {
-        recentPostItems.forEach((item) => item.classList.remove('hidden'));
-        recentPostSentinel.setAttribute('hidden', '');
-      }
-    }
-  </script>
 </BaseLayout>
+
+<script>
+  const homeTagButtons = Array.from(document.querySelectorAll<HTMLElement>('[data-home-tag]'));
+  const homePostCards = Array.from(document.querySelectorAll<HTMLElement>('[data-home-post]'));
+  const homeFilterEmpty = document.querySelector<HTMLElement>('[data-home-filter-empty]');
+
+  const applyHomeTagFilter = (selectedTag: string) => {
+    let visibleCount = 0;
+
+    homeTagButtons.forEach((button) => {
+      if (button.getAttribute('data-home-tag') === selectedTag) {
+        button.setAttribute('data-active', 'true');
+      } else {
+        button.removeAttribute('data-active');
+      }
+    });
+
+    homePostCards.forEach((card) => {
+      const tags = (card.getAttribute('data-tags') || '').split('|').filter(Boolean);
+      const defaultVisible = card.getAttribute('data-default-visible') === 'true';
+      const shouldShow = selectedTag === 'all' ? defaultVisible : tags.includes(selectedTag);
+
+      card.classList.toggle('hidden', !shouldShow);
+      if (shouldShow) visibleCount += 1;
+    });
+
+    homeFilterEmpty?.classList.toggle('hidden', visibleCount > 0);
+  };
+
+  homeTagButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      applyHomeTagFilter(button.getAttribute('data-home-tag') || 'all');
+    });
+  });
+</script>
