@@ -141,7 +141,7 @@ function FlowCard({
   setNode?: (node: HTMLElement | null) => void;
 }) {
   return (
-    <section ref={setNode} className={`saju-card scroll-mt-[96px] animate-panel-reveal ${active ? 'saju-card--active' : ''}`}>
+    <section ref={setNode} className={`saju-card scroll-mt-[96px] px-5 py-5 animate-panel-reveal md:px-7 md:py-6 ${active ? 'saju-card--active' : ''}`}>
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="m-0 text-[1.25rem] font-semibold leading-[1.3] tracking-[-0.025em] text-[var(--text)]">{title}</h2>
@@ -705,10 +705,6 @@ export default function SajuLovePage() {
           </div>
         </section>
       )}
-
-      <section className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-xs leading-[1.65] text-[var(--text-dim)] md:text-[13px]">
-        요청 상태는 시스템 처리 순서에 따라 queued → processing → completed 또는 failed로 진행됩니다.
-      </section>
 
       <div className="pointer-events-none fixed right-4 top-24 z-[70] flex w-[min(92vw,360px)] flex-col gap-2">
         {notice && (
