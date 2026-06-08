@@ -5,6 +5,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import ProjectCard from '../components/ProjectCard.astro';
 import { portfolioProfile, portfolioProjects } from '../data/portfolio';
+import { extractFirstImage } from '../utils/extractFirstImage';
 import { getArticlePosts } from '../utils/postFilters';
 
 const posts = getArticlePosts(await getCollection('blog'));
@@ -23,6 +24,9 @@ const formatDate = (date: Date) =>
     month: '2-digit',
     day: '2-digit'
   }).format(date);
+
+const getPostImage = (post: (typeof posts)[number]) => post.data.heroImage || extractFirstImage(post.body) || undefined;
+const featuredPostImage = featuredPost ? getPostImage(featuredPost) : undefined;
 ---
 
 <BaseLayout title="한만욱 · Frontend Developer" description={portfolioProfile.intro}>
@@ -43,7 +47,17 @@ const formatDate = (date: Date) =>
 
         {featuredPost && (
           <a href={`/blog/${featuredPost.slug}`} class="feat-card">
-            <div class="ph min-h-[320px] border-0 border-r" data-label="featured" style="border-color: var(--border);"></div>
+            {featuredPostImage ? (
+              <img
+                src={featuredPostImage}
+                alt={`${featuredPost.data.title} 대표 이미지`}
+                class="featured-image"
+                loading="eager"
+                decoding="async"
+              />
+            ) : (
+              <div class="ph min-h-[320px] border-0 border-r" data-label="featured" style="border-color: var(--border);"></div>
+            )}
             <div class="flex flex-col justify-center gap-4 p-[clamp(26px,3vw,42px)]">
               <div class="flex flex-wrap items-center gap-2">
                 <span class="pill h-6 text-[0.64rem]" style="color: var(--text); border-color: var(--border-strong);">FEATURED POST</span>
@@ -82,6 +96,7 @@ const formatDate = (date: Date) =>
         <div class="grid-2 grid gap-x-8 gap-y-[clamp(28px,3.5vw,52px)] md:grid-cols-2">
           {posts.map((post) => {
             const defaultVisible = defaultPostSlugs.has(post.slug);
+            const postImage = getPostImage(post);
             return (
             <a
               href={`/blog/${post.slug}`}
@@ -90,7 +105,17 @@ const formatDate = (date: Date) =>
               data-default-visible={defaultVisible ? 'true' : 'false'}
               data-tags={(post.data.tags || []).join('|')}
             >
-              <div class="ph rounded-2xl" data-label="post thumbnail" style="aspect-ratio: 16 / 10;"></div>
+              {postImage ? (
+                <img
+                  src={postImage}
+                  alt={`${post.data.title} 썸네일`}
+                  class="post-card-image rounded-2xl"
+                  loading="lazy"
+                  decoding="async"
+                />
+              ) : (
+                <div class="ph ph--silent rounded-2xl" aria-label="이미지 없음" style="aspect-ratio: 16 / 10;"></div>
+              )}
               <div class="flex flex-col gap-2.5">
                 <div class="flex flex-wrap items-center gap-2">
                   {post.data.pinned && <span class="pill h-[22px] text-[0.62rem]" style="color: var(--text); border-color: var(--border-strong);">FEATURED</span>}
