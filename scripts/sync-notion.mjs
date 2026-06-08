@@ -534,7 +534,7 @@ function getPageProperty(page, propertyName) {
   }
 }
 
-function normalizeTagValues(rawTags, { splitText = false } = {}) {
+function normalizeTagList(rawTags) {
   const values = Array.isArray(rawTags) ? rawTags : [rawTags];
   const seen = new Set();
   const tags = [];
@@ -544,19 +544,16 @@ function normalizeTagValues(rawTags, { splitText = false } = {}) {
       continue;
     }
 
-    const candidates = splitText ? value.split(/[,;\n\r]+/) : [value];
-    for (const candidate of candidates) {
-      const tag = candidate.trim().replace(/^#+/, '').trim();
-      if (!tag) {
+    const parts = value
+      .split(/[,;\n\r]+/)
+      .map((tag) => tag.trim().replace(/^#+/, '').trim())
+      .filter(Boolean);
+
+    for (const tag of parts) {
+      if (seen.has(tag)) {
         continue;
       }
-
-      const key = tag.toLowerCase();
-      if (seen.has(key)) {
-        continue;
-      }
-
-      seen.add(key);
+      seen.add(tag);
       tags.push(tag);
     }
   }
@@ -572,14 +569,13 @@ function getPageTags(page, propertyName = 'Tags') {
 
   switch (property.type) {
     case 'multi_select':
-      return normalizeTagValues(
-        Array.isArray(property.multi_select) ? property.multi_select.map((item) => item?.name) : [],
-        { splitText: false },
+      return normalizeTagList(
+        Array.isArray(property.multi_select) ? property.multi_select.map((item) => item?.name) : []
       );
     case 'select':
-      return normalizeTagValues(property.select?.name || '', { splitText: false });
+      return normalizeTagList(property.select?.name || '');
     case 'rich_text':
-      return normalizeTagValues(richTextToPlainText(property.rich_text), { splitText: true });
+      return normalizeTagList(richTextToPlainText(property.rich_text));
     default:
       return [];
   }
@@ -773,6 +769,8 @@ async function syncNotion() {
       const heroImageUrl = getPageProperty(page, 'Cover');
       // Pinned 속성 안전하게 처리 (checkbox 타입)
       const pinned = getPageProperty(page, 'Pinned') === true;
+      // notes 속성은 Notion 체크박스 이름을 그대로 사용합니다.
+      const notes = getPageProperty(page, 'notes') === true;
       const previousFileEntry = previousFilesMap.get(page.id);
 
       console.log(`📝 처리 중: ${title}`);
@@ -947,6 +945,7 @@ async function syncNotion() {
         heroImage ? `heroImage: "${heroImage}"` : '',
         tags.length > 0 ? `tags: [${tags.map((tag) => `"${escapeYamlString(tag)}"`).join(', ')}]` : '',
         pinned ? `pinned: true` : '',
+        notes ? `notes: true` : '',
         `notionId: "${page.id}"`,
         '---',
         ''

@@ -1,92 +1,51 @@
 ---
+const pathname = Astro.url.pathname;
 const navItems = [
-  { href: '/posts', label: 'All Posts' },
-  { href: '/tags', label: 'Tags' },
-  { href: '/saju', label: 'Saju' }
+  { href: '/', label: '글', match: (path: string) => path === '/' || path.startsWith('/blog') || path.startsWith('/posts') || path.startsWith('/notes') },
+  { href: '/projects', label: '프로젝트', match: (path: string) => path.startsWith('/projects') },
+  { href: '/tags', label: '태그', match: (path: string) => path.startsWith('/tags') },
+  { href: '/saju', label: '사주', match: (path: string) => path.startsWith('/saju') },
+  { href: '/about', label: '소개', match: (path: string) => path.startsWith('/about') }
 ];
 ---
 
-<header class="fixed inset-x-0 top-0 z-50 border-b border-line/90 bg-page/95 backdrop-blur">
-  <div class="container-shell flex h-[62px] items-center justify-between gap-4 md:h-[64px]">
-    <a class="inline-flex min-w-0 flex-col" href="/" aria-label="Nomi Journal Home">
-      <span class="truncate text-[17px] font-bold leading-none tracking-[-0.02em] text-zinc-900">Nomi Journal</span>
-      <span class="mt-0.5 hidden text-[11px] text-zinc-500 md:block">Editorial Developer Notes</span>
+<header class="site-header">
+  <div class="wrap site-header__inner">
+    <a class="site-header__brand" href="/" aria-label="한만욱 홈">
+      <span class="text-[1.02rem]">한만욱</span>
+      <span class="mono hd-sub text-[0.66rem]">frontend</span>
     </a>
 
+    <nav class="site-header__nav" aria-label="Primary">
+      {navItems.map((item) => (
+        <a class="site-header__link" href={item.href} data-active={item.match(pathname) ? 'true' : undefined}>
+          {item.label}
+        </a>
+      ))}
+    </nav>
+
     <div class="flex items-center gap-2">
-      <nav class="hidden md:block" aria-label="Primary">
-        <ul class="flex items-center gap-1">
-          {navItems.map((item) => (
-            <li>
-              <a
-                href={item.href}
-                class="inline-flex h-8 items-center justify-center rounded-full border border-transparent px-3 text-[13px] text-zinc-600 transition hover:border-line hover:bg-soft hover:text-zinc-900"
-              >
-                {item.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
-
-      <button
-        type="button"
-        class="hidden h-8 items-center gap-2 rounded-full border border-line bg-soft px-3 text-[12px] font-medium text-zinc-700 transition hover:bg-zinc-200 md:inline-flex"
-        aria-label="색상 테마 전환"
-        aria-pressed="false"
-        data-theme-toggle
+      <a
+        href="https://github.com/manNomi"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="GitHub"
+        class="icon-button hd-github"
       >
-        <span class="h-2 w-2 rounded-full bg-current" aria-hidden="true"></span>
-        <span data-theme-label>Dark</span>
-      </button>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M12 1.5A10.5 10.5 0 0 0 8.7 22c.5.1.7-.2.7-.5v-2c-2.9.6-3.5-1.2-3.5-1.2-.5-1.2-1.2-1.5-1.2-1.5-1-.6 0-.6 0-.6 1 .1 1.6 1.1 1.6 1.1.9 1.6 2.4 1.1 3 .9.1-.7.4-1.1.6-1.4-2.3-.3-4.7-1.1-4.7-5 0-1.1.4-2 1-2.7-.1-.3-.5-1.3.1-2.7 0 0 .9-.3 2.8 1a9.6 9.6 0 0 1 5 0c1.9-1.3 2.8-1 2.8-1 .6 1.4.2 2.4.1 2.7.7.7 1 1.6 1 2.7 0 3.9-2.4 4.7-4.6 5 .3.3.7 1 .7 2v3c0 .3.2.6.7.5A10.5 10.5 0 0 0 12 1.5z" />
+        </svg>
+      </a>
 
-      <button
-        type="button"
-        class="inline-flex h-9 min-w-[3.75rem] items-center justify-center rounded-full border border-line bg-soft px-2 text-[12px] font-semibold text-zinc-700 transition hover:bg-zinc-200 md:hidden"
-        aria-label="색상 테마 전환"
-        aria-pressed="false"
-        data-theme-toggle
-      >
-        <span data-theme-label>Dark</span>
-      </button>
-
-      <button
-        type="button"
-        class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-line bg-soft text-zinc-700 transition hover:bg-zinc-200 md:hidden"
-        aria-expanded="false"
-        aria-controls="mobile-nav"
-        id="mobileNavToggle"
-      >
-        <span class="sr-only">Open navigation</span>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <line x1="4" y1="7" x2="20" y2="7"></line>
-          <line x1="4" y1="12" x2="20" y2="12"></line>
-          <line x1="4" y1="17" x2="20" y2="17"></line>
+      <button type="button" class="icon-button" aria-label="테마 전환" title="테마 전환" data-theme-toggle>
+        <svg data-theme-icon="light" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
+        </svg>
+        <svg data-theme-icon="dark" class="hidden" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path>
         </svg>
       </button>
-    </div>
-  </div>
-
-  <div
-    class="max-h-0 overflow-hidden border-t border-transparent bg-page opacity-0 transition-all duration-300 ease-out md:hidden"
-    id="mobile-nav"
-    data-open="false"
-  >
-    <div class="container-shell py-3">
-      <ul class="grid gap-2">
-        <li>
-          <a href="/" class="block rounded-md border border-line bg-surface px-3 py-2.5 text-sm text-zinc-700 transition hover:bg-zinc-100">
-            Home
-          </a>
-        </li>
-        {navItems.map((item) => (
-          <li>
-            <a href={item.href} class="block rounded-md border border-line bg-surface px-3 py-2.5 text-sm text-zinc-700 transition hover:bg-zinc-100">
-              {item.label}
-            </a>
-          </li>
-        ))}
-      </ul>
     </div>
   </div>
 </header>
@@ -94,78 +53,32 @@ const navItems = [
 <script>
   // @ts-nocheck
   const THEME_STORAGE_KEY = 'nomi-theme';
-  const themeButtons = Array.from(document.querySelectorAll('[data-theme-toggle]'));
-  const getTheme = () => (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-  const getStoredTheme = () => {
-    try {
-      const stored = localStorage.getItem(THEME_STORAGE_KEY);
-      return stored === 'dark' || stored === 'light' ? stored : null;
-    } catch {
-      return null;
-    }
-  };
-  const syncThemeButtons = (theme) => {
-    themeButtons.forEach((button) => {
-      button.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
-      button.setAttribute('title', theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환');
-    });
+  const themeToggle = document.querySelector('[data-theme-toggle]');
+  const lightIcon = document.querySelector('[data-theme-icon="light"]');
+  const darkIcon = document.querySelector('[data-theme-icon="dark"]');
 
-    document.querySelectorAll('[data-theme-label]').forEach((label) => {
-      label.textContent = theme === 'dark' ? 'Light' : 'Dark';
-    });
+  const readTheme = () => document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+
+  const syncIcons = (theme) => {
+    lightIcon?.classList.toggle('hidden', theme !== 'dark');
+    darkIcon?.classList.toggle('hidden', theme !== 'light');
+    themeToggle?.setAttribute('title', theme === 'dark' ? '라이트 모드' : '다크 모드');
   };
-  const applyTheme = (theme, { persist = true } = {}) => {
-    const nextTheme = theme === 'dark' ? 'dark' : 'light';
+
+  const applyTheme = (theme) => {
+    const nextTheme = theme === 'light' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = nextTheme;
     document.documentElement.classList.toggle('dark', nextTheme === 'dark');
     document.documentElement.style.colorScheme = nextTheme;
-
-    if (persist) {
-      try {
-        localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
-      } catch {}
-    }
-
-    syncThemeButtons(nextTheme);
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+    } catch {}
+    syncIcons(nextTheme);
     window.dispatchEvent(new CustomEvent('themechange', { detail: { theme: nextTheme } }));
   };
 
-  syncThemeButtons(getTheme());
-
-  themeButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-      applyTheme(getTheme() === 'dark' ? 'light' : 'dark');
-    });
-  });
-
-  window.matchMedia?.('(prefers-color-scheme: dark)')?.addEventListener?.('change', (event) => {
-    if (!getStoredTheme()) {
-      applyTheme(event.matches ? 'dark' : 'light', { persist: false });
-    }
-  });
-
-  const toggle = document.getElementById('mobileNavToggle');
-  const mobileNav = document.getElementById('mobile-nav');
-
-  const setOpen = (open) => {
-    if (!toggle || !mobileNav) return;
-    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-    mobileNav.dataset.open = open ? 'true' : 'false';
-    mobileNav.classList.toggle('max-h-0', !open);
-    mobileNav.classList.toggle('max-h-[420px]', open);
-    mobileNav.classList.toggle('opacity-0', !open);
-    mobileNav.classList.toggle('opacity-100', open);
-    mobileNav.classList.toggle('border-transparent', !open);
-    mobileNav.classList.toggle('border-line', open);
-  };
-
-  toggle?.addEventListener('click', () => {
-    const isOpen = toggle.getAttribute('aria-expanded') === 'true';
-    setOpen(!isOpen);
-  });
-
-  window.addEventListener('resize', () => {
-    if (window.innerWidth >= 768) {
-      setOpen(false);
-    }
+  syncIcons(readTheme());
+  themeToggle?.addEventListener('click', () => {
+    applyTheme(readTheme() === 'dark' ? 'light' : 'dark');
   });
 </script>

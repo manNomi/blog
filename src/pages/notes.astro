@@ -1,0 +1,50 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import PostCard from '../components/PostCard.astro';
+import { getNotePosts } from '../utils/postFilters';
+
+const notes = getNotePosts(await getCollection('blog'));
+---
+
+<BaseLayout title="Notes | 한만욱" description="짧은 기록과 논문 메모를 분리해 모아둔 페이지입니다.">
+  <Header />
+
+  <main class="site-main">
+    <div class="wrap">
+      <header class="page-head rise">
+        <div class="eyebrow mb-[18px]">Notes · {notes.length}</div>
+        <h1>Notes</h1>
+        <p>짧은 기록, 논문 메모, 가벼운 로그를 일반 글 목록과 분리해 모았습니다.</p>
+      </header>
+
+      <hr class="rule" />
+
+      <div class="flex flex-col">
+        {notes.length > 0 ? (
+          notes.map((post, index) => (
+            <>
+              {index > 0 && <hr class="rule" />}
+              <PostCard
+                title={post.data.title}
+                description={post.data.description}
+                slug={post.slug}
+                pubDate={post.data.pubDate}
+                tags={post.data.tags}
+                pinned={post.data.pinned}
+                notes={post.data.notes}
+                variant="compact"
+              />
+            </>
+          ))
+        ) : (
+          <div class="mono py-12" style="color: var(--text-faint);">notes 체크박스가 켜진 글이 아직 없습니다.</div>
+        )}
+      </div>
+    </div>
+  </main>
+
+  <Footer />
+</BaseLayout>

@@ -1,0 +1,38 @@
+---
+import type { PortfolioProject } from '../data/portfolio';
+
+interface Props {
+  project: PortfolioProject;
+  index: number;
+}
+
+const { project, index } = Astro.props;
+---
+
+<a href={`/projects/${project.slug}`} class="project-card">
+  <div>
+    <div class="mb-3.5 flex items-center gap-3">
+      <span class="mono" style="color: var(--text-faint);">{String(index + 1).padStart(2, '0')}</span>
+      <span class="eyebrow">{project.eyebrow}</span>
+      <span class="mono whitespace-nowrap opacity-60">· {project.period}</span>
+    </div>
+
+    <h3 class="m-0 flex items-center gap-3 text-[1.85rem] font-bold leading-tight tracking-[-0.03em]" style="color: var(--text);">
+      {project.title}
+      <span class="pj-arrow">↗</span>
+    </h3>
+
+    <p class="mb-4 mt-3 max-w-[58ch] text-[0.96rem] leading-[1.6]" style="color: var(--text-dim);">{project.summary}</p>
+
+    <div class="flex flex-wrap gap-4">
+      {project.metrics.slice(0, 3).map((metric) => (
+        <div class="flex items-baseline gap-1.5">
+          <span class="text-[1.05rem] font-bold tracking-[-0.02em]" style="color: var(--text);">{metric.value}</span>
+          <span class="mono text-[0.66rem]">{metric.label}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <div class="ph rounded-[14px]" data-label={project.slug} style="aspect-ratio: 4 / 3;"></div>
+</a>

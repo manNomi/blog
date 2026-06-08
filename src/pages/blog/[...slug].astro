@@ -3,22 +3,26 @@ import { type CollectionEntry, getCollection } from 'astro:content';
 import BlogPost from '../../layouts/BlogPost.astro';
 import { calculateReadingTime } from '../../utils/readingTime';
 import { extractFirstImage } from '../../utils/extractFirstImage';
+import { isNotePost, sortPostsByPubDateDesc } from '../../utils/postFilters';
 
 type NavPost = { title: string; slug: string };
-type RelatedPost = { title: string; slug: string; description?: string };
+type RelatedPost = { title: string; slug: string; description?: string; pubDate: Date };
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
-  const sortedPosts = [...posts].sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+  const sortedPosts = sortPostsByPubDateDesc(posts);
 
-  return sortedPosts.map((post, index) => {
-    const previous = sortedPosts[index + 1];
-    const next = sortedPosts[index - 1];
+  return sortedPosts.map((post) => {
+    const isCurrentNote = isNotePost(post);
+    const siblingPosts = sortedPosts.filter((candidate) => isNotePost(candidate) === isCurrentNote);
+    const index = siblingPosts.findIndex((candidate) => candidate.slug === post.slug);
+    const previous = siblingPosts[index + 1];
+    const next = siblingPosts[index - 1];
 
     const currentTags = new Set(post.data.tags || []);
 
     const relatedPosts: RelatedPost[] = sortedPosts
-      .filter((candidate) => candidate.slug !== post.slug)
+      .filter((candidate) => candidate.slug !== post.slug && isNotePost(candidate) === isCurrentNote)
       .map((candidate) => {
         const sharedTags = (candidate.data.tags || []).filter((tag) => currentTags.has(tag)).length;
         return {
@@ -34,7 +38,8 @@ export async function getStaticPaths() {
       .map(({ candidate }) => ({
         title: candidate.data.title,
         slug: candidate.slug,
-        description: candidate.data.description
+        description: candidate.data.description,
+        pubDate: candidate.data.pubDate
       }));
 
     return {

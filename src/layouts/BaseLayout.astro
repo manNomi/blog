@@ -1,5 +1,4 @@
 ---
-import Analytics from '@vercel/analytics/astro';
 import '../styles/global.css';
 
 interface Props {
@@ -36,21 +35,6 @@ const siteURL = Astro.site || Astro.url.origin;
 const fullURL = new URL(canonicalURL, siteURL).href;
 const ogImage = new URL(image, siteURL).href;
 const jsonLdPayload = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : undefined;
-const gaMeasurementId =
-  typeof import.meta.env.PUBLIC_GA_MEASUREMENT_ID === 'string'
-    ? import.meta.env.PUBLIC_GA_MEASUREMENT_ID.trim()
-    : '';
-const gaScriptSrc = gaMeasurementId
-  ? `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gaMeasurementId)}`
-  : undefined;
-const gaScriptPayload = gaMeasurementId
-  ? `
-window.dataLayer = window.dataLayer || [];
-function gtag(){window.dataLayer.push(arguments);}
-gtag('js', new Date());
-gtag('config', ${JSON.stringify(gaMeasurementId)});
-`
-  : undefined;
 const themeInitScript = `
 (() => {
   const storageKey = 'nomi-theme';
@@ -64,9 +48,9 @@ const themeInitScript = `
     }
   };
   const preferredTheme =
-    getStoredTheme() ||
-    (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    getStoredTheme() || 'dark';
 
+  root.dataset.theme = preferredTheme;
   root.classList.toggle('dark', preferredTheme === 'dark');
   root.style.colorScheme = preferredTheme;
 })();
@@ -74,7 +58,7 @@ const themeInitScript = `
 ---
 
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" data-theme="dark" data-accent="none">
   <head>
     <script is:inline set:html={themeInitScript}></script>
     <meta charset="UTF-8" />
@@ -86,7 +70,11 @@ const themeInitScript = `
     <link rel="canonical" href={fullURL} />
     <title>{title}</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="preload" href="/fonts/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/variable/pretendardvariable.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" />
 
     <meta property="og:type" content={ogType} />
     <meta property="og:url" content={fullURL} />
@@ -105,18 +93,9 @@ const themeInitScript = `
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
     <meta name="twitter:image:alt" content={imageAlt} />
-    {
-      gaMeasurementId && (
-        <>
-          <script is:inline async src={gaScriptSrc}></script>
-          <script is:inline set:html={gaScriptPayload} />
-        </>
-      )
-    }
     {jsonLdPayload && <script type="application/ld+json" set:html={jsonLdPayload} is:inline />}
   </head>
   <body>
     <slot />
-    <Analytics />
   </body>
 </html>

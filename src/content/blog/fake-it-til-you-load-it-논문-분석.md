@@ -2,6 +2,7 @@
 title: "Fake it ’til you load it 논문 분석 "
 pubDate: 2026-06-05T00:00:00.000Z
 tags: ["논문"]
+notes: true
 notionId: "3737cf19-a364-800b-81db-c0e5f6ff6500"
 ---
 # Fake it ’til you load it

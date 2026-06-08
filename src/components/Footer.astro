@@ -1,32 +1,30 @@
 ---
 const links = [
-  { name: 'Contact', url: 'mailto:hanmw110@naver.com' },
-  { name: 'GitHub', url: 'https://github.com/manNomi' },
-  { name: 'Posts', url: '/posts' },
-  { name: 'Saju', url: '/saju' },
-  { name: '개인정보 처리방침', url: '/privacy' }
+  { name: 'GitHub ↗', url: 'https://github.com/manNomi' },
+  { name: 'Projects', url: '/projects' },
+  { name: 'Tags', url: '/tags' }
 ];
 ---
 
-<footer class="mt-14 md:mt-16">
-  <div class="container-shell">
-    <div class="theme-inverse flex flex-col gap-3 rounded-card border border-zinc-900 bg-zinc-900 px-4 py-3 text-[13px] text-zinc-300 md:flex-row md:items-center md:justify-between">
-      <div class="inline-flex flex-wrap items-center gap-2">
-        {links.map((link, index) => (
-          <>
-            {index > 0 && <span aria-hidden="true" class="theme-inverse-muted text-zinc-500">·</span>}
-            <a
-              href={link.url}
-              target={link.url.startsWith('http') ? '_blank' : undefined}
-              rel={link.url.startsWith('http') ? 'noopener noreferrer' : undefined}
-              class="theme-inverse-text text-zinc-100/95 underline-offset-2 transition hover:underline"
-            >
-              {link.name}
-            </a>
-          </>
-        ))}
-      </div>
-      <p class="theme-inverse-muted text-zinc-400">© 2026</p>
+<footer class="mt-24 border-t" style="border-color: var(--border);">
+  <div class="wrap flex flex-wrap items-end justify-between gap-7 py-11 pb-14">
+    <div>
+      <div class="mb-1.5 text-[1.05rem] font-bold tracking-[-0.02em]" style="color: var(--text);">한만욱</div>
+      <a class="mono" href="mailto:hanmw110@naver.com">hanmw110@naver.com</a>
+    </div>
+
+    <div class="mono flex gap-5">
+      {links.map((link) => (
+        <a
+          href={link.url}
+          target={link.url.startsWith('http') ? '_blank' : undefined}
+          rel={link.url.startsWith('http') ? 'noopener noreferrer' : undefined}
+          class="whitespace-nowrap transition-colors hover:!text-[var(--text)]"
+          style="color: var(--text-dim);"
+        >
+          {link.name}
+        </a>
+      ))}
     </div>
   </div>
 </footer>

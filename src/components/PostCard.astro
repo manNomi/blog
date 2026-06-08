@@ -6,55 +6,35 @@ interface Props {
   pubDate: Date;
   tags?: string[];
   pinned?: boolean;
+  notes?: boolean;
   variant?: 'list' | 'compact';
 }
 
-const { title, description, slug, pubDate, tags = [], pinned = false, variant = 'list' } = Astro.props;
-const safeTags = tags.filter((tag) => tag.trim().length > 0);
-const visibleTags = safeTags.slice(0, 4);
-const hiddenTagCount = Math.max(safeTags.length - visibleTags.length, 0);
-const toTagHref = (tag: string) => `/tags?tag=${encodeURIComponent(tag)}`;
+const { title, description, slug, pubDate, tags = [], pinned = false, notes = false } = Astro.props;
 
-const formattedDate = new Intl.DateTimeFormat('en-US', {
-  month: 'short',
-  day: '2-digit',
-  year: 'numeric'
-}).format(pubDate);
-
-const cardPadding = variant === 'compact' ? 'p-4 md:p-5' : 'p-5 md:p-6';
-const titleSize = variant === 'compact' ? 'mt-2 text-[22px] leading-[1.22] md:text-2xl' : 'mt-2.5 text-2xl leading-[1.2] md:text-[26px]';
-const descSize = variant === 'compact' ? 'mt-2 text-[15px] leading-[1.52]' : 'mt-2.5 text-[17px] leading-[1.55]';
+const formattedDate = new Intl.DateTimeFormat('ko-KR', {
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit'
+})
+  .format(pubDate)
+  .replaceAll(' ', '');
 ---
 
-<article class="group rounded-card border border-line bg-surface transition hover:-translate-y-0.5 hover:border-zinc-400 hover:bg-zinc-50">
-  <div class={`grid gap-3 ${cardPadding}`}>
-    <div class="flex flex-wrap items-center gap-2 text-xs leading-[1.2] text-zinc-500">
-      <span>{formattedDate}</span>
-      {pinned && <span class="inline-flex h-5 items-center rounded-full border border-line bg-soft px-2 text-[11px] text-zinc-700">Featured</span>}
-    </div>
+<a href={`/blog/${slug}`} class="post-row">
+  <span class="mono pt-1">{formattedDate}</span>
 
-    <a href={`/blog/${slug}`} class="block">
-      <h3 class={`font-semibold tracking-[-0.02em] text-zinc-900 transition group-hover:text-zinc-600 ${titleSize}`}>{title}</h3>
+  <span>
+    <span class="post-title text-[1.12rem] font-semibold leading-[1.4] tracking-[-0.02em]">{title}</span>
+    {description && <span class="mt-1.5 block max-w-[62ch] text-[0.92rem] leading-[1.6]" style="color: var(--text-dim);">{description}</span>}
+    <span class="mt-2.5 flex flex-wrap gap-1.5">
+      {pinned && <span class="mono text-[0.66rem]" style="color: var(--text-faint);">#Featured</span>}
+      {notes && <span class="mono text-[0.66rem]" style="color: var(--text-faint);">#Note</span>}
+      {tags.slice(0, 4).map((tag) => (
+        <span class="mono text-[0.66rem]" style="color: var(--text-faint);">#{tag}</span>
+      ))}
+    </span>
+  </span>
 
-      {description && <p class={`line-clamp-2 text-zinc-700 ${descSize}`}>{description}</p>}
-    </a>
-
-    {visibleTags.length > 0 && (
-      <nav class="flex flex-wrap gap-1.5 pt-0.5" aria-label="글 태그">
-        {visibleTags.map((tag) => (
-          <a
-            href={toTagHref(tag)}
-            class="inline-flex min-h-7 max-w-full items-center rounded-full border border-line bg-soft px-2.5 text-[12px] font-medium leading-none text-zinc-600 transition hover:border-zinc-400 hover:bg-zinc-200 hover:text-zinc-950"
-          >
-            <span class="truncate">#{tag}</span>
-          </a>
-        ))}
-        {hiddenTagCount > 0 && (
-          <span class="inline-flex min-h-7 items-center rounded-full border border-line bg-soft px-2.5 text-[12px] font-medium leading-none text-zinc-500">
-            +{hiddenTagCount}
-          </span>
-        )}
-      </nav>
-    )}
-  </div>
-</article>
+  <span class="mono pt-1 opacity-80">read</span>
+</a>
