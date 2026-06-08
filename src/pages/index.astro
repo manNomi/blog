@@ -73,9 +73,9 @@ const formatDate = (date: Date) =>
         </div>
 
         <div class="my-5 flex flex-wrap gap-2" data-home-tag-filter>
-          <button type="button" class="pill" data-home-tag="all" data-active="true">전체 <span class="opacity-60">{posts.length}</span></button>
+          <button type="button" class="pill" data-home-tag="all" data-active="true" aria-pressed="true">전체 <span class="opacity-60">{posts.length}</span></button>
           {allTags.slice(0, 10).map((tag) => (
-            <button type="button" class="pill" data-home-tag={tag}>{tag} <span class="opacity-60">{tagCounts[tag]}</span></button>
+            <button type="button" class="pill" data-home-tag={tag} aria-pressed="false">{tag} <span class="opacity-60">{tagCounts[tag]}</span></button>
           ))}
         </div>
 
@@ -142,8 +142,10 @@ const formatDate = (date: Date) =>
     homeTagButtons.forEach((button) => {
       if (button.getAttribute('data-home-tag') === selectedTag) {
         button.setAttribute('data-active', 'true');
+        button.setAttribute('aria-pressed', 'true');
       } else {
         button.removeAttribute('data-active');
+        button.setAttribute('aria-pressed', 'false');
       }
     });
 

@@ -110,6 +110,9 @@ const tagCounts = allTags.reduce((acc, tag) => {
     if (titleNode) titleNode.textContent = `${selectedTag} (${visibleCount})`;
     if (emptyNode) emptyNode.classList.toggle('hidden', visibleCount > 0);
 
-    document.querySelector(`[data-tag-card="${CSS.escape(selectedTag)}"]`)?.setAttribute('data-active', 'true');
+    const activeCard = Array.from(document.querySelectorAll('[data-tag-card]')).find(
+      (card) => card.getAttribute('data-tag-card') === selectedTag
+    );
+    activeCard?.setAttribute('data-active', 'true');
   }
 </script>
