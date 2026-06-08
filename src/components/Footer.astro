@@ -10,23 +10,23 @@ const links = [
 
 <footer class="mt-14 md:mt-16">
   <div class="container-shell">
-    <div class="flex flex-col gap-3 rounded-card border border-zinc-900 bg-zinc-900 px-4 py-3 text-[13px] text-zinc-300 md:flex-row md:items-center md:justify-between">
+    <div class="theme-inverse flex flex-col gap-3 rounded-card border border-zinc-900 bg-zinc-900 px-4 py-3 text-[13px] text-zinc-300 md:flex-row md:items-center md:justify-between">
       <div class="inline-flex flex-wrap items-center gap-2">
         {links.map((link, index) => (
           <>
-            {index > 0 && <span aria-hidden="true" class="text-zinc-500">·</span>}
+            {index > 0 && <span aria-hidden="true" class="theme-inverse-muted text-zinc-500">·</span>}
             <a
               href={link.url}
               target={link.url.startsWith('http') ? '_blank' : undefined}
               rel={link.url.startsWith('http') ? 'noopener noreferrer' : undefined}
-              class="text-zinc-100/95 underline-offset-2 transition hover:underline"
+              class="theme-inverse-text text-zinc-100/95 underline-offset-2 transition hover:underline"
             >
               {link.name}
             </a>
           </>
         ))}
       </div>
-      <p class="text-zinc-400">© 2026</p>
+      <p class="theme-inverse-muted text-zinc-400">© 2026</p>
     </div>
   </div>
 </footer>
