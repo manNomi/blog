@@ -1,69 +1,87 @@
 ---
 const navItems = [
-  { href: '/#experience', label: 'Experience' },
-  { href: '/#i18nexus', label: 'I18Nexus' },
-  { href: '/#open-source', label: 'Open Source' },
-  { href: '/#projects', label: 'Projects' },
-  { href: '/posts', label: 'Posts' }
+  { href: '/posts', label: 'All Posts' },
+  { href: '/tags', label: 'Tags' },
+  { href: '/saju', label: 'Saju' }
 ];
 ---
 
-<header class="sticky top-0 z-50 py-3">
-  <div class="container-shell">
-    <div class="relative overflow-hidden rounded-full border border-white/60 bg-page/80 px-4 py-3 shadow-soft backdrop-blur-xl ring-1 ring-zinc-950/[0.04] md:px-5">
-      <div class="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/80 to-white/30"></div>
-      <div class="relative z-10 flex items-center justify-between gap-4">
-        <a class="inline-flex min-w-0 flex-col" href="/" aria-label="Han Manwook Portfolio Home">
-          <span class="truncate text-[17px] font-bold leading-none text-zinc-950">Han Manwook</span>
-          <span class="mt-0.5 hidden text-[11px] text-zinc-500 md:block">Frontend Portfolio</span>
-        </a>
+<header class="fixed inset-x-0 top-0 z-50 border-b border-line/90 bg-page/95 backdrop-blur">
+  <div class="container-shell flex h-[62px] items-center justify-between gap-4 md:h-[64px]">
+    <a class="inline-flex min-w-0 flex-col" href="/" aria-label="Nomi Journal Home">
+      <span class="truncate text-[17px] font-bold leading-none tracking-[-0.02em] text-zinc-900">Nomi Journal</span>
+      <span class="mt-0.5 hidden text-[11px] text-zinc-500 md:block">Editorial Developer Notes</span>
+    </a>
 
-        <nav class="hidden md:block" aria-label="Primary">
-          <ul class="flex items-center gap-1">
-            {navItems.map((item) => (
-              <li>
-                <a
-                  href={item.href}
-                  class="inline-flex h-8 items-center justify-center rounded-md px-3 text-[13px] font-medium text-zinc-600 transition hover:bg-zinc-950 hover:text-white"
-                >
-                  {item.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
+    <div class="flex items-center gap-2">
+      <nav class="hidden md:block" aria-label="Primary">
+        <ul class="flex items-center gap-1">
+          {navItems.map((item) => (
+            <li>
+              <a
+                href={item.href}
+                class="inline-flex h-8 items-center justify-center rounded-full border border-transparent px-3 text-[13px] text-zinc-600 transition hover:border-line hover:bg-soft hover:text-zinc-900"
+              >
+                {item.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
 
-        <button
-          type="button"
-          class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-line bg-white text-zinc-700 transition hover:bg-zinc-100 md:hidden"
-          aria-expanded="false"
-          aria-controls="mobile-nav"
-          id="mobileNavToggle"
-        >
-          <span class="sr-only">Open navigation</span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <line x1="4" y1="7" x2="20" y2="7"></line>
-            <line x1="4" y1="12" x2="20" y2="12"></line>
-            <line x1="4" y1="17" x2="20" y2="17"></line>
-          </svg>
-        </button>
-      </div>
+      <button
+        type="button"
+        class="hidden h-8 items-center gap-2 rounded-full border border-line bg-soft px-3 text-[12px] font-medium text-zinc-700 transition hover:bg-zinc-200 md:inline-flex"
+        aria-label="색상 테마 전환"
+        aria-pressed="false"
+        data-theme-toggle
+      >
+        <span class="h-2 w-2 rounded-full bg-current" aria-hidden="true"></span>
+        <span data-theme-label>Dark</span>
+      </button>
+
+      <button
+        type="button"
+        class="inline-flex h-9 min-w-[3.75rem] items-center justify-center rounded-full border border-line bg-soft px-2 text-[12px] font-semibold text-zinc-700 transition hover:bg-zinc-200 md:hidden"
+        aria-label="색상 테마 전환"
+        aria-pressed="false"
+        data-theme-toggle
+      >
+        <span data-theme-label>Dark</span>
+      </button>
+
+      <button
+        type="button"
+        class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-line bg-soft text-zinc-700 transition hover:bg-zinc-200 md:hidden"
+        aria-expanded="false"
+        aria-controls="mobile-nav"
+        id="mobileNavToggle"
+      >
+        <span class="sr-only">Open navigation</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="4" y1="7" x2="20" y2="7"></line>
+          <line x1="4" y1="12" x2="20" y2="12"></line>
+          <line x1="4" y1="17" x2="20" y2="17"></line>
+        </svg>
+      </button>
     </div>
+  </div>
 
-    <div
-      class="max-h-0 overflow-hidden opacity-0 transition-all duration-300 ease-out md:hidden"
-      id="mobile-nav"
-      data-open="false"
-    >
-      <ul class="mt-2 grid gap-2 rounded-lg border border-line bg-page/95 p-2 shadow-soft backdrop-blur">
+  <div
+    class="max-h-0 overflow-hidden border-t border-transparent bg-page opacity-0 transition-all duration-300 ease-out md:hidden"
+    id="mobile-nav"
+    data-open="false"
+  >
+    <div class="container-shell py-3">
+      <ul class="grid gap-2">
         <li>
-          <a href="/" class="block rounded-md px-3 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100">
+          <a href="/" class="block rounded-md border border-line bg-surface px-3 py-2.5 text-sm text-zinc-700 transition hover:bg-zinc-100">
             Home
           </a>
         </li>
         {navItems.map((item) => (
           <li>
-            <a href={item.href} class="block rounded-md px-3 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100">
+            <a href={item.href} class="block rounded-md border border-line bg-surface px-3 py-2.5 text-sm text-zinc-700 transition hover:bg-zinc-100">
               {item.label}
             </a>
           </li>
@@ -75,6 +93,56 @@ const navItems = [
 
 <script>
   // @ts-nocheck
+  const THEME_STORAGE_KEY = 'nomi-theme';
+  const themeButtons = Array.from(document.querySelectorAll('[data-theme-toggle]'));
+  const getTheme = () => (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+  const getStoredTheme = () => {
+    try {
+      const stored = localStorage.getItem(THEME_STORAGE_KEY);
+      return stored === 'dark' || stored === 'light' ? stored : null;
+    } catch {
+      return null;
+    }
+  };
+  const syncThemeButtons = (theme) => {
+    themeButtons.forEach((button) => {
+      button.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
+      button.setAttribute('title', theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환');
+    });
+
+    document.querySelectorAll('[data-theme-label]').forEach((label) => {
+      label.textContent = theme === 'dark' ? 'Light' : 'Dark';
+    });
+  };
+  const applyTheme = (theme, { persist = true } = {}) => {
+    const nextTheme = theme === 'dark' ? 'dark' : 'light';
+    document.documentElement.classList.toggle('dark', nextTheme === 'dark');
+    document.documentElement.style.colorScheme = nextTheme;
+
+    if (persist) {
+      try {
+        localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+      } catch {}
+    }
+
+    syncThemeButtons(nextTheme);
+    window.dispatchEvent(new CustomEvent('themechange', { detail: { theme: nextTheme } }));
+  };
+
+  syncThemeButtons(getTheme());
+
+  themeButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      applyTheme(getTheme() === 'dark' ? 'light' : 'dark');
+    });
+  });
+
+  window.matchMedia?.('(prefers-color-scheme: dark)')?.addEventListener?.('change', (event) => {
+    if (!getStoredTheme()) {
+      applyTheme(event.matches ? 'dark' : 'light', { persist: false });
+    }
+  });
+
   const toggle = document.getElementById('mobileNavToggle');
   const mobileNav = document.getElementById('mobile-nav');
 
@@ -86,32 +154,13 @@ const navItems = [
     mobileNav.classList.toggle('max-h-[420px]', open);
     mobileNav.classList.toggle('opacity-0', !open);
     mobileNav.classList.toggle('opacity-100', open);
+    mobileNav.classList.toggle('border-transparent', !open);
+    mobileNav.classList.toggle('border-line', open);
   };
 
   toggle?.addEventListener('click', () => {
     const isOpen = toggle.getAttribute('aria-expanded') === 'true';
     setOpen(!isOpen);
-  });
-
-  document.querySelectorAll('a[href*="#"]').forEach((anchor) => {
-    anchor.addEventListener('click', (event) => {
-      const href = anchor.getAttribute('href');
-      if (!href) return;
-
-      const targetUrl = new URL(href, window.location.href);
-      if (targetUrl.origin !== window.location.origin || targetUrl.pathname !== window.location.pathname || !targetUrl.hash) {
-        return;
-      }
-
-      const target = document.querySelector(targetUrl.hash);
-      if (!target) return;
-
-      event.preventDefault();
-      history.pushState(null, '', targetUrl.hash);
-      const top = target.getBoundingClientRect().top + window.scrollY - 96;
-      window.scrollTo({ top: Math.max(top, 0), behavior: 'smooth' });
-      setOpen(false);
-    });
   });
 
   window.addEventListener('resize', () => {
