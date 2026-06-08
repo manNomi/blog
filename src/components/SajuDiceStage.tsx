@@ -77,7 +77,7 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
     const diceObjects: DiceObject[] = [];
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color('#F6F3EB');
+    scene.background = null;
 
     const camera = new THREE.OrthographicCamera(-10, 10, 10, -10, 1, 1000);
     camera.position.set(CAMERA_DISTANCE, CAMERA_DISTANCE, CAMERA_DISTANCE);
@@ -351,7 +351,7 @@ export default function SajuDiceStage({ diceCount, rollSignal, onRollStart, onRo
     }
   }, [diceCount]);
 
-  return <div ref={containerRef} className="h-[300px] w-full overflow-hidden rounded-md border border-line bg-[#F6F3EB] sm:h-[340px] md:h-[460px]" />;
+  return <div ref={containerRef} className="h-[300px] w-full overflow-hidden rounded-md border border-[var(--border)] bg-[var(--surface-2)] sm:h-[340px] md:h-[460px]" />;
 }
 
 function createPhysicsWalls(world: CANNON.World, material: CANNON.Material) {
