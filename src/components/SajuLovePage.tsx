@@ -62,6 +62,9 @@ type RequestFormValues = z.infer<typeof requestFormSchema>;
 type Step = 'fortune' | 'input' | 'submitted';
 type FlowTarget = 'name' | 'birthDate' | 'birthTime' | 'details' | 'delivery' | 'review';
 type AdvanceableFlowTarget = Exclude<FlowTarget, 'review'>;
+type FortuneEntryOption =
+  | { type: 'form'; value: FortuneType; label: string; description: string }
+  | { type: 'link'; href: string; label: string; description: string };
 
 type CreateResponse = {
   request: LoveJobPublic;
@@ -70,9 +73,10 @@ type CreateResponse = {
 const REQUIRED_COUNT = 5;
 const flowOrder: FlowTarget[] = ['name', 'birthDate', 'birthTime', 'details', 'delivery', 'review'];
 
-const fortuneOptions: Array<{ value: FortuneType; label: string; description: string }> = [
-  { value: 'exam', label: '시험운', description: '과목과 결과 기준에 맞춘 시험 흐름을 받아요.' },
-  { value: 'love', label: '연애운', description: '관계 상태와 고민을 바탕으로 연애 리포트를 받아요.' }
+const fortuneOptions: FortuneEntryOption[] = [
+  { type: 'form', value: 'exam', label: '시험운 보기', description: '과목과 결과 기준에 맞춘 시험 흐름을 받아요.' },
+  { type: 'form', value: 'love', label: '애정운 보기', description: '관계 상태와 고민을 바탕으로 애정 리포트를 받아요.' },
+  { type: 'link', href: '/saju-dice', label: '주사위 운보기', description: '개인정보 입력 없이 주사위로 가볍게 흐름을 확인해요.' }
 ];
 
 const relationshipOptions: Array<{ value: RelationshipStatus; label: string; description: string }> = [
@@ -236,7 +240,7 @@ export default function SajuLovePage() {
   const concernLength = watched.concern?.length ?? 0;
   const examSubjectLength = watched.examSubject?.length ?? 0;
 
-  const fortuneLabel = selectedFortuneType === 'exam' ? '시험운' : selectedFortuneType === 'love' ? '연애운' : '미선택';
+  const fortuneLabel = selectedFortuneType === 'exam' ? '시험운' : selectedFortuneType === 'love' ? '애정운' : '미선택';
   const relationshipLabel = relationshipOptions.find((option) => option.value === selectedRelationship)?.label ?? '미선택';
   const examResultFormatLabel = examResultFormatOptions.find((option) => option.value === selectedExamResultFormat)?.label ?? '예상 학점';
 
@@ -388,7 +392,7 @@ export default function SajuLovePage() {
       setNotice(
         fortuneType === 'exam'
           ? '요청이 접수되었습니다. 분석이 완료되면 입력하신 이메일로 시험운 리포트를 보내드립니다.'
-          : '요청이 접수되었습니다. 분석이 완료되면 입력하신 이메일로 결과를 보내드립니다.'
+          : '요청이 접수되었습니다. 분석이 완료되면 입력하신 이메일로 애정운 결과를 보내드립니다.'
       );
     } catch (requestError) {
       setApiError(requestError instanceof Error ? requestError.message : '요청 접수 중 오류가 발생했습니다.');
@@ -466,12 +470,21 @@ export default function SajuLovePage() {
           <div>
             <p className="eyebrow mb-2">Choose one</p>
             <h2 className="text-[1.35rem] font-semibold tracking-[-0.025em] text-[var(--text)]">보고 싶은 운세를 선택해 주세요</h2>
-            <p className="mt-1 text-sm leading-[1.6] text-[var(--text-dim)]">선택하면 다음 입력 화면으로 이동합니다.</p>
+            <p className="mt-1 text-sm leading-[1.6] text-[var(--text-dim)]">선택한 운세 방식에 맞는 화면으로 이동합니다.</p>
           </div>
 
-          <div className="grid gap-2 md:grid-cols-2" role="group" aria-label="운세 종류 선택">
+          <div className="grid gap-2 md:grid-cols-3" role="group" aria-label="운세 종류 선택">
             {fortuneOptions.map((option) => {
-              const active = selectedFortuneType === option.value;
+              const active = option.type === 'form' && selectedFortuneType === option.value;
+              if (option.type === 'link') {
+                return (
+                  <a key={option.label} href={option.href} className="saju-choice min-h-[112px] p-4 text-left">
+                    <strong className="block text-base">{option.label}</strong>
+                    <span className="mt-2 block text-sm leading-[1.55]">{option.description}</span>
+                  </a>
+                );
+              }
+
               return (
                 <button
                   type="button"
@@ -773,7 +786,7 @@ export default function SajuLovePage() {
                   {isSubmitting ? '접수 중...' : '요청 접수하기'}
                 </button>
                 <a href="/saju-dice" aria-disabled={isSubmitting} className={`btn-pill-soft h-11 transition-transform duration-200 hover:-translate-y-0.5 ${isSubmitting ? 'pointer-events-none opacity-60' : ''}`}>
-                  개인정보 없이 보기
+                  주사위 운보기
                 </a>
               </div>
 
@@ -793,7 +806,7 @@ export default function SajuLovePage() {
         <section className="saju-card grid gap-4 px-4 py-5 md:px-7 md:py-6 animate-result-pop">
           <h2 className="text-[26px] font-semibold tracking-[-0.02em] text-[var(--text)] md:text-[30px]">접수가 완료되었습니다</h2>
           <p className="text-[15px] leading-[1.6] text-[var(--text-dim)]">
-            분석 완료 시 이메일로 {requestState?.input.fortuneType === 'exam' ? '시험운 리포트' : '결과'}를 보내드립니다. 스팸함도 함께 확인해 주세요.
+            분석 완료 시 이메일로 {requestState?.input.fortuneType === 'exam' ? '시험운 리포트' : '애정운 결과'}를 보내드립니다. 스팸함도 함께 확인해 주세요.
           </p>
 
           {requestState && (
