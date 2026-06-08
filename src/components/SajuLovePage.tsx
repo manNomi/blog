@@ -1,35 +1,51 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { ExamResultFormat, FortuneType, LoveJobPublic, RelationshipStatus } from '../lib/saju/love-job-types';
 
 const TIME_REGEX = /^([01]\d|2[0-3]):([0-5]\d)$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const BIRTH_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
 const requestFormSchema = z
   .object({
-    fortuneType: z.enum(['love', 'exam']),
+    fortuneType: z.enum(['love', 'exam']).optional(),
     name: z.string().trim().min(2, '이름은 2자 이상 입력해 주세요.').max(30, '이름은 30자 이하로 입력해 주세요.'),
     email: z.string().trim().email('올바른 이메일 형식을 입력해 주세요.'),
     gender: z.enum(['female', 'male']),
     calendarType: z.enum(['solar', 'lunar']),
-    birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '생년월일을 입력해 주세요.'),
+    birthDate: z.string().refine((value) => isValidBirthDate(value), 'YYYY-MM-DD 형식으로 생년월일을 입력해 주세요.'),
     birthTime: z.string(),
     birthTimeUnknown: z.boolean(),
     birthPlace: z.string().trim().min(2, '출생지는 2자 이상 입력해 주세요.').max(50, '출생지는 50자 이하로 입력해 주세요.'),
     concern: z.string().trim().max(200, '고민은 200자 이하로 입력해 주세요.').optional(),
     examSubject: z.string().trim().max(80, '과목은 80자 이하로 입력해 주세요.').optional(),
     examResultFormat: z.enum(['grade', 'score']),
-    relationshipStatus: z.enum(['none', 'interested', 'dating', 'unknown'], {
-      required_error: '현재 관계 상태를 선택해 주세요.'
-    })
+    relationshipStatus: z.enum(['none', 'interested', 'dating', 'unknown']).optional()
   })
   .superRefine((data, ctx) => {
+    if (!data.fortuneType) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['fortuneType'],
+        message: '보고 싶은 운세를 선택해 주세요.'
+      });
+    }
+
     if (!data.birthTimeUnknown && !TIME_REGEX.test(data.birthTime || '')) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['birthTime'],
         message: '출생 시간을 입력해 주세요.'
+      });
+    }
+
+    if (data.fortuneType === 'love' && !data.relationshipStatus) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['relationshipStatus'],
+        message: '현재 관계 상태를 선택해 주세요.'
       });
     }
 
@@ -43,35 +59,38 @@ const requestFormSchema = z
   });
 
 type RequestFormValues = z.infer<typeof requestFormSchema>;
-type Step = 'landing' | 'input' | 'submitted';
+type Step = 'fortune' | 'input' | 'submitted';
+type FlowTarget = 'name' | 'birthDate' | 'birthTime' | 'details' | 'delivery' | 'review';
+type AdvanceableFlowTarget = Exclude<FlowTarget, 'review'>;
+type FortuneEntryOption =
+  | { type: 'form'; value: FortuneType; label: string; description: string }
+  | { type: 'link'; href: string; label: string; description: string };
 
 type CreateResponse = {
   request: LoveJobPublic;
 };
 
-const REQUIRED_COUNT = 8;
+const REQUIRED_COUNT = 5;
+const flowOrder: FlowTarget[] = ['name', 'birthDate', 'birthTime', 'details', 'delivery', 'review'];
 
-const fortuneOptions: Array<{ value: FortuneType; label: string; description: string }> = [
-  { value: 'love', label: '연애운', description: '관계 상태와 고민을 바탕으로 연애 리포트를 받아요.' },
-  { value: 'exam', label: '시험운', description: '고민중인 과목과 오행 궁합을 재밌게 풀어봐요.' }
-];
-
-const stepLabels: Array<{ key: Step; label: string; caption: string }> = [
-  { key: 'landing', label: '01 안내', caption: '흐름 확인' },
-  { key: 'input', label: '02 입력', caption: '정보 작성' },
-  { key: 'submitted', label: '03 접수', caption: '이메일 대기' }
+const fortuneOptions: FortuneEntryOption[] = [
+  { type: 'form', value: 'exam', label: '시험운 보기', description: '과목과 결과 기준에 맞춘 시험 흐름을 받아요.' },
+  { type: 'form', value: 'love', label: '애정운 보기', description: '관계 상태와 고민을 바탕으로 애정 리포트를 받아요.' },
+  { type: 'link', href: '/saju-dice', label: '주사위 운보기', description: '개인정보 입력 없이 주사위로 가볍게 흐름을 확인해요.' }
 ];
 
 const relationshipOptions: Array<{ value: RelationshipStatus; label: string; description: string }> = [
-  { value: 'none', label: '없음', description: '특정 관계 없이 새 인연을 찾는 상태' },
-  { value: 'interested', label: '관심 있는 사람이 있음', description: '호감 상대와 가능성을 탐색 중인 상태' },
-  { value: 'dating', label: '연애 중', description: '현재 연애를 더 안정적으로 이어가고 싶은 상태' },
-  { value: 'unknown', label: '잘 모르겠음', description: '관계 상태를 아직 정리하지 못한 상태' }
+  { value: 'none', label: '새 인연', description: '특정 관계 없이 새 만남을 보고 싶어요.' },
+  { value: 'interested', label: '관심 상대', description: '호감 상대와의 가능성이 궁금해요.' },
+  { value: 'dating', label: '연애 중', description: '현재 관계를 안정적으로 보고 싶어요.' },
+  { value: 'unknown', label: '정리 중', description: '아직 상태를 명확히 말하기 어려워요.' }
 ];
 
+const concernQuickOptions = ['새 인연이 궁금해요', '호감 상대와 잘될까요?', '현재 관계를 이어가도 될까요?', '재회나 정리가 고민이에요'];
+
 const examResultFormatOptions: Array<{ value: ExamResultFormat; label: string; description: string }> = [
-  { value: 'grade', label: '예상 학점', description: '대학생 과목처럼 A/B/C 학점 감각으로 받아요.' },
-  { value: 'score', label: '예상 점수', description: '시험·자격증처럼 100점 기준 점수 감각으로 받아요.' }
+  { value: 'grade', label: '예상 학점', description: 'A/B/C 학점 감각으로 받아요.' },
+  { value: 'score', label: '예상 점수', description: '100점 기준 점수 감각으로 받아요.' }
 ];
 
 async function parseJson<T>(response: Response): Promise<T> {
@@ -82,6 +101,26 @@ async function parseJson<T>(response: Response): Promise<T> {
   }
 
   return payload as T;
+}
+
+function formatBirthDateInput(value: string) {
+  const digits = value.replace(/\D/g, '').slice(0, 8);
+
+  if (digits.length <= 4) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 4)}-${digits.slice(4)}`;
+  return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6)}`;
+}
+
+function isValidBirthDate(value: string) {
+  if (!BIRTH_DATE_REGEX.test(value)) return false;
+
+  const [yearText, monthText, dayText] = value.split('-');
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
+  const parsed = new Date(year, month - 1, day);
+
+  return parsed.getFullYear() === year && parsed.getMonth() === month - 1 && parsed.getDate() === day;
 }
 
 function statusText(status: LoveJobPublic['status']) {
@@ -99,30 +138,82 @@ function statusText(status: LoveJobPublic['status']) {
   }
 }
 
-function statusTone(status: LoveJobPublic['status']) {
-  switch (status) {
-    case 'completed':
-      return 'border-emerald-300 bg-emerald-50 text-emerald-900';
-    case 'processing':
-      return 'border-sky-300 bg-sky-50 text-sky-900';
-    case 'queued':
-      return 'border-amber-300 bg-amber-50 text-amber-900';
-    default:
-      return 'border-red-300 bg-red-50 text-red-800';
-  }
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+  return <em className="text-xs not-italic text-red-600 animate-toast-slide dark:text-red-300">{message}</em>;
+}
+
+function SummaryRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="saju-summary-row">
+      <dt>{label}</dt>
+      <dd>{value}</dd>
+    </div>
+  );
+}
+
+function FlowCard({
+  title,
+  description,
+  complete,
+  active,
+  children,
+  setNode
+}: {
+  title: string;
+  description: string;
+  complete: boolean;
+  active: boolean;
+  children: ReactNode;
+  setNode?: (node: HTMLElement | null) => void;
+}) {
+  return (
+    <section ref={setNode} className={`saju-card scroll-mt-[96px] px-5 py-5 animate-panel-reveal md:px-7 md:py-6 ${active ? 'saju-card--active' : ''}`}>
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="m-0 text-[1.25rem] font-semibold leading-[1.3] tracking-[-0.025em] text-[var(--text)]">{title}</h2>
+          <p className="mt-1 text-sm leading-[1.6] text-[var(--text-dim)]">{description}</p>
+        </div>
+        <span className={`saju-status ${complete ? 'saju-status--done' : ''}`}>{complete ? '완료' : active ? '입력 중' : '대기'}</span>
+      </div>
+      <div className="grid gap-3">{children}</div>
+    </section>
+  );
+}
+
+function FlowNextButton({ disabled, onClick }: { disabled: boolean; onClick: () => void }) {
+  if (disabled) return null;
+
+  return (
+    <div className="flex justify-end pt-2 animate-step-enter">
+      <button type="button" onClick={onClick} className="btn-pill-dark h-10 w-full transition-transform duration-200 hover:-translate-y-0.5 sm:w-fit">
+        다음
+      </button>
+    </div>
+  );
 }
 
 export default function SajuLovePage() {
-  const [step, setStep] = useState<Step>('landing');
+  const [step, setStep] = useState<Step>('fortune');
+  const [visibleFlowTarget, setVisibleFlowTarget] = useState<FlowTarget>('name');
   const [requestState, setRequestState] = useState<LoveJobPublic | null>(null);
   const [notice, setNotice] = useState('');
   const [apiError, setApiError] = useState('');
+  const flowRefs = useRef<Record<FlowTarget, HTMLElement | null>>({
+    name: null,
+    birthDate: null,
+    birthTime: null,
+    details: null,
+    delivery: null,
+    review: null
+  });
+  const previousFlowTarget = useRef<FlowTarget | null>(null);
 
   const requestForm = useForm<RequestFormValues>({
     resolver: zodResolver(requestFormSchema),
     mode: 'onChange',
     defaultValues: {
-      fortuneType: 'love',
+      fortuneType: undefined,
       name: '',
       email: '',
       gender: 'female',
@@ -134,7 +225,7 @@ export default function SajuLovePage() {
       concern: '',
       examSubject: '',
       examResultFormat: 'grade',
-      relationshipStatus: 'unknown'
+      relationshipStatus: undefined
     }
   });
 
@@ -145,8 +236,48 @@ export default function SajuLovePage() {
   const selectedRelationship = requestForm.watch('relationshipStatus');
   const selectedExamResultFormat = requestForm.watch('examResultFormat');
   const birthTimeUnknown = requestForm.watch('birthTimeUnknown');
+  const isSubmitting = requestForm.formState.isSubmitting;
   const concernLength = watched.concern?.length ?? 0;
   const examSubjectLength = watched.examSubject?.length ?? 0;
+
+  const fortuneLabel = selectedFortuneType === 'exam' ? '시험운' : selectedFortuneType === 'love' ? '애정운' : '미선택';
+  const relationshipLabel = relationshipOptions.find((option) => option.value === selectedRelationship)?.label ?? '미선택';
+  const examResultFormatLabel = examResultFormatOptions.find((option) => option.value === selectedExamResultFormat)?.label ?? '예상 학점';
+
+  const nameLength = watched.name?.trim().length ?? 0;
+  const birthPlaceLength = watched.birthPlace?.trim().length ?? 0;
+  const hasName = nameLength >= 2 && nameLength <= 30 && (selectedGender === 'female' || selectedGender === 'male') && (selectedCalendarType === 'solar' || selectedCalendarType === 'lunar');
+  const hasBirthDate = isValidBirthDate(watched.birthDate || '');
+  const hasBirthTime = Boolean(watched.birthTimeUnknown) || TIME_REGEX.test(watched.birthTime || '');
+  const hasBasicInfo = hasName && hasBirthDate && hasBirthTime;
+  const hasDetails =
+    selectedFortuneType === 'exam'
+      ? Boolean(watched.examSubject?.trim()) && (watched.examSubject?.trim().length ?? 0) <= 80 && (selectedExamResultFormat === 'grade' || selectedExamResultFormat === 'score')
+      : selectedFortuneType === 'love'
+        ? Boolean(selectedRelationship)
+        : false;
+  const hasDelivery = EMAIL_REGEX.test(watched.email?.trim() || '') && birthPlaceLength >= 2 && birthPlaceLength <= 50;
+
+  const completedCount = [hasName, hasBirthDate, hasBirthTime, hasDetails, hasDelivery].filter(Boolean).length;
+  const completionPercent = Math.round((completedCount / REQUIRED_COUNT) * 100);
+
+  const firstIncompleteFlowTarget: FlowTarget = !hasName ? 'name' : !hasBirthDate ? 'birthDate' : !hasBirthTime ? 'birthTime' : !hasDetails ? 'details' : !hasDelivery ? 'delivery' : 'review';
+  const visibleFlowIndex = flowOrder.indexOf(visibleFlowTarget);
+  const firstIncompleteFlowIndex = flowOrder.indexOf(firstIncompleteFlowTarget);
+  const renderedFlowTarget = firstIncompleteFlowIndex < visibleFlowIndex ? firstIncompleteFlowTarget : visibleFlowTarget;
+  const renderedFlowIndex = flowOrder.indexOf(renderedFlowTarget);
+  const activeFlowTarget = firstIncompleteFlowIndex <= renderedFlowIndex ? firstIncompleteFlowTarget : renderedFlowTarget;
+  const currentTargetComplete: Record<FlowTarget, boolean> = {
+    name: hasName,
+    birthDate: hasBirthDate,
+    birthTime: hasBirthTime,
+    details: hasDetails,
+    delivery: hasDelivery,
+    review: completionPercent === 100
+  };
+  const isFlowVisible = (target: FlowTarget) => flowOrder.indexOf(target) <= renderedFlowIndex;
+  const shouldShowNext = (target: AdvanceableFlowTarget) => step === 'input' && renderedFlowTarget === target && currentTargetComplete[target] && !isSubmitting;
+  const birthDateField = requestForm.register('birthDate');
 
   useEffect(() => {
     if (!notice) return;
@@ -159,48 +290,87 @@ export default function SajuLovePage() {
     };
   }, [notice]);
 
-  const completionCount = useMemo(() => {
-    const checks = [
-      watched.name?.trim().length > 0,
-      watched.email?.trim().length > 0,
-      watched.birthDate?.trim().length > 0,
-      watched.birthPlace?.trim().length > 0,
-      watched.gender === 'female' || watched.gender === 'male',
-      watched.calendarType === 'solar' || watched.calendarType === 'lunar',
-      watched.fortuneType === 'exam' ? Boolean(watched.examSubject?.trim()) : Boolean(watched.relationshipStatus),
-      watched.birthTimeUnknown || TIME_REGEX.test(watched.birthTime || '')
-    ];
+  useEffect(() => {
+    if (step !== 'input') return;
+    if (firstIncompleteFlowIndex < visibleFlowIndex) {
+      setVisibleFlowTarget(firstIncompleteFlowTarget);
+    }
+  }, [firstIncompleteFlowIndex, firstIncompleteFlowTarget, step, visibleFlowIndex]);
 
-    return checks.filter(Boolean).length;
-  }, [
-    watched.name,
-    watched.email,
-    watched.birthDate,
-    watched.birthPlace,
-    watched.examSubject,
-    watched.fortuneType,
-    watched.gender,
-    watched.calendarType,
-    watched.relationshipStatus,
-    watched.birthTime,
-    watched.birthTimeUnknown
-  ]);
+  useEffect(() => {
+    if (step !== 'input') return;
+    if (previousFlowTarget.current === visibleFlowTarget) return;
 
-  const completionPercent = Math.round((completionCount / REQUIRED_COUNT) * 100);
-  const currentStepIndex = stepLabels.findIndex((entry) => entry.key === step);
+    previousFlowTarget.current = visibleFlowTarget;
+    window.setTimeout(() => {
+      const node = flowRefs.current[visibleFlowTarget];
+      node?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const focusTarget = node?.querySelector<HTMLElement>('input:not([disabled]), textarea:not([disabled]), button:not([disabled])');
+      focusTarget?.focus({ preventScroll: true });
+    }, 120);
+  }, [step, visibleFlowTarget]);
+
+  const advanceFlow = async (target: AdvanceableFlowTarget) => {
+    if (isSubmitting) return;
+
+    const fieldsByTarget: Record<AdvanceableFlowTarget, Array<keyof RequestFormValues>> = {
+      name: ['name', 'gender', 'calendarType'],
+      birthDate: ['birthDate'],
+      birthTime: ['birthTime', 'birthTimeUnknown'],
+      details: selectedFortuneType === 'exam' ? ['examSubject', 'examResultFormat'] : ['relationshipStatus', 'concern'],
+      delivery: ['email', 'birthPlace']
+    };
+    const isValid = await requestForm.trigger(fieldsByTarget[target]);
+    if (!isValid || !currentTargetComplete[target]) return;
+
+    const nextTarget = flowOrder[flowOrder.indexOf(target) + 1] ?? target;
+    previousFlowTarget.current = null;
+    setVisibleFlowTarget(nextTarget);
+  };
+
+  const handleBirthDateChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatBirthDateInput(event.currentTarget.value);
+    event.currentTarget.value = formatted;
+    void birthDateField.onChange(event);
+  };
+
+  const handleFortuneChange = (fortuneType: FortuneType) => {
+    if (isSubmitting) return;
+
+    requestForm.setValue('fortuneType', fortuneType, { shouldValidate: true, shouldDirty: true });
+
+    if (fortuneType === 'exam') {
+      requestForm.setValue('concern', '', { shouldValidate: true, shouldDirty: true });
+      requestForm.setValue('relationshipStatus', undefined, { shouldValidate: true, shouldDirty: true });
+      requestForm.setValue('examResultFormat', requestForm.getValues('examResultFormat') ?? 'grade', { shouldValidate: true, shouldDirty: true });
+      requestForm.clearErrors(['concern', 'relationshipStatus']);
+    } else {
+      requestForm.setValue('examSubject', '', { shouldValidate: true, shouldDirty: true });
+      requestForm.setValue('examResultFormat', 'grade', { shouldValidate: true, shouldDirty: true });
+      requestForm.clearErrors(['examSubject']);
+    }
+
+    previousFlowTarget.current = null;
+    setVisibleFlowTarget('name');
+    setStep('input');
+    window.setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 80);
+  };
 
   const submitRequest = requestForm.handleSubmit(async (values) => {
+    if (!values.fortuneType) return;
+
     setApiError('');
     setNotice('');
 
     try {
+      const fortuneType = values.fortuneType;
       const created = await parseJson<CreateResponse>(
         await fetch('/api/saju-requests', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             input: {
-              fortuneType: values.fortuneType,
+              fortuneType,
               name: values.name,
               email: values.email,
               gender: values.gender,
@@ -208,10 +378,10 @@ export default function SajuLovePage() {
               birthDate: values.birthDate,
               birthTime: values.birthTimeUnknown ? '00:00' : values.birthTime,
               birthPlace: values.birthPlace,
-              relationshipStatus: values.fortuneType === 'love' ? values.relationshipStatus : 'unknown',
-              concern: values.fortuneType === 'love' && values.concern?.trim() ? values.concern.trim() : undefined,
-              examSubject: values.fortuneType === 'exam' && values.examSubject?.trim() ? values.examSubject.trim() : undefined,
-              examResultFormat: values.fortuneType === 'exam' ? values.examResultFormat : undefined
+              relationshipStatus: fortuneType === 'love' ? values.relationshipStatus : 'unknown',
+              concern: fortuneType === 'love' && values.concern?.trim() ? values.concern.trim() : undefined,
+              examSubject: fortuneType === 'exam' && values.examSubject?.trim() ? values.examSubject.trim() : undefined,
+              examResultFormat: fortuneType === 'exam' ? values.examResultFormat : undefined
             }
           })
         })
@@ -220,9 +390,9 @@ export default function SajuLovePage() {
       setRequestState(created.request);
       setStep('submitted');
       setNotice(
-        values.fortuneType === 'exam'
+        fortuneType === 'exam'
           ? '요청이 접수되었습니다. 분석이 완료되면 입력하신 이메일로 시험운 리포트를 보내드립니다.'
-          : '요청이 접수되었습니다. 분석이 완료되면 입력하신 이메일로 결과를 보내드립니다.'
+          : '요청이 접수되었습니다. 분석이 완료되면 입력하신 이메일로 애정운 결과를 보내드립니다.'
       );
     } catch (requestError) {
       setApiError(requestError instanceof Error ? requestError.message : '요청 접수 중 오류가 발생했습니다.');
@@ -231,7 +401,7 @@ export default function SajuLovePage() {
 
   const resetForNewRequest = () => {
     requestForm.reset({
-      fortuneType: 'love',
+      fortuneType: undefined,
       name: '',
       email: '',
       gender: 'female',
@@ -243,363 +413,406 @@ export default function SajuLovePage() {
       concern: '',
       examSubject: '',
       examResultFormat: 'grade',
-      relationshipStatus: 'unknown'
+      relationshipStatus: undefined
     });
+    previousFlowTarget.current = null;
+    setVisibleFlowTarget('name');
     setRequestState(null);
     setNotice('');
     setApiError('');
-    setStep('input');
+    setStep('fortune');
   };
 
   return (
-    <div className="relative mx-auto grid max-w-[1080px] gap-4 text-zinc-800 md:gap-5">
-      <section className="page-card relative overflow-hidden px-4 py-5 md:px-7 md:py-7">
-        <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-zinc-900/5 blur-2xl" aria-hidden="true" />
-        <div className="pointer-events-none absolute right-5 top-5 h-2.5 w-2.5 animate-float-dot rounded-full bg-zinc-300" aria-hidden="true" />
-        <div className="pointer-events-none absolute right-10 top-9 h-1.5 w-1.5 animate-soft-pulse rounded-full bg-zinc-400" aria-hidden="true" />
-
-        <p className="kicker animate-step-enter">Saju Atelier</p>
-        <h1 className="mt-2 text-[32px] font-semibold leading-[1.1] tracking-[-0.03em] text-zinc-900 md:text-[52px] [animation-delay:80ms] animate-step-enter">
-          사주 운세 요청
-        </h1>
-        <p className="mt-3 max-w-[780px] text-[15px] leading-[1.58] text-zinc-600 md:text-[17px] [animation-delay:140ms] animate-step-enter">
-          연애운과 시험운 중 하나를 고르고, 완료된 리포트를 이메일로 받아보세요.
-        </p>
-
-        <div className="mt-4 grid gap-2.5 md:mt-5 md:grid-cols-3" role="list" aria-label="사주 요청 단계">
-          {stepLabels.map((entry, index) => {
-            const active = index <= currentStepIndex;
-            return (
-              <div
-                key={entry.key}
-                role="listitem"
-                className={`rounded-md border px-3 py-2 transition-all duration-300 animate-step-enter ${
-                  active ? 'scale-[1.01] border-zinc-900 bg-zinc-900 text-white' : 'border-line bg-soft text-zinc-600'
-                }`}
-                style={{ animationDelay: `${180 + index * 80}ms` }}
-              >
-                <strong className="block text-sm">{entry.label}</strong>
-                <span className={`text-xs ${active ? 'text-zinc-200' : 'text-zinc-500'}`}>{entry.caption}</span>
-              </div>
-            );
-          })}
+    <div className="relative mx-auto grid max-w-[900px] gap-4 text-[var(--text)] md:gap-5">
+      <section className="saju-card px-4 py-5 md:px-7 md:py-7">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="eyebrow animate-step-enter">Saju Atelier</p>
+            <h1 className="mt-3 text-[30px] font-semibold leading-[1.12] tracking-[-0.03em] text-[var(--text)] md:text-[44px] [animation-delay:80ms] animate-step-enter">
+              사주 운세 요청
+            </h1>
+            <p className="mt-3 max-w-[620px] text-[15px] leading-[1.62] text-[var(--text-dim)] md:text-[16px] [animation-delay:140ms] animate-step-enter">
+              한 번에 하나씩 입력하면 결과를 이메일로 받아볼 수 있습니다.
+            </p>
+          </div>
+          {step === 'input' && (
+            <button
+              type="button"
+              className="pill w-fit"
+              disabled={isSubmitting}
+              onClick={() => {
+                previousFlowTarget.current = null;
+                setVisibleFlowTarget('name');
+                setStep('fortune');
+              }}
+            >
+              {fortuneLabel} 변경
+            </button>
+          )}
         </div>
+
+        {step === 'input' && (
+          <div className="mt-5 grid gap-2">
+            <div className="flex items-center justify-between gap-3 text-[13px] text-[var(--text-dim)]">
+              <span>입력 진행률</span>
+              <strong className="text-[var(--text)]">{completionPercent}%</strong>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full border border-[var(--border)] bg-[var(--surface-2)]">
+              <span className="block h-full rounded-full bg-[var(--accent)] transition-all duration-500" style={{ width: `${completionPercent}%` }} />
+            </div>
+          </div>
+        )}
       </section>
 
-      {step === 'landing' && (
-        <section className="page-card grid gap-4 px-4 py-5 md:px-7 md:py-6 animate-panel-reveal">
-          <h2 className="text-[24px] font-semibold tracking-[-0.02em] text-zinc-900 md:text-[28px]">요청 전에 확인해 주세요</h2>
-          <p className="text-[15px] leading-[1.6] text-zinc-600">필수 정보 입력 후 접수되며, 분석 완료 시 이메일로 결과가 발송됩니다.</p>
-
-          <div className="grid gap-2.5 md:grid-cols-3">
-            <article className="rounded-md border border-line bg-soft p-3.5 transition-transform duration-200 hover:-translate-y-0.5">
-              <h3 className="text-sm font-semibold text-zinc-900">필수 입력</h3>
-              <p className="mt-1 text-[13px] leading-[1.55] text-zinc-600">이름, 이메일, 생년월일/시각, 출생지와 운세별 추가 정보를 입력해 주세요.</p>
-            </article>
-            <article className="rounded-md border border-line bg-soft p-3.5 transition-transform duration-200 hover:-translate-y-0.5">
-              <h3 className="text-sm font-semibold text-zinc-900">비동기 처리</h3>
-              <p className="mt-1 text-[13px] leading-[1.55] text-zinc-600">요청은 순차 큐로 처리되며 완료 후 이메일로 발송됩니다.</p>
-            </article>
-            <article className="rounded-md border border-line bg-soft p-3.5 transition-transform duration-200 hover:-translate-y-0.5">
-              <h3 className="text-sm font-semibold text-zinc-900">개인정보 유의</h3>
-              <p className="mt-1 text-[13px] leading-[1.55] text-zinc-600">분석 목적 최소 정보만 수집하며, 정책에 따라 안전하게 처리합니다.</p>
-            </article>
+      {step === 'fortune' && (
+        <section className="saju-card grid gap-4 px-4 py-5 md:px-7 md:py-6 animate-panel-reveal">
+          <div>
+            <p className="eyebrow mb-2">Choose one</p>
+            <h2 className="text-[1.35rem] font-semibold tracking-[-0.025em] text-[var(--text)]">보고 싶은 운세를 선택해 주세요</h2>
+            <p className="mt-1 text-sm leading-[1.6] text-[var(--text-dim)]">선택한 운세 방식에 맞는 화면으로 이동합니다.</p>
           </div>
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <button type="button" onClick={() => setStep('input')} className="btn-pill-dark transition-transform duration-200 hover:-translate-y-0.5">
-              입력 시작하기
-            </button>
-            <a href="/saju-dice" className="btn-pill-soft transition-transform duration-200 hover:-translate-y-0.5">
-              개인정보 없이 주사위로 보기
-            </a>
+          <div className="grid gap-2 md:grid-cols-3" role="group" aria-label="운세 종류 선택">
+            {fortuneOptions.map((option) => {
+              const active = option.type === 'form' && selectedFortuneType === option.value;
+              if (option.type === 'link') {
+                return (
+                  <a key={option.label} href={option.href} className="saju-choice min-h-[112px] p-4 text-left">
+                    <strong className="block text-base">{option.label}</strong>
+                    <span className="mt-2 block text-sm leading-[1.55]">{option.description}</span>
+                  </a>
+                );
+              }
+
+              return (
+                <button
+                  type="button"
+                  key={option.value}
+                  disabled={isSubmitting}
+                  aria-pressed={active}
+                  data-active={active ? 'true' : undefined}
+                  onClick={() => handleFortuneChange(option.value)}
+                  className="saju-choice min-h-[112px] p-4 text-left"
+                >
+                  <strong className="block text-base">{option.label}</strong>
+                  <span className="mt-2 block text-sm leading-[1.55]">{option.description}</span>
+                </button>
+              );
+            })}
           </div>
+          <FieldError message={requestForm.formState.errors.fortuneType?.message} />
         </section>
       )}
 
       {step === 'input' && (
-        <section className="page-card grid gap-5 px-4 py-5 md:px-7 md:py-6 animate-panel-reveal">
-          <div className="grid gap-2">
-            <div className="flex items-center justify-between text-[13px] text-zinc-600">
-              <span>입력 진행률</span>
-              <strong className="text-zinc-900">
-                {completionCount}/{REQUIRED_COUNT} ({completionPercent}%)
-              </strong>
-            </div>
-            <div className="h-2 overflow-hidden rounded-full bg-zinc-200">
-              <span
-                className={`block h-full rounded-full bg-zinc-900 transition-all duration-500 ${completionPercent === 100 ? 'animate-soft-pulse' : ''}`}
-                style={{ width: `${completionPercent}%` }}
-              />
-            </div>
-          </div>
-
-          <form className="grid gap-4" onSubmit={submitRequest}>
-            <div className="grid gap-1.5">
-              <span className="text-sm font-medium text-zinc-700">보고 싶은 운세 *</span>
-              <div className="grid gap-2 rounded-md border border-line bg-soft p-1 md:grid-cols-2" role="group" aria-label="운세 종류 선택">
-                {fortuneOptions.map((option) => {
-                  const active = selectedFortuneType === option.value;
-                  return (
-                    <button
-                      type="button"
-                      key={option.value}
-                      onClick={() => {
-                        requestForm.setValue('fortuneType', option.value, { shouldValidate: true, shouldDirty: true });
-                        if (option.value === 'exam') {
-                          requestForm.setValue('concern', '', { shouldValidate: true, shouldDirty: true });
-                          requestForm.setValue('relationshipStatus', 'unknown', { shouldValidate: true, shouldDirty: true });
-                          requestForm.setValue('examResultFormat', requestForm.getValues('examResultFormat') ?? 'grade', { shouldValidate: true, shouldDirty: true });
-                        } else {
-                          requestForm.setValue('examSubject', '', { shouldValidate: true, shouldDirty: true });
-                        }
-                      }}
-                      className={`rounded-md px-3 py-2.5 text-left transition-all duration-300 ${
-                        active ? 'scale-[1.01] bg-zinc-900 text-white' : 'bg-transparent text-zinc-700 hover:bg-zinc-200'
-                      }`}
-                    >
-                      <strong className="block text-sm">{option.label}</strong>
-                      <span className={`mt-1 block text-xs leading-[1.5] ${active ? 'text-zinc-200' : 'text-zinc-500'}`}>{option.description}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="grid gap-3 md:grid-cols-2">
+        <form className="grid gap-4" onSubmit={submitRequest}>
+          <FlowCard
+            title="기본 정보를 입력해 주세요"
+            description="입력한 값이 확인되면 다음 항목으로 이어집니다."
+            complete={hasBasicInfo}
+            active={activeFlowTarget === 'name' || activeFlowTarget === 'birthDate' || activeFlowTarget === 'birthTime'}
+          >
+            <div ref={(node) => { flowRefs.current.name = node; }} className="grid gap-3">
               <label className="grid gap-1.5">
-                <span className="text-sm font-medium text-zinc-700">이름 *</span>
-                <input type="text" placeholder="홍길동" {...requestForm.register('name')} className="h-11 rounded-md border border-line bg-white px-3 outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-900/10" />
-                {requestForm.formState.errors.name && <em className="text-xs not-italic text-red-600 animate-toast-slide">{requestForm.formState.errors.name.message}</em>}
-              </label>
-
-              <label className="grid gap-1.5">
-                <span className="text-sm font-medium text-zinc-700">이메일 *</span>
+                <span className="text-sm font-medium text-[var(--text-dim)]">이름 *</span>
                 <input
-                  type="email"
-                  placeholder="name@example.com"
-                  {...requestForm.register('email')}
-                  className="h-11 rounded-md border border-line bg-white px-3 outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-900/10"
+                  type="text"
+                  placeholder="홍길동"
+                  disabled={isSubmitting}
+                  {...requestForm.register('name')}
+                  className="saju-input"
                 />
-                {requestForm.formState.errors.email && <em className="text-xs not-italic text-red-600 animate-toast-slide">{requestForm.formState.errors.email.message}</em>}
+                <FieldError message={requestForm.formState.errors.name?.message} />
               </label>
 
-              <label className="grid gap-1.5">
-                <span className="text-sm font-medium text-zinc-700">생년월일 *</span>
-                <input type="date" {...requestForm.register('birthDate')} className="h-11 rounded-md border border-line bg-white px-3 outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-900/10" />
-                {requestForm.formState.errors.birthDate && <em className="text-xs not-italic text-red-600 animate-toast-slide">{requestForm.formState.errors.birthDate.message}</em>}
-              </label>
-
-              <label className="grid gap-1.5">
-                <span className="text-sm font-medium text-zinc-700">출생 시간 *</span>
-                <input
-                  type="time"
-                  disabled={birthTimeUnknown}
-                  {...requestForm.register('birthTime')}
-                  className="h-11 rounded-md border border-line bg-white px-3 outline-none transition disabled:cursor-not-allowed disabled:bg-zinc-100 focus:border-zinc-500 focus:ring-2 focus:ring-zinc-900/10"
-                />
-                <label className="inline-flex items-center gap-2 text-xs text-zinc-600">
-                  <input
-                    type="checkbox"
-                    {...requestForm.register('birthTimeUnknown')}
-                    className="h-4 w-4 rounded border-line text-zinc-900 focus:ring-zinc-900/20"
-                    onChange={(event) => {
-                      const checked = event.target.checked;
-                      requestForm.setValue('birthTimeUnknown', checked, { shouldDirty: true });
-                      if (checked) {
-                        requestForm.setValue('birthTime', '00:00', { shouldValidate: true, shouldDirty: true });
-                      } else {
-                        requestForm.setValue('birthTime', '', { shouldValidate: true, shouldDirty: true });
-                      }
-                    }}
-                  />
-                  태어난 시각을 모릅니다 (00:00 기준)
-                </label>
-                {requestForm.formState.errors.birthTime && <em className="text-xs not-italic text-red-600 animate-toast-slide">{requestForm.formState.errors.birthTime.message}</em>}
-              </label>
-            </div>
-
-            <div className="grid gap-3 md:grid-cols-2">
-              <div className="grid gap-1.5">
-                <span className="text-sm font-medium text-zinc-700">성별 *</span>
-                <div className="grid grid-cols-2 gap-2 rounded-md border border-line bg-soft p-1" role="group" aria-label="성별 선택">
-                  <button
-                    type="button"
-                    className={`h-10 rounded-md text-sm font-medium transition ${selectedGender === 'female' ? 'bg-zinc-900 text-white' : 'bg-transparent text-zinc-700 hover:bg-zinc-200'}`}
-                    onClick={() => requestForm.setValue('gender', 'female', { shouldValidate: true, shouldDirty: true })}
-                  >
-                    여성
-                  </button>
-                  <button
-                    type="button"
-                    className={`h-10 rounded-md text-sm font-medium transition ${selectedGender === 'male' ? 'bg-zinc-900 text-white' : 'bg-transparent text-zinc-700 hover:bg-zinc-200'}`}
-                    onClick={() => requestForm.setValue('gender', 'male', { shouldValidate: true, shouldDirty: true })}
-                  >
-                    남성
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid gap-1.5">
-                <span className="text-sm font-medium text-zinc-700">역법 *</span>
-                <div className="grid grid-cols-2 gap-2 rounded-md border border-line bg-soft p-1" role="group" aria-label="역법 선택">
-                  <button
-                    type="button"
-                    className={`h-10 rounded-md text-sm font-medium transition ${selectedCalendarType === 'solar' ? 'bg-zinc-900 text-white' : 'bg-transparent text-zinc-700 hover:bg-zinc-200'}`}
-                    onClick={() => requestForm.setValue('calendarType', 'solar', { shouldValidate: true, shouldDirty: true })}
-                  >
-                    양력
-                  </button>
-                  <button
-                    type="button"
-                    className={`h-10 rounded-md text-sm font-medium transition ${selectedCalendarType === 'lunar' ? 'bg-zinc-900 text-white' : 'bg-transparent text-zinc-700 hover:bg-zinc-200'}`}
-                    onClick={() => requestForm.setValue('calendarType', 'lunar', { shouldValidate: true, shouldDirty: true })}
-                  >
-                    음력
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {selectedFortuneType === 'love' ? (
-              <div className="grid gap-1.5">
-                <span className="text-sm font-medium text-zinc-700">관계 상태 *</span>
-                <div className="grid gap-2 md:grid-cols-2">
-                  {relationshipOptions.map((option) => {
-                    const active = selectedRelationship === option.value;
-                    return (
-                      <button
-                        type="button"
-                        key={option.value}
-                        onClick={() => requestForm.setValue('relationshipStatus', option.value, { shouldValidate: true, shouldDirty: true })}
-                        className={`rounded-md border p-3 text-left transition-all duration-300 ${
-                          active ? 'scale-[1.01] border-zinc-900 bg-zinc-900 text-white' : 'border-line bg-soft text-zinc-700 hover:bg-zinc-200'
-                        }`}
-                      >
-                        <strong className="block text-sm">{option.label}</strong>
-                        <span className={`mt-1 block text-xs leading-[1.5] ${active ? 'text-zinc-200' : 'text-zinc-500'}`}>{option.description}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-                {requestForm.formState.errors.relationshipStatus && (
-                  <em className="text-xs not-italic text-red-600 animate-toast-slide">{requestForm.formState.errors.relationshipStatus.message}</em>
-                )}
-              </div>
-            ) : (
-              <div className="grid gap-3">
-                <label className="grid gap-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-zinc-700">고민중인 과목 *</span>
-                    <span className="text-xs text-zinc-500">{examSubjectLength}/80</span>
-                  </div>
-                  <input
-                    type="text"
-                    maxLength={80}
-                    placeholder="예: 컴퓨터, 수학, 영어, 한국사"
-                    {...requestForm.register('examSubject')}
-                    className="h-11 rounded-md border border-line bg-white px-3 outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-900/10"
-                  />
-                  <span className="text-xs leading-[1.55] text-zinc-500">오행상 과목 궁합과 보완 루틴을 재밌게 풀어드립니다.</span>
-                  {requestForm.formState.errors.examSubject && <em className="text-xs not-italic text-red-600 animate-toast-slide">{requestForm.formState.errors.examSubject.message}</em>}
-                </label>
-
+              <div className="grid gap-3 md:grid-cols-2">
                 <div className="grid gap-1.5">
-                  <span className="text-sm font-medium text-zinc-700">결과를 어떤 기준으로 받을까요? *</span>
-                  <div className="grid gap-2 rounded-md border border-line bg-soft p-1 md:grid-cols-2" role="group" aria-label="시험운 결과 기준 선택">
-                    {examResultFormatOptions.map((option) => {
-                      const active = selectedExamResultFormat === option.value;
+                  <span className="text-sm font-medium text-[var(--text-dim)]">성별 *</span>
+                  <div className="saju-segment" role="group" aria-label="성별 선택">
+                    {(['female', 'male'] as const).map((gender) => {
+                      const active = selectedGender === gender;
                       return (
                         <button
                           type="button"
-                          key={option.value}
-                          onClick={() => requestForm.setValue('examResultFormat', option.value, { shouldValidate: true, shouldDirty: true })}
-                          className={`rounded-md px-3 py-2.5 text-left transition-all duration-300 ${
-                            active ? 'scale-[1.01] bg-zinc-900 text-white' : 'bg-transparent text-zinc-700 hover:bg-zinc-200'
-                          }`}
+                          key={gender}
+                          disabled={isSubmitting}
+                          aria-pressed={active}
+                          data-active={active ? 'true' : undefined}
+                          className="saju-segment__button"
+                          onClick={() => requestForm.setValue('gender', gender, { shouldValidate: true, shouldDirty: true })}
                         >
-                          <strong className="block text-sm">{option.label}</strong>
-                          <span className={`mt-1 block text-xs leading-[1.5] ${active ? 'text-zinc-200' : 'text-zinc-500'}`}>{option.description}</span>
+                          {gender === 'female' ? '여성' : '남성'}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="grid gap-1.5">
+                  <span className="text-sm font-medium text-[var(--text-dim)]">역법 *</span>
+                  <div className="saju-segment" role="group" aria-label="역법 선택">
+                    {(['solar', 'lunar'] as const).map((calendarType) => {
+                      const active = selectedCalendarType === calendarType;
+                      return (
+                        <button
+                          type="button"
+                          key={calendarType}
+                          disabled={isSubmitting}
+                          aria-pressed={active}
+                          data-active={active ? 'true' : undefined}
+                          className="saju-segment__button"
+                          onClick={() => requestForm.setValue('calendarType', calendarType, { shouldValidate: true, shouldDirty: true })}
+                        >
+                          {calendarType === 'solar' ? '양력' : '음력'}
                         </button>
                       );
                     })}
                   </div>
                 </div>
               </div>
-            )}
+              <FlowNextButton disabled={!shouldShowNext('name')} onClick={() => void advanceFlow('name')} />
+            </div>
 
-            <label className="grid gap-1.5">
-              <span className="text-sm font-medium text-zinc-700">출생 지역 *</span>
-              <input
-                type="text"
-                placeholder="서울특별시"
-                {...requestForm.register('birthPlace')}
-                className="h-11 rounded-md border border-line bg-white px-3 outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-900/10"
-              />
-              {requestForm.formState.errors.birthPlace && <em className="text-xs not-italic text-red-600 animate-toast-slide">{requestForm.formState.errors.birthPlace.message}</em>}
-            </label>
-
-            {selectedFortuneType === 'love' && (
-              <label className="grid gap-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-zinc-700">요즘 가장 고민되는 연애 이슈 (선택)</span>
-                  <span className="text-xs text-zinc-500">{concernLength}/200</span>
-                </div>
-                <textarea
-                  rows={4}
-                  maxLength={200}
-                  placeholder="요즘 가장 고민되는 연애 이슈"
-                  {...requestForm.register('concern')}
-                  className="rounded-md border border-line bg-white px-3 py-2.5 text-sm leading-[1.55] outline-none transition resize-y min-h-[112px] focus:border-zinc-500 focus:ring-2 focus:ring-zinc-900/10"
+            {isFlowVisible('birthDate') && (
+              <label ref={(node) => { flowRefs.current.birthDate = node; }} className="grid gap-1.5 animate-step-enter">
+                <span className="text-sm font-medium text-[var(--text-dim)]">생년월일 *</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={10}
+                  placeholder="YYYY-MM-DD"
+                  disabled={isSubmitting}
+                  {...birthDateField}
+                  onChange={handleBirthDateChange}
+                  className="saju-input"
                 />
-                {requestForm.formState.errors.concern && <em className="text-xs not-italic text-red-600 animate-toast-slide">{requestForm.formState.errors.concern.message}</em>}
+                <FieldError message={requestForm.formState.errors.birthDate?.message} />
+                <FlowNextButton disabled={!shouldShowNext('birthDate')} onClick={() => void advanceFlow('birthDate')} />
               </label>
             )}
 
-            <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:items-center">
-              <button
-                type="submit"
-                disabled={requestForm.formState.isSubmitting}
-                className="btn-pill-dark transition-transform duration-200 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {requestForm.formState.isSubmitting ? '접수 중...' : '요청 접수하기'}
-              </button>
-              <button type="button" onClick={() => setStep('landing')} className="btn-pill-soft transition-transform duration-200 hover:-translate-y-0.5">
-                이전 단계
-              </button>
-            </div>
+            {isFlowVisible('birthTime') && (
+              <div ref={(node) => { flowRefs.current.birthTime = node; }} className="grid gap-2 animate-step-enter">
+                <label className="grid gap-1.5">
+                  <span className="text-sm font-medium text-[var(--text-dim)]">출생시간 *</span>
+                  <input
+                    type="time"
+                    disabled={isSubmitting || birthTimeUnknown}
+                    {...requestForm.register('birthTime')}
+                    onInput={(event) => requestForm.setValue('birthTime', event.currentTarget.value, { shouldValidate: true, shouldDirty: true })}
+                    className="saju-input disabled:opacity-60"
+                  />
+                  <FieldError message={requestForm.formState.errors.birthTime?.message} />
+                </label>
+                <label className="inline-flex w-fit items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-xs font-medium text-[var(--text-dim)]">
+                  <input
+                    type="checkbox"
+                    disabled={isSubmitting}
+                    {...requestForm.register('birthTimeUnknown')}
+                    className="h-4 w-4 rounded border-[var(--border)] text-zinc-900 focus:ring-zinc-900/20 disabled:cursor-not-allowed"
+                    onChange={(event) => {
+                      const checked = event.target.checked;
+                      requestForm.setValue('birthTimeUnknown', checked, { shouldDirty: true, shouldValidate: true });
+                      requestForm.setValue('birthTime', checked ? '00:00' : '', { shouldValidate: true, shouldDirty: true });
+                    }}
+                  />
+                  출생시간을 모릅니다
+                </label>
+                <FlowNextButton disabled={!shouldShowNext('birthTime')} onClick={() => void advanceFlow('birthTime')} />
+              </div>
+            )}
+          </FlowCard>
 
-            <p className="text-xs leading-[1.6] text-zinc-500 md:text-[13px]">
-              요청 접수 전{' '}
-              <a href="/privacy" className="font-medium text-zinc-700 underline underline-offset-2 transition hover:text-zinc-900">
-                개인정보 처리방침
-              </a>
-              을 확인해 주세요.
-            </p>
-          </form>
+          {isFlowVisible('details') && hasBasicInfo && (
+            <FlowCard
+              title={selectedFortuneType === 'exam' ? '시험 정보를 입력해 주세요' : '관계 상태를 선택해 주세요'}
+              description={selectedFortuneType === 'exam' ? '과목과 결과 기준을 고르면 시험운 리포트가 맞춰집니다.' : '현재 상태를 고르고, 필요하면 고민을 짧게 남겨주세요.'}
+              complete={hasDetails}
+              active={activeFlowTarget === 'details'}
+              setNode={(node) => {
+                flowRefs.current.details = node;
+              }}
+            >
+              {selectedFortuneType === 'exam' ? (
+                <>
+                  <label className="grid gap-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-[var(--text-dim)]">고민중인 과목 *</span>
+                      <span className="text-xs text-[var(--text-faint)]">{examSubjectLength}/80</span>
+                    </div>
+                    <input
+                      type="text"
+                      maxLength={80}
+                      disabled={isSubmitting}
+                      placeholder="예: 컴퓨터, 수학, 영어, 한국사"
+                      {...requestForm.register('examSubject')}
+                      className="saju-input"
+                    />
+                    <FieldError message={requestForm.formState.errors.examSubject?.message} />
+                  </label>
 
-          <section className="rounded-md border border-line bg-soft px-4 py-3 text-xs leading-[1.6] text-zinc-600 md:text-[13px]">
-            수집 항목: 이름, 이메일, 생년월일/시각, 출생지,
-            {selectedFortuneType === 'exam' ? ' 고민중인 과목과 결과 기준' : ' 관계 상태(고민 내용은 선택)'}만 수집합니다.
-            <br />
-            처리 목적: 사주 {selectedFortuneType === 'exam' ? '시험운' : '연애운'} 분석 및 결과 이메일 발송 목적으로만 이용합니다.
-            <br />
-            보관 정책: 처리 완료 건 90일, 처리 실패 건 30일 보관 후 파기(현재 운영정책 기준)합니다.
-          </section>
-        </section>
+                  <div className="saju-segment md:grid-cols-2" role="group" aria-label="시험운 결과 기준 선택">
+                    {examResultFormatOptions.map((option) => {
+                      const active = selectedExamResultFormat === option.value;
+                      return (
+                        <button
+                          type="button"
+                          key={option.value}
+                          disabled={isSubmitting}
+                          aria-pressed={active}
+                          data-active={active ? 'true' : undefined}
+                          onClick={() => requestForm.setValue('examResultFormat', option.value, { shouldValidate: true, shouldDirty: true })}
+                          className="saju-segment__button min-h-[70px] text-left"
+                        >
+                          <strong className="block text-sm">{option.label}</strong>
+                          <span className="mt-1 block text-xs leading-[1.5] opacity-75">{option.description}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <FlowNextButton disabled={!shouldShowNext('details')} onClick={() => void advanceFlow('details')} />
+                </>
+              ) : (
+                <>
+                  <div className="grid gap-2 md:grid-cols-2">
+                    {relationshipOptions.map((option) => {
+                      const active = selectedRelationship === option.value;
+                      return (
+                        <button
+                          type="button"
+                          key={option.value}
+                          disabled={isSubmitting}
+                          aria-pressed={active}
+                          data-active={active ? 'true' : undefined}
+                          onClick={() => requestForm.setValue('relationshipStatus', option.value, { shouldValidate: true, shouldDirty: true })}
+                          className="saju-choice p-3 text-left"
+                        >
+                          <strong className="block text-sm">{option.label}</strong>
+                          <span className="mt-1 block text-xs leading-[1.5]">{option.description}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <FieldError message={requestForm.formState.errors.relationshipStatus?.message} />
+
+                  <label className="grid gap-1.5">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-sm font-medium text-[var(--text-dim)]">연애 고민 (선택)</span>
+                      <span className="text-xs text-[var(--text-faint)]">{concernLength}/200</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {concernQuickOptions.map((option) => (
+                        <button type="button" key={option} disabled={isSubmitting} onClick={() => requestForm.setValue('concern', option, { shouldValidate: true, shouldDirty: true })} className="pill">
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                    <textarea
+                      rows={3}
+                      maxLength={200}
+                      disabled={isSubmitting}
+                      placeholder="요즘 가장 고민되는 연애 이슈"
+                      {...requestForm.register('concern')}
+                      className="saju-input min-h-[104px] resize-y py-2.5 leading-[1.55]"
+                    />
+                    <FieldError message={requestForm.formState.errors.concern?.message} />
+                  </label>
+                  <FlowNextButton disabled={!shouldShowNext('details')} onClick={() => void advanceFlow('details')} />
+                </>
+              )}
+            </FlowCard>
+          )}
+
+          {isFlowVisible('delivery') && hasDetails && (
+            <FlowCard
+              title="받을 곳을 입력해 주세요"
+              description="분석 결과를 보낼 이메일과 출생지를 확인합니다."
+              complete={hasDelivery}
+              active={activeFlowTarget === 'delivery'}
+              setNode={(node) => {
+                flowRefs.current.delivery = node;
+              }}
+            >
+              <div className="grid gap-3 md:grid-cols-2">
+                <label className="grid gap-1.5">
+                  <span className="text-sm font-medium text-[var(--text-dim)]">이메일 *</span>
+                  <input type="email" placeholder="name@example.com" disabled={isSubmitting} {...requestForm.register('email')} className="saju-input" />
+                  <FieldError message={requestForm.formState.errors.email?.message} />
+                </label>
+
+                <label className="grid gap-1.5">
+                  <span className="text-sm font-medium text-[var(--text-dim)]">출생지 *</span>
+                  <input type="text" placeholder="서울특별시" disabled={isSubmitting} {...requestForm.register('birthPlace')} className="saju-input" />
+                  <FieldError message={requestForm.formState.errors.birthPlace?.message} />
+                </label>
+              </div>
+              <FlowNextButton disabled={!shouldShowNext('delivery')} onClick={() => void advanceFlow('delivery')} />
+            </FlowCard>
+          )}
+
+          {isFlowVisible('review') && hasDelivery && (
+            <FlowCard
+              title="입력 내용을 확인해 주세요"
+              description="제출 후 분석이 시작되며 완료된 결과는 이메일로 발송됩니다."
+              complete={completionPercent === 100}
+              active
+              setNode={(node) => {
+                flowRefs.current.review = node;
+              }}
+            >
+              <dl className="grid gap-2 md:grid-cols-2">
+                <SummaryRow label="운세" value={fortuneLabel} />
+                <SummaryRow label="이름" value={`${watched.name || '-'} · ${selectedGender === 'female' ? '여성' : '남성'} · ${selectedCalendarType === 'solar' ? '양력' : '음력'}`} />
+                <SummaryRow label="생년월일" value={watched.birthDate || '-'} />
+                <SummaryRow label="출생시간" value={birthTimeUnknown ? '모름' : watched.birthTime || '-'} />
+                <SummaryRow label="출생지" value={watched.birthPlace || '-'} />
+                <SummaryRow label="이메일" value={watched.email || '-'} />
+                {selectedFortuneType === 'exam' ? (
+                  <>
+                    <SummaryRow label="과목" value={watched.examSubject || '-'} />
+                    <SummaryRow label="결과 기준" value={examResultFormatLabel} />
+                  </>
+                ) : (
+                  <>
+                    <SummaryRow label="관계 상태" value={relationshipLabel} />
+                    <SummaryRow label="연애 고민" value={watched.concern?.trim() || '입력 안 함'} />
+                  </>
+                )}
+              </dl>
+
+              <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:items-center">
+                <button type="submit" disabled={isSubmitting} className="btn-pill-dark h-11 transition-transform duration-200 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60">
+                  {isSubmitting ? '접수 중...' : '요청 접수하기'}
+                </button>
+                <a href="/saju-dice" aria-disabled={isSubmitting} className={`btn-pill-soft h-11 transition-transform duration-200 hover:-translate-y-0.5 ${isSubmitting ? 'pointer-events-none opacity-60' : ''}`}>
+                  주사위 운보기
+                </a>
+              </div>
+
+              <p className="text-xs leading-[1.6] text-[var(--text-faint)] md:text-[13px]">
+                요청 접수 전{' '}
+                <a href="/privacy" className="font-medium text-[var(--text-dim)] underline underline-offset-2 transition hover:text-[var(--text)]">
+                  개인정보 처리방침
+                </a>
+                을 확인해 주세요.
+              </p>
+            </FlowCard>
+          )}
+        </form>
       )}
 
       {step === 'submitted' && (
-        <section className="page-card grid gap-4 px-4 py-5 md:px-7 md:py-6 animate-result-pop">
-          <h2 className="text-[26px] font-semibold tracking-[-0.02em] text-zinc-900 md:text-[30px]">접수가 완료되었습니다</h2>
-          <p className="text-[15px] leading-[1.6] text-zinc-600">
-            분석 완료 시 전자우편(이메일)로 {requestState?.input.fortuneType === 'exam' ? '시험운 리포트' : '결과'}를 보내드립니다. 스팸함도 함께 확인해 주세요.
+        <section className="saju-card grid gap-4 px-4 py-5 md:px-7 md:py-6 animate-result-pop">
+          <h2 className="text-[26px] font-semibold tracking-[-0.02em] text-[var(--text)] md:text-[30px]">접수가 완료되었습니다</h2>
+          <p className="text-[15px] leading-[1.6] text-[var(--text-dim)]">
+            분석 완료 시 이메일로 {requestState?.input.fortuneType === 'exam' ? '시험운 리포트' : '애정운 결과'}를 보내드립니다. 스팸함도 함께 확인해 주세요.
           </p>
 
           {requestState && (
-            <div className={`rounded-md border p-4 text-sm leading-[1.6] ${statusTone(requestState.status)}`}>
+            <div className="rounded-md border border-[var(--border)] bg-[var(--surface-2)] p-4 text-sm leading-[1.6] text-[var(--text)]">
               <p className="font-medium">현재 상태</p>
-              <p className="mt-1">{statusText(requestState.status)}</p>
+              <p className="mt-1 text-[var(--text-dim)]">{statusText(requestState.status)}</p>
             </div>
           )}
 
@@ -611,18 +824,14 @@ export default function SajuLovePage() {
         </section>
       )}
 
-      <section className="rounded-md border border-line bg-soft px-4 py-3 text-xs leading-[1.65] text-zinc-600 md:text-[13px]">
-        요청 상태는 시스템 처리 순서에 따라 queued → processing → completed 또는 failed로 진행됩니다.
-      </section>
-
       <div className="pointer-events-none fixed right-4 top-24 z-[70] flex w-[min(92vw,360px)] flex-col gap-2">
         {notice && (
-          <div className="pointer-events-auto rounded-md border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 shadow-soft animate-toast-slide" role="status" aria-live="polite">
+          <div className="pointer-events-auto rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text)] shadow-soft animate-toast-slide" role="status" aria-live="polite">
             {notice}
           </div>
         )}
         {apiError && (
-          <div className="pointer-events-auto rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-soft animate-toast-slide" role="alert">
+          <div className="pointer-events-auto rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-soft animate-toast-slide dark:border-red-300/40 dark:bg-red-950/30 dark:text-red-200" role="alert">
             {apiError}
           </div>
         )}

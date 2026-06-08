@@ -567,6 +567,145 @@ body {
   transition: transform 0.25s ease;
 }
 
+.saju-card {
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.saju-card--active {
+  border-color: var(--border-strong);
+}
+
+.saju-choice {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text-dim);
+  transition: border-color 0.2s, background 0.2s, color 0.2s, transform 0.2s;
+}
+
+.saju-choice:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.saju-choice[data-active="true"] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.saju-choice:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.saju-input {
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  padding: 0 12px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.saju-input:focus {
+  border-color: var(--border-strong);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 14%, transparent);
+}
+
+.saju-input::placeholder {
+  color: var(--text-faint);
+}
+
+.saju-input:disabled {
+  cursor: not-allowed;
+  background: var(--surface-2);
+  color: var(--text-faint);
+}
+
+.saju-segment {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+  padding: 4px;
+}
+
+.saju-segment__button {
+  min-width: 0;
+  border-radius: 8px;
+  padding: 9px 12px;
+  color: var(--text-dim);
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: background 0.2s, color 0.2s;
+}
+
+.saju-segment__button:hover {
+  color: var(--text);
+}
+
+.saju-segment__button[data-active="true"] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.saju-segment__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.saju-status {
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  padding: 4px 10px;
+  color: var(--text-faint);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.saju-status--done {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.saju-summary-row {
+  display: grid;
+  gap: 4px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+  padding: 10px 12px;
+}
+
+.saju-summary-row dt {
+  color: var(--text-faint);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.saju-summary-row dd {
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 .page-head {
   padding: clamp(48px, 7vw, 88px) 0 clamp(28px, 3vw, 40px);
 }
