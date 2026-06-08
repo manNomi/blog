@@ -170,7 +170,7 @@ const toRecentCategory = (tags: string[] | undefined) => tags?.[0] || '에세이
           </div>
 
           <section
-            class="-mx-4 -mb-6 bg-zinc-950 px-4 py-8 text-zinc-100 md:-mx-8 md:-mb-9 md:px-8 md:py-10"
+            class="-mx-4 -mb-6 bg-zinc-950 px-4 py-8 text-zinc-100 md:-mx-8 md:-mb-9 md:px-8 md:py-10 dark:bg-soft"
             aria-labelledby="recent-posts-title"
             data-recent-posts-root
             data-initial-count={RECENT_POSTS_INITIAL_COUNT}
@@ -186,7 +186,7 @@ const toRecentCategory = (tags: string[] | undefined) => tags?.[0] || '에세이
                 {recentPosts.map((post, index) => (
                   <a
                     href={`/blog/${post.slug}`}
-                    class={`group grid gap-5 border-b border-white/15 py-7 first:pt-0 last:pb-0 md:grid-cols-[minmax(0,1fr)_220px] md:items-center md:gap-8 ${index >= RECENT_POSTS_INITIAL_COUNT ? 'hidden' : ''}`}
+                    class={`group grid gap-5 border-b border-white/15 py-7 first:pt-0 last:pb-0 md:grid-cols-[minmax(0,1fr)_220px] md:items-center md:gap-8 dark:border-line ${index >= RECENT_POSTS_INITIAL_COUNT ? 'hidden' : ''}`}
                     data-recent-post-item
                   >
                     <div class="min-w-0">
@@ -205,18 +205,18 @@ const toRecentCategory = (tags: string[] | undefined) => tags?.[0] || '에세이
                       src={post.data.heroImage || '/images/editorial-fallback.svg'}
                       alt={post.data.title}
                       loading="lazy"
-                      class="h-[150px] w-full rounded-md border border-white/10 object-cover opacity-90 transition group-hover:opacity-100 md:h-[118px] md:w-[220px]"
+                      class="h-[150px] w-full rounded-md border border-white/10 object-cover opacity-90 transition group-hover:opacity-100 md:h-[118px] md:w-[220px] dark:border-line"
                     />
                   </a>
                 ))}
                 {recentPosts.length > RECENT_POSTS_INITIAL_COUNT && (
-                  <div class="mt-7 grid place-items-center border border-white/10 bg-white/[0.03] px-4 py-4 text-center text-[14px] text-zinc-500" data-recent-posts-sentinel>
+                  <div class="mt-7 grid place-items-center border border-white/10 bg-white/[0.03] px-4 py-4 text-center text-[14px] text-zinc-500 dark:border-line dark:bg-surface" data-recent-posts-sentinel>
                     스크롤하면 글을 더 불러옵니다.
                   </div>
                 )}
               </div>
             ) : (
-              <div class="grid min-h-[132px] place-items-center border-y border-white/15 px-5 py-8 text-center text-[15px] text-zinc-400">
+              <div class="grid min-h-[132px] place-items-center border-y border-white/15 px-5 py-8 text-center text-[15px] text-zinc-400 dark:border-line">
                 최근 글을 준비 중입니다.
               </div>
             )}
