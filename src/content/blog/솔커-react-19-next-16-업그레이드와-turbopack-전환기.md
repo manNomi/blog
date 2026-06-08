@@ -2,6 +2,7 @@
 title: "솔커 React 19, Next 16 업그레이드와 Turbopack 전환기"
 pubDate: 2026-05-26T00:00:00.000Z
 tags: ["솔리드 커넥션"]
+notes: true
 notionId: "36c7cf19-a364-803a-8552-f19b4c06d17a"
 ---
 # React 19, Next 16 업그레이드와 Turbopack 전환기

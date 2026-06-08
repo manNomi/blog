@@ -1,7 +1,8 @@
 ---
 title: "overlay-kit 의 의도인가 버그인가 ? "
 pubDate: 2026-03-13T00:00:00.000Z
-tags: ["React", "오픈소스", "디버깅"]
+tags: ["당근마켓"]
+notes: true
 notionId: "32f7cf19-a364-804d-a9af-c1708e29d149"
 ---> 선언적 오버레이 라이브러리(overlay-kit)를 SPA 프레임워크(Activity 기반) 환경에 도입하면서 발견한 아키텍처 충돌과 해결 과정이에요.
 > React Portal의 이벤트 버블링 원리, 클로저 스냅샷 문제, 그리고 전체 마이그레이션 기록을 다루고 있어요.

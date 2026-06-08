@@ -1,7 +1,8 @@
 ---
 title: "alias로 번들 사이즈 조금이라두 챙겨보기 "
 pubDate: 2025-12-31T00:00:00.000Z
-tags: ["성능", "번들러", "프론트엔드"]
+tags: ["당근마켓"]
+notes: true
 notionId: "32f7cf19-a364-80c5-96e6-d2a8822ff9f5"
 ---> 💡 `lodash`를 `lodash-es`로 바꾸는 것만으로 번들 사이즈를 **non-gzip 기준 90kb** 줄일 수 있었어요. 이 글에서는 그 과정에서 겪은 시행착오와 실질적인 적용 방법을 공유해요.
 
@@ -94,7 +95,7 @@ module.exports = {
 alias 설정 적용 후 번들 분석기로 비교해 본 결과, **non-gzip 기준 약 90kb**가 줄어든 것을 확인했어요.
 
 
-> 📊 **Before:** lodash 전체가 번들에 포함 → 불필요한 함수들까지 모두 적재  
+> 📊 **Before:** lodash 전체가 번들에 포함 → 불필요한 함수들까지 모두 적재
 > **After:** lodash-es alias 적용 → 실제 사용하는 함수만 번들에 포함, **약 90kb 감소**
 
 
@@ -110,7 +111,7 @@ alias 설정 적용 후 번들 분석기로 비교해 본 결과, **non-gzip 기
 하지만 실제 적용 과정에서 **빌드 실패** 문제가 발생했어요.
 
 
-> ⚠️ es-toolkit의 `compact` 함수가 기존 lodash의 `compact`와 동작이 다르거나 호환되지 않아 빌드가 깨졌어요. 비슷한 케이스가 formik 프로젝트에서도 보고된 바 있어요.  
+> ⚠️ es-toolkit의 `compact` 함수가 기존 lodash의 `compact`와 동작이 다르거나 호환되지 않아 빌드가 깨졌어요. 비슷한 케이스가 formik 프로젝트에서도 보고된 바 있어요.
 > → [formik/issues/2602](https://github.com/jaredpalmer/formik/issues/2602)
 
 
@@ -152,4 +153,4 @@ alias 설정 적용 후 번들 분석기로 비교해 본 결과, **non-gzip 기
 
 `lodash`를 쓰고 있다면, 번들 분석기를 한 번 돌려보세요. 생각보다 많은 공간을 차지하고 있을 거예요. 그리고 `resolve.alias` 한 줄이면 그 문제를 바로 해결할 수 있어요.
 
-> _작은 설정 하나가 사용자 경험을 바꿔요._ 
+> _작은 설정 하나가 사용자 경험을 바꿔요._
