@@ -1,6 +1,7 @@
 ---
 title: "bruno API용 codegen 을 만들자 ! "
 pubDate: 2026-03-28T00:00:00.000Z
+tags: ["자동화", "API", "DX"]
 notionId: "32f7cf19-a364-809a-a74c-c696c0967a3c"
 ---
 # **Bruno를 단일 소스로 쓰되, React Query는 생성하지 않기로 한 이유**
@@ -345,4 +346,3 @@ Bruno .bru를 API 계약의 단일 소스로 사용했고, 여기서 타입과 a
 
 
 그래서 현재는 **타입 + axios 기반 API 함수 + endpoint 메타데이터까지만 생성**하고, React Query와 onSuccess, invalidate, toast, redirect 같은 부분은 각 앱이 직접 처리하는 구조로 정리했어요. 결과적으로 생성물은 더 단순해졌고, 사람도 AI도 더 예측 가능하게 다룰 수 있는 구조가 되었어요.
-

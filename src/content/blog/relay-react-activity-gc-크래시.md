@@ -2,6 +2,7 @@
 title: "Relay × React Activity GC 크래시"
 pubDate: 2026-01-02T00:00:00.000Z
 pinned: true
+tags: ["React", "디버깅", "성능"]
 notionId: "32f7cf19-a364-8094-b013-ff863acbf713"
 ---> 당근 부동산에 합류하고 가장먼저 진행했던 디버깅이에요   
 > 기존에 React Activity 를 도입한 후 프로덕션에서 유저가 크래시를 겪게 되었고 이를 해결하기 위해 일시적으로 Activity 를 사용하지 않도록 설정했었어요   
@@ -648,4 +649,3 @@ RelayFeatureFlags.ENABLE_ACTIVITY_COMPATIBILITY = true;
 
 
 프레임워크 간 경계에서 발생하는 문제는 어느 한쪽의 문서만 읽어서는 답이 나오지 않아요. **양쪽의 소스코드를 열어서 실행 흐름을 직접 추적하는 것**만이 유일한 해결 경로였어요. 그리고 그 과정에서 React 쪽의 미해결 이슈(`useInsertionEffect` cleanup 누락)까지 발견하게 되면서, 이 문제가 단순히 "우리 코드의 버그"가 아니라 **생태계 차원의 호환성 과제**임을 확인할 수 있었어요.
-
