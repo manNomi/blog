@@ -384,6 +384,10 @@ body {
   letter-spacing: 0.04em;
 }
 
+.ph--silent::after {
+  display: none;
+}
+
 .site-header {
   position: sticky;
   top: 0;
