@@ -46,10 +46,11 @@ const canonicalPath = `/about/${project?.slug ?? experience?.slug}`;
 const detailURL = new URL(canonicalPath, siteURL).href;
 const hasProjectImage = Boolean(project && !project.image.includes('portfolio-case-placeholder'));
 const ogImage =
-  project && project.image.endsWith('.svg') ? '/images/portfolio-case-placeholder.png' : project?.image ?? '/og-image.png';
+  project && project.image.endsWith('.svg') ? '/og-image.png' : project?.image ?? '/og-image.png';
 const imageAlt = project?.imageAlt ?? `${portfolioProfile.name} 경력 상세`;
 const imageWidth = project?.imageWidth ?? 1200;
 const imageHeight = project?.imageHeight ?? 630;
+const phoneBezelImage = '/images/ui/iphone-bezel.png';
 const title = project
   ? `${project.title} | 한만욱 포트폴리오`
   : `${experience?.company} | 한만욱 경력`;
@@ -137,6 +138,7 @@ const experienceLinks = experience?.highlights.filter((highlight) => highlight.h
 
           {hasProjectImage && project.visualMode === 'phone' ? (
             <div class="phone-frame phone-frame--cover mb-2">
+              <img src={phoneBezelImage} alt="" class="phone-frame__bezel" loading="eager" decoding="async" aria-hidden="true" />
               <div class="phone-frame__screen">
                 <img
                   src={project.image}
@@ -253,6 +255,7 @@ const experienceLinks = experience?.highlights.filter((highlight) => highlight.h
               {project.slug === 'incheon-bus' ? (
                 <div class="demo-panel" data-bus-demo>
                   <div class="phone-frame phone-frame--demo">
+                    <img src={phoneBezelImage} alt="" class="phone-frame__bezel" loading="lazy" decoding="async" aria-hidden="true" />
                     <div class="phone-frame__screen bus-demo-screen">
                       <div class="demo-app-bar">
                         <span class="mono">BUS LIVE</span>
@@ -283,6 +286,7 @@ const experienceLinks = experience?.highlights.filter((highlight) => highlight.h
               ) : (
                 <div class="demo-panel" data-dmap-demo>
                   <div class="phone-frame phone-frame--demo">
+                    <img src={phoneBezelImage} alt="" class="phone-frame__bezel" loading="lazy" decoding="async" aria-hidden="true" />
                     <div class="phone-frame__screen dmap-demo-screen">
                       <div class="demo-app-bar">
                         <span class="mono">DMAP</span>
