@@ -600,6 +600,18 @@ body {
   transform: translateX(4px);
 }
 
+.detail-card-link {
+  display: block;
+}
+
+.detail-card-link .pj-arrow {
+  transition: transform 0.25s ease;
+}
+
+.detail-card-link:hover .pj-arrow {
+  transform: translateX(4px);
+}
+
 .detail-card {
   border-top: 1px solid var(--border);
 }
@@ -673,6 +685,331 @@ body {
 
 .detail-link:hover {
   opacity: 0.62;
+}
+
+.experience-detail-item {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.5fr) minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: start;
+  padding: 18px 0;
+  border-top: 1px solid var(--border);
+}
+
+.phone-frame {
+  position: relative;
+  display: grid;
+  place-items: stretch;
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  border-radius: 34px;
+  background:
+    linear-gradient(145deg, color-mix(in oklab, var(--text) 16%, transparent), transparent 42%),
+    var(--surface-2);
+  box-shadow: var(--shadow);
+}
+
+.phone-frame::before {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  z-index: 2;
+  width: 72px;
+  height: 20px;
+  border: 1px solid color-mix(in oklab, var(--border-strong) 70%, transparent);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--bg) 88%, black);
+  content: '';
+  transform: translateX(-50%);
+}
+
+.phone-frame::after {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  left: 12px;
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--text-faint) 42%, transparent);
+  content: '';
+}
+
+.phone-frame__screen {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 26px;
+  background: var(--bg);
+}
+
+.phone-frame__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.phone-frame--card {
+  width: min(200px, 100%);
+  aspect-ratio: 9 / 16;
+  justify-self: end;
+  padding: 9px;
+  border-radius: 28px;
+}
+
+.phone-frame--card::before {
+  top: 7px;
+  width: 54px;
+  height: 15px;
+}
+
+.phone-frame--card::after {
+  height: 3px;
+}
+
+.phone-frame--card .phone-frame__screen {
+  border-radius: 21px;
+}
+
+.phone-frame--cover {
+  width: min(380px, 78vw);
+  aspect-ratio: 9 / 16;
+  margin-inline: auto;
+  padding: 12px;
+}
+
+.phone-frame--demo {
+  width: min(310px, 100%);
+  aspect-ratio: 9 / 16;
+  flex: 0 0 auto;
+  padding: 10px;
+}
+
+.phone-frame--demo .phone-frame__screen {
+  padding: 42px 14px 18px;
+}
+
+.demo-section {
+  align-items: start;
+}
+
+.demo-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+  align-items: flex-end;
+  min-width: 0;
+}
+
+.demo-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+}
+
+.demo-controls .pill {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.demo-app-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--text-dim);
+  font-size: 0.78rem;
+}
+
+.bus-demo-screen,
+.dmap-demo-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: var(--text);
+}
+
+.bus-map {
+  position: relative;
+  min-height: 185px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background:
+    linear-gradient(90deg, transparent 48%, var(--border) 49%, transparent 51%),
+    linear-gradient(0deg, transparent 48%, var(--border) 49%, transparent 51%),
+    color-mix(in oklab, var(--surface) 80%, var(--bg));
+}
+
+.bus-route {
+  position: absolute;
+  top: 46%;
+  right: 18px;
+  left: 18px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--border-strong);
+}
+
+.bus-route--active {
+  background: linear-gradient(90deg, var(--text-faint), var(--text), var(--text-faint));
+}
+
+.bus-pin,
+.bus-dot {
+  position: absolute;
+  z-index: 1;
+  border-radius: 999px;
+}
+
+.bus-pin {
+  top: calc(46% - 8px);
+  width: 16px;
+  height: 16px;
+  border: 3px solid var(--bg);
+  background: var(--text);
+}
+
+.bus-pin--a {
+  left: 17%;
+}
+
+.bus-pin--b {
+  right: 17%;
+}
+
+.bus-dot {
+  top: calc(46% - 13px);
+  left: 64%;
+  width: 26px;
+  height: 26px;
+  border: 5px solid color-mix(in oklab, var(--bg) 82%, transparent);
+  background: var(--accent);
+  transform: translateX(-50%);
+  transition: left 0.32s ease;
+}
+
+.demo-card {
+  display: grid;
+  gap: 4px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  padding: 14px;
+}
+
+.demo-card strong {
+  color: var(--text);
+  font-size: 1.2rem;
+  line-height: 1.2;
+}
+
+.demo-card span {
+  color: var(--text-dim);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.demo-chat {
+  display: grid;
+  gap: 8px;
+  opacity: 0.58;
+  transform: translateY(6px);
+  transition: opacity 0.25s, transform 0.25s;
+}
+
+.demo-chat span {
+  width: fit-content;
+  max-width: 88%;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  padding: 9px 11px;
+  color: var(--text-dim);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.demo-chat span:last-child {
+  justify-self: end;
+}
+
+.demo-panel--chat-open .demo-chat {
+  opacity: 1;
+  transform: none;
+}
+
+.dmap-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+  transition: opacity 0.24s, transform 0.24s;
+}
+
+.dmap-tile {
+  min-height: 62px;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background:
+    radial-gradient(circle at calc(20% + var(--tile-offset, 0%)) 28%, color-mix(in oklab, var(--text) 18%, transparent) 0 7px, transparent 8px),
+    linear-gradient(135deg, transparent 0 44%, color-mix(in oklab, var(--border-strong) 66%, transparent) 45% 48%, transparent 49%),
+    color-mix(in oklab, var(--surface) 84%, var(--bg));
+}
+
+.dmap-live-map {
+  position: relative;
+  display: none;
+  min-height: 236px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background:
+    linear-gradient(90deg, transparent 48%, var(--border) 49%, transparent 51%),
+    linear-gradient(0deg, transparent 48%, var(--border) 49%, transparent 51%),
+    color-mix(in oklab, var(--surface) 78%, var(--bg));
+}
+
+.dmap-path {
+  position: absolute;
+  top: 54%;
+  left: 18%;
+  width: 64%;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--text);
+  transform: rotate(-23deg);
+}
+
+.dmap-marker {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 4px solid var(--bg);
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.dmap-marker--start {
+  top: 62%;
+  left: 16%;
+}
+
+.dmap-marker--end {
+  top: 32%;
+  right: 18%;
+}
+
+.demo-panel--live .dmap-grid {
+  display: none;
+}
+
+.demo-panel--live .dmap-live-map {
+  display: block;
+}
+
+.dmap-demo-card {
+  min-height: 98px;
 }
 
 .tag-card:hover,
@@ -999,6 +1336,11 @@ body {
     grid-template-columns: 1fr !important;
   }
 
+  .phone-frame--card {
+    justify-self: start !important;
+    width: min(240px, 72vw) !important;
+  }
+
   .project-card > .ph {
     display: none !important;
   }
@@ -1021,6 +1363,11 @@ body {
     gap: 10px !important;
   }
 
+  .experience-detail-item {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
   .flow-row {
     grid-template-columns: 1fr !important;
     gap: 8px !important;
@@ -1028,6 +1375,10 @@ body {
 
   .flow-row > div:first-child h2 {
     font-size: 1.15rem !important;
+  }
+
+  .demo-panel {
+    align-items: flex-start !important;
   }
 }
 
@@ -1038,6 +1389,23 @@ body {
 
   .metric-3 {
     grid-template-columns: 1fr 1fr !important;
+  }
+
+  .phone-frame--cover {
+    width: min(320px, 88vw) !important;
+    padding: 10px !important;
+  }
+
+  .phone-frame--demo {
+    width: min(292px, 100%) !important;
+  }
+
+  .demo-controls {
+    width: 100% !important;
+  }
+
+  .demo-controls .pill {
+    width: 100% !important;
   }
 
   .result-row {

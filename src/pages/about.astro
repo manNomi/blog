@@ -32,35 +32,17 @@ import { portfolioProfile, portfolioProjects, resumeExperiences } from '../data/
         </div>
 
         {resumeExperiences.map((experience, index) => (
-          <details class="detail-card" id={`experience-${index + 1}`}>
-            <summary class="detail-summary">
+          <a href={`/about/${experience.slug}`} class="detail-card detail-card-link" id={`experience-${index + 1}`}>
+            <span class="detail-summary">
               <span class="mono pt-1" style="color: var(--text-faint);">{experience.period}</span>
               <span class="min-w-0">
                 <span class="m-0 block text-[1.15rem] font-bold tracking-[-0.02em]" style="color: var(--text);">{experience.company}</span>
                 <span class="my-1 block text-[0.9rem]" style="color: var(--text-dim);">{experience.role}</span>
                 <span class="m-0 block max-w-[64ch] text-[0.95rem] leading-[1.6]" style="color: var(--text-dim);">{experience.description}</span>
               </span>
-              <span class="detail-toggle" aria-hidden="true">+</span>
-            </summary>
-
-            <div class="detail-body">
-              <p class="m-0 max-w-[64ch] text-[0.95rem] leading-[1.65]" style="color: var(--text);">{experience.team}</p>
-              <div class="detail-list mt-6">
-                {experience.highlights.map((highlight) => (
-                  <article class="detail-list-item">
-                    <div>
-                      <h3 class="m-0 text-[0.98rem] font-bold tracking-[-0.02em]" style="color: var(--text);">{highlight.title}</h3>
-                      {highlight.metric && <div class="mono mt-1" style="color: var(--text-faint);">{highlight.metric}</div>}
-                    </div>
-                    <p class="m-0 text-[0.92rem] leading-[1.65]" style="color: var(--text-dim);">{highlight.description}</p>
-                    {highlight.href && (
-                      <a href={highlight.href} class="mono detail-link" style="color: var(--text);">관련 글 →</a>
-                    )}
-                  </article>
-                ))}
-              </div>
-            </div>
-          </details>
+              <span class="pj-arrow text-2xl" aria-hidden="true">↗</span>
+            </span>
+          </a>
         ))}
       </section>
 

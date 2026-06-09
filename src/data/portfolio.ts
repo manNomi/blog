@@ -31,6 +31,7 @@ export type PortfolioProject = {
   imageAlt: string;
   imageWidth: number;
   imageHeight: number;
+  visualMode?: 'phone';
   accent: string;
   metrics: PortfolioMetric[];
   highlights: string[];
@@ -58,6 +59,7 @@ export type ResumeHighlight = {
 };
 
 export type ResumeExperience = {
+  slug: string;
   company: string;
   team: string;
   role: string;
@@ -160,6 +162,7 @@ export const resumeImpactMetrics: ResumeImpactMetric[] = [
 
 export const resumeExperiences: ResumeExperience[] = [
   {
+    slug: 'daangn-real-estate',
     company: '당근마켓 부동산팀',
     team: '신뢰도 높은 생활밀착형 정보를 제공하는 부동산 거래 플랫폼',
     role: 'Frontend Developer Intern',
@@ -213,6 +216,7 @@ export const resumeExperiences: ResumeExperience[] = [
     ]
   },
   {
+    slug: 'upsite',
     company: '주식회사 업사이트',
     team: 'AI와 데이터 디지털화를 통해 3D 건설 현장 데이터를 시각화하는 대시보드 웹 솔루션',
     role: 'Frontend Developer Intern',
@@ -599,6 +603,7 @@ export const portfolioProjects: PortfolioProject[] = [
     imageAlt: '인천 버스 도착 예측 서비스 지도 화면',
     imageWidth: 1600,
     imageHeight: 900,
+    visualMode: 'phone',
     accent: '#2563eb',
     metrics: [
       { value: '±10초', label: '도착 예측 정확도', detail: '사용자가 체감할 수 있는 수준으로 예측 결과 제공' },
@@ -648,6 +653,7 @@ export const portfolioProjects: PortfolioProject[] = [
     imageAlt: 'DMAP 경로 드로잉과 지도 트래킹 화면',
     imageWidth: 1600,
     imageHeight: 900,
+    visualMode: 'phone',
     accent: '#ea580c',
     metrics: [
       { value: '0건', label: '렌더링 실패', detail: '벡터 지도 크래시를 정적 지도 전략으로 해결' },

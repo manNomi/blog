@@ -1,0 +1,493 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import {
+  portfolioProfile,
+  portfolioProjects,
+  resumeExperiences,
+  type PortfolioProject,
+  type ResumeExperience
+} from '../../data/portfolio';
+
+type ProjectDetailProps = {
+  detailType: 'project';
+  project: PortfolioProject;
+};
+
+type ExperienceDetailProps = {
+  detailType: 'experience';
+  experience: ResumeExperience;
+};
+
+type DetailProps = ProjectDetailProps | ExperienceDetailProps;
+
+export function getStaticPaths() {
+  return [
+    ...resumeExperiences.map((experience) => ({
+      params: { slug: experience.slug },
+      props: { detailType: 'experience', experience }
+    })),
+    ...portfolioProjects.map((project) => ({
+      params: { slug: project.slug },
+      props: { detailType: 'project', project }
+    }))
+  ];
+}
+
+const props = Astro.props as DetailProps;
+const project = props.detailType === 'project' ? props.project : undefined;
+const experience = props.detailType === 'experience' ? props.experience : undefined;
+const currentProjectIndex = project ? portfolioProjects.findIndex((item) => item.slug === project.slug) : -1;
+const nextProject =
+  project && currentProjectIndex >= 0 ? portfolioProjects[(currentProjectIndex + 1) % portfolioProjects.length] : undefined;
+const siteURL = Astro.site || Astro.url.origin;
+const canonicalPath = `/about/${project?.slug ?? experience?.slug}`;
+const detailURL = new URL(canonicalPath, siteURL).href;
+const hasProjectImage = Boolean(project && !project.image.includes('portfolio-case-placeholder'));
+const ogImage =
+  project && project.image.endsWith('.svg') ? '/images/portfolio-case-placeholder.png' : project?.image ?? '/og-image.png';
+const imageAlt = project?.imageAlt ?? `${portfolioProfile.name} 경력 상세`;
+const imageWidth = project?.imageWidth ?? 1200;
+const imageHeight = project?.imageHeight ?? 630;
+const title = project
+  ? `${project.title} | 한만욱 포트폴리오`
+  : `${experience?.company} | 한만욱 경력`;
+const description = project
+  ? `${project.summary} ${project.metrics.map((metric) => `${metric.label} ${metric.value}`).join(', ')}`
+  : `${experience?.description ?? ''} ${experience?.highlights
+      .map((highlight) => [highlight.title, highlight.metric].filter(Boolean).join(' '))
+      .join(', ')}`;
+const keywords = project
+  ? [project.title, project.eyebrow, ...project.techStack]
+  : [experience?.company ?? '', experience?.role ?? '', 'Frontend', 'Experience'].filter(Boolean);
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': project ? 'CreativeWork' : 'ProfilePage',
+  '@id': `${detailURL}#${project ? 'case-study' : 'experience'}`,
+  url: detailURL,
+  name: project?.title ?? experience?.company,
+  description,
+  inLanguage: 'ko-KR',
+  creator: {
+    '@type': 'Person',
+    name: portfolioProfile.name,
+    email: portfolioProfile.email,
+    sameAs: [portfolioProfile.github]
+  }
+};
+const experienceMetrics = experience?.highlights.filter((highlight) => highlight.metric).slice(0, 3) ?? [];
+const experienceLinks = experience?.highlights.filter((highlight) => highlight.href) ?? [];
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  keywords={keywords}
+  image={ogImage}
+  imageAlt={imageAlt}
+  imageWidth={imageWidth}
+  imageHeight={imageHeight}
+  canonicalURL={canonicalPath}
+  jsonLd={jsonLd}
+>
+  <Header />
+
+  <main class="site-main">
+    <div class="wrap">
+      <div class="pt-7">
+        <a
+          href={project ? '/about#projects' : '/about#experience'}
+          class="mono inline-flex items-center gap-2 py-2 transition-colors hover:!text-[var(--text)]"
+          style="color: var(--text-dim);"
+        >
+          ← {project ? '프로젝트' : '경력'}
+        </a>
+      </div>
+
+      {project ? (
+        <>
+          <header class="rise py-5 pb-9">
+            <div class="mb-5 flex items-center gap-3">
+              <span class="eyebrow">{project.eyebrow}</span>
+              <span class="mono whitespace-nowrap opacity-60">· {project.period}</span>
+            </div>
+            <h1 class="m-0 text-[clamp(2.1rem,5vw,3.2rem)] font-bold leading-[1.12] tracking-[-0.04em]" style="color: var(--text);">{project.title}</h1>
+            <p class="mt-5 max-w-[30ch] text-[1.25rem] font-medium leading-[1.5] tracking-[-0.02em]" style="color: var(--text);">“{project.quote}”</p>
+            <p class="mt-5 max-w-[60ch] text-[1.02rem] leading-[1.7]" style="color: var(--text-dim);">{project.summary}</p>
+            <div class="mt-6 flex flex-wrap gap-6">
+              <div>
+                <div class="mono mb-1" style="color: var(--text-faint);">역할</div>
+                <div class="whitespace-nowrap text-[0.95rem] font-semibold" style="color: var(--text);">{project.role}</div>
+              </div>
+              {project.team && (
+                <div>
+                  <div class="mono mb-1" style="color: var(--text-faint);">팀</div>
+                  <div class="whitespace-nowrap text-[0.95rem] font-semibold" style="color: var(--text);">{project.team}</div>
+                </div>
+              )}
+              {project.contribution && (
+                <div>
+                  <div class="mono mb-1" style="color: var(--text-faint);">기여</div>
+                  <div class="whitespace-nowrap text-[0.95rem] font-semibold" style="color: var(--text);">{project.contribution}</div>
+                </div>
+              )}
+            </div>
+          </header>
+
+          {hasProjectImage && project.visualMode === 'phone' ? (
+            <div class="phone-frame phone-frame--cover mb-2">
+              <div class="phone-frame__screen">
+                <img
+                  src={project.image}
+                  alt={project.imageAlt}
+                  width={project.imageWidth}
+                  height={project.imageHeight}
+                  class="phone-frame__image"
+                  loading="eager"
+                  decoding="async"
+                />
+              </div>
+            </div>
+          ) : hasProjectImage ? (
+            <img
+              src={project.image}
+              alt={project.imageAlt}
+              width={project.imageWidth}
+              height={project.imageHeight}
+              class="project-cover mb-2 rounded-[18px]"
+              loading="eager"
+              decoding="async"
+            />
+          ) : (
+            <div class="ph mb-2 rounded-[18px]" data-label={`${project.slug} — cover`} style="aspect-ratio: 16 / 7;"></div>
+          )}
+
+          <section class="py-9 pb-1">
+            <div class="metric-3">
+              {project.metrics.map((metric) => (
+                <div class="border-t py-6 pr-5" style="border-color: var(--border);">
+                  <div class="text-[2.1rem] font-bold leading-none tracking-[-0.04em]" style="color: var(--text);">{metric.value}</div>
+                  <div class="mt-2.5 text-[0.88rem]" style="color: var(--text-dim);">{metric.label}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section class="flow-row">
+            <div>
+              <div class="mono mb-1.5" style="color: var(--text-faint);">01 · Problem</div>
+              <h2 class="m-0 text-[1.25rem] font-bold tracking-[-0.02em]" style="color: var(--text);">문제</h2>
+            </div>
+            <p class="m-0 max-w-[62ch] text-[1.05rem] leading-[1.75]" style="color: var(--text);">{project.problem}</p>
+          </section>
+
+          <section class="flow-row">
+            <div>
+              <div class="mono mb-1.5" style="color: var(--text-faint);">02 · Role</div>
+              <h2 class="m-0 text-[1.25rem] font-bold tracking-[-0.02em]" style="color: var(--text);">역할</h2>
+            </div>
+            <div>
+              <p class="m-0 max-w-[62ch] text-[1.02rem] leading-[1.7]" style="color: var(--text-dim);">
+                {[project.role, project.team, project.contribution].filter(Boolean).join(' · ')}
+              </p>
+              <div class="mt-4 flex flex-wrap gap-2">
+                {project.techStack.map((tech) => <span class="pill cursor-default">{tech}</span>)}
+              </div>
+            </div>
+          </section>
+
+          <section class="flow-row">
+            <div>
+              <div class="mono mb-1.5" style="color: var(--text-faint);">03 · Approach</div>
+              <h2 class="m-0 text-[1.25rem] font-bold tracking-[-0.02em]" style="color: var(--text);">해결 과정</h2>
+            </div>
+            <ol class="m-0 flex list-none flex-col gap-[18px] p-0">
+              {project.approach.map((item, index) => (
+                <li class="grid grid-cols-[auto_1fr] items-start gap-4">
+                  <span class="mono grid h-[26px] w-[26px] place-items-center rounded-full border text-[0.7rem]" style="border-color: var(--border); color: var(--text-dim);">{index + 1}</span>
+                  <span class="pt-px text-base leading-[1.7]" style="color: var(--text);">{item}</span>
+                </li>
+              ))}
+            </ol>
+          </section>
+
+          {(project.slug === 'incheon-bus' || project.slug === 'dmap-map-grid') && (
+            <section class="flow-row demo-section">
+              <div>
+                <div class="mono mb-1.5" style="color: var(--text-faint);">04 · Demo</div>
+                <h2 class="m-0 text-[1.25rem] font-bold tracking-[-0.02em]" style="color: var(--text);">동작 데모</h2>
+              </div>
+
+              {project.slug === 'incheon-bus' ? (
+                <div class="demo-panel" data-bus-demo>
+                  <div class="phone-frame phone-frame--demo">
+                    <div class="phone-frame__screen bus-demo-screen">
+                      <div class="demo-app-bar">
+                        <span class="mono">BUS LIVE</span>
+                        <span data-bus-state>processing</span>
+                      </div>
+                      <div class="bus-map">
+                        <span class="bus-route bus-route--active"></span>
+                        <span class="bus-pin bus-pin--a"></span>
+                        <span class="bus-pin bus-pin--b"></span>
+                        <span class="bus-dot" data-bus-dot></span>
+                      </div>
+                      <div class="demo-card">
+                        <div class="mono" style="color: var(--text-faint);">도착 예측</div>
+                        <strong data-bus-eta>2분 10초</strong>
+                        <span data-bus-stop>인하대역 3번 출구</span>
+                      </div>
+                      <div class="demo-chat">
+                        <span>지금 정류장 앞에 도착했어요.</span>
+                        <span data-bus-chat>광고 영역과 채팅 버튼이 겹치지 않게 조정됨</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="demo-controls">
+                    <button type="button" class="pill h-9" data-bus-next>다음 버스 갱신</button>
+                    <button type="button" class="pill h-9" data-bus-chat-toggle>정류장 채팅</button>
+                  </div>
+                </div>
+              ) : (
+                <div class="demo-panel" data-dmap-demo>
+                  <div class="phone-frame phone-frame--demo">
+                    <div class="phone-frame__screen dmap-demo-screen">
+                      <div class="demo-app-bar">
+                        <span class="mono">DMAP</span>
+                        <span data-dmap-mode>static grid</span>
+                      </div>
+                      <div class="dmap-grid" data-dmap-grid>
+                        {Array.from({ length: 9 }).map((_, index) => <span class="dmap-tile" style={`--tile-offset: ${index * 6}%`}></span>)}
+                      </div>
+                      <div class="dmap-live-map" data-dmap-live>
+                        <span class="dmap-path"></span>
+                        <span class="dmap-marker dmap-marker--start"></span>
+                        <span class="dmap-marker dmap-marker--end"></span>
+                      </div>
+                      <div class="demo-card dmap-demo-card">
+                        <strong data-dmap-title>정적 썸네일 9개</strong>
+                        <span data-dmap-copy>목록에서는 이미지로 렌더링해 WebGL 컨텍스트를 사용하지 않습니다.</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="demo-controls">
+                    <button type="button" class="pill h-9" data-dmap-toggle>상세 지도 열기</button>
+                    <span class="mono" style="color: var(--text-faint);">WebGL instance · <b data-dmap-count>0</b></span>
+                  </div>
+                </div>
+              )}
+            </section>
+          )}
+
+          <section class="flow-row">
+            <div>
+              <div class="mono mb-1.5" style="color: var(--text-faint);">{project.slug === 'incheon-bus' || project.slug === 'dmap-map-grid' ? '05' : '04'} · Results</div>
+              <h2 class="m-0 text-[1.25rem] font-bold tracking-[-0.02em]" style="color: var(--text);">성과</h2>
+            </div>
+            <div class="overflow-hidden rounded-[14px] border" style="border-color: var(--border);">
+              {project.results.map((result, index) => (
+                <div class={`result-row ${index > 0 ? 'border-t' : ''}`} style="border-color: var(--border);">
+                  <div class="text-[0.9rem] font-semibold" style="color: var(--text);">{result.label}</div>
+                  <div class="flex items-center gap-3 text-[0.9rem]" style="color: var(--text-dim);">
+                    {result.before && <><span class="mono whitespace-nowrap line-through opacity-70">{result.before}</span><span class="opacity-50">→</span></>}
+                    <span class="whitespace-nowrap font-bold" style="color: var(--text);">{result.after}</span>
+                  </div>
+                  <div class="mono text-right" style="color: var(--text-faint);">{result.effect}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section class="flow-row">
+            <div>
+              <div class="mono mb-1.5" style="color: var(--text-faint);">{project.slug === 'incheon-bus' || project.slug === 'dmap-map-grid' ? '06' : '05'} · Takeaway</div>
+              <h2 class="m-0 text-[1.25rem] font-bold tracking-[-0.02em]" style="color: var(--text);">배운 점</h2>
+            </div>
+            <div>
+              <p class="m-0 max-w-[58ch] text-[1.18rem] leading-[1.7] tracking-[-0.01em]" style="color: var(--text);">{project.takeaway}</p>
+              {project.links.length > 0 && (
+                <div class="mt-6 flex flex-wrap gap-2.5">
+                  {project.links.map((link) => (
+                    <a
+                      href={link.href}
+                      target={link.external ? '_blank' : undefined}
+                      rel={link.external ? 'noopener noreferrer' : undefined}
+                      class="pill h-8"
+                      style="color: var(--text); border-color: var(--border-strong);"
+                    >
+                      {link.label} →
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+
+          <hr class="rule" />
+
+          {nextProject && (
+            <a href={`/about/${nextProject.slug}`} class="flex items-center justify-between gap-5 px-1 pt-8">
+              <div>
+                <div class="mono mb-1.5" style="color: var(--text-faint);">다음 프로젝트</div>
+                <h3 class="m-0 text-2xl font-bold tracking-[-0.03em] transition-opacity hover:opacity-60" style="color: var(--text);">{nextProject.title}</h3>
+              </div>
+              <span class="text-2xl" style="color: var(--text-faint);">→</span>
+            </a>
+          )}
+        </>
+      ) : experience ? (
+        <>
+          <header class="rise py-5 pb-9">
+            <div class="mb-5 flex items-center gap-3">
+              <span class="eyebrow">Experience</span>
+              <span class="mono whitespace-nowrap opacity-60">· {experience.period}</span>
+            </div>
+            <h1 class="m-0 text-[clamp(2.1rem,5vw,3.2rem)] font-bold leading-[1.12] tracking-[-0.04em]" style="color: var(--text);">{experience.company}</h1>
+            <p class="mt-5 max-w-[42ch] text-[1.2rem] font-medium leading-[1.5] tracking-[-0.02em]" style="color: var(--text);">{experience.team}</p>
+            <p class="mt-5 max-w-[60ch] text-[1.02rem] leading-[1.7]" style="color: var(--text-dim);">{experience.description}</p>
+            <div class="mt-6 flex flex-wrap gap-6">
+              <div>
+                <div class="mono mb-1" style="color: var(--text-faint);">역할</div>
+                <div class="whitespace-nowrap text-[0.95rem] font-semibold" style="color: var(--text);">{experience.role}</div>
+              </div>
+              <div>
+                <div class="mono mb-1" style="color: var(--text-faint);">기간</div>
+                <div class="whitespace-nowrap text-[0.95rem] font-semibold" style="color: var(--text);">{experience.period}</div>
+              </div>
+            </div>
+          </header>
+
+          {experienceMetrics.length > 0 && (
+            <section class="py-9 pb-1">
+              <div class="metric-3">
+                {experienceMetrics.map((highlight) => (
+                  <div class="border-t py-6 pr-5" style="border-color: var(--border);">
+                    <div class="text-[2.1rem] font-bold leading-none tracking-[-0.04em]" style="color: var(--text);">{highlight.metric}</div>
+                    <div class="mt-2.5 text-[0.88rem]" style="color: var(--text-dim);">{highlight.title}</div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          <section class="flow-row">
+            <div>
+              <div class="mono mb-1.5" style="color: var(--text-faint);">01 · Context</div>
+              <h2 class="m-0 text-[1.25rem] font-bold tracking-[-0.02em]" style="color: var(--text);">제품 맥락</h2>
+            </div>
+            <p class="m-0 max-w-[62ch] text-[1.05rem] leading-[1.75]" style="color: var(--text);">{experience.team}</p>
+          </section>
+
+          <section class="flow-row">
+            <div>
+              <div class="mono mb-1.5" style="color: var(--text-faint);">02 · Role</div>
+              <h2 class="m-0 text-[1.25rem] font-bold tracking-[-0.02em]" style="color: var(--text);">역할</h2>
+            </div>
+            <p class="m-0 max-w-[62ch] text-[1.02rem] leading-[1.7]" style="color: var(--text-dim);">{experience.role} · {experience.period}</p>
+          </section>
+
+          <section class="flow-row">
+            <div>
+              <div class="mono mb-1.5" style="color: var(--text-faint);">03 · Contributions</div>
+              <h2 class="m-0 text-[1.25rem] font-bold tracking-[-0.02em]" style="color: var(--text);">주요 기여</h2>
+            </div>
+            <div class="detail-list">
+              {experience.highlights.map((highlight) => (
+                <article class="experience-detail-item">
+                  <div>
+                    <h3 class="m-0 text-[1rem] font-bold tracking-[-0.02em]" style="color: var(--text);">{highlight.title}</h3>
+                    {highlight.metric && <div class="mono mt-1" style="color: var(--text-faint);">{highlight.metric}</div>}
+                  </div>
+                  <p class="m-0 text-[0.95rem] leading-[1.65]" style="color: var(--text-dim);">{highlight.description}</p>
+                  {highlight.href && (
+                    <a href={highlight.href} class="mono detail-link" style="color: var(--text);">관련 글 →</a>
+                  )}
+                </article>
+              ))}
+            </div>
+          </section>
+
+          {experienceLinks.length > 0 && (
+            <section class="flow-row">
+              <div>
+                <div class="mono mb-1.5" style="color: var(--text-faint);">04 · Records</div>
+                <h2 class="m-0 text-[1.25rem] font-bold tracking-[-0.02em]" style="color: var(--text);">관련 기록</h2>
+              </div>
+              <div class="flex flex-wrap gap-2.5">
+                {experienceLinks.map((highlight) => (
+                  <a href={highlight.href} class="pill h-8" style="color: var(--text); border-color: var(--border-strong);">
+                    {highlight.title} →
+                  </a>
+                ))}
+              </div>
+            </section>
+          )}
+        </>
+      ) : null}
+    </div>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<script>
+  const busDemo = document.querySelector('[data-bus-demo]');
+  if (busDemo) {
+    const states = [
+      { eta: '2분 10초', stop: '인하대역 3번 출구', state: 'processing', chat: '광고 영역과 채팅 버튼이 겹치지 않게 조정됨', x: '64%' },
+      { eta: '52초', stop: '용현시장', state: 'completed', chat: '정류장별 채팅방에 새 메시지가 도착함', x: '76%' },
+      { eta: '4분 05초', stop: '주안역 환승센터', state: 'queued', chat: '다음 배차 데이터를 대기열에서 갱신 중', x: '42%' }
+    ];
+    let busIndex = 0;
+    const eta = busDemo.querySelector('[data-bus-eta]');
+    const stop = busDemo.querySelector('[data-bus-stop]');
+    const state = busDemo.querySelector('[data-bus-state]');
+    const chat = busDemo.querySelector('[data-bus-chat]');
+    const dot = busDemo.querySelector('[data-bus-dot]');
+    const next = busDemo.querySelector('[data-bus-next]');
+    const chatToggle = busDemo.querySelector('[data-bus-chat-toggle]');
+
+    const renderBus = () => {
+      const current = states[busIndex];
+      if (eta) eta.textContent = current.eta;
+      if (stop) stop.textContent = current.stop;
+      if (state) state.textContent = current.state;
+      if (chat) chat.textContent = current.chat;
+      if (dot instanceof HTMLElement) dot.style.left = current.x;
+    };
+
+    next?.addEventListener('click', () => {
+      busIndex = (busIndex + 1) % states.length;
+      renderBus();
+    });
+
+    chatToggle?.addEventListener('click', () => {
+      busDemo.classList.toggle('demo-panel--chat-open');
+    });
+  }
+
+  const dmapDemo = document.querySelector('[data-dmap-demo]');
+  if (dmapDemo) {
+    let live = false;
+    const mode = dmapDemo.querySelector('[data-dmap-mode]');
+    const title = dmapDemo.querySelector('[data-dmap-title]');
+    const copy = dmapDemo.querySelector('[data-dmap-copy]');
+    const count = dmapDemo.querySelector('[data-dmap-count]');
+    const toggle = dmapDemo.querySelector('[data-dmap-toggle]');
+
+    const renderDmap = () => {
+      dmapDemo.classList.toggle('demo-panel--live', live);
+      if (mode) mode.textContent = live ? 'single live map' : 'static grid';
+      if (title) title.textContent = live ? '전역 동적 지도 1개' : '정적 썸네일 9개';
+      if (copy) copy.textContent = live ? '상세 확인 시점에만 동적 지도를 열어 컨텍스트 사용량을 제한합니다.' : '목록에서는 이미지로 렌더링해 WebGL 컨텍스트를 사용하지 않습니다.';
+      if (count) count.textContent = live ? '1' : '0';
+      if (toggle) toggle.textContent = live ? '썸네일로 돌아가기' : '상세 지도 열기';
+    };
+
+    toggle?.addEventListener('click', () => {
+      live = !live;
+      renderDmap();
+    });
+  }
+</script>
