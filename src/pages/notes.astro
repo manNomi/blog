@@ -7,6 +7,33 @@ import PostCard from '../components/PostCard.astro';
 import { getNotePosts } from '../utils/postFilters';
 
 const notes = getNotePosts(await getCollection('blog'));
+const UNTITLED_TAG = '미분류';
+
+const makeTagId = (tag: string) => {
+  const normalized = tag
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[^\p{Letter}\p{Number}]+/gu, '-')
+    .replace(/^-+|-+$/g, '');
+
+  return normalized || 'untagged';
+};
+
+const noteGroups = Array.from(
+  notes.reduce((acc, post) => {
+    const tags = post.data.tags?.length ? post.data.tags : [UNTITLED_TAG];
+
+    tags.forEach((tag) => {
+      const group = acc.get(tag) ?? [];
+      group.push(post);
+      acc.set(tag, group);
+    });
+
+    return acc;
+  }, new Map<string, typeof notes>())
+)
+  .map(([tag, posts]) => ({ tag, id: makeTagId(tag), posts }))
+  .sort((a, b) => b.posts.length - a.posts.length || a.tag.localeCompare(b.tag, 'ko-KR'));
 ---
 
 <BaseLayout title="Notes | 한만욱" description="짧은 기록과 논문 메모를 분리해 모아둔 페이지입니다.">
@@ -17,27 +44,55 @@ const notes = getNotePosts(await getCollection('blog'));
       <header class="page-head rise">
         <div class="eyebrow mb-[18px]">Notes · {notes.length}</div>
         <h1>Notes</h1>
-        <p>짧은 기록, 논문 메모, 가벼운 로그를 일반 글 목록과 분리해 모았습니다.</p>
+        <p>짧은 기록과 논문 메모를 태그별 폴더로 모았습니다.</p>
       </header>
 
       <hr class="rule" />
 
-      <div class="flex flex-col">
+      {noteGroups.length > 0 && (
+        <nav class="note-folder-index" aria-label="노트 태그 바로가기">
+          {noteGroups.map((group) => (
+            <a href={`#note-${group.id}`} class="pill">
+              {group.tag}
+              <span aria-hidden="true">{group.posts.length}</span>
+            </a>
+          ))}
+        </nav>
+      )}
+
+      <div class="note-folder-list">
         {notes.length > 0 ? (
-          notes.map((post, index) => (
-            <>
-              {index > 0 && <hr class="rule" />}
-              <PostCard
-                title={post.data.title}
-                description={post.data.description}
-                slug={post.slug}
-                pubDate={post.data.pubDate}
-                tags={post.data.tags}
-                pinned={post.data.pinned}
-                notes={post.data.notes}
-                variant="compact"
-              />
-            </>
+          noteGroups.map((group, groupIndex) => (
+            <details id={`note-${group.id}`} class="note-folder" open={groupIndex === 0 ? true : undefined}>
+              <summary class="note-folder__summary">
+                <span class="note-folder__icon" aria-hidden="true">
+                  <span></span>
+                </span>
+                <span class="min-w-0">
+                  <span class="note-folder__title">{group.tag}</span>
+                  <span class="note-folder__meta">{group.posts.length} notes</span>
+                </span>
+                <span class="note-folder__toggle" aria-hidden="true">+</span>
+              </summary>
+
+              <div class="note-folder__posts">
+                {group.posts.map((post, index) => (
+                  <>
+                    {index > 0 && <hr class="rule" />}
+                    <PostCard
+                      title={post.data.title}
+                      description={post.data.description}
+                      slug={post.slug}
+                      pubDate={post.data.pubDate}
+                      tags={post.data.tags}
+                      pinned={post.data.pinned}
+                      notes={post.data.notes}
+                      variant="compact"
+                    />
+                  </>
+                ))}
+              </div>
+            </details>
           ))
         ) : (
           <div class="mono py-12" style="color: var(--text-faint);">notes 체크박스가 켜진 글이 아직 없습니다.</div>
