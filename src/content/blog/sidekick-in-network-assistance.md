@@ -1,5 +1,5 @@
 ---
-title: "Sidekick_In_Network_Assistance_Notion_Korean"
+title: "Sidekick In Network Assistance"
 pubDate: 2026-06-09T00:00:00.000Z
 notes: true
 notionId: "3737cf19-a364-8085-b295-cad3b091ea73"
