@@ -56,7 +56,6 @@ export type PortfolioProject = {
   techStack: string[];
   problem: string;
   approach: string[];
-  takeaway: string;
   links: PortfolioLink[];
 };
 
@@ -200,45 +199,45 @@ export const resumeExperiences: ResumeExperience[] = [
     role: 'Frontend Developer Intern',
     period: '2025.12 - 2026.03',
     description:
-      'Android 웹뷰, 지도 기반 홈 피드, React Activity, 오버레이 레이어, 긴 스크롤 메모리 문제처럼 실제 사용자 흐름에서 터지는 결함을 추적하고 제품 구조로 해결했습니다.',
+      'Android WebView 백버튼, Relay 기반 React Activity 크래시, 오버레이 스택, 홈 피드 메모리처럼 사용자 이탈로 이어지는 결함을 재현 가능한 구조 문제로 좁혀 제품 레이어에서 해결했습니다.',
     highlights: [
       {
         title: 'Android 백버튼 UX 결함 개선',
         metric: '이탈 문제 15%p 개선',
         description:
-          '중첩형 UI가 백버튼으로 닫히지 않고 페이지 종료로 이어지는 결함을 발견하고, LIFO/Priority 기반 백버튼 관리 레이어를 설계했습니다.',
+          'BottomSheet, Dialog, 페이지 이동이 섞인 Android WebView에서 백버튼이 화면을 닫지 않고 앱 이탈로 이어지는 문제를 LIFO/Priority 레이어로 정리했습니다.',
         href: '/blog/android-백버튼-시스템-설계'
       },
       {
         title: '부동산 홈 초기 로딩 최적화',
         metric: 'LCP 50% 개선',
         description:
-          'MAU 800만 부동산 홈 초기 로딩 지연 문의를 계기로 지도 모듈 lazy loading과 청크 최적화를 적용했습니다.'
+          '사용자 문의로 드러난 부동산 홈 초기 로딩 병목을 지도 모듈 lazy loading과 chunk 분리로 줄였습니다.'
       },
       {
         title: 'React Activity 프로덕션 크래시 해결',
         metric: 'GC 메커니즘 분석',
         description:
-          '홈 피드 지도 토글 성능 개선을 위해 React Activity를 도입한 뒤 발생한 크래시를 컴포넌트 생명주기와 Relay GC 관점에서 분석했습니다.',
+          '지도 토글 성능 개선을 위해 도입한 React Activity가 Relay GC와 충돌하며 만든 프로덕션 크래시를 생명주기/retain 경계에서 추적했습니다.',
         href: '/blog/relay-react-activity-gc-크래시'
       },
       {
         title: '화면 전환/레이어 아키텍처 재설계',
         description:
-          '통일화되지 않은 오버레이 상태로 인한 충돌과 간섭을 줄이기 위해 Activity별 독립 오버레이 컨텍스트와 레이어 구조를 정리했습니다.',
+          'overlay-kit 사용 과정에서 드러난 전역 오버레이 간섭을 Activity별 컨텍스트와 레이어 우선순위 문제로 재정의했습니다.',
         href: '/blog/overlay-kit-의-의도인가-버그인가'
       },
       {
         title: '긴 스크롤 메모리 부족 대응',
         metric: '중복 로그 없이 기능성 개선',
         description:
-          '프로덕션 긴 스크롤 구간의 메모리 부족과 렌더링 지연에 대응하기 위해 가상화 리스트와 1회 로깅 보장 구조를 도입했습니다.',
+          '긴 스크롤에서 이미지, 로깅, 렌더 트리가 함께 누적되는 문제를 가상화 리스트와 1회 로깅 보장 구조로 끊었습니다.',
         href: '/blog/부동산-홈-피드-메모리-분석'
       },
       {
         title: 'AI 인스펙터 개발',
         description:
-          '비개발자가 자연어로 UI와 플로우를 수정할 수 있도록 빠른 개발을 돕는 AI 인스펙터 기능을 구현했습니다.'
+          '비개발자가 자연어로 UI와 플로우 변경을 요청하면 화면 맥락을 수집해 빠른 수정 루프로 이어지는 인스펙터를 구현했습니다.'
       },
       {
         title: '디자인 시스템 스와이프백 성능 개선',
@@ -261,37 +260,37 @@ export const resumeExperiences: ResumeExperience[] = [
     role: 'Frontend Developer Intern',
     period: '2025.09 - 2025.12',
     description:
-      '건설 현장 데이터 대시보드에서 다국어 자동화, React Compiler, PDF 변환, 오프라인 캐싱, Google Sheets 기반 번역 QA까지 제품 운영에 필요한 DX와 UX를 함께 개선했습니다.',
+      '건설 현장 대시보드에서 다국어 추출 자동화, React Compiler 도입 오류, 대용량 PDF 변환, 오프라인 캐싱, 번역 QA를 제품 운영 비용을 줄이는 DX/UX 문제로 묶어 해결했습니다.',
     highlights: [
       {
         title: 'Babel AST 기반 i18n 추출 라이브러리 개발',
         metric: '작업 시간 80% 감축',
         description:
-          '수동 래핑과 번역 키 추출 과정을 자동화하기 위해 I18Nexus를 개발하고 다국어 적용 비용을 줄였습니다.',
+          '하드코딩 문자열 탐색, t() 래핑, key 추출, 타입 생성을 Babel AST 기반 CLI로 자동화했습니다.',
         href: '/blog/딸깍이면-내-프로젝트도-해외-진출'
       },
       {
         title: 'React Compiler Hook 인식 오류 분석',
         description:
-          'React Compiler 도입 후 발생한 Hook 인식 오류를 분석하고 메모이제이션 누락 문제를 해결했습니다.',
+          'Compiler lint suppression과 Hook 인식 경계가 만든 침묵 실패를 추적해 메모이제이션 누락이 숨어버리는 문제를 복구했습니다.',
         href: '/blog/리액트-컴파일러의-이슈를-수정하며'
       },
       {
         title: '대용량 건설 데이터 PDF 변환',
         description:
-          '복잡한 UI 데이터를 구조 손상 없이 즉시 PDF로 변환하는 기능을 구현했습니다.',
+          '대용량 표, 이미지, 지도형 데이터를 화면 구조 손상 없이 PDF로 내려받을 수 있도록 변환 경계를 설계했습니다.',
         href: '/blog/복잡한-ui-데이터를-안전하게-pdf로-변환하는-방법'
       },
       {
         title: '불안정한 네트워크를 위한 오프라인 캐싱',
         description:
-          '현장 작업자가 네트워크가 불안정한 환경에서도 서비스를 사용할 수 있도록 오프라인 캐싱 기능을 구현했습니다.',
+          '현장 네트워크 단절을 전제로 읽기 데이터와 사용자 작업 흐름이 유지되도록 오프라인 캐시 전략을 구성했습니다.',
         href: '/blog/공사-현장에서-오프라인-기능이-필요하지-않을까요'
       },
       {
         title: 'Google Sheets 기반 번역 QA',
         description:
-          '비개발자가 실제 페이지에서 다국어 번역을 즉시 수정할 수 있도록 Google Sheets 연동 흐름을 구현했습니다.',
+          '번역 담당자가 실제 페이지 맥락에서 문구를 확인하고 Google Sheets로 바로 수정하는 QA 루프를 만들었습니다.',
         href: '/blog/i18n-부채-청산기'
       }
     ]
@@ -496,7 +495,7 @@ export const portfolioProjects: PortfolioProject[] = [
     period: '2025.09 ~',
     quote: 'i18n의 병목은 t() 호출이 아니라, 번역 키와 코드와 협업 문서가 서로 어긋나는 순간에 생겼습니다.',
     summary:
-      'React/Next.js 코드베이스의 다국어 작업을 자동화하는 type-safe i18n 모노레포입니다. 런타임, namespace 기반 리소스, lazy loading, SSR/server helper, CLI 추출·타입 생성·Google Sheets 동기화까지 하나의 워크플로우로 묶었습니다.',
+      '하드코딩 문자열, JSON 리소스, 번역 시트, 타입 정의가 따로 움직이던 i18n 작업을 AST 기반 CLI와 type-safe runtime으로 묶은 자동화 툴킷입니다. 13,000+ 다운로드와 Google Sheets 동기화로 실제 사용성을 검증했습니다.',
     role: '라이브러리 설계, AST 변환, CLI/DX 자동화',
     team: '개인 오픈소스',
     contribution: '기획·구현 100%',
@@ -516,16 +515,16 @@ export const portfolioProjects: PortfolioProject[] = [
       { value: '0건', label: '번역 키 휴먼 에러', detail: 'generated type으로 누락과 오타를 빌드 단계에서 감지' }
     ],
     highlights: [
-      'Babel AST로 JSX 텍스트와 문자열 리터럴을 찾아 t() 호출과 JSON resource 자동 생성',
-      'README의 monorepo 구조처럼 runtime과 i18nexus-tools가 같은 namespace/type 계약을 공유',
-      'Google Sheets CLI로 기획자, 번역가, 개발자가 같은 번역 데이터를 기준으로 작업하도록 연결',
-      'i18next 대체제가 아니라 React 앱 번역 workflow에 강하게 결합된 toolkit으로 포지셔닝'
+      'Babel AST로 JSX 텍스트와 문자열 리터럴을 찾아 t() 호출, key, JSON resource를 자동 생성',
+      'runtime과 tools가 같은 namespace/type 계약을 보게 만들어 코드와 번역 리소스 drift를 차단',
+      'Google Sheets upload/download로 개발자와 번역 담당자의 작업 기준을 하나로 통합',
+      'i18next의 대체 런타임이 아니라 React i18n 운영 workflow를 자동화하는 toolkit으로 포지셔닝'
     ],
     contributions: [
-      'i18n-wrapper, i18n-extractor, i18n-upload, i18n-download 등 CLI 명령을 설계했습니다.',
-      'translationImportSource를 설정으로 분리해 react-i18next, next-i18next, react-intl 등 기존 런타임과도 함께 쓸 수 있게 했습니다.',
-      'runtime core와 tools가 같은 namespace/key 계약을 보도록 설계해 코드와 리소스의 불일치를 줄였습니다.',
-      'TypeScript/Babel 기반 구현을 정리하고 Rust 포팅을 실험하며 대규모 코드베이스 적용 가능성을 검토했습니다.'
+      'wrapper, extractor, upload, download 명령을 분리해 추출부터 협업 시트 반영까지 CLI로 연결했습니다.',
+      'translationImportSource를 설정화해 react-i18next, next-i18next, react-intl 위에서도 도입할 수 있게 했습니다.',
+      'generated type을 기준으로 누락 key와 오타를 빌드 단계에서 끊도록 runtime/tools 계약을 맞췄습니다.',
+      'TypeScript/Babel 구현을 Rust로 옮겨보며 대규모 코드베이스에서 병목이 되는 파싱 비용을 검토했습니다.'
     ],
     results: [
       { label: '누적 다운로드', after: '13,000+', effect: '외부 사용 검증' },
@@ -536,15 +535,13 @@ export const portfolioProjects: PortfolioProject[] = [
     ],
     techStack: ['TypeScript', 'Babel AST', 'CLI', 'Google Sheets API', 'React', 'Next.js', 'SSR', 'i18n', 'Rust'],
     problem:
-      '다국어 적용은 문자열을 t()로 감싸는 문제가 아니라, key naming, namespace, JSON resource, 번역 시트, 타입 안정성이 동시에 어긋나는 운영 문제였습니다.',
+      'i18n 부채는 t() 호출 누락보다 key naming, namespace, JSON resource, 번역 시트, 타입 정의가 서로 다른 시점에 깨지는 운영 문제였습니다.',
     approach: [
-      'JSX 텍스트와 문자열 리터럴을 AST로 분석해 자동 래핑과 추출을 수행하는 CLI를 만들었습니다.',
-      'Google Sheets를 번역 데이터의 협업 지점으로 두고 upload/download 흐름을 자동화했습니다.',
-      'runtime core와 tools가 같은 namespace/key 계약을 보도록 설계해 코드와 리소스의 불일치를 줄였습니다.',
-      'i18next보다 기능이 많은 런타임이 아니라 React 앱 번역 workflow에 강하게 결합된 toolkit으로 포지셔닝했습니다.'
+      'AST 분석으로 JSX 텍스트를 찾아 t() 래핑, key 생성, JSON 병합, 타입 생성을 한 번에 처리했습니다.',
+      'Google Sheets를 번역 협업의 source of truth로 두고 upload/download 명령을 만들었습니다.',
+      'runtime core와 tools가 같은 namespace/key 계약을 공유하게 해 코드와 리소스 불일치를 줄였습니다.',
+      'i18next보다 빠른 런타임이 아니라 React 앱의 번역 운영 비용을 줄이는 toolkit으로 메시지를 좁혔습니다.'
     ],
-    takeaway:
-      'DX 자동화의 핵심은 코드를 많이 생성하는 것이 아니라, 사람이 실수하기 쉬운 경계를 타입과 도구가 같은 계약으로 보게 만드는 일이었습니다.',
     links: [
       { label: 'GitHub 저장소', href: 'https://github.com/i18n-global/i18n-mono', external: true },
       { label: 'npm i18nexus', href: 'https://www.npmjs.com/package/i18nexus', external: true },
@@ -562,7 +559,7 @@ export const portfolioProjects: PortfolioProject[] = [
     period: '2025.06 ~',
     quote: '성능 개선은 초를 줄이는 일이 아니라, 사용자가 가치에 도달하는 경로를 짧게 만드는 일이었습니다.',
     summary:
-      '교환학생 멘토링 및 정보 공유 플랫폼에서 홈 성능, 커뮤니티 퍼널, 대학 정보 배포 경계, React 19/Next 16 업그레이드, API codegen, AI Inspector 운영 워크플로우를 개선한 프로젝트입니다. 블로그와 README 기록을 기준으로 LCP 91.2% 개선, 이탈률 21% → 16%, SSG 대상 188개 → 35개 분리, Turbopack compile 7.5초 전환을 정리했습니다.',
+      '교환학생 플랫폼에서 홈 성능, 커뮤니티 퍼널, 대학 catalog 배포 경계, React 19/Next 16 업그레이드, 운영 자동화를 제품 지표와 배포 책임 기준으로 정리했습니다. LCP 91.2% 개선, 이탈률 21% → 16%, SSG 대상 188개 → 35개 분리를 만들었습니다.',
     role: '프론트엔드 성능 개선, 운영 자동화, 배포 경계 설계',
     team: '오픈소스/사이드 프로젝트',
     contribution: '성능·DX 개선 주도',
@@ -583,17 +580,17 @@ export const portfolioProjects: PortfolioProject[] = [
       { value: '7.5s', label: 'Turbopack compile', detail: 'React 19, Next 16 업그레이드 후 production build 경로 안정화' }
     ],
     highlights: [
-      'LCP 후보를 다시 선정하고 이미지·섹션 로딩 전략을 조정해 홈 초기 렌더링 개선',
-      '로그인 장벽 때문에 가치에 도달하지 못하던 커뮤니티 퍼널을 GA 기반으로 재설계',
+      'LCP 후보와 이미지 우선순위를 재선정해 홈 초기 렌더링을 9.961s → 0.874s로 단축',
+      '로그인 장벽 때문에 가치 도달 전 이탈하던 커뮤니티 퍼널을 GA 기반으로 재설계',
       '대학 catalog SSG를 main web에서 분리해 배포 blast radius와 Vercel 대기 시간을 축소',
-      'README의 AI Inspector Workflow처럼 자연어 요청 → 큐 저장 → 로컬 워커 → PR/프리뷰 링크 전송 흐름을 제품 운영에 연결'
+      '자연어 요청 → 큐 저장 → 로컬 워커 → PR/프리뷰 링크 전송까지 운영 인스펙터로 연결'
     ],
     contributions: [
-      'Performance 패널과 GA 지표를 함께 보고 홈 이탈률, LCP, 커뮤니티 도달률을 제품 문제로 재정의했습니다.',
-      '비핵심 섹션과 이미지 로딩 우선순위를 조정해 초기 화면의 체감 속도를 끌어올렸습니다.',
-      '대학 정보 SSG를 별도 zone으로 분리해 SEO 요구는 유지하면서 main web 배포 책임을 줄였습니다.',
-      'React 19, Next 16 업그레이드와 Turbopack 전환을 분리해 리뷰 범위와 회귀 원인을 좁혔습니다.',
-      'Bruno Docs 기반 API codegen과 큐 기반 운영 인스펙터로 반복 운영 작업을 예측 가능한 자동화 흐름으로 바꿨습니다.'
+      'Performance 패널과 GA를 같이 보며 LCP, 이탈률, 커뮤니티 도달률을 하나의 퍼널 문제로 재정의했습니다.',
+      '이미지와 비핵심 섹션의 로딩 우선순위를 낮춰 사용자가 먼저 보는 화면의 체감 속도를 올렸습니다.',
+      '대학 정보 SSG를 별도 zone으로 분리해 SEO 요구는 유지하고 main web 배포 책임은 줄였습니다.',
+      'React 19/Next 16 업그레이드와 Turbopack 전환을 PR 단위로 나눠 회귀 원인을 좁혔습니다.',
+      'Bruno Docs codegen과 운영 인스펙터로 API 연동, QA, PR 생성 반복을 자동화했습니다.'
     ],
     results: [
       { label: '홈 LCP', before: '9.961s', after: '0.874s', effect: '91.2% 개선' },
@@ -604,16 +601,14 @@ export const portfolioProjects: PortfolioProject[] = [
     ],
     techStack: ['Next.js', 'React 19', 'Turbopack', 'Turborepo', 'Vercel', 'Google Analytics', 'Bruno', 'AI Inspector', 'Firestore'],
     problem:
-      '트래픽은 있었지만 홈 성능과 커뮤니티 진입 장벽 때문에 사용자가 핵심 가치에 도달하기 전 이탈했습니다. 동시에 대학 catalog SSG가 main web 배포에 묶여 작은 수정도 전체 배포 비용을 유발했습니다.',
+      '트래픽은 있었지만 홈 LCP와 로그인 중심 커뮤니티 진입 때문에 사용자가 가치에 도달하기 전 이탈했습니다. 대학 catalog SSG는 main web 배포와 묶여 작은 수정도 전체 배포 비용으로 번졌습니다.',
     approach: [
-      'GA와 Performance 패널로 홈 이탈률, LCP, 커뮤니티 도달률을 먼저 수치화했습니다.',
-      'LCP 후보 이미지와 비핵심 섹션 로딩 방식을 분리하고, 커뮤니티는 로그인보다 가치 노출을 먼저 하도록 흐름을 재검토했습니다.',
-      '대학 catalog를 별도 Next.js zone으로 분리해 SEO 요구와 main web 배포 책임을 분리했습니다.',
-      'React 19와 Next 16 호환 작업은 webpack 안정화 PR과 Turbopack 전환 PR로 나누어 회귀 지점을 좁혔습니다.',
-      'Bruno 기반 codegen과 큐 기반 운영 인스펙터로 반복 운영 작업을 줄이고 품질 확인 루프를 자동화했습니다.'
+      'GA와 Performance 패널로 LCP, 이탈률, 커뮤니티 도달률을 먼저 수치화했습니다.',
+      'LCP 후보 이미지와 비핵심 섹션 로딩을 분리하고, 커뮤니티는 로그인보다 가치 노출이 먼저 오도록 바꿨습니다.',
+      '대학 catalog를 별도 Next.js zone으로 빼 SEO 요구와 main web 배포 책임을 분리했습니다.',
+      'React 19/Next 16 호환 작업과 Turbopack 전환을 나눠 리뷰 범위와 회귀 지점을 줄였습니다.',
+      'Bruno codegen과 큐 기반 운영 인스펙터로 반복 운영 작업과 품질 확인 루프를 자동화했습니다.'
     ],
-    takeaway:
-      '성능 최적화는 빠르게 만드는 일만이 아니라, 어떤 제품 영역이 어떤 배포와 운영 책임을 가져야 하는지 분리하는 설계 문제였습니다.',
     links: [
       { label: 'GitHub 저장소', href: 'https://github.com/solid-connection/solid-connect-web', external: true },
       { label: '성능 개선 기록', href: '/blog/페이지-속도가-이탈률-감소와-연관이-있을까' },
@@ -631,7 +626,7 @@ export const portfolioProjects: PortfolioProject[] = [
     period: '2025.02 ~',
     quote: '게임처럼 즉시 반응하는 웹, 그것이 목표였습니다.',
     summary:
-      'EA FC ProClub 유저를 위한 팀 매칭, 커뮤니티, 비공식 대회, 팀 관리 플랫폼입니다. README의 서비스 목표처럼 “혼자가 아닌 함께 뛰는 공간”을 만들기 위해 매치 생성부터 토너먼트 자동 생성까지 클라이언트 연산과 낙관적 UI로 빠르게 반응하도록 설계했습니다.',
+      'EA FC ProClub 유저의 팀 매칭, 대회, 채팅을 한 흐름에 묶은 실시간 플랫폼입니다. 비순차 raw match 데이터를 브래킷으로 재구성하고 낙관적 UI를 직접 구현해 매치 생성 체감 반응을 0ms로 만들었습니다.',
     role: '실시간 데이터 및 대시보드 성능 최적화 담당',
     team: 'FE 2명, BE 2명',
     contribution: '기여도 85%',
@@ -646,15 +641,15 @@ export const portfolioProjects: PortfolioProject[] = [
       { value: '5ms 이하', label: '클라이언트 연산', detail: '비순차 매치 데이터를 브래킷으로 변환' }
     ],
     highlights: [
-      '유저/팀 매칭, 커뮤니티, 비공식 대회, 팀 관리라는 README 핵심 기능을 하나의 대시보드 경험으로 연결',
-      '비순차 매치 데이터를 기반으로 토너먼트 브래킷을 실시간 시각화',
-      'React Query 없이 커스텀 낙관적 업데이트와 캐싱 흐름 구현',
-      'Socket.io 기반 팀 채팅 시스템과 floating 버튼 진입 구조 설계'
+      '매칭, 대회, 팀 관리, 채팅을 하나의 대시보드 경험으로 연결',
+      '비순차 raw match 데이터를 라운드/팀 기준 브래킷으로 즉시 재구성',
+      'React Query 없이 백업/커밋/롤백을 포함한 optimistic cache 흐름 구현',
+      'Socket.io 팀 채팅을 floating entry로 분리해 경기 흐름을 방해하지 않게 설계'
     ],
     contributions: [
-      '매치 생성, 삭제, 스코어 수정처럼 복잡한 CRUD 동작에서 백업/커밋/롤백 흐름을 직접 설계했습니다.',
-      '팀, 마이페이지, 대회 등 사용자 역할에 따라 필요한 뷰만 보이도록 조건부 렌더링 구조를 정리했습니다.',
-      '서버 중심 데이터 가공을 클라이언트 처리로 옮겨 화면 전환과 토너먼트 갱신을 빠르게 만들었습니다.'
+      '매치 생성, 삭제, 스코어 수정의 실패 케이스까지 고려해 백업/커밋/롤백 흐름을 설계했습니다.',
+      '팀장, 팀원, 대회 참가자 역할에 따라 대시보드 뷰와 액션 노출을 분리했습니다.',
+      '브래킷 가공을 클라이언트로 옮겨 서버 응답 대기 없이 토너먼트 상태를 먼저 갱신했습니다.'
     ],
     results: [
       { label: '매치 생성 반응시간', before: '평균 800ms', after: '0ms', effect: '즉시 반응 경험' },
@@ -664,15 +659,13 @@ export const portfolioProjects: PortfolioProject[] = [
     ],
     techStack: ['React', 'Tailwind CSS', 'Axios', 'Zustand', 'Socket.io'],
     problem:
-      '게임 유저를 위한 플랫폼이 서버 응답을 기다리며 늦게 반응하면 제품의 핵심 경험이 무너집니다. 특히 매치 생성과 토너먼트 진출 처리는 데이터 순서가 일정하지 않아 화면 갱신이 자주 어긋날 수 있었습니다.',
+      '게임 유저 대상 서비스에서 매치 생성이 서버 응답을 기다리면 제품의 즉시성이 무너집니다. 특히 토너먼트 진출 처리는 raw match 순서가 일정하지 않아 화면 갱신이 쉽게 어긋났습니다.',
     approach: [
-      '서버 응답 전 임시 매치 데이터를 먼저 삽입하고 실패 시 이전 상태로 되돌리는 낙관적 업데이트 흐름을 만들었습니다.',
-      'Raw match 데이터를 라운드와 참가팀 기준으로 재구성해 브래킷 UI가 서버 가공 없이도 갱신되도록 했습니다.',
-      '팀 모집, 일정 공지, 전적 기록처럼 README에 정의된 팀 관리 흐름을 사용자 역할별 화면으로 나누었습니다.',
-      '채팅은 전역 floating 버튼으로 접근성을 높이고, 소켓 이벤트가 화면 상태를 과도하게 흔들지 않도록 상태 경계를 나눴습니다.'
+      '서버 응답 전 임시 매치를 삽입하고 실패 시 이전 상태로 되돌리는 optimistic flow를 만들었습니다.',
+      'Raw match 데이터를 라운드와 참가팀 기준으로 재구성해 브래킷을 서버 가공 없이 갱신했습니다.',
+      '팀 모집, 일정 공지, 전적 기록을 사용자 역할별 화면으로 나누어 액션 혼선을 줄였습니다.',
+      '채팅은 floating entry로 분리하고 socket event가 대시보드 상태를 흔들지 않도록 경계를 나눴습니다.'
     ],
-    takeaway:
-      'React Query를 쓰지 않는 선택은 단순한 배제가 아니라 서버 상태 라이브러리가 해결하는 캐싱, 롤백, 동기화 비용을 직접 체감한 딥다이브였습니다.',
     links: [
       { label: 'GitHub 저장소', href: 'https://github.com/footballSquare/frontend', external: true },
       { label: 'Optimistic UI 구현 글', href: '/blog/피파-프로클럽-대시보드-raw-데이터-처리와-optimistic-ui' }
@@ -685,7 +678,7 @@ export const portfolioProjects: PortfolioProject[] = [
     period: '2025.04',
     quote: '정확한 예측보다 먼저, 4주 안에 납득 가능한 제품을 만드는 것이 문제였습니다.',
     summary:
-      '인천 지역 버스 사용자를 위한 도착 예측 및 실시간 위치 추적 서비스입니다. BusLive README에 정리된 노드 좌표와 구간별 평균 속도 기반 예측, 모바일 웹 UI, 정거장 채팅, FSD 구조를 바탕으로 MVP 완성 조건을 직접 다뤘습니다.',
+      '인천 버스의 실시간 위치, 정류장 채팅, 도착 예측을 2주 안에 검증 가능한 MVP로 만든 해커톤 프로젝트입니다. AI 예측 리스크는 확장 여지로 남기고, 노드 좌표와 구간 평균 속도로 ±10초 수준의 예측 경험을 먼저 완성했습니다.',
     role: '프론트엔드 구현, 실시간 UI, 배포 파이프라인 구축',
     team: 'FE/UI·UX 1명, BE 1명',
     contribution: '인컴해커톤 Linced 3.0 사업단장상 대상',
@@ -738,16 +731,16 @@ export const portfolioProjects: PortfolioProject[] = [
       { value: '1위', label: '해커톤 수상', detail: '12팀 중 대상 수상' }
     ],
     highlights: [
-      '정류장별 WebSocket 채팅과 실시간 위치 시각화 구현',
-      '노드 좌표와 구간별 평균 속도를 활용해 인천 지역의 초정밀 위치 추적 공백을 보완',
-      'README의 FSD 구조처럼 Bus, Chat entity와 Map/Chat page를 나누어 유지보수성 확보',
-      'AWS EC2 웹서버 셋업, GitHub Actions, Let’s Encrypt HTTPS 자동화',
-      'Google 애드센스 영역과 채팅 UI가 겹치는 문제를 레이아웃 위계 조정으로 해결'
+      '정류장별 WebSocket 채팅과 지도 기반 실시간 위치 시각화 구현',
+      '노드 좌표와 구간 평균 속도로 인천 지역 초정밀 위치 추적 공백 보완',
+      'Bus/Chat entity와 Map/Chat page를 나눈 FSD 구조로 MVP 변경 비용 축소',
+      'AWS EC2, GitHub Actions, Let’s Encrypt로 HTTPS 배포 자동화',
+      '광고 영역과 채팅 패널이 겹치는 문제를 레이어 위계와 진입 흐름으로 해결'
     ],
     contributions: [
-      '팀장이 원하는 AI 예측과 개발 일정 사이의 충돌을 듣고, 추후 고도화 가능한 MVP 대안을 제안했습니다.',
-      '48시간 안에 프로토타입을 구현해 기능 방향을 말이 아니라 화면으로 검증했습니다.',
-      '프론트엔드 UI, 실시간 채팅, 지도, 배포, 보안 설정까지 실제 서비스 운영에 필요한 주변 조건을 함께 챙겼습니다.'
+      'AI 예측 요구와 4주 일정 사이의 충돌을 듣고, 확장 가능한 규칙 기반 MVP로 범위를 재정의했습니다.',
+      '48시간 안에 프로토타입을 만들어 기능 방향을 회의가 아니라 실제 화면으로 결정하게 했습니다.',
+      '지도, 실시간 채팅, 배포, HTTPS, 광고 UI 충돌까지 데모가 아닌 서비스 조건으로 챙겼습니다.'
     ],
     results: [
       { label: '도착 예측 정확도', after: '±10초 수준', effect: '사용자 기대치 충족' },
@@ -769,15 +762,13 @@ export const portfolioProjects: PortfolioProject[] = [
       'FSD'
     ],
     problem:
-      '팀은 AI 예측을 핵심으로 가져가고 싶었지만, 4주 안에 안정적으로 구현하기에는 리스크가 컸습니다. 동시에 실제 사용자가 볼 수 있는 지도, 채팅, 도착 정보는 빠르게 완성되어야 했습니다.',
+      '팀은 AI 예측을 핵심 차별점으로 원했지만 4주 안에 안정적으로 검증하기에는 리스크가 컸습니다. 반대로 지도, 채팅, 도착 정보는 사용자가 바로 판단할 수 있는 MVP의 핵심이었습니다.',
     approach: [
-      '팀장과 개발진을 따로 만나 우려와 목표를 분리해 들은 뒤, 모두가 원하는 대상 수상이라는 공통 목표를 먼저 맞췄습니다.',
-      'AI 예측은 나중에 확장 가능한 구조로 남기고, MVP에서는 정류장별 도착 예측과 위치 시각화의 신뢰도를 우선했습니다.',
-      '카카오 버스 초정밀 위치 추적이 인천에서 지원되지 않는 문제를 노드 좌표와 구간별 평균 속도 기반 계산으로 보완했습니다.',
-      '광고, 채팅, 지도처럼 서로 충돌하기 쉬운 UI 요소는 계층과 영역을 명확히 나눠 실제 서비스 화면으로 정리했습니다.'
+      '팀장과 개발진을 따로 만나 리스크와 목표를 분리하고, 대상 수상이라는 공통 목표를 먼저 맞췄습니다.',
+      'AI 예측은 추후 고도화 지점으로 남기고, MVP에서는 정류장별 위치/도착 정보의 신뢰도를 우선했습니다.',
+      '인천에서 초정밀 위치 추적이 비어 있는 문제를 노드 좌표와 구간 평균 속도 계산으로 보완했습니다.',
+      '광고, 채팅, 지도처럼 겹치기 쉬운 UI는 레이어와 진입 흐름을 분리해 실제 서비스 화면으로 정리했습니다.'
     ],
-    takeaway:
-      '좋은 MVP는 기능을 덜 만드는 일이 아니라, 지금 검증해야 하는 핵심만 남기고 팀이 같은 방향으로 움직이게 만드는 일이라는 점을 배웠습니다.',
     links: [{ label: 'GitHub 저장소', href: 'https://github.com/manNomi/BusLiveWeb', external: true }]
   },
   {
@@ -787,7 +778,7 @@ export const portfolioProjects: PortfolioProject[] = [
     period: '2024.10 ~ 2025.02',
     quote: '구글 지도 18개를 동시에 띄우면 어떤 일이 벌어질까?',
     summary:
-      'DMAP은 사용자가 이동 경로를 지도 위에 선으로 남기고 이를 SNS 피드로 공유하는 서비스입니다. README의 홈/경로 트래킹 화면과 블로그 기록을 기준으로, 프로필 페이지 3×3 지도 썸네일 그리드에서 WebGL 크래시, Google Maps API 과금, 렌더링 성능 저하를 해결한 과정을 정리했습니다.',
+      '이동 경로를 지도 위에 남기고 SNS 피드로 공유하는 DMAP에서 프로필 3×3 지도 그리드를 최적화했습니다. 18개 동적 Google Map이 만들던 WebGL 크래시와 월 $70 과금을 정적 썸네일 + 전역 동적 지도 1개 구조로 해결했습니다.',
     role: '프로필 기능 전담, 렌더링 최적화 및 지도 구조 개선 주도',
     team: 'FE 2명, BE 2명',
     contribution: '기여도 90%',
@@ -819,16 +810,16 @@ export const portfolioProjects: PortfolioProject[] = [
       { value: '18개', label: '지도 썸네일', detail: '정적 썸네일과 전역 동적 지도 1개를 조합' }
     ],
     highlights: [
-      'WebGL 기반 벡터 지도의 컨텍스트 한계와 크래시 원인 분석',
-      'README의 실시간 경로 트래킹, 경로 그림 그리기, SNS 피드 흐름을 지도 렌더링 구조와 연결',
-      '6가지 실패 방식 이후 정적 지도 + 전역 단일 동적 지도 하이브리드 전략 설계',
-      'React Portal 기반 상세 지도 전환과 Google API 비용 알림 체계 구축'
+      'WebGL 벡터 지도 16개 초과 시 컨텍스트 한계로 깨지는 현상 재현',
+      '실시간 경로 트래킹, 경로 그리기, SNS 피드 흐름을 지도 렌더링 구조와 연결',
+      '6가지 실패 이후 정적 지도 + 전역 단일 동적 지도 하이브리드 전략 설계',
+      'React Portal 상세 전환과 Google API 비용 알림 체계까지 운영 관점으로 정리'
     ],
     contributions: [
-      '벡터 지도 16개 초과 시 발생하는 WebGL 컨텍스트 크래시를 재현하고 병목을 분석했습니다.',
-      '지도 18개 썸네일은 정적 이미지로, 상세 뷰는 동적 지도 1개로 분리해 안정성과 UX를 동시에 확보했습니다.',
-      '과금 폭탄 이후 Google API 사용량을 분석하고 모니터링 및 알림 설정까지 정리했습니다.',
-      '팀 내 구현 방식 차이와 무한 스크롤/API 호출 방식의 갈등을 회고하며 유지보수 비용을 낮추는 방향으로 합의했습니다.'
+      '벡터 지도 16개 초과 시 발생하는 WebGL 컨텍스트 크래시를 재현하고 병목을 지도 인스턴스 수로 좁혔습니다.',
+      '목록의 18개 지도는 정적 썸네일로, 상세 확인은 동적 지도 1개로 분리해 안정성과 UX를 함께 확보했습니다.',
+      '과금 발생 뒤 Google API 사용량을 분석하고 무료 한도 안에 머물도록 모니터링/알림을 설정했습니다.',
+      '무한 스크롤, API 호출, 코드 컨벤션 충돌을 팀 속도 관점에서 정리하며 구현 방향을 합의했습니다.'
     ],
     results: [
       { label: '지도 타입', before: '벡터 WebGL 지도', after: '정적 + 전역 동적 1개', effect: '메모리 사용량 감소' },
@@ -838,15 +829,13 @@ export const portfolioProjects: PortfolioProject[] = [
     ],
     techStack: ['React', 'JavaScript', 'Google Maps API', 'Static Maps API', 'React Portal'],
     problem:
-      '프로필 페이지에서 지도 썸네일을 많이 보여주려면 한 화면에 최대 18개의 Google Maps 인스턴스가 필요했습니다. 벡터 지도는 WebGL 컨텍스트를 사용했고, 브라우저 한계에 닿으면 지도 일부가 사라졌습니다.',
+      '프로필에서 3×3 썸네일을 여러 묶음으로 보여주면 한 화면에 최대 18개의 Google Maps 인스턴스가 필요했습니다. 벡터 지도는 WebGL 컨텍스트를 사용해 브라우저 한계에 닿으면 지도 일부가 사라졌습니다.',
     approach: [
-      'WebGL 컨텍스트 해제, key 기반 리렌더링, 스켈레톤, 캡처, 인스턴스 재사용 등 6가지 방식을 실험하며 실패 원인을 좁혔습니다.',
-      '최종적으로 목록에서는 정적 지도 이미지를 사용하고, 상세 확인이 필요한 순간에만 전역 동적 지도 1개를 재사용했습니다.',
-      'Google Maps 과금 구조를 확인하고 알림을 설정해 기술 해결이 운영 비용 절감으로 이어지도록 마무리했습니다.',
-      '팀장과의 코드 컨벤션, API 호출 방식, 무한 스크롤 구현 차이를 조율하며 팀 전체 속도를 우선하는 방향을 선택했습니다.'
+      'WebGL 해제, key 리렌더링, 스켈레톤, 캡처, 인스턴스 재사용 등 6가지 방식을 실험해 실패 원인을 좁혔습니다.',
+      '목록은 정적 지도 이미지로, 상세 확인은 전역 동적 지도 1개로 처리하는 하이브리드 구조를 선택했습니다.',
+      'Google Maps 과금 구조와 호출량을 확인하고 알림을 설정해 기술 해결이 운영 비용 절감으로 이어지게 했습니다.',
+      '코드 컨벤션, API 호출, 무한 스크롤 구현 차이를 조율하며 팀 전체 속도를 해치지 않는 방향으로 합의했습니다.'
     ],
-    takeaway:
-      '렌더링 최적화는 빠르게 만드는 것만이 아니라 브라우저 자원, 외부 API 비용, 사용자 흐름을 함께 설계하는 일이라는 점을 배웠습니다.',
     links: [
       { label: 'GitHub 저장소', href: 'https://github.com/Stageus/DMap-homepage/tree/master', external: true },
       { label: 'WebGL/비용 해결 과정', href: '/blog/구글지도-api-비용-120만원-청산' },

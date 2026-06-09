@@ -6,6 +6,7 @@ import {
   portfolioProfile,
   portfolioProjects,
   resumeExperiences,
+  type PortfolioLink,
   type PortfolioProject,
   type ResumeExperience
 } from '../../data/portfolio';
@@ -79,6 +80,9 @@ const jsonLd = {
 };
 const experienceMetrics = experience?.highlights.filter((highlight) => highlight.metric).slice(0, 3) ?? [];
 const experienceLinks = experience?.highlights.filter((highlight) => highlight.href) ?? [];
+const isGithubLink = (link: PortfolioLink) => /github|저장소/i.test(link.label);
+const projectGithubLinks = project?.links.filter(isGithubLink) ?? [];
+const projectReferenceLinks = project?.links.filter((link) => !isGithubLink(link)) ?? [];
 ---
 
 <BaseLayout
@@ -116,6 +120,21 @@ const experienceLinks = experience?.highlights.filter((highlight) => highlight.h
             <h1 class="m-0 text-[clamp(2.1rem,5vw,3.2rem)] font-bold leading-[1.12] tracking-[-0.04em]" style="color: var(--text);">{project.title}</h1>
             <p class="mt-5 max-w-[30ch] text-[1.25rem] font-medium leading-[1.5] tracking-[-0.02em]" style="color: var(--text);">“{project.quote}”</p>
             <p class="mt-5 max-w-[60ch] text-[1.02rem] leading-[1.7]" style="color: var(--text-dim);">{project.summary}</p>
+            {projectGithubLinks.length > 0 && (
+              <div class="mt-7 flex flex-wrap gap-2.5">
+                {projectGithubLinks.map((link) => (
+                  <a
+                    href={link.href}
+                    target={link.external ? '_blank' : undefined}
+                    rel={link.external ? 'noopener noreferrer' : undefined}
+                    class="pill h-8"
+                    style="color: var(--text); border-color: var(--border-strong);"
+                  >
+                    {link.label} →
+                  </a>
+                ))}
+              </div>
+            )}
             <div class="mt-6 flex flex-wrap gap-6">
               <div>
                 <div class="mono mb-1" style="color: var(--text-faint);">역할</div>
@@ -390,30 +409,27 @@ const experienceLinks = experience?.highlights.filter((highlight) => highlight.h
             </div>
           </section>
 
-          <section class="flow-row">
-            <div>
-              <div class="mono mb-1.5" style="color: var(--text-faint);">{project.slug === 'incheon-bus' || project.slug === 'dmap-map-grid' ? '06' : '05'} · Takeaway</div>
-              <h2 class="m-0 text-[1.25rem] font-bold tracking-[-0.02em]" style="color: var(--text);">배운 점</h2>
-            </div>
-            <div>
-              <p class="m-0 max-w-[58ch] text-[1.18rem] leading-[1.7] tracking-[-0.01em]" style="color: var(--text);">{project.takeaway}</p>
-              {project.links.length > 0 && (
-                <div class="mt-6 flex flex-wrap gap-2.5">
-                  {project.links.map((link) => (
-                    <a
-                      href={link.href}
-                      target={link.external ? '_blank' : undefined}
-                      rel={link.external ? 'noopener noreferrer' : undefined}
-                      class="pill h-8"
-                      style="color: var(--text); border-color: var(--border-strong);"
-                    >
-                      {link.label} →
-                    </a>
-                  ))}
-                </div>
-              )}
-            </div>
-          </section>
+          {projectReferenceLinks.length > 0 && (
+            <section class="flow-row">
+              <div>
+                <div class="mono mb-1.5" style="color: var(--text-faint);">{project.slug === 'incheon-bus' || project.slug === 'dmap-map-grid' ? '06' : '05'} · Records</div>
+                <h2 class="m-0 text-[1.25rem] font-bold tracking-[-0.02em]" style="color: var(--text);">관련 기록</h2>
+              </div>
+              <div class="flex flex-wrap gap-2.5">
+                {projectReferenceLinks.map((link) => (
+                  <a
+                    href={link.href}
+                    target={link.external ? '_blank' : undefined}
+                    rel={link.external ? 'noopener noreferrer' : undefined}
+                    class="pill h-8"
+                    style="color: var(--text); border-color: var(--border-strong);"
+                  >
+                    {link.label} →
+                  </a>
+                ))}
+              </div>
+            </section>
+          )}
 
           <hr class="rule" />
 
