@@ -2,6 +2,7 @@
 title: "vinext 기여 4"
 pubDate: 2026-05-30T00:00:00.000Z
 tags: ["오픈소스"]
+notes: true
 notionId: "3747cf19-a364-8064-a04c-e2242add52bd"
 ---
 # vinext에서 `useRouter().bfcacheId`를 구현하며 배운 것
@@ -215,3 +216,4 @@ intercepted slot identity도 리뷰 덕분에 보강됐다. slot owner만 보면
 
 
 그런 점에서 이번 PR은 단순히 `useRouter().bfcacheId`를 추가한 작업이라기보다, vinext App Router의 navigation identity layer를 한 단계 정교하게 만든 작업에 가까웠다.
+

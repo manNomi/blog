@@ -2,6 +2,7 @@
 title: "vinext 기여 3"
 pubDate: 2026-05-30T00:00:00.000Z
 tags: ["오픈소스"]
+notes: true
 notionId: "36e7cf19-a364-8076-96fa-c6a893c9d618"
 ---
 ---
@@ -298,3 +299,4 @@ Next.js upstream에서는 App Router segment cache가 request search가 아닌 `
 
 
 작은 test-only PR이지만, App Router cache/navigation 쪽은 회귀가 눈에 잘 띄지 않는 영역이라 이런 테스트가 꽤 중요하다. 앞으로 Vinext의 navigation cache 구조가 바뀌더라도, 이전 search params가 clean replace 이후 되살아나는 문제는 이 테스트가 잡아줄 수 있다.
+
