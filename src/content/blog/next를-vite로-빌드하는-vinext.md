@@ -4,6 +4,9 @@ description: "vinext 버그를 수정"
 pubDate: 2026-06-09T00:00:00.000Z
 notionId: "37a7cf19-a364-80ce-8b1e-c77742806d0f"
 ---
+![cloudflare-down-01-1536x1152.avif](/images/next를-vite로-빌드하는-vinext-0.avif)
+
+
 # **undefined 하나에서 시작한 Vinext 기여기:** **`useRouter().bfcacheId`****를 placeholder에서 실제 semantics까지 구현하기**
 
 
