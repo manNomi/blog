@@ -1,5 +1,5 @@
 ---
-title: "Video_Streaming_over_QUIC_Notion_Korean"
+title: "Video Streaming over QUIC"
 pubDate: 2026-06-09T00:00:00.000Z
 notes: true
 notionId: "3737cf19-a364-80df-a0c4-c81cc9523973"

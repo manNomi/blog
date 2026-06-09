@@ -1,7 +1,7 @@
 {
   "databaseId": "2af7cf19a36480648f08f4072d1246c5",
   "totalPages": 48,
-  "hash": "65df59fe0f1b86d88ff99ad56efbdd5dfdee810df46c7f2c88b9aeb97f08aa9a",
+  "hash": "b06ee47bd994b3ff1f9bcf83e5a10b5ec270eeca649d549975f311092bdff260",
   "pages": [
     {
       "notionId": "2af7cf19-a364-8004-a41a-dc5735d98b2b",
@@ -197,15 +197,15 @@
     },
     {
       "notionId": "3737cf19-a364-8085-b295-cad3b091ea73",
-      "lastEditedTime": "2026-06-09T06:06:00.000Z",
+      "lastEditedTime": "2026-06-09T17:37:00.000Z",
       "createdTime": "2026-06-02T12:55:00.000Z",
-      "title": "Sidekick_In_Network_Assistance_Notion_Korean"
+      "title": "Sidekick In Network Assistance"
     },
     {
       "notionId": "3737cf19-a364-80df-a0c4-c81cc9523973",
-      "lastEditedTime": "2026-06-09T06:06:00.000Z",
+      "lastEditedTime": "2026-06-09T17:37:00.000Z",
       "createdTime": "2026-06-02T12:43:00.000Z",
-      "title": "Video_Streaming_over_QUIC_Notion_Korean"
+      "title": "Video Streaming over QUIC"
     },
     {
       "notionId": "3747cf19-a364-801f-98e6-ff38fc411177",
@@ -292,7 +292,7 @@
       "title": "Node.js 강의 v3 "
     }
   ],
-  "syncedAt": "2026-06-09T11:12:43.625Z",
+  "syncedAt": "2026-06-09T17:39:26.552Z",
   "files": [
     {
       "notionId": "2af7cf19-a364-8004-a41a-dc5735d98b2b",
@@ -867,18 +867,18 @@
     },
     {
       "notionId": "3737cf19-a364-8085-b295-cad3b091ea73",
-      "filename": "sidekick-in-network-assistance-notion-korean.md",
-      "title": "Sidekick_In_Network_Assistance_Notion_Korean",
-      "lastEditedTime": "2026-06-09T06:06:00.000Z",
+      "filename": "sidekick-in-network-assistance.md",
+      "title": "Sidekick In Network Assistance",
+      "lastEditedTime": "2026-06-09T17:37:00.000Z",
       "heroImage": "",
       "heroImageSourceKey": "",
       "imageAssets": []
     },
     {
       "notionId": "3737cf19-a364-80df-a0c4-c81cc9523973",
-      "filename": "video-streaming-over-quic-notion-korean.md",
-      "title": "Video_Streaming_over_QUIC_Notion_Korean",
-      "lastEditedTime": "2026-06-09T06:06:00.000Z",
+      "filename": "video-streaming-over-quic.md",
+      "title": "Video Streaming over QUIC",
+      "lastEditedTime": "2026-06-09T17:37:00.000Z",
       "heroImage": "",
       "heroImageSourceKey": "",
       "imageAssets": []
