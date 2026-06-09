@@ -3,7 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import ProjectCard from '../components/ProjectCard.astro';
-import { portfolioProfile, portfolioProjects, resumeExperiences } from '../data/portfolio';
+import { portfolioProfile, portfolioProjects, resumeExperiences, resumeOpenSourceGroups } from '../data/portfolio';
 ---
 
 <BaseLayout title="소개 | 한만욱" description={portfolioProfile.intro}>
@@ -58,6 +58,77 @@ import { portfolioProfile, portfolioProjects, resumeExperiences } from '../data/
         <div class="mt-5">
           {portfolioProjects.map((project, index) => <ProjectCard project={project} index={index} />)}
           <hr class="rule" />
+        </div>
+      </section>
+
+      <section id="open-source" class="mt-16 scroll-mt-24">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow mb-2">Open Source</div>
+            <h2 class="section-title">오픈소스</h2>
+          </div>
+          <span class="mono">{resumeOpenSourceGroups.length} groups</span>
+        </div>
+
+        <div class="mt-5 grid gap-4">
+          {resumeOpenSourceGroups.map((group) => (
+            <article class="detail-card">
+              <div class="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <div class="flex flex-wrap items-center gap-3">
+                    <h3 class="m-0 text-[1.2rem] font-bold tracking-[-0.02em]" style="color: var(--text);">{group.title}</h3>
+                    {group.period && <span class="mono opacity-60">{group.period}</span>}
+                  </div>
+                  <p class="mb-0 mt-2 max-w-[62ch] text-[0.95rem] leading-[1.65]" style="color: var(--text-dim);">{group.subtitle}</p>
+                </div>
+
+                {group.links && group.links.length > 0 && (
+                  <div class="flex flex-wrap justify-end gap-2">
+                    {group.links.map((link) => (
+                      <a
+                        href={link.href}
+                        target={link.external ? '_blank' : undefined}
+                        rel={link.external ? 'noopener noreferrer' : undefined}
+                        class="pill h-8"
+                        style="color: var(--text); border-color: var(--border-strong);"
+                      >
+                        {link.label} →
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div class="mt-5 grid gap-3 md:grid-cols-2">
+                {group.bullets.map((item) => (
+                  item.href ? (
+                    <a
+                      href={item.href}
+                      class="rounded-[14px] border p-4 transition-opacity hover:opacity-70"
+                      style="border-color: var(--border); color: var(--text); background: var(--surface);"
+                    >
+                      <div class="flex flex-wrap items-center gap-2">
+                        <strong class="text-[0.95rem]">{item.title}</strong>
+                        {item.metric && <span class="mono text-[0.68rem]" style="color: var(--text-faint);">{item.metric}</span>}
+                      </div>
+                      <p class="mb-0 mt-2 text-[0.88rem] leading-[1.55]" style="color: var(--text-dim);">{item.description}</p>
+                    </a>
+                  ) : (
+                    <div
+                      class="rounded-[14px] border p-4"
+                      style="border-color: var(--border); color: var(--text); background: var(--surface);"
+                    >
+                      <div class="flex flex-wrap items-center gap-2">
+                        <strong class="text-[0.95rem]">{item.title}</strong>
+                        {item.metric && <span class="mono text-[0.68rem]" style="color: var(--text-faint);">{item.metric}</span>}
+                      </div>
+                      <p class="mb-0 mt-2 text-[0.88rem] leading-[1.55]" style="color: var(--text-dim);">{item.description}</p>
+                    </div>
+                  )
+                ))}
+              </div>
+            </article>
+          ))}
         </div>
       </section>
 
