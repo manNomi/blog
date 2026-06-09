@@ -9,6 +9,7 @@ interface Props {
 
 const { project, index, href = `/about/${project.slug}` } = Astro.props;
 const hasProjectImage = !project.image.includes('portfolio-case-placeholder');
+const phoneBezelImage = '/images/ui/iphone-bezel.png';
 ---
 
 <a href={href} class="project-card">
@@ -38,6 +39,7 @@ const hasProjectImage = !project.image.includes('portfolio-case-placeholder');
 
   {hasProjectImage && project.visualMode === 'phone' ? (
     <div class="phone-frame phone-frame--card" role="img" aria-label={project.imageAlt}>
+      <img src={phoneBezelImage} alt="" class="phone-frame__bezel" loading="lazy" decoding="async" aria-hidden="true" />
       <div class="phone-frame__screen">
         <img
           src={project.image}

@@ -9,7 +9,7 @@ import { portfolioProfile, portfolioProjects, resumeExperiences, resumeOpenSourc
 <BaseLayout title="소개 | 한만욱" description={portfolioProfile.intro}>
   <Header />
 
-  <main class="site-main">
+  <main class="site-main about-page">
     <div class="wrap">
       <header class="page-head rise">
         <div class="eyebrow mb-[18px]">About</div>
@@ -36,7 +36,21 @@ import { portfolioProfile, portfolioProjects, resumeExperiences, resumeOpenSourc
             <span class="detail-summary">
               <span class="mono pt-1" style="color: var(--text-faint);">{experience.period}</span>
               <span class="min-w-0">
-                <span class="m-0 block text-[1.15rem] font-bold tracking-[-0.02em]" style="color: var(--text);">{experience.company}</span>
+                <span class="experience-company-line">
+                  {experience.logo && (
+                    <span class={`company-logo company-logo--list company-logo--${experience.logo.shape}`} aria-hidden="true">
+                      <img
+                        src={experience.logo.src}
+                        alt=""
+                        width={experience.logo.width}
+                        height={experience.logo.height}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </span>
+                  )}
+                  <span class="m-0 block text-[1.15rem] font-bold tracking-[-0.02em]" style="color: var(--text);">{experience.company}</span>
+                </span>
                 <span class="my-1 block text-[0.9rem]" style="color: var(--text-dim);">{experience.role}</span>
                 <span class="m-0 block max-w-[64ch] text-[0.95rem] leading-[1.6]" style="color: var(--text-dim);">{experience.description}</span>
               </span>

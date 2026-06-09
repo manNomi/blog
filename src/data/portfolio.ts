@@ -67,9 +67,18 @@ export type ResumeHighlight = {
   href?: string;
 };
 
+export type CompanyLogo = {
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+  shape: 'mark' | 'wide';
+};
+
 export type ResumeExperience = {
   slug: string;
   company: string;
+  logo?: CompanyLogo;
   team: string;
   role: string;
   period: string;
@@ -173,6 +182,13 @@ export const resumeExperiences: ResumeExperience[] = [
   {
     slug: 'daangn-real-estate',
     company: '당근마켓 부동산팀',
+    logo: {
+      src: '/images/companies/daangn-logo.png',
+      alt: '당근 로고',
+      width: 48,
+      height: 77,
+      shape: 'mark'
+    },
     team: '신뢰도 높은 생활밀착형 정보를 제공하는 부동산 거래 플랫폼',
     role: 'Frontend Developer Intern',
     period: '2025.12 - 2026.03',
@@ -227,6 +243,13 @@ export const resumeExperiences: ResumeExperience[] = [
   {
     slug: 'upsite',
     company: '주식회사 업사이트',
+    logo: {
+      src: '/images/companies/upsite-logo.png',
+      alt: '업사이트 로고',
+      width: 127,
+      height: 42,
+      shape: 'wide'
+    },
     team: 'AI와 데이터 디지털화를 통해 3D 건설 현장 데이터를 시각화하는 대시보드 웹 솔루션',
     role: 'Frontend Developer Intern',
     period: '2025.09 - 2025.12',
