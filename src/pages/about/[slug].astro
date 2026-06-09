@@ -301,34 +301,18 @@ const experienceLinks = experience?.highlights.filter((highlight) => highlight.h
               </div>
 
               {project.slug === 'incheon-bus' ? (
-                <div class="demo-panel" data-bus-demo>
-                  <div class="phone-frame phone-frame--demo">
+                <div class="demo-panel demo-panel--single">
+                  <div class="phone-frame phone-frame--bus-live">
                     <img src={phoneBezelImage} alt="" class="phone-frame__bezel" loading="lazy" decoding="async" aria-hidden="true" />
-                    <div class="phone-frame__screen bus-demo-screen">
-                      <div class="demo-app-bar">
-                        <span class="mono">BUS LIVE</span>
-                        <span data-bus-state>processing</span>
-                      </div>
-                      <div class="bus-map">
-                        <span class="bus-route bus-route--active"></span>
-                        <span class="bus-pin bus-pin--a"></span>
-                        <span class="bus-pin bus-pin--b"></span>
-                        <span class="bus-dot" data-bus-dot></span>
-                      </div>
-                      <div class="demo-card">
-                        <div class="mono" style="color: var(--text-faint);">도착 예측</div>
-                        <strong data-bus-eta>2분 10초</strong>
-                        <span data-bus-stop>인하대역 3번 출구</span>
-                      </div>
-                      <div class="demo-chat">
-                        <span>지금 정류장 앞에 도착했어요.</span>
-                        <span data-bus-chat>광고 영역과 채팅 버튼이 겹치지 않게 조정됨</span>
-                      </div>
+                    <div class="phone-frame__screen">
+                      <iframe
+                        src="/demos/bus-live-demo.html"
+                        title="BusLive 실제 동작 데모"
+                        class="demo-iframe"
+                        loading="lazy"
+                        sandbox="allow-scripts allow-same-origin allow-forms"
+                      ></iframe>
                     </div>
-                  </div>
-                  <div class="demo-controls">
-                    <button type="button" class="pill h-9" data-bus-next>다음 버스 갱신</button>
-                    <button type="button" class="pill h-9" data-bus-chat-toggle>정류장 채팅</button>
                   </div>
                 </div>
               ) : (
@@ -529,41 +513,6 @@ const experienceLinks = experience?.highlights.filter((highlight) => highlight.h
 </BaseLayout>
 
 <script>
-  const busDemo = document.querySelector('[data-bus-demo]');
-  if (busDemo) {
-    const states = [
-      { eta: '2분 10초', stop: '인하대역 3번 출구', state: 'processing', chat: '광고 영역과 채팅 버튼이 겹치지 않게 조정됨', x: '64%' },
-      { eta: '52초', stop: '용현시장', state: 'completed', chat: '정류장별 채팅방에 새 메시지가 도착함', x: '76%' },
-      { eta: '4분 05초', stop: '주안역 환승센터', state: 'queued', chat: '다음 배차 데이터를 대기열에서 갱신 중', x: '42%' }
-    ];
-    let busIndex = 0;
-    const eta = busDemo.querySelector('[data-bus-eta]');
-    const stop = busDemo.querySelector('[data-bus-stop]');
-    const state = busDemo.querySelector('[data-bus-state]');
-    const chat = busDemo.querySelector('[data-bus-chat]');
-    const dot = busDemo.querySelector('[data-bus-dot]');
-    const next = busDemo.querySelector('[data-bus-next]');
-    const chatToggle = busDemo.querySelector('[data-bus-chat-toggle]');
-
-    const renderBus = () => {
-      const current = states[busIndex];
-      if (eta) eta.textContent = current.eta;
-      if (stop) stop.textContent = current.stop;
-      if (state) state.textContent = current.state;
-      if (chat) chat.textContent = current.chat;
-      if (dot instanceof HTMLElement) dot.style.left = current.x;
-    };
-
-    next?.addEventListener('click', () => {
-      busIndex = (busIndex + 1) % states.length;
-      renderBus();
-    });
-
-    chatToggle?.addEventListener('click', () => {
-      busDemo.classList.toggle('demo-panel--chat-open');
-    });
-  }
-
   const dmapDemo = document.querySelector('[data-dmap-demo]');
   if (dmapDemo) {
     let live = false;
