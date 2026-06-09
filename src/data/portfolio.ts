@@ -429,10 +429,10 @@ export const portfolioProjects: PortfolioProject[] = [
     role: '실시간 데이터 및 대시보드 성능 최적화 담당',
     team: 'FE 2명, BE 2명',
     contribution: '기여도 85%',
-    image: '/images/portfolio-case-placeholder.svg',
-    imageAlt: 'FootBallSquare 프로젝트 이미지 플레이스홀더',
-    imageWidth: 1200,
-    imageHeight: 800,
+    image: '/images/projects/football-square-cover.jpg',
+    imageAlt: 'FootBallSquare 축구 커뮤니티 배너 이미지',
+    imageWidth: 1600,
+    imageHeight: 900,
     accent: '#16a34a',
     metrics: [
       { value: '0ms', label: '매치 생성 체감 반응', detail: 'Optimistic UI로 즉시 화면 반영' },
@@ -466,6 +466,7 @@ export const portfolioProjects: PortfolioProject[] = [
     takeaway:
       'React Query를 쓰지 않는 선택은 단순한 배제가 아니라 서버 상태 라이브러리가 해결하는 캐싱, 롤백, 동기화 비용을 직접 체감한 딥다이브였습니다.',
     links: [
+      { label: 'GitHub 저장소', href: 'https://github.com/footballSquare/frontend', external: true },
       { label: 'Optimistic UI 구현 글', href: '/blog/피파-프로클럽-대시보드-raw-데이터-처리와-optimistic-ui' }
     ]
   },
@@ -479,10 +480,10 @@ export const portfolioProjects: PortfolioProject[] = [
       '인천 지역 버스 사용자를 위한 초정밀 도착 예측 및 실시간 위치 시각화 서비스입니다. WebSocket 채팅, Naver Maps 기반 위치 표시, EC2 배포와 HTTPS 자동화까지 MVP 완성 조건을 직접 다뤘습니다.',
     role: '프론트엔드 구현, 실시간 UI, 배포 파이프라인 구축',
     contribution: '인컴해커톤 Linced 3.0 사업단장상 대상',
-    image: '/images/portfolio-case-placeholder.svg',
-    imageAlt: '인천 버스 도착 예측 서비스 이미지 플레이스홀더',
-    imageWidth: 1200,
-    imageHeight: 800,
+    image: '/images/projects/incheon-bus-cover.jpg',
+    imageAlt: '인천 버스 도착 예측 서비스 지도 화면',
+    imageWidth: 1600,
+    imageHeight: 900,
     accent: '#2563eb',
     metrics: [
       { value: '±10초', label: '도착 예측 정확도', detail: '사용자가 체감할 수 있는 수준으로 예측 결과 제공' },
@@ -515,7 +516,7 @@ export const portfolioProjects: PortfolioProject[] = [
     ],
     takeaway:
       '좋은 MVP는 기능을 덜 만드는 일이 아니라, 지금 검증해야 하는 핵심만 남기고 팀이 같은 방향으로 움직이게 만드는 일이라는 점을 배웠습니다.',
-    links: []
+    links: [{ label: 'GitHub 저장소', href: 'https://github.com/manNomi/BusLiveWeb', external: true }]
   },
   {
     slug: 'dmap-map-grid',
@@ -528,10 +529,10 @@ export const portfolioProjects: PortfolioProject[] = [
     role: '프로필 기능 전담, 렌더링 최적화 및 지도 구조 개선 주도',
     team: 'FE 2명, BE 2명',
     contribution: '기여도 90%',
-    image: '/images/구글-지도-18개를-동시에-렌더링하려다-마주한-webgl-지옥-탈출기-0.png',
-    imageAlt: 'DMAP 지도 썸네일 그리드 화면',
-    imageWidth: 1408,
-    imageHeight: 596,
+    image: '/images/projects/dmap-cover.jpg',
+    imageAlt: 'DMAP 경로 드로잉과 지도 트래킹 화면',
+    imageWidth: 1600,
+    imageHeight: 900,
     accent: '#ea580c',
     metrics: [
       { value: '0건', label: '렌더링 실패', detail: '벡터 지도 크래시를 정적 지도 전략으로 해결' },
@@ -565,6 +566,7 @@ export const portfolioProjects: PortfolioProject[] = [
     takeaway:
       '렌더링 최적화는 빠르게 만드는 것만이 아니라 브라우저 자원, 외부 API 비용, 사용자 흐름을 함께 설계하는 일이라는 점을 배웠습니다.',
     links: [
+      { label: 'GitHub 저장소', href: 'https://github.com/Stageus/DMap-homepage/tree/master', external: true },
       { label: 'WebGL 문제 해결 과정', href: '/blog/구글-지도-18개를-동시에-렌더링하려다-마주한-webgl-지옥-탈출기' }
     ]
   },
@@ -579,10 +581,10 @@ export const portfolioProjects: PortfolioProject[] = [
     role: '프론트엔드 성능 개선, 운영 자동화, 배포 경계 설계',
     team: '오픈소스/사이드 프로젝트',
     contribution: '성능·DX 개선 주도',
-    image: '/images/portfolio-case-placeholder.svg',
-    imageAlt: '솔리드 커넥션 프로젝트 이미지 플레이스홀더',
-    imageWidth: 1200,
-    imageHeight: 800,
+    image: '/images/projects/solid-connection-cover.jpg',
+    imageAlt: '솔리드 커넥션 교환학생 커뮤니티 오픈그래프 이미지',
+    imageWidth: 1600,
+    imageHeight: 900,
     accent: '#52525b',
     metrics: [
       { value: '91.2%', label: '홈 LCP 개선', detail: '9.961s → 0.874s로 핵심 렌더링 지표 개선' },
@@ -618,6 +620,7 @@ export const portfolioProjects: PortfolioProject[] = [
     takeaway:
       '성능 최적화는 빠르게 만드는 일만이 아니라, 어떤 제품 영역이 어떤 배포와 운영 책임을 가져야 하는지 분리하는 설계 문제였습니다.',
     links: [
+      { label: 'GitHub 저장소', href: 'https://github.com/solid-connection/solid-connect-web', external: true },
       { label: '성능 개선 기록', href: '/blog/페이지-속도가-이탈률-감소와-연관이-있을까' },
       { label: '커뮤니티 퍼널 분석', href: '/blog/유령-커뮤니티에-활기를-불어넣는법' },
       { label: '멀티존 전환 기록', href: '/blog/빌드-속도-개선을-위한-마이크로-프론트엔드' },
@@ -636,10 +639,10 @@ export const portfolioProjects: PortfolioProject[] = [
     role: '라이브러리 설계, AST 변환, CLI/DX 자동화',
     team: '개인 오픈소스',
     contribution: '기획·구현 100%',
-    image: '/images/portfolio-case-placeholder.svg',
-    imageAlt: 'I18Nexus 프로젝트 이미지 플레이스홀더',
-    imageWidth: 1200,
-    imageHeight: 800,
+    image: '/images/projects/i18nexus-cover.jpg',
+    imageAlt: 'I18Nexus 다국어 자동화 툴킷 아이콘 이미지',
+    imageWidth: 1600,
+    imageHeight: 900,
     accent: '#71717a',
     metrics: [
       { value: '13,000+', label: '누적 다운로드', detail: '런타임과 CLI 도구 생태계 다운로드' },
@@ -675,6 +678,7 @@ export const portfolioProjects: PortfolioProject[] = [
     takeaway:
       'DX 자동화의 핵심은 코드를 많이 생성하는 것이 아니라, 사람이 실수하기 쉬운 경계를 타입과 도구가 같은 계약으로 보게 만드는 일이었습니다.',
     links: [
+      { label: 'GitHub 저장소', href: 'https://github.com/i18n-global/i18n-mono', external: true },
       { label: '소개 글', href: '/blog/딸깍이면-내-프로젝트도-해외-진출' },
       { label: 'i18n 부채 청산기', href: '/blog/i18n-부채-청산기' },
       { label: 'Rust 이식 기록', href: '/blog/react-생태계-도구를-rust로-옮기며-배운-것들' },
