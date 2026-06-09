@@ -94,7 +94,7 @@ const experienceLinks = experience?.highlights.filter((highlight) => highlight.h
 >
   <Header />
 
-  <main class="site-main">
+  <main class="site-main about-detail-page">
     <div class="wrap">
       <div class="pt-7">
         <a
@@ -378,7 +378,21 @@ const experienceLinks = experience?.highlights.filter((highlight) => highlight.h
               <span class="eyebrow">Experience</span>
               <span class="mono whitespace-nowrap opacity-60">· {experience.period}</span>
             </div>
-            <h1 class="m-0 text-[clamp(2.1rem,5vw,3.2rem)] font-bold leading-[1.12] tracking-[-0.04em]" style="color: var(--text);">{experience.company}</h1>
+            <div class="experience-heading">
+              {experience.logo && (
+                <span class="company-logo company-logo--hero" aria-hidden="true">
+                  <img
+                    src={experience.logo.src}
+                    alt=""
+                    width={experience.logo.width}
+                    height={experience.logo.height}
+                    loading="eager"
+                    decoding="async"
+                  />
+                </span>
+              )}
+              <h1 class="m-0 text-[clamp(2.1rem,5vw,3.2rem)] font-bold leading-[1.12] tracking-[-0.04em]" style="color: var(--text);">{experience.company}</h1>
+            </div>
             <p class="mt-5 max-w-[42ch] text-[1.2rem] font-medium leading-[1.5] tracking-[-0.02em]" style="color: var(--text);">{experience.team}</p>
             <p class="mt-5 max-w-[60ch] text-[1.02rem] leading-[1.7]" style="color: var(--text-dim);">{experience.description}</p>
             <div class="mt-6 flex flex-wrap gap-6">

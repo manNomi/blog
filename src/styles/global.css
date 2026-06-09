@@ -254,6 +254,8 @@
   --text-faint: oklch(0.56 0.006 255);
   --accent: var(--text);
   --on-accent: var(--bg);
+  --company-logo-bg: oklch(0.965 0.002 255);
+  --company-logo-border: oklch(1 0 0 / 0.18);
   --shadow: 0 1px 2px oklch(0 0 0 / 0.4), 0 12px 32px oklch(0 0 0 / 0.32);
   --placeholder-a: oklch(0.26 0.005 255);
   --placeholder-b: oklch(0.30 0.006 255);
@@ -275,6 +277,8 @@
   --text-faint: oklch(0.58 0.006 255);
   --accent: var(--text);
   --on-accent: oklch(1 0 0);
+  --company-logo-bg: oklch(1 0 0);
+  --company-logo-border: oklch(0 0 0 / 0.12);
   --shadow: 0 1px 2px oklch(0 0 0 / 0.05), 0 14px 30px oklch(0 0 0 / 0.08);
   --placeholder-a: oklch(0.93 0.003 255);
   --placeholder-b: oklch(0.89 0.004 255);
@@ -299,6 +303,7 @@ body {
 }
 
 .wrap {
+  width: 100%;
   max-width: var(--maxw);
   margin: 0 auto;
   padding-inline: var(--gutter);
@@ -762,6 +767,25 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
+.about-page,
+.about-detail-page {
+  overflow-x: clip;
+}
+
+.about-page .page-head p,
+.about-page > .wrap > p,
+.about-page .detail-summary,
+.about-page .detail-summary span,
+.about-detail-page .experience-heading,
+.about-detail-page .experience-heading ~ p,
+.about-detail-page .flow-row p,
+.about-detail-page .experience-detail-item p {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .detail-summary {
   display: grid;
   grid-template-columns: minmax(0, 160px) minmax(0, 1fr) auto;
@@ -800,6 +824,59 @@ body {
   transform: rotate(45deg);
   border-color: var(--border-strong);
   color: var(--text);
+}
+
+.experience-company-line,
+.experience-heading {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 14px;
+}
+
+.experience-heading {
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.experience-company-line > span:last-child,
+.experience-heading > h1 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.experience-heading ~ p {
+  max-width: min(60ch, 100%);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.company-logo {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--company-logo-border);
+  background: var(--company-logo-bg);
+}
+
+.company-logo img {
+  display: block;
+  max-width: 82%;
+  max-height: 76%;
+  object-fit: contain;
+}
+
+.company-logo--list {
+  width: 56px;
+  height: 44px;
+  border-radius: 12px;
+}
+
+.company-logo--hero {
+  width: 86px;
+  height: 70px;
+  border-radius: 18px;
 }
 
 .detail-body {
@@ -1529,6 +1606,12 @@ body {
     width: min(292px, 100%) !important;
   }
 
+  .company-logo--hero {
+    width: 74px;
+    height: 58px;
+    border-radius: 16px;
+  }
+
   .demo-controls {
     width: 100% !important;
   }
@@ -1552,13 +1635,31 @@ body {
     display: none !important;
   }
 
+  .site-header__inner > .flex:last-child {
+    display: none !important;
+  }
+
+  .site-header__inner {
+    gap: 10px !important;
+  }
+
   .site-header__nav {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    margin-left: 0 !important;
     gap: 0 !important;
+    justify-content: flex-end;
+    overflow: hidden;
+    scrollbar-width: none;
+  }
+
+  .site-header__nav::-webkit-scrollbar {
+    display: none;
   }
 
   .site-header__link {
-    padding: 8px 9px !important;
-    font-size: 0.85rem !important;
+    padding: 8px 7px !important;
+    font-size: 0.82rem !important;
   }
 
   .post-row {
