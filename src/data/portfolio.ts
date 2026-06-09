@@ -25,6 +25,12 @@ export type PortfolioGalleryImage = {
   height: number;
 };
 
+export type PortfolioLivePreview = {
+  url: string;
+  label: string;
+  description: string;
+};
+
 export type PortfolioProject = {
   slug: string;
   title: string;
@@ -41,6 +47,7 @@ export type PortfolioProject = {
   imageHeight: number;
   gallery?: PortfolioGalleryImage[];
   visualMode?: 'phone';
+  livePreview?: PortfolioLivePreview;
   accent: string;
   metrics: PortfolioMetric[];
   highlights: string[];
@@ -497,6 +504,11 @@ export const portfolioProjects: PortfolioProject[] = [
     imageAlt: 'I18Nexus 로고 이미지',
     imageWidth: 1254,
     imageHeight: 1254,
+    livePreview: {
+      url: 'https://i18nexus.pro/',
+      label: 'i18nexus.pro',
+      description: '런타임과 도구 생태계를 설명하는 실제 제품 사이트를 모바일 베젤 안에서 확인할 수 있습니다.'
+    },
     accent: '#71717a',
     metrics: [
       { value: '13,000+', label: '누적 다운로드', detail: '런타임과 CLI 도구 생태계 다운로드' },
@@ -558,6 +570,11 @@ export const portfolioProjects: PortfolioProject[] = [
     imageAlt: '솔리드 커넥션 교환학생 커뮤니티 오픈그래프 이미지',
     imageWidth: 1600,
     imageHeight: 900,
+    livePreview: {
+      url: 'https://www.solid-connection.com/',
+      label: 'solid-connection.com',
+      description: '교환학생 정보 탐색과 커뮤니티 진입 흐름을 실제 서비스 화면으로 확인할 수 있습니다.'
+    },
     accent: '#52525b',
     metrics: [
       { value: '91.2%', label: '홈 LCP 개선', detail: '9.961s → 0.874s로 핵심 렌더링 지표 개선' },

@@ -1034,6 +1034,80 @@ body {
   padding: 20px 13px 16px;
 }
 
+.phone-frame--bus-live,
+.phone-frame--dmap-live {
+  --phone-screen-left: 7.2%;
+  --phone-screen-right: 7.2%;
+  --phone-screen-top: 11.6%;
+  --phone-screen-bottom: 5.4%;
+  width: min(430px, 100%);
+  justify-self: center;
+  flex: 0 0 auto;
+}
+
+.phone-frame--bus-live .phone-frame__screen {
+  background: #eef3ec;
+}
+
+.phone-frame--dmap-live .phone-frame__screen {
+  background: #edf1f6;
+}
+
+.phone-frame--iframe {
+  --phone-screen-left: 7.2%;
+  --phone-screen-right: 7.2%;
+  --phone-screen-top: 11.6%;
+  --phone-screen-bottom: 5.4%;
+  width: min(520px, 100%);
+  justify-self: center;
+  flex: 0 0 auto;
+}
+
+.phone-frame--iframe .phone-frame__screen {
+  background: white;
+}
+
+.live-preview-section {
+  border-top: 1px solid var(--border);
+}
+
+.live-preview-wrap {
+  display: grid;
+  grid-template-columns: minmax(360px, 520px) minmax(220px, 1fr);
+  gap: clamp(22px, 4vw, 48px);
+  align-items: end;
+  margin-top: 28px;
+}
+
+.live-preview-iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: white;
+  scrollbar-width: none;
+}
+
+.live-preview-iframe::-webkit-scrollbar {
+  display: none;
+}
+
+.live-preview-copy {
+  display: grid;
+  gap: 18px;
+  align-content: end;
+  min-width: 0;
+  padding-bottom: 18px;
+}
+
+.live-preview-copy p {
+  max-width: 38ch;
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
 .demo-section {
   align-items: start;
 }
@@ -1044,6 +1118,18 @@ body {
   gap: 22px;
   align-items: center;
   min-width: 0;
+}
+
+.demo-panel--single {
+  justify-content: center;
+}
+
+.demo-iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #eef3ec;
 }
 
 .demo-controls {
@@ -1057,205 +1143,6 @@ body {
 .demo-controls .pill {
   background: var(--surface);
   color: var(--text);
-}
-
-.demo-app-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  color: var(--text-dim);
-  font-size: 0.78rem;
-}
-
-.bus-demo-screen,
-.dmap-demo-screen {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  color: var(--text);
-}
-
-.bus-map {
-  position: relative;
-  min-height: 185px;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  background:
-    linear-gradient(90deg, transparent 48%, var(--border) 49%, transparent 51%),
-    linear-gradient(0deg, transparent 48%, var(--border) 49%, transparent 51%),
-    color-mix(in oklab, var(--surface) 80%, var(--bg));
-}
-
-.bus-route {
-  position: absolute;
-  top: 46%;
-  right: 18px;
-  left: 18px;
-  height: 5px;
-  border-radius: 999px;
-  background: var(--border-strong);
-}
-
-.bus-route--active {
-  background: linear-gradient(90deg, var(--text-faint), var(--text), var(--text-faint));
-}
-
-.bus-pin,
-.bus-dot {
-  position: absolute;
-  z-index: 1;
-  border-radius: 999px;
-}
-
-.bus-pin {
-  top: calc(46% - 8px);
-  width: 16px;
-  height: 16px;
-  border: 3px solid var(--bg);
-  background: var(--text);
-}
-
-.bus-pin--a {
-  left: 17%;
-}
-
-.bus-pin--b {
-  right: 17%;
-}
-
-.bus-dot {
-  top: calc(46% - 13px);
-  left: 64%;
-  width: 26px;
-  height: 26px;
-  border: 5px solid color-mix(in oklab, var(--bg) 82%, transparent);
-  background: var(--accent);
-  transform: translateX(-50%);
-  transition: left 0.32s ease;
-}
-
-.demo-card {
-  display: grid;
-  gap: 4px;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  background: var(--surface);
-  padding: 14px;
-}
-
-.demo-card strong {
-  color: var(--text);
-  font-size: 1.2rem;
-  line-height: 1.2;
-}
-
-.demo-card span {
-  color: var(--text-dim);
-  font-size: 0.84rem;
-  line-height: 1.45;
-}
-
-.demo-chat {
-  display: grid;
-  gap: 8px;
-  opacity: 0.58;
-  transform: translateY(6px);
-  transition: opacity 0.25s, transform 0.25s;
-}
-
-.demo-chat span {
-  width: fit-content;
-  max-width: 88%;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: var(--surface);
-  padding: 9px 11px;
-  color: var(--text-dim);
-  font-size: 0.78rem;
-  line-height: 1.45;
-}
-
-.demo-chat span:last-child {
-  justify-self: end;
-}
-
-.demo-panel--chat-open .demo-chat {
-  opacity: 1;
-  transform: none;
-}
-
-.dmap-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 7px;
-  transition: opacity 0.24s, transform 0.24s;
-}
-
-.dmap-tile {
-  min-height: 62px;
-  border: 1px solid var(--border);
-  border-radius: 13px;
-  background:
-    radial-gradient(circle at calc(20% + var(--tile-offset, 0%)) 28%, color-mix(in oklab, var(--text) 18%, transparent) 0 7px, transparent 8px),
-    linear-gradient(135deg, transparent 0 44%, color-mix(in oklab, var(--border-strong) 66%, transparent) 45% 48%, transparent 49%),
-    color-mix(in oklab, var(--surface) 84%, var(--bg));
-}
-
-.dmap-live-map {
-  position: relative;
-  display: none;
-  min-height: 236px;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  background:
-    linear-gradient(90deg, transparent 48%, var(--border) 49%, transparent 51%),
-    linear-gradient(0deg, transparent 48%, var(--border) 49%, transparent 51%),
-    color-mix(in oklab, var(--surface) 78%, var(--bg));
-}
-
-.dmap-path {
-  position: absolute;
-  top: 54%;
-  left: 18%;
-  width: 64%;
-  height: 4px;
-  border-radius: 999px;
-  background: var(--text);
-  transform: rotate(-23deg);
-}
-
-.dmap-marker {
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  border: 4px solid var(--bg);
-  border-radius: 999px;
-  background: var(--accent);
-}
-
-.dmap-marker--start {
-  top: 62%;
-  left: 16%;
-}
-
-.dmap-marker--end {
-  top: 32%;
-  right: 18%;
-}
-
-.demo-panel--live .dmap-grid {
-  display: none;
-}
-
-.demo-panel--live .dmap-live-map {
-  display: block;
-}
-
-.dmap-demo-card {
-  min-height: 98px;
 }
 
 .tag-card:hover,
@@ -1627,6 +1514,14 @@ body {
   .demo-panel {
     align-items: flex-start !important;
   }
+
+  .live-preview-wrap {
+    grid-template-columns: 1fr !important;
+  }
+
+  .live-preview-copy {
+    order: -1;
+  }
 }
 
 @media (max-width: 560px) {
@@ -1658,6 +1553,15 @@ body {
   .company-logo--mark.company-logo--hero {
     width: 78px;
     height: 78px;
+  }
+
+  .phone-frame--bus-live,
+  .phone-frame--dmap-live {
+    width: min(430px, 100%) !important;
+  }
+
+  .phone-frame--iframe {
+    width: min(460px, 100%) !important;
   }
 
   .demo-controls {

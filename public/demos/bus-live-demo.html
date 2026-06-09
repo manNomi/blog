@@ -1,0 +1,2060 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BusLive Portfolio Demo</title>
+    <style>
+      :root {
+        --ink: #172331;
+        --muted: #667281;
+        --navy: #26394b;
+        --green: #24a957;
+        --green-dark: #12773e;
+        --yellow: #ffe600;
+        --paper: #ffffff;
+        --line: #e4ebef;
+        --danger: #ff8f3d;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background:
+          linear-gradient(90deg, rgba(38, 57, 75, 0.06) 1px, transparent 1px),
+          linear-gradient(rgba(38, 57, 75, 0.06) 1px, transparent 1px),
+          #eef3ec;
+        background-size: 36px 36px;
+        font-family:
+          Pretendard, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      button {
+        border: 0;
+        cursor: pointer;
+      }
+
+      .stage {
+        display: grid;
+        place-items: center;
+        min-height: 100%;
+        padding: 18px;
+      }
+
+      .app-screen {
+        position: relative;
+        width: min(100vw, 430px);
+        height: min(100vh, 932px);
+        min-height: 720px;
+        overflow: hidden;
+        border-radius: 0;
+        background: #f5f8f2;
+        box-shadow: 0 28px 70px rgba(23, 35, 49, 0.22);
+      }
+
+      @media (max-width: 520px) {
+        .stage {
+          padding: 0;
+        }
+
+        .app-screen {
+          width: 100vw;
+          height: 100vh;
+          min-height: 100vh;
+          box-shadow: none;
+        }
+      }
+
+      .statusbar {
+        position: absolute;
+        inset: 0 0 auto;
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 30px;
+        padding: 0 18px;
+        color: #111111;
+        font-size: 11px;
+        font-weight: 900;
+        pointer-events: none;
+      }
+
+      .status-right {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .battery {
+        position: relative;
+        width: 22px;
+        height: 10px;
+        border: 2px solid currentColor;
+        border-radius: 3px;
+      }
+
+      .battery::after {
+        content: "";
+        position: absolute;
+        top: 1px;
+        right: -5px;
+        width: 2px;
+        height: 6px;
+        border-radius: 1px;
+        background: currentColor;
+      }
+
+      .app-header {
+        position: absolute;
+        top: 36px;
+        left: 12px;
+        right: 12px;
+        z-index: 40;
+        display: grid;
+        grid-template-columns: 46px 1fr 46px;
+        align-items: center;
+        min-height: 54px;
+        padding: 0 10px;
+        border: 1px solid rgba(23, 35, 49, 0.12);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.94);
+        box-shadow: 0 12px 28px rgba(23, 35, 49, 0.14);
+        backdrop-filter: blur(10px);
+      }
+
+      .icon-button {
+        display: grid;
+        place-items: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        color: var(--ink);
+        background: #edf3f6;
+        font-size: 22px;
+        font-weight: 950;
+      }
+
+      .header-title {
+        display: grid;
+        gap: 2px;
+        text-align: center;
+      }
+
+      .header-title strong {
+        color: #111111;
+        font-size: 20px;
+        font-weight: 950;
+        line-height: 1;
+      }
+
+      .header-title span {
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 900;
+        line-height: 1.15;
+      }
+
+      .live-pill {
+        position: absolute;
+        top: 102px;
+        left: 14px;
+        z-index: 25;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        min-height: 32px;
+        padding: 0 10px;
+        border-radius: 8px;
+        color: var(--green-dark);
+        background: rgba(255, 255, 255, 0.92);
+        font-size: 12px;
+        font-weight: 950;
+        box-shadow: 0 10px 24px rgba(23, 35, 49, 0.12);
+      }
+
+      .live-pill::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--green);
+        box-shadow: 0 0 0 5px rgba(36, 169, 87, 0.16);
+      }
+
+      .eta-card {
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: 20px;
+        z-index: 20;
+        padding: 14px;
+        border: 1px solid rgba(23, 35, 49, 0.12);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 18px 42px rgba(23, 35, 49, 0.18);
+        transition: bottom 240ms ease;
+      }
+
+      .eta-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .route-badge {
+        display: grid;
+        place-items: center;
+        min-width: 58px;
+        height: 40px;
+        border-radius: 8px;
+        color: #ffffff;
+        background: var(--green);
+        font-size: 21px;
+        font-weight: 950;
+      }
+
+      .accuracy {
+        color: var(--green-dark);
+        font-size: 12px;
+        font-weight: 950;
+      }
+
+      .eta-time {
+        margin-top: 8px;
+        color: var(--ink);
+        font-size: 42px;
+        font-weight: 950;
+        line-height: 1;
+        letter-spacing: 0;
+      }
+
+      .eta-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        align-items: center;
+        gap: 4px;
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 850;
+        line-height: 1.25;
+      }
+
+      .eta-row strong {
+        color: var(--ink);
+        font-size: 12px;
+        white-space: nowrap;
+      }
+
+      .eta-row span {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .progress-track {
+        height: 8px;
+        margin-top: 12px;
+        overflow: hidden;
+        border-radius: 8px;
+        background: #edf2ee;
+      }
+
+      .progress-fill {
+        width: 0%;
+        height: 100%;
+        border-radius: 8px;
+        background: var(--green);
+        transition: width 120ms linear;
+      }
+
+      .chat-panel {
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: 260px;
+        z-index: 34;
+        display: none;
+        overflow: hidden;
+        border: 1px solid rgba(23, 35, 49, 0.1);
+        border-radius: 8px;
+        background: #ffffff;
+        box-shadow: 0 22px 56px rgba(23, 35, 49, 0.22);
+        transition: bottom 240ms ease;
+      }
+
+      .chat-panel.open {
+        display: block;
+        animation: slide-up 220ms ease both;
+      }
+
+      @keyframes slide-up {
+        from {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .panel-head {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto 34px;
+        align-items: center;
+        gap: 8px;
+        min-height: 44px;
+        padding: 0 12px;
+        color: #ffffff;
+        background: var(--navy);
+        font-size: 13px;
+        font-weight: 950;
+      }
+
+      .panel-head span,
+      .panel-head strong {
+        color: #ffffff;
+      }
+
+      .panel-head strong {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .panel-close {
+        display: grid;
+        place-items: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.16);
+        font-size: 18px;
+        font-weight: 950;
+        line-height: 1;
+      }
+
+      .message-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-height: 188px;
+        overflow: auto;
+        padding: 12px;
+        background:
+          linear-gradient(90deg, rgba(23, 35, 49, 0.04) 1px, transparent 1px),
+          linear-gradient(rgba(23, 35, 49, 0.04) 1px, transparent 1px),
+          #f8faf8;
+        background-size: 28px 28px;
+      }
+
+      .message {
+        max-width: 82%;
+        padding: 9px 10px;
+        border-radius: 8px;
+        color: var(--ink);
+        background: #ffffff;
+        box-shadow: 0 6px 16px rgba(23, 35, 49, 0.08);
+        font-size: 12px;
+        font-weight: 750;
+        line-height: 1.42;
+      }
+
+      .message strong {
+        display: block;
+        margin-bottom: 3px;
+        color: var(--green-dark);
+        font-size: 11px;
+        font-weight: 950;
+      }
+
+      .message.mine {
+        align-self: flex-end;
+        background: var(--yellow);
+      }
+
+      .chat-form {
+        display: grid;
+        grid-template-columns: 1fr 54px;
+        gap: 8px;
+        padding: 10px;
+        border-top: 1px solid var(--line);
+        background: #ffffff;
+      }
+
+      .chat-form input {
+        min-width: 0;
+        height: 42px;
+        padding: 0 11px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        color: var(--ink);
+        background: #ffffff;
+        font-size: 12px;
+        font-weight: 800;
+        outline: none;
+      }
+
+      .chat-form input:focus {
+        border-color: var(--green);
+        box-shadow: 0 0 0 4px rgba(36, 169, 87, 0.14);
+      }
+
+      .chat-form button {
+        border-radius: 8px;
+        color: #ffffff;
+        background: var(--green);
+        font-size: 12px;
+        font-weight: 950;
+      }
+
+      .aside {
+        position: absolute;
+        top: 100px;
+        left: 12px;
+        z-index: 45;
+        display: none;
+        width: 176px;
+        padding: 10px;
+        border: 1px solid rgba(23, 35, 49, 0.1);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 18px 38px rgba(23, 35, 49, 0.2);
+      }
+
+      .aside.open {
+        display: grid;
+        gap: 8px;
+      }
+
+      .aside-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 34px;
+        padding: 0 9px;
+        border-radius: 8px;
+        color: var(--ink);
+        background: #f1f5f2;
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .aside-row.active {
+        color: #ffffff;
+        background: var(--navy);
+      }
+
+      .chat-list-page,
+      .onboarding {
+        position: absolute;
+        inset: 0;
+        z-index: 60;
+        display: none;
+        background: #ffffff;
+      }
+
+      .chat-list-page.open,
+      .onboarding.open {
+        display: block;
+      }
+
+      .simple-header {
+        display: grid;
+        grid-template-columns: 54px 1fr 110px;
+        align-items: center;
+        height: 58px;
+        margin-top: 30px;
+        border-bottom: 2px solid #111111;
+        background: #ffffff;
+      }
+
+      .back-button {
+        display: grid;
+        place-items: center;
+        color: #111111;
+        background: transparent;
+        font-size: 38px;
+        font-weight: 950;
+      }
+
+      .simple-header strong,
+      .simple-header span {
+        color: #111111;
+        font-size: 17px;
+        font-weight: 950;
+        text-align: center;
+      }
+
+      .chat-room-list {
+        display: grid;
+      }
+
+      .chat-room {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        min-height: 82px;
+        padding: 0 16px;
+        border-bottom: 1px solid var(--line);
+        background: #ffffff;
+        text-align: left;
+      }
+
+      .chat-room strong {
+        display: block;
+        color: #333333;
+        font-size: 20px;
+        font-weight: 950;
+      }
+
+      .chat-room span {
+        display: block;
+        margin-top: 6px;
+        color: #666666;
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .chat-room em {
+        color: #888888;
+        font-size: 12px;
+        font-style: normal;
+        font-weight: 900;
+      }
+
+      .onboarding {
+        color: #ffffff;
+        background: var(--navy);
+      }
+
+      .onboarding-content {
+        display: grid;
+        grid-template-rows: 1fr auto;
+        height: 100%;
+        padding: 72px 24px 30px;
+      }
+
+      .onboarding-title {
+        display: grid;
+        align-content: center;
+        gap: 18px;
+      }
+
+      .onboarding-title h1 {
+        margin: 0;
+        color: #ffffff;
+        font-size: 44px;
+        font-weight: 950;
+        line-height: 0.95;
+      }
+
+      .onboarding-title p {
+        margin: 0;
+        color: rgba(255, 255, 255, 0.78);
+        font-size: 15px;
+        font-weight: 750;
+        line-height: 1.55;
+      }
+
+      .onboarding-actions {
+        display: grid;
+        gap: 10px;
+      }
+
+      .onboarding-button {
+        min-height: 54px;
+        border-radius: 8px;
+        color: var(--ink);
+        background: #ffffff;
+        font-size: 16px;
+        font-weight: 950;
+      }
+
+      .onboarding-button.primary {
+        background: var(--yellow);
+      }
+
+      .map {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        cursor: grab;
+        touch-action: none;
+        background: #eef3f6 !important;
+      }
+
+      .map.dragging {
+        cursor: grabbing;
+      }
+
+      .tile-layer,
+      .geo-route-layer,
+      .station-layer,
+      .stop-info-layer,
+      .bus-layer {
+        position: absolute;
+        inset: 0;
+      }
+
+      .tile-layer {
+        z-index: 1;
+      }
+
+      .osm-tile {
+        position: absolute;
+        width: 256px;
+        height: 256px;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+
+      .geo-route-layer {
+        z-index: 4;
+        overflow: visible;
+        pointer-events: none;
+      }
+
+      .geo-route-shadow,
+      .geo-route-line,
+      .geo-route-dash {
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        vector-effect: non-scaling-stroke;
+      }
+
+      .geo-route-shadow {
+        stroke: rgba(255, 255, 255, 0.9);
+        stroke-width: 11;
+      }
+
+      .geo-route-line {
+        stroke: rgba(36, 169, 87, 0.9);
+        stroke-width: 6;
+      }
+
+      .geo-route-dash {
+        stroke: rgba(255, 255, 255, 0.92);
+        stroke-width: 2;
+        stroke-dasharray: 10 9;
+      }
+
+      .station-layer {
+        z-index: 10;
+        pointer-events: none;
+      }
+
+      .geo-station-pin {
+        position: absolute;
+        display: grid;
+        place-items: center;
+        width: 18px;
+        height: 18px;
+        border: 2px solid #111111;
+        border-radius: 50% 50% 50% 0;
+        background: #ffffff;
+        box-shadow: 0 5px 12px rgba(23, 35, 49, 0.22);
+        pointer-events: auto;
+        transform: translate(-50%, -100%) rotate(-45deg);
+      }
+
+      .geo-station-pin.active {
+        background: var(--yellow);
+      }
+
+      .geo-station-pin::after {
+        content: "";
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: #111111;
+      }
+
+      .geo-station-pin span {
+        position: absolute;
+        left: 15px;
+        top: 14px;
+        min-width: 94px;
+        transform: rotate(45deg);
+        color: #172331;
+        font-size: 10px;
+        font-weight: 950;
+        line-height: 1.15;
+        text-align: left;
+        text-shadow:
+          0 1px 0 #ffffff,
+          0 -1px 0 #ffffff,
+          1px 0 0 #ffffff,
+          -1px 0 0 #ffffff;
+      }
+
+      .bus-layer {
+        z-index: 16;
+        pointer-events: none;
+      }
+
+      .bus-fleet-marker {
+        position: absolute;
+        display: grid;
+        place-items: center;
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        pointer-events: auto;
+        transform: translate(-50%, -50%);
+        transition:
+          left 500ms linear,
+          top 500ms linear;
+        will-change: left, top;
+      }
+
+      .bus-fleet-marker.closest {
+        width: 52px;
+        height: 52px;
+        z-index: 2;
+      }
+
+      .bus-fleet-marker img {
+        display: block;
+        width: 36px;
+        height: 36px;
+        object-fit: contain;
+        filter: drop-shadow(0 12px 13px rgba(23, 35, 49, 0.28));
+      }
+
+      .bus-fleet-marker.closest img {
+        width: 44px;
+        height: 44px;
+        filter:
+          drop-shadow(0 0 0 rgba(36, 169, 87, 0.9))
+          drop-shadow(0 16px 18px rgba(23, 35, 49, 0.32));
+      }
+
+      .bus-state-dot {
+        position: absolute;
+        right: 4px;
+        bottom: 5px;
+        width: 11px;
+        height: 11px;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        background: #31511e;
+        box-shadow: 0 4px 8px rgba(23, 35, 49, 0.18);
+      }
+
+      .bus-fleet-marker.congestion-1 .bus-state-dot {
+        background: #e44343;
+      }
+
+      .bus-fleet-marker.congestion-2 .bus-state-dot,
+      .bus-fleet-marker.last .bus-state-dot {
+        background: #e6c767;
+      }
+
+      .stop-info-layer {
+        z-index: 28;
+        pointer-events: none;
+      }
+
+      .stop-info-card {
+        position: absolute;
+        min-width: 180px;
+        padding: 12px 16px;
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+        background: #ffffff;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        color: #111111;
+        pointer-events: auto;
+        transform: translate(-50%, -110%);
+      }
+
+      .stop-info-head {
+        position: relative;
+        min-height: 18px;
+        margin-bottom: 5px;
+      }
+
+      .stop-info-close {
+        position: absolute;
+        top: -4px;
+        right: -8px;
+        display: grid;
+        place-items: center;
+        width: 28px;
+        height: 28px;
+        color: #111111;
+        background: transparent;
+        font-size: 14px;
+        font-weight: 950;
+      }
+
+      .stop-info-body {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+      }
+
+      .stop-info-label {
+        margin-bottom: 2px;
+        color: #333333;
+        font-size: 12px;
+      }
+
+      .stop-info-value {
+        width: 100%;
+        color: #111111;
+        font-size: 15px;
+        font-weight: 950;
+        text-align: left;
+      }
+
+      .stop-chat-button {
+        width: 100%;
+        min-height: 38px;
+        margin-top: 8px;
+        border-radius: 8px;
+        color: #ffffff;
+        background: var(--green);
+        font-size: 13px;
+        font-weight: 950;
+      }
+
+      .map-meta {
+        position: absolute;
+        left: 8px;
+        bottom: 178px;
+        z-index: 18;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        min-height: 26px;
+        padding: 0 8px;
+        border-radius: 8px;
+        color: #2b3c4e;
+        background: rgba(255, 255, 255, 0.9);
+        font-size: 10px;
+        font-weight: 900;
+        box-shadow: 0 8px 18px rgba(23, 35, 49, 0.1);
+      }
+
+      .osm-attribution {
+        position: absolute;
+        right: 8px;
+        bottom: 178px;
+        z-index: 18;
+        padding: 4px 6px;
+        border-radius: 6px;
+        color: #4b5563;
+        background: rgba(255, 255, 255, 0.86);
+        font-size: 9px;
+        font-weight: 800;
+      }
+
+      .zoom-controls {
+        position: absolute;
+        left: 14px;
+        top: 148px;
+        z-index: 55;
+        display: grid;
+        overflow: hidden;
+        border: 1px solid rgba(23, 35, 49, 0.12);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.96);
+        box-shadow: 0 12px 28px rgba(23, 35, 49, 0.14);
+      }
+
+      .zoom-button {
+        display: grid;
+        place-items: center;
+        width: 42px;
+        height: 38px;
+        color: var(--ink);
+        background: #ffffff;
+        font-size: 22px;
+        font-weight: 950;
+      }
+
+      .zoom-button + .zoom-button {
+        border-top: 1px solid var(--line);
+      }
+
+      .zoom-button:disabled {
+        color: #a7b0b7;
+        cursor: not-allowed;
+      }
+
+      .chat-panel {
+        bottom: 228px;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="stage">
+      <section class="app-screen" id="appScreen" aria-label="BusLive mobile demo">
+        <div class="map" id="mapCanvas" aria-label="OpenStreetMap 기반 511번 실시간 지도">
+          <div class="tile-layer" id="tileLayer"></div>
+          <svg class="geo-route-layer" id="geoRouteLayer" preserveAspectRatio="none">
+            <polyline id="geoRouteShadow" class="geo-route-shadow" />
+            <polyline id="geoRouteBase" class="geo-route-line" />
+            <polyline id="geoRouteDash" class="geo-route-dash" />
+          </svg>
+          <div class="station-layer" id="stationLayer"></div>
+          <div class="stop-info-layer" id="stopInfoLayer"></div>
+          <div class="bus-layer" id="busLayer"></div>
+          <div class="map-meta" id="mapMeta">노드 63개 · 버스 6대 · 10m/s</div>
+          <div class="osm-attribution">© OpenStreetMap</div>
+          <div class="zoom-controls" aria-label="지도 확대 축소">
+            <button class="zoom-button" id="zoomInButton" type="button" aria-label="지도 확대">
+              +
+            </button>
+            <button class="zoom-button" id="zoomOutButton" type="button" aria-label="지도 축소">
+              −
+            </button>
+          </div>
+        </div>
+        <div class="statusbar">
+          <span>9:41</span>
+          <span class="status-right">LTE <span class="battery"></span></span>
+        </div>
+
+        <header class="app-header">
+          <button class="icon-button" id="asideButton" aria-label="옵션 열기">⋯</button>
+          <div class="header-title">
+            <strong>511 BUSLIVE</strong>
+            <span id="headerSubtitle">인하대후문 방향</span>
+          </div>
+          <button class="icon-button" id="chatListButton" aria-label="채팅 목록">≡</button>
+        </header>
+
+        <div class="live-pill" id="livePill">LIVE 이동 중</div>
+
+        <aside class="aside" id="aside">
+          <button class="aside-row active" type="button"><span>노드</span><strong>ON</strong></button>
+          <button class="aside-row" id="asideChatButton" type="button"><span>채팅방</span><strong>›</strong></button>
+          <button class="aside-row active" type="button"><span>상행</span><strong>ON</strong></button>
+          <button class="aside-row" type="button"><span>하행</span><strong>OFF</strong></button>
+          <button class="aside-row active" type="button"><span>TEST</span><strong>ON</strong></button>
+        </aside>
+
+        <section class="eta-card" id="etaCard">
+          <div class="eta-top">
+            <div class="route-badge">511</div>
+            <div class="accuracy">±10초</div>
+          </div>
+          <div class="eta-time" id="etaTime">3분 20초</div>
+          <div class="eta-row">
+            <span id="etaStation">인하대후문 곧 도착</span>
+            <strong id="etaDistance">2정류장 전</strong>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+        </section>
+
+        <section class="chat-panel" id="chatPanel">
+          <div class="panel-head">
+            <strong id="chatRoomName">인하대후문 채팅</strong>
+            <span id="messageCount">3</span>
+            <button class="panel-close" id="closeChatPanelButton" type="button" aria-label="채팅 닫기">
+              ×
+            </button>
+          </div>
+          <div class="message-list" id="messageList"></div>
+          <form class="chat-form" id="chatForm">
+            <input
+              id="messageInput"
+              aria-label="메시지 입력"
+              value="버스 지금 어디쯤인가요?"
+            />
+            <button type="submit">전송</button>
+          </form>
+        </section>
+
+        <section class="chat-list-page" id="chatListPage">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="status-right">LTE <span class="battery"></span></span>
+          </div>
+          <header class="simple-header">
+            <button class="back-button" id="closeChatListButton" type="button">‹</button>
+            <strong>목록</strong>
+            <span>511번 채팅방</span>
+          </header>
+          <div class="chat-room-list">
+            <button class="chat-room" data-room="인하대후문" type="button">
+              <span>
+                <strong>인하대후문</strong>
+                <span>클릭해 지금 바로 참여하기</span>
+              </span>
+              <em>511 활동시간</em>
+            </button>
+            <button class="chat-room" data-room="주안역환승정류장" type="button">
+              <span>
+                <strong>주안역환승정류장</strong>
+                <span>클릭해 지금 바로 참여하기</span>
+              </span>
+              <em>511 활동시간</em>
+            </button>
+          </div>
+        </section>
+
+        <section class="onboarding" id="onboarding">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="status-right">5G <span class="battery"></span></span>
+          </div>
+          <div class="onboarding-content">
+            <div class="onboarding-title">
+              <h1>511<br />BUSLIVE</h1>
+              <p>
+                인천 511번 버스의 현재 위치와 정류장 도착 시간을 노드 좌표 기반으로
+                예측합니다.
+              </p>
+            </div>
+            <div class="onboarding-actions">
+              <button class="onboarding-button primary" id="startByStation" type="button">
+                정류장으로 찾기 · 인하대후문
+              </button>
+              <button class="onboarding-button" id="startByRoute" type="button">
+                노선으로 찾기 · 511번
+              </button>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script>
+      const NODE_LOCATION = [
+  { lastNode: 1, lat: 37.4478052441598, lng: 126.646296789041 },
+  { lastNode: 2, lat: 37.4471183917398, lng: 126.646436408226 },
+  { lastNode: 3, lat: 37.446661094099, lng: 126.646678166239 },
+  { lastNode: 4, lat: 37.4460269045282, lng: 126.643593618829 },
+  { lastNode: 5, lat: 37.4458526322211, lng: 126.643185783314 },
+  { lastNode: 6, lat: 37.4481038415008, lng: 126.642647402112 },
+  { lastNode: 7, lat: 37.4484279123527, lng: 126.642473029549 },
+  { lastNode: 8, lat: 37.4513085149095, lng: 126.64394292157 },
+  { lastNode: 9, lat: 37.4529004576263, lng: 126.644768245435 },
+  { lastNode: 10, lat: 37.4525987940494, lng: 126.645440152063 },
+  { lastNode: 11, lat: 37.4525325511058, lng: 126.645726636601 },
+  { lastNode: 12, lat: 37.4519273540801, lng: 126.6482553151 },
+  { lastNode: 13, lat: 37.451780384539, lng: 126.648871435565 },
+  { lastNode: 14, lat: 37.4522533815676, lng: 126.653012614913 },
+  { lastNode: 15, lat: 37.4513523284721, lng: 126.65572010764 },
+  { lastNode: 16, lat: 37.4503492910096, lng: 126.659916449765 },
+  { lastNode: 17, lat: 37.4502017677862, lng: 126.660002700911 },
+  { lastNode: 18, lat: 37.4493752569651, lng: 126.66307186937 },
+  { lastNode: 19, lat: 37.4488758196661, lng: 126.666581871294 },
+  { lastNode: 20, lat: 37.4489158520134, lng: 126.667537068515 },
+  { lastNode: 21, lat: 37.4508808798015, lng: 126.667436642101 },
+  { lastNode: 22, lat: 37.4522630972887, lng: 126.66757753836 },
+  { lastNode: 23, lat: 37.4540376911, lng: 126.669121724029 },
+  { lastNode: 24, lat: 37.4554933098739, lng: 126.669967924322 },
+  { lastNode: 25, lat: 37.4570775788105, lng: 126.671235504279 },
+  { lastNode: 26, lat: 37.4589700674619, lng: 126.67232649685 },
+  { lastNode: 27, lat: 37.4587155898101, lng: 126.674307678959 },
+  { lastNode: 28, lat: 37.4587371703138, lng: 126.676210388807 },
+  { lastNode: 29, lat: 37.4585480638249, lng: 126.677013420806 },
+  { lastNode: 30, lat: 37.4586286686922, lng: 126.677809310623 },
+  { lastNode: 31, lat: 37.4584988028839, lng: 126.680110313175 },
+  { lastNode: 32, lat: 37.4595232434953, lng: 126.680308923649 },
+  { lastNode: 33, lat: 37.4609838994927, lng: 126.680214363982 },
+  { lastNode: 34, lat: 37.464046993274, lng: 126.680354250232 },
+  { lastNode: 35, lat: 37.4641504476083, lng: 126.680167846102 },
+  { lastNode: 36, lat: 37.4640774077321, lng: 126.679803468821 },
+  { lastNode: 37, lat: 37.4641711732054, lng: 126.677968529141 },
+  { lastNode: 38, lat: 37.4644289785697, lng: 126.675364430809 },
+  { lastNode: 39, lat: 37.4637873643263, lng: 126.669440167068 },
+  { lastNode: 40, lat: 37.4624785331245, lng: 126.671180713261 },
+  { lastNode: 41, lat: 37.4621998845657, lng: 126.671323650852 },
+  { lastNode: 42, lat: 37.461175545199, lng: 126.672914528101 },
+  { lastNode: 43, lat: 37.4600514575324, lng: 126.672393944349 },
+  { lastNode: 44, lat: 37.4589700674619, lng: 126.67232649685 },
+  { lastNode: 45, lat: 37.4578790703199, lng: 126.671375252125 },
+  { lastNode: 46, lat: 37.4554933098739, lng: 126.669967924322 },
+  { lastNode: 47, lat: 37.4549411587006, lng: 126.669431902163 },
+  { lastNode: 48, lat: 37.4522630972887, lng: 126.66757753836 },
+  { lastNode: 49, lat: 37.4514650937186, lng: 126.667223935426 },
+  { lastNode: 50, lat: 37.4489158520134, lng: 126.667537068515 },
+  { lastNode: 51, lat: 37.4491801831495, lng: 126.66583593375 },
+  { lastNode: 52, lat: 37.4495550758742, lng: 126.66320956028 },
+  { lastNode: 53, lat: 37.4503492910096, lng: 126.659916449765 },
+  { lastNode: 54, lat: 37.4504826401728, lng: 126.659771184891 },
+  { lastNode: 55, lat: 37.4514641391277, lng: 126.656143478533 },
+  { lastNode: 56, lat: 37.4522533815676, lng: 126.653012614913 },
+  { lastNode: 57, lat: 37.4520158997863, lng: 126.650380537248 },
+  { lastNode: 58, lat: 37.4519273540801, lng: 126.6482553151 },
+  { lastNode: 59, lat: 37.4502335441034, lng: 126.64913801557 },
+  { lastNode: 60, lat: 37.4486059812168, lng: 126.649938605006 },
+  { lastNode: 61, lat: 37.4487536815333, lng: 126.649458501003 },
+  { lastNode: 62, lat: 37.4481288604012, lng: 126.647099855225 },
+  { lastNode: 63, lat: 37.4478052441598, lng: 126.646296789041 },
+];
+
+      const BUS_STOP_LOCATION = [
+  {
+    busStop: "독배로317번길(삼거리)",
+    busStopId: "163000634",
+    busPoint: { lat: 37.4471183917398, lng: 126.646436408226 },
+    index: 1,
+    lastNode: 2,
+    busStopNumber: 37634,
+  },
+  {
+    busStop: "인천용학초등학교",
+    busStopId: "163000676",
+    busPoint: { lat: 37.4460269045282, lng: 126.643593618829 },
+    index: 2,
+    lastNode: 4,
+    busStopNumber: 37676,
+  },
+  {
+    busStop: "SK스카이뷰104동",
+    busStopId: "163000587",
+    busPoint: { lat: 37.4481038415008, lng: 126.642647402112 },
+    index: 3,
+    lastNode: 6,
+    busStopNumber: 37587,
+  },
+  {
+    busStop: "SK스카이뷰109동",
+    busStopId: "163000607",
+    busPoint: { lat: 37.4513085149095, lng: 126.64394292157 },
+    index: 4,
+    lastNode: 8,
+    busStopNumber: 37607,
+  },
+  {
+    busStop: "굴다리",
+    busStopId: "163000142",
+    busPoint: { lat: 37.4525987940494, lng: 126.645440152063 },
+    index: 5,
+    lastNode: 10,
+    busStopNumber: 37142,
+  },
+  {
+    busStop: "용현고가교",
+    busStopId: "163000611",
+    busPoint: { lat: 37.451780384539, lng: 126.648871435565 },
+    index: 6,
+    lastNode: 13,
+    busStopNumber: 37611,
+  },
+  {
+    busStop: "인하대후문",
+    busStopId: "163000165",
+    busPoint: { lat: 37.4513523284721, lng: 126.65572010764 },
+    index: 7,
+    lastNode: 15,
+    busStopNumber: 37165,
+  },
+  {
+    busStop: "정석항공과학고",
+    busStopId: "163000168",
+    busPoint: { lat: 37.4502017677862, lng: 126.660002700911 },
+    index: 8,
+    lastNode: 17,
+    busStopNumber: 37168,
+  },
+  {
+    busStop: "학산소극장",
+    busStopId: "163000169",
+    busPoint: { lat: 37.4493752569651, lng: 126.66307186937 },
+    index: 9,
+    lastNode: 18,
+    busStopNumber: 37169,
+  },
+  {
+    busStop: "용남파출소",
+    busStopId: "163000177",
+    busPoint: { lat: 37.4488758196661, lng: 126.666581871294 },
+    index: 10,
+    lastNode: 19,
+    busStopNumber: 37177,
+  },
+  {
+    busStop: "용일사거리",
+    busStopId: "163000208",
+    busPoint: { lat: 37.4508808798015, lng: 126.667436642101 },
+    index: 11,
+    lastNode: 21,
+    busStopNumber: 37208,
+  },
+  {
+    busStop: "인천기계공고",
+    busStopId: "163000272",
+    busPoint: { lat: 37.4540376911, lng: 126.669121724029 },
+    index: 12,
+    lastNode: 23,
+    busStopNumber: 37272,
+  },
+  {
+    busStop: "주안2동치안센터",
+    busStopId: "163000302",
+    busPoint: { lat: 37.4570775788105, lng: 126.671235504279 },
+    index: 13,
+    lastNode: 25,
+    busStopNumber: 37302,
+  },
+  {
+    busStop: "제일시장",
+    busStopId: "163000316",
+    busPoint: { lat: 37.4587155898101, lng: 126.674307678959 },
+    index: 14,
+    lastNode: 27,
+    busStopNumber: 37316,
+  },
+  {
+    busStop: "주안사거리",
+    busStopId: "163000514",
+    busPoint: { lat: 37.4585480638249, lng: 126.677013420806 },
+    index: 15,
+    lastNode: 29,
+    busStopNumber: 37514,
+  },
+  {
+    busStop: "교보생명",
+    busStopId: "163000357",
+    busPoint: { lat: 37.4595232434953, lng: 126.680308923649 },
+    index: 16,
+    lastNode: 32,
+    busStopNumber: 37357,
+  },
+  {
+    busStop: "주안역환승정류장",
+    busStopId: "163000617",
+    busPoint: { lat: 37.4641504476083, lng: 126.680167846102 },
+    index: 17,
+    lastNode: 35,
+    busStopNumber: 37617,
+  },
+  {
+    busStop: "주안1동행정복지센터",
+    busStopId: "163000385",
+    busPoint: { lat: 37.4644289785697, lng: 126.675364430809 },
+    index: 18,
+    lastNode: 38,
+    busStopNumber: 37385,
+  },
+  {
+    busStop: "도화IC",
+    busStopId: "163000356",
+    busPoint: { lat: 37.4621998845657, lng: 126.671323650852 },
+    index: 19,
+    lastNode: 41,
+    busStopNumber: 37356,
+  },
+  {
+    busStop: "인천광역시종합건설본부",
+    busStopId: "163000325",
+    busPoint: { lat: 37.4600514575324, lng: 126.672393944349 },
+    index: 20,
+    lastNode: 43,
+    busStopNumber: 37325,
+  },
+  {
+    busStop: "대명아파트",
+    busStopId: "163000537",
+    busPoint: { lat: 37.4578790703199, lng: 126.671375252125 },
+    index: 21,
+    lastNode: 45,
+    busStopNumber: 37537,
+  },
+  {
+    busStop: "인천기계공고",
+    busStopId: "163000281",
+    busPoint: { lat: 37.4549411587006, lng: 126.669431902163 },
+    index: 22,
+    lastNode: 47,
+    busStopNumber: 37281,
+  },
+  {
+    busStop: "용일사거리",
+    busStopId: "163000218",
+    busPoint: { lat: 37.4522630972887, lng: 126.66757753836 },
+    index: 23,
+    lastNode: 48,
+    busStopNumber: 37218,
+  },
+  {
+    busStop: "용남파출소",
+    busStopId: "163000184",
+    busPoint: { lat: 37.4491801831495, lng: 126.66583593375 },
+    index: 24,
+    lastNode: 51,
+    busStopNumber: 37184,
+  },
+  {
+    busStop: "학산소극장",
+    busStopId: "163000173",
+    busPoint: { lat: 37.4495550758742, lng: 126.66320956028 },
+    index: 25,
+    lastNode: 52,
+    busStopNumber: 37173,
+  },
+  {
+    busStop: "정석항공과학고",
+    busStopId: "163000170",
+    busPoint: { lat: 37.4504826401728, lng: 126.659771184891 },
+    index: 26,
+    lastNode: 54,
+    busStopNumber: 37170,
+  },
+  {
+    busStop: "인하대후문",
+    busStopId: "163000167",
+    busPoint: { lat: 37.4514641391277, lng: 126.656143478533 },
+    index: 27,
+    lastNode: 55,
+    busStopNumber: 37167,
+  },
+  {
+    busStop: "용현고가교",
+    busStopId: "163000550",
+    busPoint: { lat: 37.4520158997863, lng: 126.650380537248 },
+    index: 28,
+    lastNode: 57,
+    busStopNumber: 37550,
+  },
+  {
+    busStop: "인하대역3번출구",
+    busStopId: "163000127",
+    busPoint: { lat: 37.4502335441034, lng: 126.64913801557 },
+    index: 29,
+    lastNode: 59,
+    busStopNumber: 37127,
+  },
+  {
+    busStop: "인하대역",
+    busStopId: "163000596",
+    busPoint: { lat: 37.4487536815333, lng: 126.649458501003 },
+    index: 30,
+    lastNode: 61,
+    busStopNumber: 37596,
+  },
+  {
+    busStop: "SK스카이뷰",
+    busStopId: "163000601",
+    busPoint: { lat: 37.4481288604012, lng: 126.647099855225 },
+    index: 31,
+    lastNode: 62,
+    busStopNumber: 37601,
+  },
+];
+
+      const INITIAL_BUS_DATA = [
+    {
+      lastNode: 0,
+      lat: 37.4478052441598,
+      lng: 126.646296789041,
+      congestion: 1,
+      lastbusyn: 1,
+    },
+    {
+      lastNode: 3,
+      lat: 37.4460269045282,
+      lng: 126.643593618829,
+      congestion: 2,
+      lastbusyn: 0,
+    },
+    {
+      lastNode: 15,
+      lat: 37.4503492910096,
+      lng: 126.659916449765,
+      congestion: 1,
+      lastbusyn: 0,
+    },
+    {
+      lastNode: 27,
+      lat: 37.4587371703138,
+      lng: 126.676210388807,
+      congestion: 1,
+      lastbusyn: 0,
+    },
+    {
+      lastNode: 36,
+      lat: 37.4641711732054,
+      lng: 126.677968529141,
+      congestion: 3,
+      lastbusyn: 0,
+    },
+    {
+      lastNode: 49,
+      lat: 37.4514650937186,
+      lng: 126.667223935426,
+      congestion: 3,
+      lastbusyn: 1,
+    },
+  ];
+
+      const BUS_ICON_PATHS = [
+        "m1362,4184c-151,-40 -263,-146 -317,-299c-23,-65 -25,-83 -25,-271l0,-201l-62,-6c-91,-9 -130,-23 -167,-59c-48,-47 -64,-85 -69,-165l-5,-73l-36,0c-21,0 -46,-6 -56,-14c-18,-13 -19,-28 -16,-282c1,-148 6,-272 9,-276c6,-6 155,-11 280,-9l52,1l0,285l0,285l-29,0c-53,0 -59,6 -50,58c4,26 10,55 14,64c7,19 62,38 107,38l28,0l2,-962l3,-963l26,-55c32,-68 68,-104 122,-125c38,-14 179,-15 1349,-13l1306,3l43,30c23,17 56,53 73,80l31,50l5,975c5,942 6,975 24,978c10,2 38,1 63,-3c39,-6 47,-11 59,-40c8,-19 14,-53 14,-75l0,-40l-45,0l-45,0l0,-279c0,-154 4,-282 8,-285c4,-2 76,-6 158,-8c117,-2 155,0 167,11c15,12 17,44 17,277l0,264l-25,16c-17,11 -35,14 -60,10l-35,-7l0,71c0,114 -34,173 -125,216c-36,17 -68,24 -112,24l-63,0l0,210c0,186 -2,218 -21,272c-46,137 -154,243 -297,290c-52,17 -118,18 -1151,17c-913,0 -1105,-3 -1149,-15z",
+        "m1949,3916c-2,-2 -3,-90 -1,-195l3,-191l554,0l555,0l0,195l0,195l-553,0c-305,0 -556,-2 -558,-4zm441,-86c0,-17 -7,-20 -44,-20c-41,0 -44,-2 -48,-30c-4,-28 -3,-30 29,-30c46,0 73,-30 73,-80c0,-62 -33,-90 -105,-90c-54,0 -55,0 -55,30c0,28 2,29 26,19c33,-12 61,-4 75,24c17,30 -23,61 -68,54l-33,-6l0,59c0,88 1,90 81,90c62,0 69,-2 69,-20zm170,-115l0,-135l-25,0c-25,0 -25,0 -25,100l0,100l-30,-6c-27,-6 -30,-4 -30,17c0,26 45,55 88,58c22,1 22,0 22,-134zm210,0l0,-135l-25,0c-25,0 -25,0 -25,100l0,100l-30,-6c-27,-6 -30,-4 -30,17c0,26 45,55 88,58c22,1 22,0 22,-134z",
+      ];
+
+      const BUS_ICON_DATA_URL =
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAgAAAAIACAYAAAD0eNT6AAAACXBIWXMAAA7EAAAOxAGVKw4bAAAYn0lEQVR4nO3dPXLbWNQm4Lf76/q28MXeAJ3R0cwKXNPR7EAOvQE7ljbQyVTZ0ezAVYontzJxA4pmF1PlCSC2KYriL0AA9zxPFUpqi6ZvUyTOi3MvgAQAAAAAAAAAaMEfYw8AGrN8488XW//97sDzfDzy31skWe14/mtbj2F15OPvD/z86Y1/Y9vDkf8esEUAoLLNYn2oQG8X5LELLvtth4XtwLEZMLYfK1RQggDA3K2L+GZB3izem4Vb0eYcmwFhM0g8bf1ccGBWBACmZLuY7yrkijhzsCs0CAxMigDANSzzuqgr6PDbOhQIC1yNAMAlNo/YFXYY3mZQ2AwJAgInEwDYZ/vIXXGHadvVSRAQ2EkAqG37CF6Bh7atIhzwTACoYX0kr8gDbxEOihEA2rJd6BV54FLb6w4Eg0YIAPOk0ANjW3cMhIKZEgDm5SbJ5yj4wPSskvyT5PvYA+E4AsD0LZP8neTL2AMBONJdkh/RFZg0AWC6lkm+xdE+MF+rJJ8iCEzSn2MPgFdukjwm+RnFH5i3Rbp92WO6fRsTogMwHeb3gdZZJzAhAsD4btK1+gEq+RRBYFQCwHgUfgBBYDQCwPVZ3AfwksWCIxAArkfhB9hPELii/xh7AEXcJvnfSf5r7IEATNh/pQsA/5nk/4w8lubpAAzLPD/A+awPGJAAMAztfoB+rJK8H3sQLXIhoP7dxEV8APqySPIrLiTUOx2Afj1G4QcYim5AjwSAfizTHfXTlruxB0Av3EirPR/iTAEm4DZde8rWzqbV2J6bjP++svW73YaL6ABcRsu/PY4s2qVT1x5TAhewCPA8y3QJVPFvi+Lftod0v2PasV4guBx7IHMkAJxuvcqfttxF8a/gIdZ2tOhnTN0xMPP97W6OIOpYd/Bs7W3WBTAIxb/tjVrGfr/ZhtuEAHql+Le/UcvY7zfbsJsQcARnARxmpX8NPgu1CH3tc4bAARYB7qf4A8zTIt0+nDcIAG+7jeIPMGeLmA54kwCw221cPhSgBV8iBOwkALym+AO0RQjYwcKnl26SfBt7EIzCZ6EWiwBr+pTk+9iDmAo7vd9cJ7w2n4VaBIC6XPL7mZ3eb3YItfks1OLzXpvPe6wBWHOqCEAd9vkRAJJu3t/pfgB1LOLmQeXbIOb9Wav+WajGFABJ8fUA1Xd6rvTHWvXPQjUCAEnxywVXngLQ+georfRUQNWjHq1/tlX9LFSlA8CmklMBVXd6Wv9sq/pZqEoAYFPJqYCKUwDLKP4A/LZIVxtKqXjU4+ifXSp+FirTAWBbuS5AtQ6AhX8A7FJuQWC1APB57AEwWeXaf4X5XfOWUjWiUgAw988+f489AK7G75q3lFoLUGne09w/h5Q8FagYpwBzSJm1AFU6AI7+OcbPFEr/BSn+HKNMF6BKANDy41g/U2whUBE3Ufw5XomaUWUKwCk/nGqV5P75+6cxB8LZ3j1//TLqKJir5uvjX2MP4AoczXGORUwbQWU3Sb6PPYghNZ9wYvEfAKdrfjFghQCg/Q/AOZquka0vAtT+B+BcTdeQptNNtP8BOF/T0wCtBwDtfwAu0WydbHkKoMSFHAAYVLO1pOUAUOJCDgAMqtla0nIA+Dj2AACYvWZrSbNzGzH/D0A/mqyVrXYAmp2zAeDqmqwprQYAp/4B0Jcma0qrAeDd4YcAwFGarCmtBoBmF20AcHVN1pRWAwAAsMdcbwe8XpCxOS+z2aJpcr4GgFEsktxu/PfT89fV89eH6w6nH1M+tWGZ7kV/l9/tF4UdgClbJbl//v7H89dJBoQpBYBluisufYxCD0BbVkn+ef46iUAwdgBYF/0vI48DAK7pLl2HYLQwMFYAuEnyOY70AahtleRTRggC1w4AyyTfovADwKarB4FrBoCbdMW/davDDwHgRFUOHD8l+T72IPp0m+7mPK1uN/29VAC8YZnkMePv84feNk85nLWWi38zvySAGVlm/P2/+nJAy7+k2f9yAGas5fqy3mZ9F8KxX7yhtsc+XyQAznKT8evB0Nsstdz6n3UqA2hI62sCZtltHvtFG2pz9A8wHboAZxrqboAtr4q/P/wQAK6kqVPm3jBITR0qAHwe6Hmn4GnsAQBQyiA1dagAUOWCDQAwtEFq6hABoOX2PwCMoffaOkQAeDfAcx7LZXgBGMIq49aY3mvrEAHg4wDPucv6xgkf0t3T4I8k79PdYhEA+nSfrsas682HdDXoWjXnWrX1IkOfgneoDTL09QdMcQBMyzVOxTt0Pv4yw9efXg21CLBvq3Rp631qnPIBwLw8JPmarjswi0503wFgiCvk3aUr/Fe7RzIAXOBruumBvvVaY/+68O/fpFuYsJ6b6PtUhbt0LyQAzMm6W/2tx+f8md8LEe/TXZfmql3xm1zn2svnXnLXGgCAWqawBuAt16qXJ9emU6YA1tdb/pbrXOjnnyv8GwAwpCGmArYt0tXmkw5SjwkAy3Tpos82xjGc0w8Ap/mWrmYfXC9wKADcpJtzcGlfAJiHRbravbcbsC8A3Ob6R/0AQD++Zc/ahbcCwG2SL4MMBwC4li95IwTsCgA3UfwBoBVfsmM6YDsALKPtDwCt+ZathYHbAUDxB4A2vajxmwHgJlb7A0CrFtmYCtgMAI7+AaBt/9b6dQBweVsAqOEm+R0APo84EADgej4nXQBYxtw/AFSxSLL8M4o/AFSz+DPJu7FHAQBc1bs/k3wcexQAwFV9NAUAAPUsDt0OGABokAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAX9mWQ19iAAgKta6QAAQEF/JrkfexAAwFXd/5nkx9ijAACu6sefSR7GHgUAcFUP6zUAd6MOAwC4lrvk92mApgEAoIYfye8A8BBdAABo3V2ep/43TwPUBQCAtv1b6zcDwEOST9cfCwBwBZ+ysfB/+0JA3+PKgADQmlW6Gv+vXVcCfB8hAABasUpX219461LAQgAAzN/O4p/svxugEAAA8/Vm8U8O3w74fZweCABzc5c9xT85HACS5GuSD9ENAICpW6Wr2V8PPfDY2wE/pEsSnyIIAMDUrNLV6Pc58h4/f534D3x/3pZJ/k7yMcnixOcAAC63SnKf7uI+J9/Y79QAsPbwvK1bDMvnr32GAXcpBGDu+r7I3roLf3GNPDcAbHvY+goAdL4ffsj1HbsGAABoiAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkAAAAAUJAABQkABwundjDwAALiUAnO7j2AMA4F83Yw9grgSA0y2SLMceBABJks9jD2CuBIDz/Bx7AADkNt1BGWcQAM73GJ0AgLHcJvky9iDmTAA43yJdJ8D8E8D1LNMdgCn+FxIALvct3ZtREAAYzjLdUf/PaPvzhtskv0bcHp/HYHoA4DI3GX+fvt5uB/5/vbq/xh5AgxbP27o9dZfkKcn30UYEMA/LdPvPz3GUPzgBYHjrIPAtySrJfZIfSR5GGxHAdCyT/J3uGiuKPheZSrvo2JaStQNANTfppkvH3gebAmA0u7oDpguA1jjKnyABYDrWawcS0wXAvJnLnwEBYLq2FxOukvzz/FUgAKbmJt3N0pyfPxMCwHws0nUG1gQCYEzrgq+tP1MCwHwJBMA1mcdvjADQjl2BwBoC4FwKfuMEgHbtWkPgLAPgLVr6xQgAdbx1lsFTTBtANetV+gp+YQJAXZuBYM20AbRJO59XBAA2bU8bJL/vZaBLAPPg6J6jCAAcsn1Or6kDmBZz95xFAOBU+6YOhAIYlmJPbwQA+rAvFCTWFMCptPEZnADAUDZDweY0gm4BvKTYMwoBgGvb1S1IBAPap9AzKQIAUyEY0AqFnlkQAJi6Q8EgEQ64vs0inyj0zJAAwFy9FQyS3eEgERA4jSJP0wQAWrQvHCQCAp1dBT5R5ClCAKCiYwJC8jIkbP65oDBty+evijvsIQDAa4utr/scCguJwHCp5cb369+Jwg4XEgDgMqeEheRlMLjf+tnTG4+bc4BYbv339uv0buP7j3seB/RMAIDrWrzx/SVWhx/yKmwc6+Pz3/245zGKNcyQAADzd0wBvqRIK/DQoD/HHgAAcH0CAAAUJAAAQEECAAAUJAAAQEECAAAUJAAAQEECAAAUJAAAQEECAAAUJAAAQEECAAAUJAAAQEECAAAUJAAAQEECAAAU9NfYA5iBuyRPG//9LsmXkcYCwG721ScSAN62SvIpycOOn/1I8i3J4qojAmCbffWZTAHstkryPrvfUHn+8/dJPjw/FoDrWqXbBx+zr7af3kEA2O2fIx+3fnN9GnAsALz0KfsL/7Zj9+mlCAC7fT/j8X9EEAAY0qd0+9pz9tFsEQBeu7vg766DwCXPAcBLdzmv8G8/BxsEgNeeDj/koK+xPgDgUut5/q89PFcf+/amCADDsVAQ4DzHLPDjQgLA8CwUBDjeqQv8OJMA8NpQR+vWBwC8rY95/n10YrcIANdnfQDAb33O83MCAWAcm+sDAKoyzz8iAWBcDzEtANSzbvcr/CMSAF4b4w1pWgCoYMx2v7CxRQCYDqcNAq1yWt8ECQDTsw4CpgWAFtxF4Z8kAWC6TAsAc2Z1/8QJANPmIkLAHLmYzwwIAPPgIkLAHAx9MR96JAC8NPV2u2kBYIrm0u6379wgAMyPaQFgSrT7Z0oAmK/v0Q0AxrM+6tfunykBYN50A4AxOOpvgADQhvUiQd0AYEirWOTXDAHgpfuxB3Ah3QBgKOuj/jmb+z6+VwJAe5wyCPTJqX2NEgDatT5lEOBcczi1jzMJAG1zu2HgHG7XW4AAUINuAHAsR/1FCAAvPY09gAHpBgD7VDjqb3kffzIBoJ6vcaYA8NKnOOovRwCoyXUDgMR5/aUJAC9VK4iuGwB1tXBe/6mq7eP3EgBwTwGoxTX8SSIA0HFPAajBNfz5lwDw0mLsAYxMNwDa5Ki/U30f/4IA8NK7sQcwAetugNMFoQ13cdS/Zh+/QQB46ePYA5gQFw+C+XNRn5fs4zcIAC9pD720vniQKQGYl/XpfY76X7KP3yAAvHYz9gAmyAJBmI+Kp/cdw759iwDw2rexBzBRFgjCtFnot599+xYBYLfbsQcwURYIwjRZ6LefffoOAsBuX5Isxx7EhFkgCNNhod9+y3T7dLYIAG/7GXNG+zzElACMad3yd9T/tpt0+3J2EAD2+xato33WUwLA9Wn573cb8/57CQCHfUnyK8ljdATeYk0AXJfP3G436Qr/r2j7H/TX2AOYkUW6NLmZKDfb3/fPX592/Lz1lP4jPmxwTT/GHsAVrNdhbZ67v76S3+YFfZzbfyYB4DKLN74/ZB0M7jf+7GnrZ0n7wQFo3+aC6vV+cvOSvB+3fsaVCADjWGx9PcaubkMyjeDw95X/Paju71z/c35sId/8ORMmAMzHpd2GZJhpCqfYwPV9STcNcMnnNtFeL00AaN9Q0xSLdDsMxR/G8TPdYsCn/P5MJtrrHEkA4C3nTFMA1yWAczanAQJAQQIAABQkAABAQQIAABQkAABAQQIAABQkAABAQQIAABQkAABAQQIAABQkAABAQQIAABQkAABAQQIAABQkAABAQQIAABT019gDaMAqyf3z9x+TLEYcC9Nyl+Rp7EE04nN8tira3r8m3gfscZvk18DbbZLlnjEsrzQO2zS3xzCEZcb/3dqu8/m5yX5j7F9vD4yJCRjyjfGY/YV/mx1Wze2U9winEazb3g4V/m3XfD8IADMw1BvikqO6x4HGZJve5uh/eGP/jm3DbOcG55srja+5AGAR4HFWSd5f8Pcv+bvMy/3hhwBbPiR5OPPvfk+33oYTCQDH+dTDc3zo4TkAWnOX84v/2td0B2qcQAA4rI83Z56fwxsU4KWvPT1PHwdqpQgAh/3o8bm8QQF+67N17yDrRALAfqv0c/S/1udzAcxdnwdYiTU4JxEA9hvizSShAnT6Pih66vn5miYAXJ+ECjAMB1gnEAAAoCAB4Po+Hn4IAGdwn4ATCAD7DVGsvUEBOn1fNvtdz8/XNAFgv76LtWvEA/z2d8/Pp8N6AgHgsD6v/9z3mx1gzr70+FzL6LCeRAA4rK836LLH5wJoxal3AHzLt56epwwB4Dh93OHNmxPgtW+5fHr0Jo7+TyYAHGeRy6YCHuPNWYU5SDjdz1x2O2AHWGcQAI73Jad3ApZR/Kvxux5WX+1ipuecEHAbxf9sAsBpFkl+5XA3YPn8mJ9RECrqY8qI15axs2/dz3Sfn0NB4Ob5cdZVXeCvsQcwU1+et1VeX9r3YxT96hbpdk7/xKVJ+7BId363nX0Ni3RBIHm9j7V/7ZEAcJlFvBnZbRFHq3Ap+9gBmQIAgIIEAAA4rLlbDbcYAJr7JQFA31oMAADAAS0GAKuuAehbc7WlxQDwMPYAAGDq/hh7AAP5NfYAAGhKc/WyxQ5AktyNPQAAmLJWA4AzAQDoS3Pz/0m7AaDJXxYAo9i+5HsTWg0ADxECAOhHk13l/xh7AAP6f0n+x9iDAGD2/h57AENoblXjFmcDAHCJVZL3Yw9iCK1OAaw5GwCAS/wz9gCG0noHINEFAOB8zdbJ1jsASfJh7AEAMEtNd5FbXgS49n+T/GeS/zb2QACYlf8+9gCGVKEDkCRf47RAAI73aewBDK1KAEi6VZxCAACH3CX5PvYghlZhCmDT/4rpAADetkryP8cexDVU6gCsfU23MFA3AIBNd2n0nP9dmj294Ug3Sb6NPQgARrVKN+f/MPZArql6AFhbprvU45exBwLA1ZQs/GsCwGvLJIsk75J8fP6zxXjDAaAHq/y+q9+PFC36TM8v28EN5uIx439epr7dnP3q0puKiwABoDwBAAAKEgAAoCABAAAKEgAAoCABAAAKEgAAoCABAAAKEgAAoCABAAAKEgAAoCABAAAKEgAAoCABAAAKEgAAoCABAAAKEgAAoCABAAAKEgAAoCABAAAKEgAAoCABAAAKEgAAoCABAAAKEgAAoCABAAAKEgAAoCABAAAKEgAAoCABAAAKEgAAoCABAAAKEgAAoCABAAAKEgAAoCABAAAKEgAAoCABAIBrW409AAQAAChJAACAggSAadAO28/rw5zcjz2AGXgYewAIAMyDHSpz8jT2AOAYAsA0KHDQDh2r/bw+EyEATMOPsQcwcV4f5kR7ez8HPBPxx9gD4F+/xh7AhHmfMjePSRZjD2KiPkRImgQdgOnQFtvtbuwBwBn+GXsAE6b4T4QAMB12GLtp/zNH38cewEQJ9BOitTotpgFe8x5lrkwDvKb9PyE6ANMiHb/k9WDOPo09gIlZRfGfFEdX06ML8Jv3J3OnC/Cbo/+J0QGYHke9HUdPtMD7uOPoH470mK4TUHV7vPwlhMm4zfifqbG35cWvIhSxzPgfWDsL6M/Yn6kxt9seXj8opepRg50FLaoa6nXz4EzVpgLsLGhZxVAPXKBKCFD8qaBSCDCVBz1oPQQo/lTS+udZ8YeetbrTUPypqOVOgOIPA2gtBCj+VNZiCFD8YUCt7DSs9ofkJuN/FvvYhHm4kmXm2w14jKME2DbXz/OvdCEGuLK5HT3YUcDb5hbsdfFgAqYeBBR+ON5Nph0EbqOLB5OzzHTWCNhJwGXWn+cphIHHCPLNcbvVdi3T3Yb0XZKPz382xG1JV89f75M8xV2/YAjX+jwn3WfY5xkAAAAAAAAAYCb+P/CRJroCiMy8AAAAAElFTkSuQmCC";
+
+      const BUS_SPEED_MPS = 10;
+      const MOVEMENT_INTERVAL_MS = 500;
+      const MOCK_POLL_INTERVAL_MS = 10000;
+      const TILE_SIZE = 256;
+      const MIN_MAP_ZOOM = 12;
+      const MAX_MAP_ZOOM = 17;
+      const INITIAL_MAP_ZOOM = 14;
+      const INITIAL_MAP_CENTER = { lat: 37.45525, lng: 126.6614 };
+
+      const stationDirections = {
+        인하대후문: "인하대후문 방향",
+        정석항공과학고: "인하대후문 방향",
+        학산소극장: "주안역 방향",
+        용일사거리: "주안역 방향",
+        인천기계공고: "주안역 방향",
+        주안2동치안센터: "주안역환승정류장 방향",
+        주안역환승정류장: "주안역환승정류장 방향",
+      };
+
+      const mockMessages = [
+        { nickname: "인하대생", text: "후문 정류장 사람 많아요. 511 곧 옵니다." },
+        { nickname: "버스라이브", text: "실제 511번 노드 좌표를 따라 마커를 보간 중입니다." },
+        { nickname: "나", text: "이번 화면은 OSM 지도 위에서 확인 중이에요.", mine: true },
+      ];
+
+      const incomingMessages = [
+        "방금 용현고가교 노드 지나갔어요.",
+        "ETA가 ±10초 범위로 계속 갱신됩니다.",
+        "주안역 방향 511 위치가 한 노드 앞으로 갱신됐습니다.",
+        "mock message가 채팅방에 들어왔습니다.",
+      ];
+
+      let serverBusData = INITIAL_BUS_DATA.map((bus) => ({ ...bus }));
+      let displayBusPoints = serverBusData.map((bus) => ({ ...bus }));
+      let selectedStop = BUS_STOP_LOCATION.find((stop) => stop.busStop === "인하대후문");
+      let selectedStopInfo = null;
+      let mapCenter = { ...INITIAL_MAP_CENTER };
+      let mapZoom = INITIAL_MAP_ZOOM;
+      let pollCycle = 0;
+      let messageIndex = 0;
+      let messages = [...mockMessages];
+      let isMapDragging = false;
+      let dragStart = null;
+
+      const mapCanvas = document.querySelector("#mapCanvas");
+      const tileLayer = document.querySelector("#tileLayer");
+      const geoRouteLayer = document.querySelector("#geoRouteLayer");
+      const geoRouteShadow = document.querySelector("#geoRouteShadow");
+      const geoRouteBase = document.querySelector("#geoRouteBase");
+      const geoRouteDash = document.querySelector("#geoRouteDash");
+      const stationLayer = document.querySelector("#stationLayer");
+      const stopInfoLayer = document.querySelector("#stopInfoLayer");
+      const busLayer = document.querySelector("#busLayer");
+      const mapMeta = document.querySelector("#mapMeta");
+      const aside = document.querySelector("#aside");
+      const asideButton = document.querySelector("#asideButton");
+      const asideChatButton = document.querySelector("#asideChatButton");
+      const chatPanel = document.querySelector("#chatPanel");
+      const chatListPage = document.querySelector("#chatListPage");
+      const chatListButton = document.querySelector("#chatListButton");
+      const closeChatListButton = document.querySelector("#closeChatListButton");
+      const onboarding = document.querySelector("#onboarding");
+      const closeChatPanelButton = document.querySelector("#closeChatPanelButton");
+      const zoomInButton = document.querySelector("#zoomInButton");
+      const zoomOutButton = document.querySelector("#zoomOutButton");
+      const headerSubtitle = document.querySelector("#headerSubtitle");
+      const etaTime = document.querySelector("#etaTime");
+      const etaStation = document.querySelector("#etaStation");
+      const etaDistance = document.querySelector("#etaDistance");
+      const progressFill = document.querySelector("#progressFill");
+      const livePill = document.querySelector("#livePill");
+      const chatRoomName = document.querySelector("#chatRoomName");
+      const messageCount = document.querySelector("#messageCount");
+      const messageList = document.querySelector("#messageList");
+      const chatForm = document.querySelector("#chatForm");
+      const messageInput = document.querySelector("#messageInput");
+
+      const formatEta = (seconds) => {
+        const minutes = Math.floor(seconds / 60);
+        const rest = Math.max(0, Math.round(seconds % 60));
+        if (minutes <= 0) return rest + "초";
+        return minutes + "분 " + String(rest).padStart(2, "0") + "초";
+      };
+
+      const toRadians = (degree) => (degree * Math.PI) / 180;
+
+      const getDistanceInMeters = (lat1, lng1, lat2, lng2) => {
+        const radius = 6371000;
+        const dLat = toRadians(lat2 - lat1);
+        const dLng = toRadians(lng2 - lng1);
+        const a =
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos(toRadians(lat1)) *
+            Math.cos(toRadians(lat2)) *
+            Math.sin(dLng / 2) *
+            Math.sin(dLng / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return radius * c;
+      };
+
+      const latLngToWorld = ({ lat, lng }, zoom = mapZoom) => {
+        const scale = TILE_SIZE * 2 ** zoom;
+        const sinLat = Math.sin(toRadians(lat));
+        return {
+          x: ((lng + 180) / 360) * scale,
+          y:
+            (0.5 - Math.log((1 + sinLat) / (1 - sinLat)) / (4 * Math.PI)) *
+            scale,
+        };
+      };
+
+      const worldToLatLng = ({ x, y }, zoom = mapZoom) => {
+        const scale = TILE_SIZE * 2 ** zoom;
+        const lng = (x / scale) * 360 - 180;
+        const n = Math.PI - (2 * Math.PI * y) / scale;
+        const lat = (180 / Math.PI) * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)));
+        return { lat, lng };
+      };
+
+      const project = (point) => {
+        const rect = mapCanvas.getBoundingClientRect();
+        const center = latLngToWorld(mapCenter);
+        const world = latLngToWorld(point);
+        return {
+          x: rect.width / 2 + (world.x - center.x),
+          y: rect.height / 2 + (world.y - center.y),
+        };
+      };
+
+      const renderTiles = () => {
+        const rect = mapCanvas.getBoundingClientRect();
+        const center = latLngToWorld(mapCenter);
+        const startX = Math.floor((center.x - rect.width / 2) / TILE_SIZE);
+        const endX = Math.floor((center.x + rect.width / 2) / TILE_SIZE);
+        const startY = Math.floor((center.y - rect.height / 2) / TILE_SIZE);
+        const endY = Math.floor((center.y + rect.height / 2) / TILE_SIZE);
+        const tiles = [];
+
+        for (let x = startX - 1; x <= endX + 1; x += 1) {
+          for (let y = startY - 1; y <= endY + 1; y += 1) {
+            tiles.push(
+              '<img class="osm-tile" alt="" src="https://tile.openstreetmap.org/' +
+                mapZoom +
+                '/' +
+                x +
+                '/' +
+                y +
+                '.png" style="left:' +
+                (x * TILE_SIZE - center.x + rect.width / 2) +
+                'px; top:' +
+                (y * TILE_SIZE - center.y + rect.height / 2) +
+                'px" />'
+            );
+          }
+        }
+
+        tileLayer.innerHTML = tiles.join("");
+      };
+
+      const renderRoute = () => {
+        const rect = mapCanvas.getBoundingClientRect();
+        const points = NODE_LOCATION.map(project)
+          .map((point) => point.x.toFixed(1) + "," + point.y.toFixed(1))
+          .join(" ");
+        geoRouteLayer.setAttribute("viewBox", "0 0 " + rect.width + " " + rect.height);
+        geoRouteShadow.setAttribute("points", points);
+        geoRouteBase.setAttribute("points", points);
+        geoRouteDash.setAttribute("points", points);
+      };
+
+      const getBusFill = (bus) => {
+        if (bus.lastbusyn === 1) return "#E6C767";
+        if (bus.congestion === 1) return "#e44343";
+        if (bus.congestion === 2) return "#E6C767";
+        return "#31511E";
+      };
+
+      const renderBusIcon = (bus) =>
+        '<img src="' +
+        BUS_ICON_DATA_URL +
+        '" alt="" />' +
+        '<span class="bus-state-dot" aria-hidden="true"></span>';
+
+      const getClosestBusLocation = () => {
+        const candidates = displayBusPoints.filter(
+          (item) => Number(item.lastNode) < Number(selectedStop.lastNode)
+        );
+        if (candidates.length === 0) return displayBusPoints[0] || null;
+        candidates.sort((a, b) => Number(b.lastNode) - Number(a.lastNode));
+        return candidates[0];
+      };
+
+      const estimateDistanceToStop = (bus) => {
+        if (!bus || !selectedStop) return 0;
+        const currentLastNode = Number(bus.lastNode);
+        const stopNode = Number(selectedStop.lastNode);
+        if (currentLastNode >= stopNode) return 0;
+
+        let total = 0;
+        const nextNode = NODE_LOCATION.find((node) => node.lastNode === currentLastNode + 1);
+        if (nextNode) {
+          total += getDistanceInMeters(bus.lat, bus.lng, nextNode.lat, nextNode.lng);
+        }
+
+        for (let node = currentLastNode + 1; node < stopNode; node += 1) {
+          const from = NODE_LOCATION.find((item) => item.lastNode === node);
+          const to = NODE_LOCATION.find((item) => item.lastNode === node + 1);
+          if (from && to) {
+            total += getDistanceInMeters(from.lat, from.lng, to.lat, to.lng);
+          }
+        }
+
+        return total;
+      };
+
+      const renderStations = () => {
+        stationLayer.innerHTML = BUS_STOP_LOCATION.map((stop) => {
+          const point = project(stop.busPoint);
+          const active = stop.busStopId === selectedStop.busStopId;
+          return (
+            '<button class="geo-station-pin ' +
+            (active ? "active" : "") +
+            '" data-stop-id="' +
+            stop.busStopId +
+            '" type="button" style="left:' +
+            point.x +
+            'px; top:' +
+            point.y +
+            'px" aria-label="' +
+            stop.busStop +
+            '"><span>' +
+            stop.busStop +
+            '</span></button>'
+          );
+        }).join("");
+
+        stationLayer.querySelectorAll(".geo-station-pin").forEach((button) => {
+          button.addEventListener("click", () => {
+            selectedStop =
+              BUS_STOP_LOCATION.find((stop) => stop.busStopId === button.dataset.stopId) ||
+              selectedStop;
+            selectedStopInfo = selectedStop;
+            renderMapOverlays();
+            renderEta();
+          });
+        });
+      };
+
+      const renderStopInfo = () => {
+        if (!selectedStopInfo) {
+          stopInfoLayer.innerHTML = "";
+          return;
+        }
+
+        const point = project({
+          lat: selectedStopInfo.busPoint.lat + 0.001,
+          lng: selectedStopInfo.busPoint.lng,
+        });
+
+        stopInfoLayer.innerHTML =
+          '<section class="stop-info-card" style="left:' +
+          point.x +
+          "px; top:" +
+          point.y +
+          'px" aria-label="' +
+          selectedStopInfo.busStop +
+          ' 정류장 정보">' +
+          '<div class="stop-info-head">' +
+          '<button class="stop-info-close" id="closeStopInfoButton" type="button" aria-label="정류장 정보 닫기">✖</button>' +
+          "</div>" +
+          '<div class="stop-info-body">' +
+          '<div><div class="stop-info-label">정류장</div><div class="stop-info-value">' +
+          selectedStopInfo.busStop +
+          "</div></div>" +
+          '<div><div class="stop-info-label">정류장ID</div><div class="stop-info-value">' +
+          selectedStopInfo.busStopId +
+          "</div></div>" +
+          '<div><div class="stop-info-label">위도</div><div class="stop-info-value">' +
+          selectedStopInfo.busPoint.lat +
+          "</div></div>" +
+          '<div><div class="stop-info-label">경도</div><div class="stop-info-value">' +
+          selectedStopInfo.busPoint.lng +
+          "</div></div>" +
+          '<button class="stop-chat-button" id="enterStopChatButton" type="button">' +
+          selectedStopInfo.busStop +
+          " 채팅방 입장</button>" +
+          "</div>" +
+          "</section>";
+
+        document.querySelector("#closeStopInfoButton").addEventListener("click", () => {
+          selectedStopInfo = null;
+          renderStopInfo();
+        });
+        document.querySelector("#enterStopChatButton").addEventListener("click", () => {
+          openStationChat(selectedStopInfo);
+        });
+      };
+
+      const renderBuses = () => {
+        const closestBus = getClosestBusLocation();
+        busLayer.innerHTML = displayBusPoints
+          .map((bus, index) => {
+            const point = project(bus);
+            const isClosest = closestBus === bus;
+            const classes = [
+              "bus-fleet-marker",
+              "congestion-" + bus.congestion,
+              isClosest ? "closest" : "",
+              bus.lastbusyn === 1 ? "last" : "",
+            ]
+              .filter(Boolean)
+              .join(" ");
+            return (
+              '<button class="' +
+              classes +
+              '" data-bus-index="' +
+              index +
+              '" type="button" style="left:' +
+              point.x +
+              'px; top:' +
+              point.y +
+              'px" aria-label="511번 버스 ' +
+              (index + 1) +
+              '">' +
+              renderBusIcon(bus) +
+              '</button>'
+            );
+          })
+          .join("");
+      };
+
+      const renderMapOverlays = () => {
+        renderRoute();
+        renderStations();
+        renderStopInfo();
+        renderBuses();
+      };
+
+      const renderEta = () => {
+        const closestBus = getClosestBusLocation();
+        const distanceMeters = estimateDistanceToStop(closestBus);
+        const etaSeconds = Math.max(10, distanceMeters / BUS_SPEED_MPS);
+        const nodesAway = closestBus
+          ? Math.max(0, Number(selectedStop.lastNode) - Number(closestBus.lastNode))
+          : 0;
+        const progress = closestBus
+          ? Math.min(100, (Number(closestBus.lastNode) / Number(selectedStop.lastNode)) * 100)
+          : 0;
+
+        etaTime.textContent = formatEta(etaSeconds);
+        etaStation.textContent = selectedStop.busStop + " 도착 예정";
+        etaDistance.textContent = nodesAway + "노드";
+        headerSubtitle.textContent = stationDirections[selectedStop.busStop] || selectedStop.busStop + " 방향";
+        chatRoomName.textContent = selectedStop.busStop + " 채팅";
+        progressFill.style.width = progress + "%";
+        livePill.textContent = "LIVE " + displayBusPoints.length + "대 이동 중";
+        mapMeta.textContent = "노드 " + NODE_LOCATION.length + "개 · 정류장 " + BUS_STOP_LOCATION.length + "개 · " + BUS_SPEED_MPS + "m/s";
+      };
+
+      const moveDisplayBusPoints = () => {
+        displayBusPoints = displayBusPoints.map((busLocation) => {
+          const nextNode = NODE_LOCATION.find(
+            (node) => node.lastNode === Number(busLocation.lastNode) + 1
+          );
+
+          if (!nextNode) {
+            const firstNode = NODE_LOCATION[0];
+            return {
+              ...busLocation,
+              lastNode: firstNode.lastNode,
+              lat: firstNode.lat,
+              lng: firstNode.lng,
+            };
+          }
+
+          const distance = getDistanceInMeters(
+            nextNode.lat,
+            nextNode.lng,
+            busLocation.lat,
+            busLocation.lng
+          );
+
+          if (distance < 5) {
+            return {
+              ...busLocation,
+              lat: nextNode.lat,
+              lng: nextNode.lng,
+            };
+          }
+
+          const step = Math.min(
+            1,
+            (BUS_SPEED_MPS * (MOVEMENT_INTERVAL_MS / 1000)) / distance
+          );
+
+          return {
+            ...busLocation,
+            lat: busLocation.lat + (nextNode.lat - busLocation.lat) * step,
+            lng: busLocation.lng + (nextNode.lng - busLocation.lng) * step,
+          };
+        });
+
+        renderBuses();
+        renderEta();
+      };
+
+      const advanceMockBusNodes = () => {
+        const updateCounts = [1, 2, 4];
+        const updateCount = updateCounts[pollCycle % updateCounts.length];
+        const startIndex = pollCycle % serverBusData.length;
+        const indices = Array.from({ length: updateCount }, (_, offset) =>
+          (startIndex + offset) % serverBusData.length
+        );
+
+        serverBusData = serverBusData.map((bus, index) => {
+          if (!indices.includes(index)) return bus;
+          const nextLastNode = Number(bus.lastNode) + 1;
+          const nextNode =
+            NODE_LOCATION.find((node) => node.lastNode === nextLastNode) || NODE_LOCATION[0];
+          return {
+            ...bus,
+            lastNode: nextNode.lastNode,
+            lat: nextNode.lat,
+            lng: nextNode.lng,
+          };
+        });
+
+        displayBusPoints = displayBusPoints.map((displayBus, index) => {
+          const newBus = serverBusData[index];
+          if (!newBus) return displayBus;
+          if (Number(displayBus.lastNode) !== Number(newBus.lastNode)) {
+            return { ...displayBus, ...newBus };
+          }
+          return displayBus;
+        });
+
+        pollCycle += 1;
+        renderBuses();
+        renderEta();
+      };
+
+      const renderMessages = () => {
+        messageList.innerHTML = messages
+          .map(
+            (message) =>
+              '<div class="message ' +
+              (message.mine ? "mine" : "") +
+              '">' +
+              (message.mine ? "" : "<strong>" + message.nickname + "</strong>") +
+              message.text +
+              "</div>"
+          )
+          .join("");
+        messageCount.textContent = String(messages.length);
+        messageList.scrollTop = messageList.scrollHeight;
+      };
+
+      const addIncomingMessage = () => {
+        messages = [
+          ...messages,
+          {
+            nickname: selectedStop.busStop,
+            text: incomingMessages[messageIndex % incomingMessages.length],
+          },
+        ].slice(-7);
+        messageIndex += 1;
+        renderMessages();
+      };
+
+      const setDemoRoute = (route) => {
+        if (window.location.hash !== route) {
+          window.history.replaceState(null, "", route);
+        }
+      };
+
+      const openStationChat = (stop) => {
+        if (stop) {
+          selectedStop = stop;
+          selectedStopInfo = null;
+        }
+        setDemoRoute("#/chat/" + encodeURIComponent(selectedStop.busStop));
+        renderMapOverlays();
+        renderEta();
+        chatPanel.classList.add("open");
+        addIncomingMessage();
+      };
+
+      const closeChat = () => {
+        chatPanel.classList.remove("open");
+        setDemoRoute("#/map");
+      };
+
+      const openChatList = () => {
+        setDemoRoute("#/chatList");
+        chatListPage.classList.add("open");
+        chatPanel.classList.remove("open");
+      };
+
+      const closeChatList = () => {
+        chatListPage.classList.remove("open");
+        setDemoRoute("#/map");
+      };
+
+      const resizeMap = () => {
+        renderTiles();
+        renderMapOverlays();
+        renderEta();
+        zoomInButton.disabled = mapZoom >= MAX_MAP_ZOOM;
+        zoomOutButton.disabled = mapZoom <= MIN_MAP_ZOOM;
+      };
+
+      const changeMapZoom = (delta) => {
+        const nextZoom = Math.max(MIN_MAP_ZOOM, Math.min(MAX_MAP_ZOOM, mapZoom + delta));
+        if (nextZoom === mapZoom) return;
+        mapZoom = nextZoom;
+        resizeMap();
+      };
+
+      const shouldSkipMapDrag = (target) =>
+        Boolean(
+          target.closest(
+            "button, input, .eta-card, .chat-panel, .chat-list-page, .onboarding, .app-header, .aside, .stop-info-card, .zoom-controls"
+          )
+        );
+
+      const startMapDrag = (event) => {
+        if (shouldSkipMapDrag(event.target)) return;
+        isMapDragging = true;
+        dragStart = {
+          x: event.clientX,
+          y: event.clientY,
+          center: latLngToWorld(mapCenter),
+        };
+        mapCanvas.classList.add("dragging");
+        mapCanvas.setPointerCapture(event.pointerId);
+      };
+
+      const moveMapDrag = (event) => {
+        if (!isMapDragging || !dragStart) return;
+        const dx = event.clientX - dragStart.x;
+        const dy = event.clientY - dragStart.y;
+        mapCenter = worldToLatLng({
+          x: dragStart.center.x - dx,
+          y: dragStart.center.y - dy,
+        });
+        resizeMap();
+      };
+
+      const endMapDrag = (event) => {
+        if (!isMapDragging) return;
+        isMapDragging = false;
+        dragStart = null;
+        mapCanvas.classList.remove("dragging");
+        if (mapCanvas.hasPointerCapture(event.pointerId)) {
+          mapCanvas.releasePointerCapture(event.pointerId);
+        }
+      };
+
+      asideButton.addEventListener("click", () => {
+        aside.classList.toggle("open");
+      });
+
+      asideChatButton.addEventListener("click", () => {
+        openChatList();
+        aside.classList.remove("open");
+      });
+
+      chatListButton.addEventListener("click", () => {
+        openChatList();
+      });
+
+      closeChatListButton.addEventListener("click", () => {
+        closeChatList();
+      });
+
+      document.querySelectorAll(".chat-room").forEach((roomButton) => {
+        roomButton.addEventListener("click", () => {
+          const roomStop = BUS_STOP_LOCATION.find(
+            (stop) => stop.busStop === roomButton.dataset.room
+          );
+          if (roomStop) selectedStop = roomStop;
+          chatListPage.classList.remove("open");
+          messages = [
+            ...messages,
+            {
+              nickname: roomButton.dataset.room,
+              text: roomButton.dataset.room + " 채팅방에 입장했습니다.",
+            },
+          ].slice(-7);
+          renderMessages();
+          openStationChat(roomStop || selectedStop);
+        });
+      });
+
+      closeChatPanelButton.addEventListener("click", closeChat);
+      zoomInButton.addEventListener("click", () => changeMapZoom(1));
+      zoomOutButton.addEventListener("click", () => changeMapZoom(-1));
+
+      mapCanvas.addEventListener("pointerdown", startMapDrag);
+      mapCanvas.addEventListener("pointermove", moveMapDrag);
+      mapCanvas.addEventListener("pointerup", endMapDrag);
+      mapCanvas.addEventListener("pointercancel", endMapDrag);
+      mapCanvas.addEventListener("lostpointercapture", () => {
+        isMapDragging = false;
+        dragStart = null;
+        mapCanvas.classList.remove("dragging");
+      });
+
+      chatForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const text = messageInput.value.trim();
+        if (!text) return;
+        messages = [...messages, { nickname: "나", text, mine: true }].slice(-7);
+        messageInput.value = "방금 지나간 버스도 보이나요?";
+        renderMessages();
+        window.setTimeout(addIncomingMessage, 420);
+      });
+
+      document.querySelector("#startByStation").addEventListener("click", () => {
+        onboarding.classList.remove("open");
+      });
+
+      document.querySelector("#startByRoute").addEventListener("click", () => {
+        onboarding.classList.remove("open");
+      });
+
+      window.addEventListener("resize", resizeMap);
+
+      resizeMap();
+      renderMessages();
+      window.setInterval(moveDisplayBusPoints, MOVEMENT_INTERVAL_MS);
+      window.setInterval(advanceMockBusNodes, MOCK_POLL_INTERVAL_MS);
+    </script>
+  </body>
+</html>

@@ -2,10 +2,10 @@
 const pathname = Astro.url.pathname;
 const navItems = [
   { href: '/', label: '글', match: (path: string) => path === '/' || path.startsWith('/blog') || path.startsWith('/posts') },
-  { href: '/notes', label: '노트', match: (path: string) => path.startsWith('/notes') },
+  { href: '/about', label: '소개', match: (path: string) => path.startsWith('/about') },
   { href: '/tags', label: '태그', match: (path: string) => path.startsWith('/tags') },
   { href: '/saju', label: '사주', match: (path: string) => path.startsWith('/saju') },
-  { href: '/about', label: '소개', match: (path: string) => path.startsWith('/about') }
+  { href: '/notes', label: '노트', match: (path: string) => path.startsWith('/notes') }
 ];
 ---
 

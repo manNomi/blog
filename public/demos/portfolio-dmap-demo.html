@@ -1,0 +1,2978 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DMap Portfolio Demo</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIINfQk2rBwmK/8Gd8t4kP2mKfr2a5xOllA="
+      crossorigin=""
+    />
+    <style>
+      @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
+
+      :root {
+        --white: #ffffff;
+        --black: #111318;
+        --blue: #0a84ff;
+        --blue-pressed: #006fe0;
+        --light-blue: #9bcfff;
+        --gray: #8f97a3;
+        --light-gray: #c8cdd3;
+        --dark-gray: #2f343b;
+        --screen-bg: #edf1f6;
+        --surface: #f8fafc;
+        --surface-strong: #f2f5f8;
+        --hairline: #e5e9ee;
+        --map-bg: #e6eef4;
+        --map-road: rgba(255, 255, 255, 0.82);
+        --route-blue: #0a84ff;
+        --route-red: #ff5f57;
+        --route-green: #29b970;
+        --shadow: 0 22px 60px rgba(21, 35, 54, 0.18);
+        --soft-shadow: 0 6px 18px rgba(28, 43, 64, 0.1);
+        font-family:
+          "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+          "Segoe UI", system-ui, sans-serif;
+        color-scheme: light;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        min-height: 100%;
+        margin: 0;
+      }
+
+      body {
+        background:
+          linear-gradient(135deg, #e9eef5 0%, #f7f9fb 48%, #e7edf4 100%);
+        color: var(--black);
+        overflow: hidden;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: geometricPrecision;
+      }
+
+      button {
+        appearance: none;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+        font: inherit;
+        letter-spacing: 0;
+      }
+
+      .app {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        max-width: 430px;
+        max-height: 932px;
+        margin: 0 auto;
+        overflow: hidden;
+        background: var(--white);
+        border: 1px solid rgba(26, 37, 54, 0.06);
+        box-shadow: var(--shadow);
+      }
+
+      .page-view {
+        position: absolute;
+        inset: 0;
+        display: none;
+        height: 100%;
+        background: var(--white);
+        overflow: hidden;
+        padding-bottom: 48px;
+      }
+
+      .page-view.is-active {
+        display: flex;
+      }
+
+      .profile-page {
+        height: 100%;
+        flex-direction: column;
+        background: var(--white);
+        overflow: hidden;
+        padding-bottom: 48px;
+      }
+
+      .profile-top {
+        flex: 0 0 auto;
+        background: var(--white);
+      }
+
+      .sns-page {
+        flex-direction: column;
+        overflow-y: auto;
+        scroll-snap-type: y mandatory;
+      }
+
+      .sns-header {
+        position: sticky;
+        top: 0;
+        z-index: 6;
+        min-height: 50px;
+        display: flex;
+        align-items: end;
+        gap: 16px;
+        padding: 10px 18px 9px;
+        background: rgba(255, 255, 255, 0.96);
+        border-bottom: 1px solid var(--hairline);
+        backdrop-filter: blur(14px);
+      }
+
+      .sns-date {
+        margin: 0;
+        color: var(--black);
+        font-size: 24px;
+        line-height: 1.1;
+        font-weight: 800;
+      }
+
+      .sorting-select {
+        border: none;
+        outline: none;
+        color: var(--gray);
+        background: transparent;
+        font: inherit;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .tracking-list {
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+        padding-bottom: 34px;
+        font-size: large;
+        font-weight: bold;
+      }
+
+      .tracking-post {
+        scroll-snap-align: end;
+        scroll-snap-stop: normal;
+        display: flex;
+        flex-direction: column;
+        height: fit-content;
+      }
+
+      .tracking-image-wrapper {
+        width: 100%;
+      }
+
+      .feed-map-frame {
+        width: 100%;
+        aspect-ratio: 1 / 1.12;
+        overflow: hidden;
+        border-top: 1px solid var(--hairline);
+        border-bottom: 1px solid var(--hairline);
+        background: var(--map-bg);
+      }
+
+      .feed-map-frame .static-map {
+        height: 100%;
+      }
+
+      .tracking-page {
+        position: absolute;
+        padding-bottom: 0;
+        background: #d7e2ea;
+      }
+
+      .tracking-page.is-satellite .leaflet-tile {
+        filter: saturate(0.72) contrast(1.08) brightness(0.84);
+      }
+
+      .tracking-map-host {
+        position: absolute;
+        inset: 0;
+      }
+
+      .tracking-tool-container {
+        position: absolute;
+        top: 16px;
+        left: 8px;
+        z-index: 1200;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .tracking-tool-btn,
+      .tracking-modal-open-btn,
+      .line-control-btn,
+      .tracking-control-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--black);
+        font-weight: 900;
+      }
+
+      .tracking-tool-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.88);
+        box-shadow: var(--soft-shadow);
+      }
+
+      .tracking-tool-modal {
+        display: flex;
+        width: 0;
+        gap: 16px;
+        overflow: hidden;
+        transition: width 0.7s ease;
+      }
+
+      .tracking-tool-modal.is-open {
+        width: 136px;
+      }
+
+      .tracking-tool-div {
+        width: 60px;
+        height: 24px;
+        flex: 0 0 60px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 7px;
+        background: var(--white);
+        box-shadow: var(--soft-shadow);
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .tracking-modal-open-btn {
+        width: 36px;
+        height: 30px;
+        border-radius: 8px;
+        background: var(--white);
+        box-shadow: var(--soft-shadow);
+        font-size: 18px;
+      }
+
+      .line-control-container {
+        position: absolute;
+        top: 0;
+        right: 16px;
+        z-index: 1200;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .line-control-btn,
+      .tracking-control-btn {
+        width: 34px;
+        height: 34px;
+        border-bottom: 2px solid var(--black);
+        background: transparent;
+        font-size: 20px;
+      }
+
+      .tracking-control-container {
+        position: absolute;
+        bottom: 100px;
+        right: calc(50% - 44px);
+        z-index: 1200;
+        display: flex;
+        justify-content: center;
+        width: 88px;
+        gap: 16px;
+      }
+
+      .tracking-save-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 1300;
+        background: rgba(0, 0, 0, 0.4);
+      }
+
+      .tracking-save-overlay[hidden],
+      .tracking-save-sheet[hidden] {
+        display: none !important;
+      }
+
+      .tracking-save-sheet {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1301;
+        border-radius: 20px 20px 0 0;
+        background: var(--white);
+        box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.1);
+        padding-bottom: 18px;
+      }
+
+      .sheet-handle {
+        width: 50px;
+        height: 5px;
+        margin: 10px auto;
+        border-radius: 10px;
+        background: var(--light-gray);
+      }
+
+      .tracking-save-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .tracking-preview-map {
+        width: 80%;
+        height: 210px;
+        overflow: hidden;
+        border-radius: 8px;
+        border: 1px solid var(--hairline);
+        background: var(--map-bg);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+      }
+
+      .slider-container {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        width: 80%;
+        max-width: 400px;
+        font-size: 14px;
+      }
+
+      .slider-container label {
+        white-space: nowrap;
+      }
+
+      .slider-container input[type="range"] {
+        flex: 1;
+      }
+
+      .color-picker {
+        width: 32px;
+        height: 32px;
+        border: none;
+        border-radius: 50%;
+      }
+
+      .save-button-container {
+        display: flex;
+        gap: 16px;
+        width: 82%;
+        margin-top: 4px;
+      }
+
+      .save-button-container button {
+        flex: 1;
+        min-height: 38px;
+        border-radius: 7px;
+        background: var(--blue);
+        color: var(--white);
+        font-size: 15px;
+        font-weight: 700;
+        box-shadow: 0 6px 14px rgba(10, 132, 255, 0.22);
+      }
+
+      .search-page {
+        flex-direction: column;
+        overflow: hidden;
+        background: var(--white);
+      }
+
+      .search-header-container {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        z-index: 8;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-bottom: 10px;
+        background: var(--white);
+        transform: translateX(-50%);
+      }
+
+      .search-box {
+        width: 95%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        border-radius: 24px;
+        padding: 10px 15px 10px 10px;
+        background: rgba(255, 255, 255, 0.98);
+        border: 1px solid var(--hairline);
+        box-shadow: var(--soft-shadow);
+      }
+
+      .search-input-container {
+        display: flex;
+        width: 100%;
+        height: calc(10vh - 50px);
+        min-height: 40px;
+        align-items: center;
+      }
+
+      .search-input {
+        flex-grow: 1;
+        min-width: 0;
+        border: none;
+        outline: none;
+        padding: 8px;
+        color: #333333;
+        background: transparent;
+        font-size: 16px;
+        font-weight: 600;
+      }
+
+      .search-icon {
+        min-width: 28px;
+        display: grid;
+        place-items: center;
+        color: #888888;
+        font-size: 20px;
+      }
+
+      .search-error-container {
+        width: 90%;
+        height: 12px;
+        margin-top: 4px;
+        display: flex;
+        align-items: center;
+      }
+
+      .search-error-message {
+        color: var(--route-red);
+        font-size: 10px;
+      }
+
+      .search-history-container {
+        position: absolute;
+        top: 10vh;
+        left: 0;
+        right: 0;
+        z-index: 4;
+        padding: 10px;
+        border-radius: 8px;
+        background: var(--white);
+      }
+
+      .search-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .search-list-box,
+      .search-list-item {
+        display: flex;
+        width: 100%;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .search-list-item {
+        padding: 12px 20px;
+        border-bottom: 1px solid #eeeeee;
+        font-size: 16px;
+        font-weight: 600;
+      }
+
+      .list-delete-button {
+        height: 100%;
+        padding: 0 8px;
+        font-size: 18px;
+      }
+
+      .search-body-container {
+        position: absolute;
+        inset: 0 0 48px;
+        overflow: hidden;
+        background: var(--white);
+      }
+
+      .search-result-tab-container {
+        display: flex;
+        width: 100%;
+        justify-content: center;
+        margin-top: 10vh;
+        background: var(--white);
+      }
+
+      .search-tab-box {
+        position: relative;
+        width: 80%;
+        height: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        border-radius: 15px;
+        background: var(--blue);
+        padding: 10px;
+        box-shadow: 0 8px 18px rgba(10, 132, 255, 0.18);
+      }
+
+      .search-tab-background {
+        position: absolute;
+        top: 5px;
+        bottom: 5px;
+        left: 5px;
+        width: calc(50% - 10px);
+        border-radius: 10px;
+        background: var(--white);
+        color: transparent;
+        transition: left 0.3s ease;
+        font-size: 16px;
+        font-weight: 800;
+        text-align: center;
+        line-height: 30px;
+        pointer-events: none;
+      }
+
+      .search-tab-background.is-name {
+        left: 50%;
+      }
+
+      .search-tab {
+        z-index: 1;
+        flex: 1;
+        padding: 10px 0;
+        border: none;
+        color: var(--white);
+        font-size: 16px;
+        font-weight: 800;
+      }
+
+      .search-tab.is-active {
+        color: var(--blue);
+      }
+
+      .search-slider-wrapper {
+        width: 100%;
+        height: calc(90vh - 100px);
+        overflow-x: hidden;
+      }
+
+      .search-slider {
+        display: flex;
+        width: 200%;
+        height: 100%;
+        margin-left: 0;
+        transition: margin-left 0.28s ease;
+      }
+
+      .search-slider.is-name {
+        margin-left: -100%;
+      }
+
+      .search-point-tab,
+      .nickname-result-tab {
+        width: 50%;
+        height: 100%;
+        overflow-y: auto;
+      }
+
+      .search-point-tab {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .search-point-tab .tracking-list {
+        width: 90%;
+      }
+
+      .nickname-container {
+        display: flex;
+        align-items: center;
+        height: 80px;
+        margin: 10px;
+        border: 1px solid rgba(10, 132, 255, 0.45);
+        border-radius: 8px;
+        background: var(--white);
+        box-shadow: 0 4px 12px rgba(10, 132, 255, 0.08);
+      }
+
+      .nickname-profile-icon {
+        width: 60px;
+        height: 60px;
+        margin-left: 10px;
+        border-radius: 50%;
+        background:
+          linear-gradient(145deg, rgba(153, 202, 255, 0.95), rgba(0, 122, 255, 0.84)),
+          var(--light-blue);
+      }
+
+      .nickname-text {
+        margin: 5px;
+        font-weight: 800;
+      }
+
+      .search-empty-message {
+        width: 100%;
+        height: 100%;
+        margin: 10px;
+        color: var(--gray);
+        text-align: center;
+      }
+
+      .setting-page,
+      .login-page {
+        flex-direction: column;
+        align-items: center;
+        background: var(--white);
+      }
+
+      .setting-page {
+        color: var(--black);
+      }
+
+      .setting-header {
+        width: 80%;
+        color: var(--black);
+        font-size: 24px;
+        font-weight: 800;
+      }
+
+      .setting-header-title {
+        width: 100%;
+        margin: 20px 0;
+      }
+
+      .setting-tab-container {
+        display: flex;
+        width: 100%;
+        min-height: 40px;
+        justify-content: center;
+      }
+
+      .setting-button-container {
+        width: 80%;
+        height: 70%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .setting-button-box {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .setting-button {
+        width: 100%;
+        margin: 10px 0;
+        padding: 10px;
+        border-radius: 8px;
+        background: var(--black);
+        color: var(--white);
+        font-size: 16px;
+        font-weight: 700;
+        box-shadow: 0 8px 18px rgba(17, 19, 24, 0.12);
+      }
+
+      .setting-button.is-danger {
+        border: 1px solid var(--route-red);
+        background: transparent;
+        color: var(--route-red);
+        box-shadow: none;
+      }
+
+      .setting-footer-text {
+        margin-top: auto;
+        margin-bottom: 20px;
+        color: var(--dark-gray);
+        text-align: center;
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .login-page {
+        justify-content: space-around;
+        gap: 8px;
+      }
+
+      .login-title {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
+      }
+
+      .login-button-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .login-button {
+        width: 124px;
+        height: 36px;
+        border-radius: 7px;
+        background: var(--blue);
+        box-shadow: 0 8px 18px rgba(10, 132, 255, 0.24);
+        color: var(--white);
+        font-weight: 700;
+      }
+
+      .profile-header {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        margin: 16px 0;
+        padding: 0 16px;
+      }
+
+      .modify-header {
+        display: none;
+        height: 92px;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin: 0;
+        padding: 16px;
+      }
+
+      .app.is-modifying .profile-header {
+        display: none;
+      }
+
+      .app.is-modifying .modify-header {
+        display: flex;
+      }
+
+      .modify-title {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        line-height: 1.2;
+      }
+
+      .modify-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .modify-actions button {
+        min-width: 76px;
+        min-height: 34px;
+        padding: 8px 20px;
+        border-radius: 6px;
+        background: var(--light-gray);
+        color: var(--white);
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .modify-actions button:first-child {
+        background: var(--black);
+      }
+
+      .profile-avatar {
+        width: 60px;
+        height: 60px;
+        flex: 0 0 60px;
+        margin-right: 12px;
+        overflow: hidden;
+        border-radius: 50%;
+        background:
+          linear-gradient(145deg, rgba(159, 211, 255, 0.98), rgba(10, 132, 255, 0.86)),
+          var(--light-blue);
+        display: grid;
+        place-items: center;
+        color: var(--white);
+        font-size: 20px;
+        font-weight: 900;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.42);
+      }
+
+      .user-info {
+        min-width: 0;
+        width: 80%;
+      }
+
+      .profile-box {
+        display: flex;
+        width: 100%;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .user-name {
+        margin: 0;
+        font-size: 19px;
+        line-height: 1.2;
+        font-weight: 800;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .profile-button {
+        min-width: 32px;
+        height: 28px;
+        padding: 0 4px;
+        border-radius: 6px;
+        font-size: 19px;
+        line-height: 1;
+        color: var(--black);
+      }
+
+      .profile-button:active {
+        background: #f3f3f3;
+      }
+
+      .nickname-button {
+        display: inline-block;
+        margin: 6px 0;
+        padding: 0;
+        color: var(--gray);
+        font-size: 14px;
+        line-height: 1.4;
+      }
+
+      .post-count {
+        margin: 0;
+        color: var(--gray);
+        font-size: 13px;
+        line-height: 1.4;
+      }
+
+      .tab-menu {
+        display: flex;
+        border-bottom: 1px solid var(--light-gray);
+        margin-bottom: 12px;
+      }
+
+      .tab-button {
+        width: 50%;
+        min-height: 37px;
+        padding: 8px 16px;
+        text-align: center;
+        color: var(--gray);
+        font-size: 15px;
+        font-weight: 400;
+        border-bottom: 2px solid transparent;
+      }
+
+      .tab-button.is-active {
+        color: var(--black);
+        font-weight: 800;
+        border-bottom-color: var(--black);
+      }
+
+      .render-status {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        min-height: 28px;
+        margin: -2px 8px 8px;
+        padding: 6px 8px;
+        border: 1px solid var(--hairline);
+        border-radius: 6px;
+        color: #626b76;
+        background: var(--surface);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          monospace;
+        font-size: 10px;
+        line-height: 1.2;
+      }
+
+      .render-status strong {
+        color: var(--dark-gray);
+        font-weight: 800;
+      }
+
+      .slider-wrapper {
+        flex: 1 1 auto;
+        min-height: 0;
+        width: 100%;
+        overflow: hidden;
+      }
+
+      .slider {
+        display: flex;
+        justify-content: center;
+        width: 200%;
+        height: 100%;
+        transform: translateX(0);
+        transition: transform 0.5s ease-in-out;
+      }
+
+      .slider[data-tab="private"] {
+        transform: translateX(-50%);
+      }
+
+      .post-grid {
+        display: grid;
+        align-content: start;
+        gap: 8px;
+        grid-template-columns: repeat(3, calc((100% - 16px) / 3));
+        grid-auto-rows: calc((min(100vw, 430px) - 16px) / 3);
+        width: 50%;
+        height: 100%;
+        overflow-y: auto;
+        scrollbar-width: none;
+      }
+
+      .post-grid::-webkit-scrollbar {
+        display: none;
+      }
+
+      .tracking-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        aspect-ratio: 1;
+        overflow: hidden;
+        background: var(--light-blue);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+      }
+
+      .tracking-container:focus-visible {
+        outline: 3px solid rgba(0, 122, 255, 0.45);
+        outline-offset: -3px;
+      }
+
+      .grid-empty-message {
+        grid-column: 1 / -1;
+        margin: 0;
+        padding: 18px 16px;
+        color: var(--gray);
+        font-size: 14px;
+        text-align: left;
+      }
+
+      .static-map {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background:
+          linear-gradient(28deg, transparent 44%, rgba(255, 255, 255, 0.72) 45% 48%, transparent 49%),
+          linear-gradient(151deg, transparent 42%, rgba(255, 255, 255, 0.55) 43% 45%, transparent 46%),
+          linear-gradient(34deg, transparent 47%, var(--map-road) 48% 51%, transparent 52%),
+          linear-gradient(132deg, transparent 43%, rgba(255, 255, 255, 0.64) 44% 47%, transparent 48%),
+          linear-gradient(0deg, transparent 48%, rgba(255, 255, 255, 0.58) 49% 51%, transparent 52%),
+          linear-gradient(90deg, transparent 48%, rgba(255, 255, 255, 0.5) 49% 51%, transparent 52%),
+          radial-gradient(circle at 28% 24%, rgba(153, 202, 255, 0.45), transparent 22%),
+          radial-gradient(circle at 76% 72%, rgba(41, 185, 112, 0.24), transparent 24%),
+          var(--map-bg);
+        background-size:
+          124px 124px,
+          118px 118px,
+          92px 92px,
+          104px 104px,
+          56px 56px,
+          64px 64px,
+          auto,
+          auto,
+          auto;
+      }
+
+      .static-map::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(rgba(30, 64, 96, 0.06) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(30, 64, 96, 0.05) 1px, transparent 1px);
+        background-size: 22px 22px;
+        pointer-events: none;
+      }
+
+      .static-route {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+      }
+
+      .static-route polyline {
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .static-route .route-shadow {
+        stroke: rgba(255, 255, 255, 0.9);
+      }
+
+      .map-pin {
+        filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.22));
+      }
+
+      .thumb-index {
+        position: absolute;
+        left: 6px;
+        bottom: 6px;
+        z-index: 3;
+        min-width: 20px;
+        height: 20px;
+        display: grid;
+        place-items: center;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.88);
+        color: var(--dark-gray);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          monospace;
+        font-size: 10px;
+        font-weight: 800;
+      }
+
+      .tracking-click-box,
+      .tracking-checkbox {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        z-index: 4;
+        width: 22px;
+        height: 22px;
+        display: grid;
+        place-items: center;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.74);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        color: var(--black);
+        font-size: 18px;
+        font-weight: 900;
+      }
+
+      .tracking-checkbox {
+        border: 2px solid var(--light-gray);
+        color: var(--white);
+        font-size: 13px;
+      }
+
+      .tracking-checkbox.is-selected {
+        border-color: var(--blue);
+        background: var(--blue);
+      }
+
+      .footer {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 900;
+        height: 48px;
+        display: flex;
+        justify-content: space-around;
+        background: rgba(255, 255, 255, 0.97);
+        border-top: 1px solid var(--hairline);
+        box-shadow: 0 -8px 20px rgba(26, 37, 54, 0.06);
+        backdrop-filter: blur(14px);
+      }
+
+      .footer-tab {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        color: var(--black);
+        transition: background 0.3s ease;
+      }
+
+      .footer-tab.is-active {
+        background: linear-gradient(180deg, var(--blue), var(--blue-pressed));
+        color: var(--white);
+      }
+
+      .footer-tab:disabled {
+        opacity: 0.45;
+        cursor: default;
+      }
+
+      .footer-icon {
+        width: 14px;
+        height: 14px;
+        border: 2px solid currentColor;
+        border-radius: 3px;
+      }
+
+      .footer-tab:nth-child(1) .footer-icon {
+        transform: rotate(45deg);
+        border-radius: 2px;
+      }
+
+      .footer-tab:nth-child(2) .footer-icon {
+        border-radius: 50%;
+      }
+
+      .footer-tab:nth-child(3) .footer-icon {
+        border-radius: 50%;
+        border-top-color: transparent;
+      }
+
+      .footer-tab:nth-child(4) .footer-icon {
+        border-radius: 50%;
+        background: currentColor;
+        box-shadow: 0 7px 0 -3px currentColor;
+      }
+
+      .footer-tab:nth-child(5) .footer-icon {
+        border-radius: 50%;
+        transform: rotate(20deg);
+      }
+
+      .footer-label {
+        font-size: 10px;
+        font-weight: 800;
+        line-height: 1;
+      }
+
+      .sheet-overlay,
+      .modal-overlay,
+      .confirm-overlay,
+      .detail-modal {
+        position: absolute;
+        inset: 0;
+      }
+
+      .sheet-overlay[hidden],
+      .modal-overlay[hidden],
+      .confirm-overlay[hidden],
+      .detail-modal[hidden] {
+        display: none !important;
+      }
+
+      .sheet-overlay {
+        z-index: 1500;
+        display: flex;
+        align-items: end;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.34);
+      }
+
+      .bottom-sheet {
+        width: 100%;
+        padding: 14px 16px 20px;
+        background: var(--white);
+        border-radius: 18px 18px 0 0;
+        display: grid;
+        gap: 8px;
+      }
+
+      .bottom-sheet button {
+        min-height: 44px;
+        border-radius: 8px;
+        background: #f3f5f8;
+        color: var(--black);
+        font-size: 15px;
+        font-weight: 700;
+      }
+
+      .bottom-sheet button:last-child {
+        background: var(--blue);
+        color: var(--white);
+      }
+
+      .modal-overlay {
+        z-index: 1500;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.5);
+      }
+
+      .modal-content {
+        position: relative;
+        width: 90%;
+        height: 95%;
+        padding: 20px;
+        border-radius: 10px;
+        background: var(--white);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+
+      .close-button {
+        position: absolute;
+        top: 0;
+        right: 0;
+        z-index: 2;
+        width: 38px;
+        height: 38px;
+        color: var(--black);
+        font-size: 26px;
+        line-height: 1;
+      }
+
+      .post-container {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .post-info {
+        min-height: 64px;
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 8px 22px 8px 0;
+      }
+
+      .poster-info-container {
+        min-width: 0;
+        display: flex;
+        align-items: end;
+        gap: 8px;
+      }
+
+      .post-profile-image {
+        width: 48px;
+        height: 48px;
+        flex: 0 0 48px;
+        border-radius: 50%;
+        background:
+          linear-gradient(145deg, rgba(153, 202, 255, 0.95), rgba(0, 122, 255, 0.84)),
+          var(--light-blue);
+      }
+
+      .poster-name {
+        margin: 0;
+        color: var(--black);
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.3;
+      }
+
+      .search-point {
+        width: 190px;
+        margin: 0;
+        color: var(--dark-gray);
+        font-size: 13px;
+        line-height: 1.3;
+        text-align: end;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .post-map-frame {
+        flex: 1 1 auto;
+        min-height: 0;
+        width: 100%;
+        overflow: hidden;
+        border: 1px solid #e6ebf0;
+        background: var(--map-bg);
+      }
+
+      .post-map-frame .static-map {
+        min-height: 100%;
+      }
+
+      .info-container {
+        flex: 0 0 44px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 4px;
+        color: var(--black);
+        font-size: 15px;
+      }
+
+      .info-container p {
+        margin: 0;
+      }
+
+      .btn-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .event-button {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--black);
+        font-size: 19px;
+        font-weight: 800;
+      }
+
+      .event-button.is-liked {
+        color: var(--route-red);
+      }
+
+      .confirm-overlay {
+        z-index: 1700;
+        display: grid;
+        place-items: center;
+        background: rgba(0, 0, 0, 0.45);
+      }
+
+      .confirm-box {
+        width: min(300px, calc(100% - 40px));
+        padding: 18px;
+        border-radius: 12px;
+        background: var(--white);
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+
+      .confirm-box p {
+        margin: 0 0 14px;
+        color: var(--black);
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .confirm-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .confirm-actions button {
+        width: 100%;
+        min-height: 38px;
+        border-radius: 8px;
+        background: #edf0f4;
+        font-weight: 800;
+      }
+
+      .confirm-actions button:first-child {
+        background: var(--black);
+        color: var(--white);
+      }
+
+      .detail-modal {
+        z-index: 1600;
+        overflow: hidden;
+        background: #d7e2ea;
+      }
+
+      .leaflet-map {
+        width: 100%;
+        height: 100%;
+        background: #d7e2ea;
+      }
+
+      .leaflet-container {
+        overflow: hidden;
+        outline: 0;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", "Pretendard",
+          system-ui, sans-serif;
+      }
+
+      .leaflet-pane,
+      .leaflet-tile,
+      .leaflet-marker-icon,
+      .leaflet-marker-shadow,
+      .leaflet-tile-container,
+      .leaflet-pane > svg,
+      .leaflet-pane > canvas,
+      .leaflet-zoom-box,
+      .leaflet-image-layer,
+      .leaflet-layer {
+        position: absolute;
+        left: 0;
+        top: 0;
+      }
+
+      .leaflet-tile {
+        width: 256px;
+        height: 256px;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+
+      .leaflet-map-pane {
+        z-index: 400;
+      }
+
+      .leaflet-tile-pane {
+        z-index: 200;
+      }
+
+      .leaflet-overlay-pane {
+        z-index: 400;
+      }
+
+      .leaflet-marker-pane {
+        z-index: 600;
+      }
+
+      .leaflet-control-container {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 800;
+      }
+
+      .leaflet-control {
+        position: relative;
+        pointer-events: auto;
+      }
+
+      .leaflet-bottom,
+      .leaflet-top {
+        position: absolute;
+        z-index: 1000;
+        pointer-events: none;
+      }
+
+      .leaflet-bottom {
+        bottom: 0;
+      }
+
+      .leaflet-right {
+        right: 0;
+      }
+
+      .detail-close {
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        z-index: 401;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: rgba(85, 85, 85, 0.86);
+        color: var(--white);
+        font-weight: 900;
+        line-height: 1;
+      }
+
+      .detail-searchpoint {
+        position: absolute;
+        top: 18px;
+        right: 16px;
+        z-index: 401;
+        max-width: 260px;
+        margin: 0;
+        padding: 7px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.88);
+        color: var(--black);
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.2;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .detail-indicator {
+        position: absolute;
+        left: 16px;
+        right: 16px;
+        bottom: 16px;
+        z-index: 401;
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.9);
+        color: #404852;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          monospace;
+        font-size: 11px;
+        line-height: 1.3;
+      }
+
+      .detail-indicator strong {
+        color: var(--black);
+      }
+
+      .leaflet-control-attribution {
+        font-size: 9px;
+      }
+
+      @media (max-width: 380px) {
+        .search-point {
+          width: 145px;
+        }
+
+        .render-status {
+          font-size: 9px;
+        }
+
+        .footer-label {
+          font-size: 9px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app" id="app" aria-label="DMap portfolio demo">
+      <section class="page-view sns-page is-active" id="snsPage" data-page="sns" aria-label="SNS 피드">
+        <header class="sns-header">
+          <h2 class="sns-date" id="snsDate">2026년 6월 10일</h2>
+          <select class="sorting-select" id="snsSort" aria-label="피드 정렬">
+            <option value="default">최신순</option>
+            <option value="todayHot">오늘의 인기순</option>
+          </select>
+        </header>
+        <div class="tracking-list" id="snsFeed"></div>
+      </section>
+
+      <section class="page-view tracking-page" id="trackingPage" data-page="tracking" aria-label="트래킹">
+        <div class="leaflet-map tracking-map-host" id="trackingLeafletMap"></div>
+
+        <div class="tracking-tool-container">
+          <button class="tracking-tool-btn" id="trackingLocationButton" type="button" aria-label="현재 위치">
+            ⦿
+          </button>
+          <div class="tracking-tool-modal" id="trackingToolModal">
+            <button class="tracking-tool-div" type="button" data-map-background="0">기본</button>
+            <button class="tracking-tool-div" type="button" data-map-background="1">위성</button>
+          </div>
+          <button class="tracking-modal-open-btn" id="trackingToolToggle" type="button" aria-label="지도 모드 변경">
+            ◫
+          </button>
+        </div>
+
+        <div class="line-control-container" aria-label="트래킹 라인 컨트롤">
+          <button class="line-control-btn" id="trackingResetButton" type="button" aria-label="reset btn">↺</button>
+          <button class="line-control-btn" id="trackingUndoButton" type="button" aria-label="undo btn">↶</button>
+          <button class="line-control-btn" id="trackingRedoButton" type="button" aria-label="redo btn">↷</button>
+        </div>
+
+        <div class="tracking-control-container" aria-label="트래킹 시작 정지">
+          <button class="tracking-control-btn" id="trackingPlayButton" type="button" aria-label="play">▶</button>
+          <button class="tracking-control-btn" id="trackingPauseButton" type="button" aria-label="pause" hidden>Ⅱ</button>
+          <button class="tracking-control-btn" id="trackingStopButton" type="button" aria-label="stop" hidden>■</button>
+        </div>
+
+        <div class="tracking-save-overlay" id="trackingSaveOverlay" hidden></div>
+        <section class="tracking-save-sheet" id="trackingSaveSheet" hidden aria-label="트래킹 저장">
+          <div class="sheet-handle"></div>
+          <div class="tracking-save-container">
+            <div class="tracking-preview-map" id="trackingPreviewMap"></div>
+            <div class="slider-container">
+              <label for="lineWidth">선 굵기</label>
+              <input id="lineWidth" type="range" min="1" max="10" value="6" />
+            </div>
+            <div class="slider-container">
+              <label for="lineColor">색 선택</label>
+              <input class="color-picker" id="lineColor" type="color" value="#007aff" />
+            </div>
+            <div class="save-button-container">
+              <button type="button" id="saveTrackingButton">저장하기</button>
+              <button type="button" id="saveShareTrackingButton">저장 및 공유하기</button>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section class="page-view search-page" id="searchPage" data-page="search" aria-label="검색">
+        <div class="search-body-container" id="searchBody" hidden>
+          <div class="search-result-tab-container">
+            <div class="search-tab-box">
+              <div class="search-tab-background" id="searchTabBackground">장소</div>
+              <button class="search-tab is-active" type="button" data-search-tab="searchpoint">장소</button>
+              <button class="search-tab" type="button" data-search-tab="nickname">이름</button>
+            </div>
+          </div>
+          <div class="search-slider-wrapper">
+            <div class="search-slider" id="searchSlider">
+              <div class="search-point-tab" id="searchPointResults"></div>
+              <div class="nickname-result-tab" id="nicknameResults"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="search-history-container" id="searchHistoryContainer">
+          <ul class="search-list" id="searchHistoryList"></ul>
+        </div>
+
+        <form class="search-header-container" id="searchForm">
+          <div class="search-box">
+            <div class="search-input-container">
+              <button class="search-icon" id="searchBackButton" type="button" hidden>←</button>
+              <input
+                class="search-input"
+                id="searchInput"
+                name="searchInputText"
+                placeholder="검색어를 입력하세요"
+                autocomplete="off"
+              />
+              <button class="search-icon" type="submit" aria-label="검색">🔍</button>
+            </div>
+          </div>
+          <div class="search-error-container">
+            <p class="search-error-message" id="searchError"></p>
+          </div>
+        </form>
+      </section>
+
+      <section class="page-view setting-page" id="settingPage" data-page="setting" aria-label="설정">
+        <header class="setting-header">
+          <p class="setting-header-title" id="settingTitle">설정 페이지</p>
+        </header>
+        <div class="setting-tab-container"></div>
+        <div class="setting-button-container">
+          <div class="setting-button-box" id="settingButtonBox"></div>
+          <div class="setting-button-box">
+            <div class="setting-footer-text">
+              <p>
+                Copyright © 2025. Stageus Team.
+                <br />
+                Designed for Android and iOS.
+                <br />
+                Published on Google Play and App Store.
+                <br />
+                All rights reserved.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page-view login-page" id="loginPage" data-page="login" aria-label="로그인">
+        <p class="login-title">DMAP - Draw Your Own Map!!!</p>
+        <div class="login-button-container">
+          <button class="login-button" id="kakaoLoginButton" type="button">
+            Kakao로 로그인
+          </button>
+        </div>
+      </section>
+
+      <section class="page-view profile-page" id="profilePage" data-page="profile">
+        <div class="profile-top">
+          <header class="profile-header" aria-label="프로필 헤더">
+            <div class="profile-avatar" aria-hidden="true">PM</div>
+            <div class="user-info">
+              <div class="profile-box">
+                <h1 class="user-name">path_maker</h1>
+                <button
+                  class="profile-button"
+                  id="profileMenuButton"
+                  type="button"
+                  aria-label="프로필 메뉴 열기"
+                >
+                  •••
+                </button>
+              </div>
+              <button class="nickname-button" type="button">닉네임 수정</button>
+              <p class="post-count" id="postCount">공개 게시물 : 9개</p>
+            </div>
+          </header>
+
+          <header class="modify-header" aria-label="편집 모드 헤더">
+            <h2 class="modify-title" id="modifyTitle">공유 설정</h2>
+            <div class="modify-actions">
+              <button type="button" id="modifyDoneButton">완료</button>
+              <button type="button" id="modifyCancelButton">취소</button>
+            </div>
+          </header>
+
+          <nav class="tab-menu" aria-label="프로필 게시물 탭">
+            <button
+              class="tab-button is-active"
+              type="button"
+              data-tab="public"
+            >
+              공개
+            </button>
+            <button class="tab-button" type="button" data-tab="private">
+              비공개
+            </button>
+          </nav>
+
+          <div class="render-status" aria-live="polite">
+            <span>정적 썸네일 <strong id="staticCount">18</strong></span>
+            <span>상세 지도 <strong id="liveCount">0</strong></span>
+          </div>
+        </div>
+
+        <section class="slider-wrapper" aria-label="지도 썸네일 그리드">
+          <div class="slider" id="slider" data-tab="public">
+            <div class="post-grid" id="publicGrid" aria-label="공개 지도"></div>
+            <div class="post-grid" id="privateGrid" aria-label="비공개 지도"></div>
+          </div>
+        </section>
+      </section>
+
+      <footer class="footer" aria-label="앱 하단 네비게이션">
+        <button class="footer-tab is-active" type="button" aria-label="HOME" data-page-target="sns">
+          <span class="footer-icon" aria-hidden="true"></span>
+          <span class="footer-label">HOME</span>
+        </button>
+        <button class="footer-tab" type="button" aria-label="SEARCH" data-page-target="search">
+          <span class="footer-icon" aria-hidden="true"></span>
+          <span class="footer-label">SEARCH</span>
+        </button>
+        <button class="footer-tab" type="button" aria-label="TRACKING" data-page-target="tracking">
+          <span class="footer-icon" aria-hidden="true"></span>
+          <span class="footer-label">TRACKING</span>
+        </button>
+        <button class="footer-tab" type="button" aria-label="PROFILE" data-page-target="profile">
+          <span class="footer-icon" aria-hidden="true"></span>
+          <span class="footer-label">PROFILE</span>
+        </button>
+        <button class="footer-tab" type="button" aria-label="SETTING" data-page-target="setting">
+          <span class="footer-icon" aria-hidden="true"></span>
+          <span class="footer-label">SETTING</span>
+        </button>
+      </footer>
+
+      <div class="sheet-overlay" id="profileSheet" hidden>
+        <div class="bottom-sheet" role="dialog" aria-label="프로필 편집 메뉴">
+          <button type="button" data-modify-mode="공유">공유</button>
+          <button type="button" data-modify-mode="삭제">삭제</button>
+          <button type="button" id="closeProfileSheet">뒤로가기</button>
+        </div>
+      </div>
+
+      <div class="modal-overlay" id="postModal" hidden>
+        <article class="modal-content" role="dialog" aria-modal="true">
+          <button
+            class="close-button"
+            type="button"
+            id="closePostModal"
+            aria-label="포스트 닫기"
+          >
+            &times;
+          </button>
+
+          <div class="post-container">
+            <div class="post-info">
+              <div class="poster-info-container">
+                <div class="post-profile-image" aria-hidden="true"></div>
+                <p class="poster-name" id="postNickname">path_maker</p>
+              </div>
+              <p class="search-point" id="postSearchPoint">송도 센트럴파크</p>
+            </div>
+
+            <div class="post-map-frame" id="postMapFrame"></div>
+
+            <div class="info-container">
+              <p id="likeText">좋아요: 23</p>
+              <div class="btn-container">
+                <button
+                  class="event-button"
+                  id="likeButton"
+                  type="button"
+                  aria-label="좋아요"
+                >
+                  ♡
+                </button>
+                <button
+                  class="event-button"
+                  id="detailButton"
+                  type="button"
+                  aria-label="상세 지도 보기"
+                >
+                  ⌖
+                </button>
+                <button
+                  class="event-button"
+                  id="loadTrackButton"
+                  type="button"
+                  aria-label="트래킹 화면으로 이동"
+                >
+                  ↗
+                </button>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <section class="detail-modal" id="detailModal" hidden>
+        <div class="leaflet-map" id="sharedLeafletMap"></div>
+        <button
+          class="detail-close"
+          type="button"
+          id="closeDetailButton"
+          aria-label="상세 지도 닫기"
+        >
+          X
+        </button>
+        <p class="detail-searchpoint" id="detailSearchPoint">
+          송도 센트럴파크
+        </p>
+        <div class="detail-indicator">
+          <span>정적 썸네일 <strong id="detailStaticCount">18</strong></span>
+          <span>상세 지도 <strong>1개</strong></span>
+        </div>
+      </section>
+
+      <div class="confirm-overlay" id="confirmOverlay" hidden>
+        <div class="confirm-box" role="alertdialog" aria-modal="true">
+          <p id="confirmMessage">변경사항을 저장하시겠습니까?</p>
+          <div class="confirm-actions" id="confirmActions">
+            <button type="button" id="confirmOkButton">확인</button>
+            <button type="button" id="confirmCancelButton">취소</button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script>
+      const baseRoutes = [
+        {
+          title: "송도 센트럴 루프",
+          searchpoint: "송도 센트럴파크",
+          area: "인천 연수구",
+          center: { lat: 37.3927, lng: 126.6386 },
+          zoom: 15,
+          distance: "3.8km",
+          color: "#007aff",
+          line: [
+            { lat: 37.3906, lng: 126.6362 },
+            { lat: 37.3916, lng: 126.6388 },
+            { lat: 37.3929, lng: 126.6411 },
+            { lat: 37.3941, lng: 126.6395 },
+            { lat: 37.3933, lng: 126.6369 },
+            { lat: 37.3906, lng: 126.6362 },
+          ],
+        },
+        {
+          title: "한강 야간 산책",
+          searchpoint: "여의도 한강공원",
+          area: "서울 영등포구",
+          center: { lat: 37.5286, lng: 126.9326 },
+          zoom: 15,
+          distance: "5.1km",
+          color: "#29b970",
+          line: [
+            { lat: 37.5268, lng: 126.9269 },
+            { lat: 37.5282, lng: 126.9297 },
+            { lat: 37.5296, lng: 126.9341 },
+            { lat: 37.5312, lng: 126.9386 },
+            { lat: 37.5294, lng: 126.9412 },
+          ],
+        },
+        {
+          title: "북촌 골목 기록",
+          searchpoint: "북촌 한옥마을",
+          area: "서울 종로구",
+          center: { lat: 37.5826, lng: 126.9835 },
+          zoom: 16,
+          distance: "2.2km",
+          color: "#ff5f57",
+          line: [
+            { lat: 37.5805, lng: 126.9821 },
+            { lat: 37.5814, lng: 126.9838 },
+            { lat: 37.5828, lng: 126.9827 },
+            { lat: 37.5836, lng: 126.9851 },
+            { lat: 37.5844, lng: 126.9839 },
+          ],
+        },
+        {
+          title: "해운대 바닷길",
+          searchpoint: "해운대 해수욕장",
+          area: "부산 해운대구",
+          center: { lat: 35.1587, lng: 129.1604 },
+          zoom: 15,
+          distance: "4.4km",
+          color: "#007aff",
+          line: [
+            { lat: 35.1568, lng: 129.1547 },
+            { lat: 35.1582, lng: 129.1585 },
+            { lat: 35.1593, lng: 129.1629 },
+            { lat: 35.1601, lng: 129.1664 },
+          ],
+        },
+        {
+          title: "성산 일출길",
+          searchpoint: "성산일출봉",
+          area: "제주 서귀포시",
+          center: { lat: 33.4625, lng: 126.9366 },
+          zoom: 15,
+          distance: "3.0km",
+          color: "#29b970",
+          line: [
+            { lat: 33.4607, lng: 126.9334 },
+            { lat: 33.4618, lng: 126.9357 },
+            { lat: 33.4631, lng: 126.9372 },
+            { lat: 33.4647, lng: 126.9385 },
+            { lat: 33.466, lng: 126.9372 },
+          ],
+        },
+        {
+          title: "대전 둔산 체크",
+          searchpoint: "둔산동",
+          area: "대전 서구",
+          center: { lat: 36.351, lng: 127.3786 },
+          zoom: 15,
+          distance: "2.9km",
+          color: "#ff5f57",
+          line: [
+            { lat: 36.3486, lng: 127.3767 },
+            { lat: 36.3498, lng: 127.3795 },
+            { lat: 36.3514, lng: 127.3812 },
+            { lat: 36.3533, lng: 127.379 },
+            { lat: 36.352, lng: 127.3762 },
+          ],
+        },
+        {
+          title: "수원 화성 한 바퀴",
+          searchpoint: "수원화성",
+          area: "경기 수원시",
+          center: { lat: 37.2872, lng: 127.0116 },
+          zoom: 15,
+          distance: "4.7km",
+          color: "#007aff",
+          line: [
+            { lat: 37.2847, lng: 127.0094 },
+            { lat: 37.2862, lng: 127.0121 },
+            { lat: 37.2882, lng: 127.0145 },
+            { lat: 37.2901, lng: 127.0128 },
+            { lat: 37.289, lng: 127.0096 },
+            { lat: 37.2847, lng: 127.0094 },
+          ],
+        },
+        {
+          title: "청계천 점심 산책",
+          searchpoint: "청계천",
+          area: "서울 중구",
+          center: { lat: 37.5689, lng: 126.9789 },
+          zoom: 16,
+          distance: "2.6km",
+          color: "#29b970",
+          line: [
+            { lat: 37.5678, lng: 126.9761 },
+            { lat: 37.5681, lng: 126.9783 },
+            { lat: 37.5687, lng: 126.9811 },
+            { lat: 37.5697, lng: 126.9832 },
+          ],
+        },
+        {
+          title: "광안리 노을길",
+          searchpoint: "광안리해변",
+          area: "부산 수영구",
+          center: { lat: 35.1532, lng: 129.1187 },
+          zoom: 15,
+          distance: "3.6km",
+          color: "#ff5f57",
+          line: [
+            { lat: 35.1518, lng: 129.1141 },
+            { lat: 35.1527, lng: 129.1175 },
+            { lat: 35.1534, lng: 129.121 },
+            { lat: 35.1542, lng: 129.1244 },
+          ],
+        },
+      ];
+
+      const tracks = [
+        ...baseRoutes.map((route, index) => ({
+          ...route,
+          idx: index + 1,
+          sharing: true,
+          isMine: true,
+          nickname: "path_maker",
+          likecount: 22 + index * 3,
+          liked_by_user: index % 4 === 0,
+          heading: 0,
+          background: 0,
+          thickness: 6,
+        })),
+        ...baseRoutes.map((route, index) => ({
+          ...route,
+          idx: index + 10,
+          title: `${route.title} 비공개`,
+          sharing: false,
+          isMine: true,
+          nickname: "path_maker",
+          likecount: 11 + index * 2,
+          liked_by_user: index % 3 === 0,
+          heading: 0,
+          background: 0,
+          thickness: 6,
+          color: index % 2 === 0 ? "#007aff" : "#29b970",
+          center: {
+            lat: route.center.lat + 0.0025,
+            lng: route.center.lng - 0.002,
+          },
+          line: route.line.map((point, pointIndex) => ({
+            lat: point.lat + 0.0025 + pointIndex * 0.00015,
+            lng: point.lng - 0.002 + pointIndex * 0.0001,
+          })),
+        })),
+      ];
+
+      const mockUsers = [
+        { idx: 1, nickname: "path_maker" },
+        { idx: 2, nickname: "daily_mapper" },
+        { idx: 3, nickname: "songdo_runner" },
+        { idx: 4, nickname: "hanriver_walk" },
+      ];
+
+      const state = {
+        currentPage: "sns",
+        snsCategory: "default",
+        trackingToolOpen: false,
+        trackingBackground: 0,
+        isTracking: false,
+        trackingPoints: baseRoutes[0].line.map((point) => ({ ...point })),
+        trackingUndoStack: [],
+        isFirstSearch: true,
+        isSearchFocus: false,
+        searchInputText: "",
+        activeSearchTab: "searchpoint",
+        isLogin: true,
+        pendingSettingAction: null,
+        searchHistory: [
+          { searchInputText: "송도" },
+          { searchInputText: "한강" },
+          { searchInputText: "북촌" },
+        ],
+        activeTab: "public",
+        selectedTrackIdx: tracks[0].idx,
+        modifyMode: null,
+        backupTracks: null,
+        selectedDelete: new Set(),
+      };
+
+      let liveMap = null;
+      let liveTileLayer = null;
+      let liveLayers = [];
+      let trackingMap = null;
+      let trackingTileLayer = null;
+      let trackingLayers = [];
+
+      const app = document.getElementById("app");
+      const snsFeed = document.getElementById("snsFeed");
+      const snsSort = document.getElementById("snsSort");
+      const trackingPage = document.getElementById("trackingPage");
+      const trackingToolModal = document.getElementById("trackingToolModal");
+      const trackingPlayButton = document.getElementById("trackingPlayButton");
+      const trackingPauseButton = document.getElementById("trackingPauseButton");
+      const trackingStopButton = document.getElementById("trackingStopButton");
+      const trackingSaveOverlay = document.getElementById("trackingSaveOverlay");
+      const trackingSaveSheet = document.getElementById("trackingSaveSheet");
+      const trackingPreviewMap = document.getElementById("trackingPreviewMap");
+      const searchBody = document.getElementById("searchBody");
+      const searchHistoryContainer = document.getElementById("searchHistoryContainer");
+      const searchHistoryList = document.getElementById("searchHistoryList");
+      const searchInput = document.getElementById("searchInput");
+      const searchBackButton = document.getElementById("searchBackButton");
+      const searchError = document.getElementById("searchError");
+      const searchSlider = document.getElementById("searchSlider");
+      const searchTabBackground = document.getElementById("searchTabBackground");
+      const searchPointResults = document.getElementById("searchPointResults");
+      const nicknameResults = document.getElementById("nicknameResults");
+      const settingTitle = document.getElementById("settingTitle");
+      const settingButtonBox = document.getElementById("settingButtonBox");
+      const slider = document.getElementById("slider");
+      const publicGrid = document.getElementById("publicGrid");
+      const privateGrid = document.getElementById("privateGrid");
+      const postModal = document.getElementById("postModal");
+      const profileSheet = document.getElementById("profileSheet");
+      const detailModal = document.getElementById("detailModal");
+      const confirmOverlay = document.getElementById("confirmOverlay");
+
+      function activeTrackList(tabName = state.activeTab) {
+        return tracks.filter((track) =>
+          tabName === "public" ? track.sharing : !track.sharing
+        );
+      }
+
+      function selectedTrack() {
+        return tracks.find((track) => track.idx === state.selectedTrackIdx) || tracks[0];
+      }
+
+      function pageTrackList() {
+        const publicTracks = tracks.filter((track) => track.sharing);
+        if (state.snsCategory === "todayHot") {
+          return [...publicTracks].sort((a, b) => b.likecount - a.likecount);
+        }
+        return publicTracks;
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      function projectLine(line) {
+        const padding = 12;
+        const lats = line.map((point) => point.lat);
+        const lngs = line.map((point) => point.lng);
+        const minLat = Math.min(...lats);
+        const maxLat = Math.max(...lats);
+        const minLng = Math.min(...lngs);
+        const maxLng = Math.max(...lngs);
+        const latRange = maxLat - minLat || 0.001;
+        const lngRange = maxLng - minLng || 0.001;
+
+        return line.map((point) => {
+          const x = padding + ((point.lng - minLng) / lngRange) * (100 - padding * 2);
+          const y = padding + ((maxLat - point.lat) / latRange) * (100 - padding * 2);
+          return {
+            x: Number(x.toFixed(2)),
+            y: Number(y.toFixed(2)),
+          };
+        });
+      }
+
+      function staticMapMarkup(track, options = {}) {
+        const points = projectLine(track.line);
+        const pointString = points.map((point) => `${point.x},${point.y}`).join(" ");
+        const start = points[0];
+        const end = points[points.length - 1];
+        const strokeWidth = options.large ? 4.7 : 5.5;
+        const shadowWidth = options.large ? 8 : 8.5;
+
+        return `
+          <div class="static-map" role="img" aria-label="${escapeHtml(track.searchpoint)} 정적 지도">
+            <svg class="static-route" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <polyline class="route-shadow" points="${pointString}" stroke-width="${shadowWidth}" />
+              <polyline points="${pointString}" stroke="${escapeHtml(track.color)}" stroke-width="${strokeWidth}" />
+              <circle class="map-pin" cx="${start.x}" cy="${start.y}" r="3.9" fill="#ffffff" stroke="${escapeHtml(track.color)}" stroke-width="2.4" />
+              <circle class="map-pin" cx="${end.x}" cy="${end.y}" r="4.4" fill="${escapeHtml(track.color)}" stroke="#ffffff" stroke-width="2.2" />
+            </svg>
+          </div>
+        `;
+      }
+
+      function trackingBoxMarkup(track, index, tabName) {
+        const selected = state.selectedDelete.has(track.idx);
+        const overlay =
+          state.modifyMode === "공유"
+            ? `<span class="tracking-click-box">${tabName === "public" ? "→" : "←"}</span>`
+            : state.modifyMode === "삭제"
+              ? `<span class="tracking-checkbox ${selected ? "is-selected" : ""}">${selected ? "✓" : ""}</span>`
+              : "";
+
+        return `
+          <button
+            class="tracking-container"
+            type="button"
+            data-track-id="${track.idx}"
+            aria-label="${escapeHtml(track.searchpoint)} 지도 열기"
+          >
+            ${staticMapMarkup(track)}
+            <span class="thumb-index">${String(index + 1).padStart(2, "0")}</span>
+            ${overlay}
+          </button>
+        `;
+      }
+
+      function snsPostMarkup(track) {
+        return `
+          <article class="tracking-post" data-feed-post-id="${track.idx}">
+            <div class="post-info">
+              <div class="poster-info-container">
+                <div class="post-profile-image" aria-hidden="true"></div>
+                <p class="poster-name">${escapeHtml(track.nickname)}</p>
+              </div>
+              <p class="search-point">${escapeHtml(track.searchpoint)}</p>
+            </div>
+            <div
+              class="tracking-image-wrapper"
+              data-feed-map-id="${track.idx}"
+              aria-label="${escapeHtml(track.searchpoint)} 지도 이미지"
+            >
+              <div class="feed-map-frame">${staticMapMarkup(track, { large: true })}</div>
+            </div>
+            <div class="info-container">
+              <p>좋아요: ${track.likecount}</p>
+              <div class="btn-container">
+                <button
+                  class="event-button ${track.liked_by_user ? "is-liked" : ""}"
+                  type="button"
+                  data-feed-like-id="${track.idx}"
+                  aria-label="좋아요"
+                >
+                  ${track.liked_by_user ? "♥" : "♡"}
+                </button>
+                <button
+                  class="event-button"
+                  type="button"
+                  data-feed-detail-id="${track.idx}"
+                  aria-label="상세 지도 보기"
+                >
+                  ⌖
+                </button>
+                <button
+                  class="event-button"
+                  type="button"
+                  data-feed-load-id="${track.idx}"
+                  aria-label="트래킹 화면으로 이동"
+                >
+                  ↗
+                </button>
+              </div>
+            </div>
+          </article>
+        `;
+      }
+
+      function renderSnsFeed() {
+        snsFeed.innerHTML = pageTrackList().map(snsPostMarkup).join("");
+      }
+
+      function renderSnsDate() {
+        const currentDate = new Date();
+        document.getElementById("snsDate").textContent =
+          `${currentDate.getFullYear()}년 ${currentDate.getMonth() + 1}월 ${currentDate.getDate()}일`;
+      }
+
+      function ensureTrackingMap() {
+        if (!window.L) {
+          document.getElementById("trackingLeafletMap").innerHTML =
+            '<div style="padding:16px;font-size:13px;">지도를 불러오지 못했습니다.</div>';
+          return null;
+        }
+
+        if (!trackingMap) {
+          trackingMap = L.map("trackingLeafletMap", {
+            zoomControl: false,
+            attributionControl: true,
+            dragging: true,
+            scrollWheelZoom: false,
+            doubleClickZoom: true,
+            boxZoom: false,
+            keyboard: false,
+          });
+
+          trackingTileLayer = L.tileLayer(
+            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {
+              maxZoom: 19,
+              attribution: "&copy; OpenStreetMap",
+            }
+          ).addTo(trackingMap);
+        }
+
+        return trackingMap;
+      }
+
+      function clearTrackingLayers() {
+        if (!trackingMap) return;
+        trackingLayers.forEach((layer) => trackingMap.removeLayer(layer));
+        trackingLayers = [];
+      }
+
+      function renderTrackingMap() {
+        if (state.currentPage !== "tracking") return;
+        const map = ensureTrackingMap();
+        if (!map) return;
+
+        clearTrackingLayers();
+        const points =
+          state.trackingPoints.length > 0
+            ? state.trackingPoints
+            : baseRoutes[0].line.slice(0, 1);
+        const path = points.map((point) => [point.lat, point.lng]);
+
+        if (path.length > 1) {
+          const route = L.polyline(path, {
+            color: document.getElementById("lineColor").value,
+            opacity: 0.88,
+            weight: Number(document.getElementById("lineWidth").value),
+            lineCap: "round",
+            lineJoin: "round",
+          }).addTo(map);
+          const startMarker = L.circleMarker(path[0], {
+            radius: 7,
+            color: document.getElementById("lineColor").value,
+            weight: 3,
+            fillColor: "#ffffff",
+            fillOpacity: 1,
+          }).addTo(map);
+          const endMarker = L.circleMarker(path[path.length - 1], {
+            radius: 8,
+            color: "#ffffff",
+            weight: 3,
+            fillColor: document.getElementById("lineColor").value,
+            fillOpacity: 1,
+          }).addTo(map);
+          trackingLayers.push(route, startMarker, endMarker);
+          map.fitBounds(route.getBounds(), { padding: [56, 56], maxZoom: 16 });
+        } else {
+          map.setView([points[0].lat, points[0].lng], 15);
+        }
+
+        window.setTimeout(() => map.invalidateSize(), 50);
+      }
+
+      function renderTrackingPreview() {
+        const previewTrack = {
+          ...tracks[0],
+          color: document.getElementById("lineColor").value,
+          thickness: Number(document.getElementById("lineWidth").value),
+          line:
+            state.trackingPoints.length > 1
+              ? state.trackingPoints
+              : tracks[0].line,
+        };
+        trackingPreviewMap.innerHTML = staticMapMarkup(previewTrack, { large: true });
+      }
+
+      function renderTrackingControls() {
+        trackingPage.classList.toggle("is-satellite", state.trackingBackground === 1);
+        trackingToolModal.classList.toggle("is-open", state.trackingToolOpen);
+        trackingPlayButton.hidden = state.isTracking;
+        trackingPauseButton.hidden = !state.isTracking;
+        trackingStopButton.hidden = !state.isTracking;
+        renderTrackingPreview();
+        renderTrackingMap();
+      }
+
+      function searchPointMatches() {
+        const text = state.searchInputText.trim().toLowerCase();
+        if (!text) return [];
+        return tracks
+          .filter((track) => track.sharing)
+          .filter((track) =>
+            [track.searchpoint, track.title, track.area]
+              .join(" ")
+              .toLowerCase()
+              .includes(text)
+          );
+      }
+
+      function nicknameMatches() {
+        const text = state.searchInputText.trim().toLowerCase();
+        if (!text) return [];
+        return mockUsers.filter((user) => user.nickname.toLowerCase().includes(text));
+      }
+
+      function renderSearchHistory() {
+        if (state.searchHistory.length === 0) {
+          searchHistoryList.innerHTML = `<li class="search-list-item">검색기록이 없습니다</li>`;
+          return;
+        }
+
+        searchHistoryList.innerHTML = state.searchHistory
+          .map(
+            (item) => `
+              <li class="search-list-box">
+                <button class="search-list-item" type="button" data-search-history="${escapeHtml(item.searchInputText)}">
+                  ${escapeHtml(item.searchInputText)}
+                </button>
+                <button class="list-delete-button" type="button" data-delete-history="${escapeHtml(item.searchInputText)}">&times;</button>
+              </li>
+            `
+          )
+          .join("");
+      }
+
+      function renderSearchTabs() {
+        const isName = state.activeSearchTab === "nickname";
+        searchSlider.classList.toggle("is-name", isName);
+        searchTabBackground.classList.toggle("is-name", isName);
+        searchTabBackground.textContent = isName ? "이름" : "장소";
+        document.querySelectorAll(".search-tab").forEach((button) => {
+          button.classList.toggle("is-active", button.dataset.searchTab === state.activeSearchTab);
+        });
+      }
+
+      function renderSearchResults() {
+        const placeResults = searchPointMatches();
+        const nameResults = nicknameMatches();
+
+        searchPointResults.innerHTML =
+          placeResults.length > 0
+            ? `<div class="tracking-list">${placeResults.map(snsPostMarkup).join("")}</div>`
+            : `<div class="search-empty-message">없는 장소입니다.</div>`;
+
+        nicknameResults.innerHTML =
+          nameResults.length > 0
+            ? nameResults
+                .map(
+                  (user) => `
+                    <button class="nickname-container" type="button" data-profile-user="${user.idx}">
+                      <span class="nickname-profile-icon" aria-hidden="true"></span>
+                      <span class="nickname-text">${escapeHtml(user.nickname)}</span>
+                    </button>
+                  `
+                )
+                .join("")
+            : `<div class="search-empty-message">없는 이름입니다.</div>`;
+      }
+
+      function renderSearch() {
+        searchInput.value = state.searchInputText;
+        searchBody.hidden = state.isFirstSearch;
+        searchHistoryContainer.hidden = !state.isFirstSearch;
+        searchBackButton.hidden = !(state.isSearchFocus && !state.isFirstSearch);
+        renderSearchHistory();
+        renderSearchTabs();
+        renderSearchResults();
+      }
+
+      function renderSetting() {
+        settingTitle.textContent = state.isLogin ? "설정 페이지" : "로그인이 필요합니다";
+        settingButtonBox.innerHTML = state.isLogin
+          ? `
+              <button class="setting-button is-danger" type="button" data-setting-action="탈퇴">회원탈퇴</button>
+              <button class="setting-button" type="button" data-setting-action="로그아웃">로그아웃</button>
+            `
+          : `
+              <button class="setting-button" type="button" data-go-login="true">로그인 하기</button>
+            `;
+      }
+
+      function renderGrid(gridEl, tabName) {
+        const list = activeTrackList(tabName);
+        if (list.length === 0) {
+          gridEl.innerHTML = `<p class="grid-empty-message">게시물이 없습니다.</p>`;
+          return;
+        }
+
+        gridEl.innerHTML = list
+          .map((track, index) => trackingBoxMarkup(track, index, tabName))
+          .join("");
+      }
+
+      function renderTabs() {
+        document.querySelectorAll(".tab-button").forEach((button) => {
+          button.classList.toggle("is-active", button.dataset.tab === state.activeTab);
+        });
+        slider.dataset.tab = state.activeTab;
+
+        const label = state.activeTab === "public" ? "공개" : "비공개";
+        const count = activeTrackList(state.activeTab).length;
+        document.getElementById("postCount").textContent = `${label} 게시물 : ${count}개`;
+      }
+
+      function renderStatus() {
+        document.getElementById("staticCount").textContent = String(tracks.length);
+        document.getElementById("detailStaticCount").textContent = String(tracks.length);
+        document.getElementById("liveCount").textContent = detailModal.hidden ? "0" : "1";
+      }
+
+      function renderPage() {
+        document.querySelectorAll(".page-view").forEach((page) => {
+          page.classList.toggle("is-active", page.dataset.page === state.currentPage);
+        });
+        document.querySelectorAll(".footer-tab").forEach((button) => {
+          button.classList.toggle("is-active", button.dataset.pageTarget === state.currentPage);
+        });
+        window.setTimeout(renderTrackingMap, 50);
+      }
+
+      function renderModifyHeader() {
+        app.classList.toggle("is-modifying", Boolean(state.modifyMode));
+        document.getElementById("modifyTitle").textContent = state.modifyMode
+          ? `${state.modifyMode} 설정`
+          : "공유 설정";
+      }
+
+      function renderAll() {
+        renderSnsDate();
+        renderPage();
+        renderSnsFeed();
+        renderTrackingControls();
+        renderSearch();
+        renderSetting();
+        renderModifyHeader();
+        renderTabs();
+        renderGrid(publicGrid, "public");
+        renderGrid(privateGrid, "private");
+        renderStatus();
+      }
+
+      function openPostModal(track) {
+        state.selectedTrackIdx = track.idx;
+        document.getElementById("postNickname").textContent = track.nickname;
+        document.getElementById("postSearchPoint").textContent = track.searchpoint;
+        document.getElementById("postMapFrame").innerHTML = staticMapMarkup(track, {
+          large: true,
+        });
+        document.getElementById("likeText").textContent = `좋아요: ${track.likecount}`;
+        document.getElementById("likeButton").classList.toggle("is-liked", track.liked_by_user);
+        document.getElementById("likeButton").textContent = track.liked_by_user ? "♥" : "♡";
+        postModal.hidden = false;
+      }
+
+      function closePostModal() {
+        postModal.hidden = true;
+      }
+
+      function startModifyMode(mode) {
+        state.modifyMode = mode;
+        state.backupTracks = tracks.map((track) => ({ ...track, line: track.line.map((point) => ({ ...point })) }));
+        state.selectedDelete = new Set();
+        profileSheet.hidden = true;
+        renderAll();
+      }
+
+      function cancelModifyMode() {
+        if (state.backupTracks) {
+          tracks.splice(0, tracks.length, ...state.backupTracks);
+        }
+        state.modifyMode = null;
+        state.backupTracks = null;
+        state.selectedDelete = new Set();
+        renderAll();
+      }
+
+      function finishModifyMode() {
+        const selectedCount = state.selectedDelete.size;
+        if (state.modifyMode === "삭제") {
+          showConfirm(
+            selectedCount === 0
+              ? "선택된 데이터가 없습니다"
+              : "선택한 그림을 모두 삭제하시겠습니까?",
+            selectedCount === 0,
+            () => {
+              if (selectedCount > 0) {
+                for (let index = tracks.length - 1; index >= 0; index -= 1) {
+                  if (state.selectedDelete.has(tracks[index].idx)) tracks.splice(index, 1);
+                }
+              }
+              state.modifyMode = null;
+              state.backupTracks = null;
+              state.selectedDelete = new Set();
+              renderAll();
+            }
+          );
+          return;
+        }
+
+        showConfirm("변경사항을 저장하시겠습니까?", false, () => {
+          state.modifyMode = null;
+          state.backupTracks = null;
+          state.selectedDelete = new Set();
+          renderAll();
+        });
+      }
+
+      function showConfirm(message, oneButton, onConfirm, labels = {}) {
+        document.getElementById("confirmMessage").textContent = message;
+        const okButton = document.getElementById("confirmOkButton");
+        const cancelButton = document.getElementById("confirmCancelButton");
+        okButton.textContent = labels.ok || (oneButton ? "확인" : "네");
+        cancelButton.textContent = labels.cancel || "아니요";
+        cancelButton.hidden = oneButton;
+        confirmOverlay.hidden = false;
+
+        const cleanup = () => {
+          confirmOverlay.hidden = true;
+          okButton.onclick = null;
+          cancelButton.onclick = null;
+        };
+
+        okButton.onclick = () => {
+          cleanup();
+          onConfirm();
+        };
+        cancelButton.onclick = cleanup;
+      }
+
+      function toggleTrackForModify(track) {
+        if (state.modifyMode === "공유") {
+          track.sharing = !track.sharing;
+          renderAll();
+          return;
+        }
+
+        if (state.modifyMode === "삭제") {
+          if (state.selectedDelete.has(track.idx)) {
+            state.selectedDelete.delete(track.idx);
+          } else {
+            state.selectedDelete.add(track.idx);
+          }
+          renderAll();
+        }
+      }
+
+      function ensureLeafletMap() {
+        if (!window.L) {
+          document.getElementById("sharedLeafletMap").innerHTML =
+            '<div style="padding:16px;font-size:13px;">Leaflet 로딩에 실패했습니다.</div>';
+          return null;
+        }
+
+        if (!liveMap) {
+          liveMap = L.map("sharedLeafletMap", {
+            zoomControl: false,
+            attributionControl: true,
+            dragging: true,
+            scrollWheelZoom: false,
+            doubleClickZoom: true,
+            boxZoom: false,
+            keyboard: false,
+          });
+
+          liveTileLayer = L.tileLayer(
+            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {
+              maxZoom: 19,
+              attribution: "&copy; OpenStreetMap",
+            }
+          ).addTo(liveMap);
+        }
+
+        return liveMap;
+      }
+
+      function clearLiveLayers() {
+        if (!liveMap) return;
+        liveLayers.forEach((layer) => liveMap.removeLayer(layer));
+        liveLayers = [];
+      }
+
+      function renderLiveMap(track) {
+        const map = ensureLeafletMap();
+        if (!map) return;
+
+        clearLiveLayers();
+        const path = track.line.map((point) => [point.lat, point.lng]);
+        const route = L.polyline(path, {
+          color: track.color,
+          opacity: 0.88,
+          weight: track.thickness,
+          lineCap: "round",
+          lineJoin: "round",
+        }).addTo(map);
+
+        const startMarker = L.circleMarker(path[0], {
+          radius: 7,
+          color: track.color,
+          weight: 3,
+          fillColor: "#ffffff",
+          fillOpacity: 1,
+        }).addTo(map);
+
+        const endMarker = L.circleMarker(path[path.length - 1], {
+          radius: 8,
+          color: "#ffffff",
+          weight: 3,
+          fillColor: track.color,
+          fillOpacity: 1,
+        }).addTo(map);
+
+        liveLayers.push(route, startMarker, endMarker);
+        map.fitBounds(route.getBounds(), { padding: [46, 46], maxZoom: track.zoom });
+        window.setTimeout(() => map.invalidateSize(), 50);
+      }
+
+      function openDetailMap(track = selectedTrack()) {
+        state.selectedTrackIdx = track.idx;
+        document.getElementById("detailSearchPoint").textContent = track.searchpoint;
+        detailModal.hidden = false;
+        renderStatus();
+        window.setTimeout(() => renderLiveMap(track), 50);
+      }
+
+      function closeDetailMap() {
+        detailModal.hidden = true;
+        renderStatus();
+      }
+
+      function openTrackingLoaderConfirm() {
+        showConfirm(
+          '"현재 작업중인 트래킹은 삭제됩니다, 그래도 진행하시겠습니까?"',
+          false,
+          () => {},
+          { ok: "네", cancel: "아니요" }
+        );
+      }
+
+      document.querySelectorAll(".tab-button").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.activeTab = button.dataset.tab;
+          renderAll();
+        });
+      });
+
+      document.querySelectorAll(".footer-tab").forEach((button) => {
+        button.addEventListener("click", () => {
+          const targetPage = button.dataset.pageTarget;
+          if (!targetPage || button.disabled) return;
+          state.currentPage = targetPage;
+          profileSheet.hidden = true;
+          postModal.hidden = true;
+          detailModal.hidden = true;
+          renderAll();
+        });
+      });
+
+      snsSort.addEventListener("change", (event) => {
+        state.snsCategory = event.target.value;
+        renderSnsFeed();
+      });
+
+      document.getElementById("trackingToolToggle").addEventListener("click", () => {
+        state.trackingToolOpen = !state.trackingToolOpen;
+        renderTrackingControls();
+      });
+
+      document.querySelectorAll("[data-map-background]").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.trackingBackground = Number(button.dataset.mapBackground);
+          renderTrackingControls();
+        });
+      });
+
+      document.getElementById("trackingLocationButton").addEventListener("click", () => {
+        const map = ensureTrackingMap();
+        if (!map) return;
+        map.setView([baseRoutes[0].center.lat, baseRoutes[0].center.lng], 15);
+      });
+
+      trackingPlayButton.addEventListener("click", () => {
+        state.isTracking = true;
+        renderTrackingControls();
+      });
+
+      trackingPauseButton.addEventListener("click", () => {
+        state.isTracking = false;
+        renderTrackingControls();
+      });
+
+      trackingStopButton.addEventListener("click", () => {
+        state.isTracking = false;
+        trackingSaveOverlay.hidden = false;
+        trackingSaveSheet.hidden = false;
+        renderTrackingControls();
+      });
+
+      document.getElementById("trackingResetButton").addEventListener("click", () => {
+        state.trackingUndoStack = [];
+        state.trackingPoints = [];
+        renderTrackingControls();
+      });
+
+      document.getElementById("trackingUndoButton").addEventListener("click", () => {
+        if (state.trackingPoints.length === 0) return;
+        state.trackingUndoStack.push(state.trackingPoints.pop());
+        renderTrackingControls();
+      });
+
+      document.getElementById("trackingRedoButton").addEventListener("click", () => {
+        const point = state.trackingUndoStack.pop();
+        if (!point) return;
+        state.trackingPoints.push(point);
+        renderTrackingControls();
+      });
+
+      document.getElementById("lineWidth").addEventListener("input", renderTrackingControls);
+      document.getElementById("lineColor").addEventListener("input", renderTrackingControls);
+
+      function closeTrackingSaveSheet() {
+        trackingSaveOverlay.hidden = true;
+        trackingSaveSheet.hidden = true;
+      }
+
+      trackingSaveOverlay.addEventListener("click", closeTrackingSaveSheet);
+      document.getElementById("saveTrackingButton").addEventListener("click", closeTrackingSaveSheet);
+      document.getElementById("saveShareTrackingButton").addEventListener("click", closeTrackingSaveSheet);
+
+      document.getElementById("kakaoLoginButton").addEventListener("click", () => {
+        state.isLogin = true;
+        state.currentPage = "profile";
+        renderAll();
+      });
+
+      document.getElementById("searchForm").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const value = searchInput.value.trim();
+        const validPattern = /^[a-zA-Z가-힣ㄱ-ㅎㅏ-ㅣ0-9,\s]{2,100}$/;
+        if (!validPattern.test(value)) {
+          searchError.textContent =
+            value.length === 0
+              ? "검색어를 입력하세요."
+              : "2~100글자, 영문/한글/숫자/특수문자 ','만 입력 가능합니다.";
+          return;
+        }
+
+        state.searchInputText = value;
+        state.isFirstSearch = false;
+        state.isSearchFocus = false;
+        searchError.textContent = "";
+        state.searchHistory = [
+          { searchInputText: value },
+          ...state.searchHistory.filter((item) => item.searchInputText !== value),
+        ].slice(0, 6);
+
+        const placeResults = searchPointMatches();
+        const nameResults = nicknameMatches();
+        state.activeSearchTab = placeResults.length > 0 || nameResults.length === 0
+          ? "searchpoint"
+          : "nickname";
+        renderSearch();
+      });
+
+      searchInput.addEventListener("focus", () => {
+        state.isSearchFocus = true;
+        renderSearch();
+      });
+
+      searchInput.addEventListener("blur", () => {
+        window.setTimeout(() => {
+          state.isSearchFocus = false;
+          renderSearch();
+        }, 80);
+      });
+
+      searchBackButton.addEventListener("click", () => {
+        state.isSearchFocus = false;
+        renderSearch();
+      });
+
+      document.querySelectorAll(".search-tab").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.activeSearchTab = button.dataset.searchTab;
+          renderSearch();
+        });
+      });
+
+      document.getElementById("profileMenuButton").addEventListener("click", () => {
+        profileSheet.hidden = false;
+      });
+
+      document.getElementById("closeProfileSheet").addEventListener("click", () => {
+        profileSheet.hidden = true;
+      });
+
+      profileSheet.addEventListener("click", (event) => {
+        if (event.target === profileSheet) profileSheet.hidden = true;
+        const mode = event.target.closest("[data-modify-mode]")?.dataset.modifyMode;
+        if (mode) startModifyMode(mode);
+      });
+
+      document.getElementById("modifyDoneButton").addEventListener("click", finishModifyMode);
+      document.getElementById("modifyCancelButton").addEventListener("click", cancelModifyMode);
+
+      document.getElementById("closePostModal").addEventListener("click", closePostModal);
+      postModal.addEventListener("click", (event) => {
+        if (event.target === postModal) closePostModal();
+      });
+
+      document.getElementById("detailButton").addEventListener("click", openDetailMap);
+      document.getElementById("loadTrackButton").addEventListener("click", openTrackingLoaderConfirm);
+      document.getElementById("closeDetailButton").addEventListener("click", closeDetailMap);
+
+      document.getElementById("likeButton").addEventListener("click", () => {
+        const track = selectedTrack();
+        track.liked_by_user = !track.liked_by_user;
+        track.likecount += track.liked_by_user ? 1 : -1;
+        openPostModal(track);
+      });
+
+      document.addEventListener("click", (event) => {
+        const settingActionButton = event.target.closest("[data-setting-action]");
+        if (settingActionButton) {
+          const action = settingActionButton.dataset.settingAction;
+          showConfirm(`정말로 ${action} 하시겠습니까?`, false, () => {
+            state.isLogin = false;
+            state.pendingSettingAction = null;
+            state.currentPage = "setting";
+            renderAll();
+          });
+          return;
+        }
+
+        const goLoginButton = event.target.closest("[data-go-login]");
+        if (goLoginButton) {
+          state.currentPage = "login";
+          renderAll();
+          return;
+        }
+
+        const historyButton = event.target.closest("[data-search-history]");
+        if (historyButton) {
+          state.searchInputText = historyButton.dataset.searchHistory;
+          state.isFirstSearch = false;
+          state.isSearchFocus = false;
+          searchError.textContent = "";
+          const placeResults = searchPointMatches();
+          const nameResults = nicknameMatches();
+          state.activeSearchTab = placeResults.length > 0 || nameResults.length === 0
+            ? "searchpoint"
+            : "nickname";
+          renderSearch();
+          return;
+        }
+
+        const deleteHistoryButton = event.target.closest("[data-delete-history]");
+        if (deleteHistoryButton) {
+          state.searchHistory = state.searchHistory.filter(
+            (item) => item.searchInputText !== deleteHistoryButton.dataset.deleteHistory
+          );
+          renderSearchHistory();
+          return;
+        }
+
+        const profileUserButton = event.target.closest("[data-profile-user]");
+        if (profileUserButton) {
+          state.currentPage = "profile";
+          renderAll();
+          return;
+        }
+
+        const feedLikeButton = event.target.closest("[data-feed-like-id]");
+        if (feedLikeButton) {
+          const track = tracks.find((item) => item.idx === Number(feedLikeButton.dataset.feedLikeId));
+          if (!track) return;
+          track.liked_by_user = !track.liked_by_user;
+          track.likecount += track.liked_by_user ? 1 : -1;
+          renderSnsFeed();
+          return;
+        }
+
+        const feedDetailButton = event.target.closest("[data-feed-detail-id]");
+        if (feedDetailButton) {
+          const track = tracks.find((item) => item.idx === Number(feedDetailButton.dataset.feedDetailId));
+          if (!track) return;
+          openDetailMap(track);
+          return;
+        }
+
+        const feedLoadButton = event.target.closest("[data-feed-load-id]");
+        if (feedLoadButton) {
+          openTrackingLoaderConfirm();
+          return;
+        }
+
+        const box = event.target.closest(".tracking-container");
+        if (!box) return;
+
+        const track = tracks.find((item) => item.idx === Number(box.dataset.trackId));
+        if (!track) return;
+
+        if (state.modifyMode) {
+          toggleTrackForModify(track);
+          return;
+        }
+
+        openPostModal(track);
+      });
+
+      document.addEventListener("dblclick", (event) => {
+        const feedMap = event.target.closest("[data-feed-map-id]");
+        if (!feedMap) return;
+        const track = tracks.find((item) => item.idx === Number(feedMap.dataset.feedMapId));
+        if (!track || track.liked_by_user) return;
+        track.liked_by_user = true;
+        track.likecount += 1;
+        renderSnsFeed();
+      });
+
+      renderAll();
+    </script>
+  </body>
+</html>
