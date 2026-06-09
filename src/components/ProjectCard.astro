@@ -7,7 +7,7 @@ interface Props {
   href?: string;
 }
 
-const { project, index, href = `/about#project-${project.slug}` } = Astro.props;
+const { project, index, href = `/projects/${project.slug}` } = Astro.props;
 const hasProjectImage = !project.image.includes('portfolio-case-placeholder');
 ---
 

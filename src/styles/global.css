@@ -675,20 +675,6 @@ body {
   opacity: 0.62;
 }
 
-.project-detail-card .detail-body {
-  padding-top: 2px;
-}
-
-.project-detail-card .detail-list-item {
-  grid-template-columns: 1fr;
-}
-
-.project-detail-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: clamp(18px, 4vw, 42px);
-}
-
 .tag-card:hover,
 .tag-card[data-active="true"] {
   padding-left: 10px;
@@ -1030,8 +1016,7 @@ body {
     padding: 0 4px 30px !important;
   }
 
-  .detail-list-item,
-  .project-detail-grid {
+  .detail-list-item {
     grid-template-columns: 1fr !important;
     gap: 10px !important;
   }

@@ -1,0 +1,207 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { portfolioProfile, portfolioProjects, type PortfolioProject } from '../../data/portfolio';
+
+export function getStaticPaths() {
+  return portfolioProjects.map((project) => ({
+    params: { slug: project.slug },
+    props: { project }
+  }));
+}
+
+const { project } = Astro.props as { project: PortfolioProject };
+const currentIndex = portfolioProjects.findIndex((item) => item.slug === project.slug);
+const nextProject = portfolioProjects[(currentIndex + 1) % portfolioProjects.length];
+const siteURL = Astro.site || Astro.url.origin;
+const projectURL = new URL(`/projects/${project.slug}`, siteURL).href;
+const ogImage = project.image.endsWith('.svg') ? '/images/portfolio-case-placeholder.png' : project.image;
+const hasProjectImage = !project.image.includes('portfolio-case-placeholder');
+const title = `${project.title} | 한만욱 포트폴리오`;
+const description = `${project.summary} ${project.metrics.map((metric) => `${metric.label} ${metric.value}`).join(', ')}`;
+const projectJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CreativeWork',
+  '@id': `${projectURL}#case-study`,
+  url: projectURL,
+  name: project.title,
+  description,
+  inLanguage: 'ko-KR',
+  creator: {
+    '@type': 'Person',
+    name: portfolioProfile.name,
+    email: portfolioProfile.email,
+    sameAs: [portfolioProfile.github]
+  }
+};
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  keywords={[project.title, project.eyebrow, ...project.techStack]}
+  image={ogImage}
+  imageAlt={project.imageAlt}
+  canonicalURL={`/projects/${project.slug}`}
+  jsonLd={projectJsonLd}
+>
+  <Header />
+
+  <main class="site-main">
+    <div class="wrap">
+      <div class="pt-7">
+        <a href="/about#projects" class="mono inline-flex items-center gap-2 py-2 transition-colors hover:!text-[var(--text)]" style="color: var(--text-dim);">← 프로젝트</a>
+      </div>
+
+      <header class="rise py-5 pb-9">
+        <div class="mb-5 flex items-center gap-3">
+          <span class="eyebrow">{project.eyebrow}</span>
+          <span class="mono whitespace-nowrap opacity-60">· {project.period}</span>
+        </div>
+        <h1 class="m-0 text-[clamp(2.1rem,5vw,3.2rem)] font-bold leading-[1.12] tracking-[-0.04em]" style="color: var(--text);">{project.title}</h1>
+        <p class="mt-5 max-w-[30ch] text-[1.25rem] font-medium leading-[1.5] tracking-[-0.02em]" style="color: var(--text);">“{project.quote}”</p>
+        <p class="mt-5 max-w-[60ch] text-[1.02rem] leading-[1.7]" style="color: var(--text-dim);">{project.summary}</p>
+        <div class="mt-6 flex flex-wrap gap-6">
+          <div>
+            <div class="mono mb-1" style="color: var(--text-faint);">역할</div>
+            <div class="whitespace-nowrap text-[0.95rem] font-semibold" style="color: var(--text);">{project.role}</div>
+          </div>
+          {project.team && (
+            <div>
+              <div class="mono mb-1" style="color: var(--text-faint);">팀</div>
+              <div class="whitespace-nowrap text-[0.95rem] font-semibold" style="color: var(--text);">{project.team}</div>
+            </div>
+          )}
+          {project.contribution && (
+            <div>
+              <div class="mono mb-1" style="color: var(--text-faint);">기여</div>
+              <div class="whitespace-nowrap text-[0.95rem] font-semibold" style="color: var(--text);">{project.contribution}</div>
+            </div>
+          )}
+        </div>
+      </header>
+
+      {hasProjectImage ? (
+        <img
+          src={project.image}
+          alt={project.imageAlt}
+          width={project.imageWidth}
+          height={project.imageHeight}
+          class="project-cover mb-2 rounded-[18px]"
+          loading="eager"
+          decoding="async"
+        />
+      ) : (
+        <div class="ph mb-2 rounded-[18px]" data-label={`${project.slug} — cover`} style="aspect-ratio: 16 / 7;"></div>
+      )}
+
+      <section class="py-9 pb-1">
+        <div class="metric-3">
+          {project.metrics.map((metric) => (
+            <div class="border-t py-6 pr-5" style="border-color: var(--border);">
+              <div class="text-[2.1rem] font-bold leading-none tracking-[-0.04em]" style="color: var(--text);">{metric.value}</div>
+              <div class="mt-2.5 text-[0.88rem]" style="color: var(--text-dim);">{metric.label}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section class="flow-row">
+        <div>
+          <div class="mono mb-1.5" style="color: var(--text-faint);">01 · Problem</div>
+          <h2 class="m-0 text-[1.25rem] font-bold tracking-[-0.02em]" style="color: var(--text);">문제</h2>
+        </div>
+        <p class="m-0 max-w-[62ch] text-[1.05rem] leading-[1.75]" style="color: var(--text);">{project.problem}</p>
+      </section>
+
+      <section class="flow-row">
+        <div>
+          <div class="mono mb-1.5" style="color: var(--text-faint);">02 · Role</div>
+          <h2 class="m-0 text-[1.25rem] font-bold tracking-[-0.02em]" style="color: var(--text);">역할</h2>
+        </div>
+        <div>
+          <p class="m-0 max-w-[62ch] text-[1.02rem] leading-[1.7]" style="color: var(--text-dim);">
+            {[project.role, project.team, project.contribution].filter(Boolean).join(' · ')}
+          </p>
+          <div class="mt-4 flex flex-wrap gap-2">
+            {project.techStack.map((tech) => <span class="pill cursor-default">{tech}</span>)}
+          </div>
+        </div>
+      </section>
+
+      <section class="flow-row">
+        <div>
+          <div class="mono mb-1.5" style="color: var(--text-faint);">03 · Approach</div>
+          <h2 class="m-0 text-[1.25rem] font-bold tracking-[-0.02em]" style="color: var(--text);">해결 과정</h2>
+        </div>
+        <ol class="m-0 flex list-none flex-col gap-[18px] p-0">
+          {project.approach.map((item, index) => (
+            <li class="grid grid-cols-[auto_1fr] items-start gap-4">
+              <span class="mono grid h-[26px] w-[26px] place-items-center rounded-full border text-[0.7rem]" style="border-color: var(--border); color: var(--text-dim);">{index + 1}</span>
+              <span class="pt-px text-base leading-[1.7]" style="color: var(--text);">{item}</span>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section class="flow-row">
+        <div>
+          <div class="mono mb-1.5" style="color: var(--text-faint);">04 · Results</div>
+          <h2 class="m-0 text-[1.25rem] font-bold tracking-[-0.02em]" style="color: var(--text);">성과</h2>
+        </div>
+        <div class="overflow-hidden rounded-[14px] border" style="border-color: var(--border);">
+          {project.results.map((result, index) => (
+            <div class={`result-row ${index > 0 ? 'border-t' : ''}`} style="border-color: var(--border);">
+              <div class="text-[0.9rem] font-semibold" style="color: var(--text);">{result.label}</div>
+              <div class="flex items-center gap-3 text-[0.9rem]" style="color: var(--text-dim);">
+                {result.before && <><span class="mono whitespace-nowrap line-through opacity-70">{result.before}</span><span class="opacity-50">→</span></>}
+                <span class="whitespace-nowrap font-bold" style="color: var(--text);">{result.after}</span>
+              </div>
+              <div class="mono text-right" style="color: var(--text-faint);">{result.effect}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section class="flow-row">
+        <div>
+          <div class="mono mb-1.5" style="color: var(--text-faint);">05 · Takeaway</div>
+          <h2 class="m-0 text-[1.25rem] font-bold tracking-[-0.02em]" style="color: var(--text);">배운 점</h2>
+        </div>
+        <div>
+          <p class="m-0 max-w-[58ch] text-[1.18rem] leading-[1.7] tracking-[-0.01em]" style="color: var(--text);">{project.takeaway}</p>
+          {project.links.length > 0 && (
+            <div class="mt-6 flex flex-wrap gap-2.5">
+              {project.links.map((link) => (
+                <a
+                  href={link.href}
+                  target={link.external ? '_blank' : undefined}
+                  rel={link.external ? 'noopener noreferrer' : undefined}
+                  class="pill h-8"
+                  style="color: var(--text); border-color: var(--border-strong);"
+                >
+                  {link.label} →
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      <hr class="rule" />
+
+      {nextProject && (
+        <a href={`/projects/${nextProject.slug}`} class="flex items-center justify-between gap-5 px-1 pt-8">
+          <div>
+            <div class="mono mb-1.5" style="color: var(--text-faint);">다음 프로젝트</div>
+            <h3 class="m-0 text-2xl font-bold tracking-[-0.03em] transition-opacity hover:opacity-60" style="color: var(--text);">{nextProject.title}</h3>
+          </div>
+          <span class="text-2xl" style="color: var(--text-faint);">→</span>
+        </a>
+      )}
+    </div>
+  </main>
+
+  <Footer />
+</BaseLayout>
