@@ -196,6 +196,54 @@ const experienceLinks = experience?.highlights.filter((highlight) => highlight.h
             </section>
           )}
 
+          {project.livePreview && (
+            <section class="live-preview-section py-9">
+              <div class="section-head">
+                <div>
+                  <div class="eyebrow mb-2">Live preview</div>
+                  <h2 class="section-title">실제 서비스 화면</h2>
+                </div>
+                <a
+                  href={project.livePreview.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="mono whitespace-nowrap"
+                  style="color: var(--text-dim);"
+                >
+                  {project.livePreview.label} →
+                </a>
+              </div>
+              <div class="live-preview-wrap">
+                <div class="phone-frame phone-frame--iframe">
+                  <div class="phone-frame__screen">
+                    <iframe
+                      src={project.livePreview.url}
+                      title={`${project.title} 실제 서비스 미리보기`}
+                      class="live-preview-iframe"
+                      loading="lazy"
+                      referrerpolicy="strict-origin-when-cross-origin"
+                      sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                    ></iframe>
+                  </div>
+                </div>
+                <div class="live-preview-copy">
+                  <p>{project.livePreview.description}</p>
+                  <div class="flex flex-wrap gap-2.5">
+                    <a
+                      href={project.livePreview.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="pill h-8"
+                      style="color: var(--text); border-color: var(--border-strong);"
+                    >
+                      새 탭에서 보기 →
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+
           <section class="py-9 pb-1">
             <div class="metric-3">
               {project.metrics.map((metric) => (
