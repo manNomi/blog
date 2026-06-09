@@ -2,6 +2,7 @@
 title: "vinext 기여 1"
 pubDate: 2026-05-29T00:00:00.000Z
 tags: ["오픈소스"]
+notes: true
 notionId: "36c7cf19-a364-80ba-862e-fa1f8c386ce0"
 ---
 ---
@@ -269,3 +270,4 @@ console.log(router.bfcacheId); // "0"
 
 
 다만 `"0"`은 placeholder일 뿐이며, fresh navigation마다 id가 바뀌고 back/forward에서는 복원되는 Next.js의 full behavior는 후속 segment-cache 구현에서 다뤄야 한다.
+

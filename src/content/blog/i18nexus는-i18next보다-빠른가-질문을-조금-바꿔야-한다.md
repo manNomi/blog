@@ -1,9 +1,13 @@
 ---
 title: "i18nexus는 i18next보다 빠른가? 질문을 조금 바꿔야 한다"
+description: "i18n 라이브러리의 개선판이 효능이 있을까 ? "
 pubDate: 2026-05-30T00:00:00.000Z
 tags: ["I18nexus"]
 notionId: "3747cf19-a364-801f-98e6-ff38fc411177"
 ---
+![491153F9-289B-4DA4-885B-0B81143BB9AE.png](/images/i18nexus는-i18next보다-빠른가-질문을-조금-바꿔야-한다-0.png)
+
+
 국제화 라이브러리를 비교할 때 가장 먼저 떠오르는 질문은 보통 이렇다.
 
 
@@ -558,7 +562,7 @@ tools와 core가 같은 계약을 공유하면서 실무에서 자주 생기는 
 > 만드는 toolkit이다."
 
 
-참고
+참고 
 
 
 [https://oliveyoung.tech/2025-07-22/what-is-MFE-part1/?keyword=마이크로](https://oliveyoung.tech/2025-07-22/what-is-MFE-part1/?keyword=%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C)
@@ -568,3 +572,4 @@ tools와 core가 같은 계약을 공유하면서 실무에서 자주 생기는 
 
 
 [https://oliveyoung.tech/2025-11-10/what-is-MFE-part3/?keyword=마이크로](https://oliveyoung.tech/2025-11-10/what-is-MFE-part3/?keyword=%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C)
+

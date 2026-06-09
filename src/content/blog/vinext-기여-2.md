@@ -2,6 +2,7 @@
 title: "vinext 기여 2"
 pubDate: 2026-05-30T00:00:00.000Z
 tags: ["오픈소스"]
+notes: true
 notionId: "36c7cf19-a364-8029-b139-d46ad0b52463"
 ---
 [https://github.com/cloudflare/vinext/pull/1590](https://github.com/cloudflare/vinext/pull/1590)
@@ -133,3 +134,4 @@ pnpm exec vp test run tests/app-router.test.ts -t "App Router Static export"
 3. 복사된 metadata asset을 `StaticExportResult.files`에도 포함해, export 결과를 사용하는 쪽에서 누락 없이 추적할 수 있게 한다.
 
 결과적으로 `output: "export"`를 사용하는 App Router 프로젝트에서도 `apple-icon.png`, `icon.png`, `opengraph-image.png`, `twitter-image.png`, `sitemap.xml` 같은 metadata 파일이 HTML과 함께 정상적으로 배포될 수 있게 되었다.
+

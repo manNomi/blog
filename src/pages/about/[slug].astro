@@ -163,6 +163,37 @@ const experienceLinks = experience?.highlights.filter((highlight) => highlight.h
             <div class="ph mb-2 rounded-[18px]" data-label={`${project.slug} — cover`} style="aspect-ratio: 16 / 7;"></div>
           )}
 
+          {project.gallery && project.gallery.length > 0 && (
+            <section class="py-8">
+              <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
+                <div>
+                  <div class="mono mb-1.5" style="color: var(--text-faint);">README assets</div>
+                  <h2 class="m-0 text-[1.25rem] font-bold tracking-[-0.02em]" style="color: var(--text);">프로젝트 화면</h2>
+                </div>
+                <span class="mono" style="color: var(--text-faint);">{project.gallery.length} images</span>
+              </div>
+
+              <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {project.gallery.map((item) => (
+                  <figure class="m-0 overflow-hidden rounded-[16px] border p-3" style="border-color: var(--border); background: var(--surface);">
+                    <div class="grid min-h-[260px] place-items-center rounded-[12px]" style="background: var(--bg-soft);">
+                      <img
+                        src={item.src}
+                        alt={item.alt}
+                        width={item.width}
+                        height={item.height}
+                        class="max-h-[420px] w-full object-contain"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </div>
+                    <figcaption class="mono mt-3 text-[0.72rem]" style="color: var(--text-faint);">{item.caption}</figcaption>
+                  </figure>
+                ))}
+              </div>
+            </section>
+          )}
+
           <section class="py-9 pb-1">
             <div class="metric-3">
               {project.metrics.map((metric) => (

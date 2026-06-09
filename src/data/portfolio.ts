@@ -17,6 +17,14 @@ export type PortfolioResult = {
   effect?: string;
 };
 
+export type PortfolioGalleryImage = {
+  src: string;
+  alt: string;
+  caption: string;
+  width: number;
+  height: number;
+};
+
 export type PortfolioProject = {
   slug: string;
   title: string;
@@ -31,6 +39,7 @@ export type PortfolioProject = {
   imageAlt: string;
   imageWidth: number;
   imageHeight: number;
+  gallery?: PortfolioGalleryImage[];
   visualMode?: 'phone';
   accent: string;
   metrics: PortfolioMetric[];
@@ -235,7 +244,7 @@ export const resumeExperiences: ResumeExperience[] = [
         title: 'React Compiler Hook 인식 오류 분석',
         description:
           'React Compiler 도입 후 발생한 Hook 인식 오류를 분석하고 메모이제이션 누락 문제를 해결했습니다.',
-        href: '/blog/react-compiler-도입'
+        href: '/blog/리액트-컴파일러의-이슈를-수정하며'
       },
       {
         title: '대용량 건설 데이터 PDF 변환',
@@ -247,7 +256,7 @@ export const resumeExperiences: ResumeExperience[] = [
         title: '불안정한 네트워크를 위한 오프라인 캐싱',
         description:
           '현장 작업자가 네트워크가 불안정한 환경에서도 서비스를 사용할 수 있도록 오프라인 캐싱 기능을 구현했습니다.',
-        href: '/blog/웹뷰에도-오프라인-기능이-필요하지-않을까요'
+        href: '/blog/공사-현장에서-오프라인-기능이-필요하지-않을까요'
       },
       {
         title: 'Google Sheets 기반 번역 QA',
@@ -311,8 +320,10 @@ export const resumeOpenSourceGroups: ResumeOpenSourceGroup[] = [
     subtitle: '총 사용자 4,000+, MAU 400+의 교환학생 멘토링 및 정보 공유 플랫폼',
     period: '2025.06 ~',
     links: [
+      { label: 'GitHub 저장소', href: 'https://github.com/solid-connection/solid-connect-web', external: true },
       { label: '성능 개선 기록', href: '/blog/페이지-속도가-이탈률-감소와-연관이-있을까' },
       { label: '커뮤니티 퍼널 분석', href: '/blog/유령-커뮤니티에-활기를-불어넣는법' },
+      { label: 'React 19 전환기', href: '/blog/솔커-react-19-next-16-업그레이드와-turbopack-전환기' },
       { label: 'Bruno codegen', href: '/blog/bruno-api용-codegen-을-만들자' },
       { label: '운영 인스펙터', href: '/blog/qa를-필요한-사람이-하게-하자' }
     ],
@@ -344,15 +355,17 @@ export const resumeOpenSourceGroups: ResumeOpenSourceGroup[] = [
         description: '어드민과 웹 서비스 사이 중복 UI를 줄이고 관리 효율을 높였습니다.'
       },
       {
-        title: 'Vinext 전환 가능성 검토',
-        metric: 'cold build 71.6% 단축',
-        description: '동일 환경 cold build 5회 측정 기준 평균 빌드 시간을 크게 낮췄습니다.'
+        title: 'React 19, Next 16, Turbopack 전환',
+        metric: 'compile 7.5s',
+        description: 'React 메이저 업그레이드와 Next 16 호환 작업을 분리하고, Turbopack 전환까지 단계적으로 안정화했습니다.',
+        href: '/blog/솔커-react-19-next-16-업그레이드와-turbopack-전환기'
       }
     ]
   },
   {
     title: 'DefinitelyTyped [relay-runtime]',
     subtitle: 'Relay Activity Crash 해결 과정에서 누락된 타입 정의 기여',
+    links: [{ label: 'GitHub 저장소', href: 'https://github.com/DefinitelyTyped/DefinitelyTyped', external: true }],
     bullets: [
       {
         title: 'Relay Activity 호환 타입 보강',
@@ -364,11 +377,35 @@ export const resumeOpenSourceGroups: ResumeOpenSourceGroup[] = [
   {
     title: 'vinext [Cloudflare]',
     subtitle: 'App Router와 static export, cache 회귀를 다룬 런타임/라우터 기여',
+    links: [
+      { label: 'GitHub 저장소', href: 'https://github.com/cloudflare/vinext', external: true },
+      { label: 'Vinext 빌드 기록', href: '/blog/next를-vite로-빌드하는-vinext' },
+      { label: '기여 1', href: '/blog/vinext-기여-1' },
+      { label: '기여 2', href: '/blog/vinext-기여-2' },
+      { label: '기여 3', href: '/blog/vinext-기여-3' },
+      { label: '기여 4', href: '/blog/vinext-기여-4' }
+    ],
     bullets: [
-      { title: 'bfcacheId undefined 런타임 크래시 수정', description: 'Cloudflare 환경에서 발생한 런타임 크래시를 수정했습니다.' },
-      { title: 'useRouter().bfcacheId 동작 구현', description: '라우터 API에서 bfcacheId를 사용할 수 있도록 동작을 구현했습니다.' },
-      { title: 'metadata asset 누락 수정', description: 'App Router static export에서 metadata asset이 누락되는 문제를 수정했습니다.' },
-      { title: 'query string cache 회귀 E2E 추가', description: 'router.replace 후 이전 query string이 복원되는 회귀를 방지하는 테스트를 추가했습니다.' }
+      {
+        title: 'bfcacheId undefined 런타임 크래시 수정',
+        description: 'Cloudflare 환경에서 발생한 런타임 크래시를 수정했습니다.',
+        href: '/blog/vinext-기여-1'
+      },
+      {
+        title: 'metadata asset 누락 수정',
+        description: 'App Router static export에서 file-based metadata asset이 누락되는 문제를 Next.js 호환 경로로 보정했습니다.',
+        href: '/blog/vinext-기여-2'
+      },
+      {
+        title: 'query string cache 회귀 E2E 추가',
+        description: 'router.replace 후 이전 query string이 복원되는 회귀를 막기 위한 App Router E2E fixture를 추가했습니다.',
+        href: '/blog/vinext-기여-3'
+      },
+      {
+        title: 'useRouter().bfcacheId 동작 구현',
+        description: 'history state 기반 bfcache identity map으로 Next.js와 유사한 navigation identity semantics를 구현했습니다.',
+        href: '/blog/vinext-기여-4'
+      }
     ]
   }
 ];
@@ -429,7 +466,7 @@ export const portfolioProjects: PortfolioProject[] = [
     period: '2025.09 ~',
     quote: 'i18n의 병목은 t() 호출이 아니라, 번역 키와 코드와 협업 문서가 서로 어긋나는 순간에 생겼습니다.',
     summary:
-      'React 코드베이스의 다국어 작업을 자동화하는 런타임/도구 생태계입니다. AST 기반 문자열 탐색, t() 래핑, key 추출, 타입 생성, Google Sheets 동기화로 i18n 반복 작업과 휴먼 에러를 줄였습니다.',
+      'React/Next.js 코드베이스의 다국어 작업을 자동화하는 type-safe i18n 모노레포입니다. 런타임, namespace 기반 리소스, lazy loading, SSR/server helper, CLI 추출·타입 생성·Google Sheets 동기화까지 하나의 워크플로우로 묶었습니다.',
     role: '라이브러리 설계, AST 변환, CLI/DX 자동화',
     team: '개인 오픈소스',
     contribution: '기획·구현 100%',
@@ -445,6 +482,7 @@ export const portfolioProjects: PortfolioProject[] = [
     ],
     highlights: [
       'Babel AST로 JSX 텍스트와 문자열 리터럴을 찾아 t() 호출과 JSON resource 자동 생성',
+      'README의 monorepo 구조처럼 runtime과 i18nexus-tools가 같은 namespace/type 계약을 공유',
       'Google Sheets CLI로 기획자, 번역가, 개발자가 같은 번역 데이터를 기준으로 작업하도록 연결',
       'i18next 대체제가 아니라 React 앱 번역 workflow에 강하게 결합된 toolkit으로 포지셔닝'
     ],
@@ -458,9 +496,10 @@ export const portfolioProjects: PortfolioProject[] = [
       { label: '누적 다운로드', after: '13,000+', effect: '외부 사용 검증' },
       { label: '반복 작업 시간', before: '수동 래핑/추출', after: '자동 변환', effect: '80% 감축' },
       { label: '번역 키 검증', before: '런타임 확인', after: '타입 검증', effect: '휴먼 에러 감소' },
-      { label: '협업 방식', before: '개발자 중심 JSON 수정', after: 'Google Sheets 동기화', effect: '비개발자 협업 가능' }
+      { label: '협업 방식', before: '개발자 중심 JSON 수정', after: 'Google Sheets 동기화', effect: '비개발자 협업 가능' },
+      { label: 'SSR 대응', before: 'client hook 중심', after: 'server helper 제공', effect: 'Next.js App Router 대응' }
     ],
-    techStack: ['TypeScript', 'Babel AST', 'CLI', 'Google Sheets API', 'React', 'i18n', 'Rust'],
+    techStack: ['TypeScript', 'Babel AST', 'CLI', 'Google Sheets API', 'React', 'Next.js', 'SSR', 'i18n', 'Rust'],
     problem:
       '다국어 적용은 문자열을 t()로 감싸는 문제가 아니라, key naming, namespace, JSON resource, 번역 시트, 타입 안정성이 동시에 어긋나는 운영 문제였습니다.',
     approach: [
@@ -473,6 +512,8 @@ export const portfolioProjects: PortfolioProject[] = [
       'DX 자동화의 핵심은 코드를 많이 생성하는 것이 아니라, 사람이 실수하기 쉬운 경계를 타입과 도구가 같은 계약으로 보게 만드는 일이었습니다.',
     links: [
       { label: 'GitHub 저장소', href: 'https://github.com/i18n-global/i18n-mono', external: true },
+      { label: 'npm i18nexus', href: 'https://www.npmjs.com/package/i18nexus', external: true },
+      { label: 'npm tools', href: 'https://www.npmjs.com/package/i18nexus-tools', external: true },
       { label: '소개 글', href: '/blog/딸깍이면-내-프로젝트도-해외-진출' },
       { label: 'i18n 부채 청산기', href: '/blog/i18n-부채-청산기' },
       { label: 'Rust 이식 기록', href: '/blog/react-생태계-도구를-rust로-옮기며-배운-것들' },
@@ -486,7 +527,7 @@ export const portfolioProjects: PortfolioProject[] = [
     period: '2025.06 ~',
     quote: '성능 개선은 초를 줄이는 일이 아니라, 사용자가 가치에 도달하는 경로를 짧게 만드는 일이었습니다.',
     summary:
-      '교환학생 멘토링 및 정보 공유 플랫폼에서 홈 성능, 커뮤니티 퍼널, 대학 정보 배포 경계, API codegen, 운영 인스펙터를 개선한 프로젝트입니다. 블로그 기록을 바탕으로 LCP 91.2% 개선, 이탈률 21% → 16%, SSG 대상 188개 → 35개 분리 같은 변화를 정리했습니다.',
+      '교환학생 멘토링 및 정보 공유 플랫폼에서 홈 성능, 커뮤니티 퍼널, 대학 정보 배포 경계, React 19/Next 16 업그레이드, API codegen, AI Inspector 운영 워크플로우를 개선한 프로젝트입니다. 블로그와 README 기록을 기준으로 LCP 91.2% 개선, 이탈률 21% → 16%, SSG 대상 188개 → 35개 분리, Turbopack compile 7.5초 전환을 정리했습니다.',
     role: '프론트엔드 성능 개선, 운영 자동화, 배포 경계 설계',
     team: '오픈소스/사이드 프로젝트',
     contribution: '성능·DX 개선 주도',
@@ -498,32 +539,37 @@ export const portfolioProjects: PortfolioProject[] = [
     metrics: [
       { value: '91.2%', label: '홈 LCP 개선', detail: '9.961s → 0.874s로 핵심 렌더링 지표 개선' },
       { value: '21% → 16%', label: '이탈률 개선', detail: '홈 유입 이후 이탈을 성능과 흐름 관점에서 개선' },
-      { value: '188 → 35', label: 'SSG 대상 분리', detail: '대학 catalog를 멀티존으로 분리해 main web 배포 부담 축소' }
+      { value: '188 → 35', label: 'SSG 대상 분리', detail: '대학 catalog를 멀티존으로 분리해 main web 배포 부담 축소' },
+      { value: '7.5s', label: 'Turbopack compile', detail: 'React 19, Next 16 업그레이드 후 production build 경로 안정화' }
     ],
     highlights: [
       'LCP 후보를 다시 선정하고 이미지·섹션 로딩 전략을 조정해 홈 초기 렌더링 개선',
       '로그인 장벽 때문에 가치에 도달하지 못하던 커뮤니티 퍼널을 GA 기반으로 재설계',
-      '대학 catalog SSG를 main web에서 분리해 배포 blast radius와 Vercel 대기 시간을 축소'
+      '대학 catalog SSG를 main web에서 분리해 배포 blast radius와 Vercel 대기 시간을 축소',
+      'README의 AI Inspector Workflow처럼 자연어 요청 → 큐 저장 → 로컬 워커 → PR/프리뷰 링크 전송 흐름을 제품 운영에 연결'
     ],
     contributions: [
       'Performance 패널과 GA 지표를 함께 보고 홈 이탈률, LCP, 커뮤니티 도달률을 제품 문제로 재정의했습니다.',
       '비핵심 섹션과 이미지 로딩 우선순위를 조정해 초기 화면의 체감 속도를 끌어올렸습니다.',
       '대학 정보 SSG를 별도 zone으로 분리해 SEO 요구는 유지하면서 main web 배포 책임을 줄였습니다.',
+      'React 19, Next 16 업그레이드와 Turbopack 전환을 분리해 리뷰 범위와 회귀 원인을 좁혔습니다.',
       'Bruno Docs 기반 API codegen과 큐 기반 운영 인스펙터로 반복 운영 작업을 예측 가능한 자동화 흐름으로 바꿨습니다.'
     ],
     results: [
       { label: '홈 LCP', before: '9.961s', after: '0.874s', effect: '91.2% 개선' },
       { label: '홈 이탈률', before: '21%', after: '16%', effect: '5%p 개선' },
       { label: '정적 생성 대상', before: '188개', after: '35개', effect: 'main web 배포 부담 축소' },
-      { label: 'SSG 생성 시간', before: '5.6s', after: '1.626s', effect: '약 71% 단축' }
+      { label: 'SSG 생성 시간', before: '5.6s', after: '1.626s', effect: '약 71% 단축' },
+      { label: 'Next compile', before: 'webpack build', after: 'Turbopack 7.5s', effect: 'Next 16 기본 빌더 전환 준비' }
     ],
-    techStack: ['Next.js', 'React', 'Turborepo', 'Vercel', 'Google Analytics', 'Bruno', 'AI Inspector'],
+    techStack: ['Next.js', 'React 19', 'Turbopack', 'Turborepo', 'Vercel', 'Google Analytics', 'Bruno', 'AI Inspector', 'Firestore'],
     problem:
       '트래픽은 있었지만 홈 성능과 커뮤니티 진입 장벽 때문에 사용자가 핵심 가치에 도달하기 전 이탈했습니다. 동시에 대학 catalog SSG가 main web 배포에 묶여 작은 수정도 전체 배포 비용을 유발했습니다.',
     approach: [
       'GA와 Performance 패널로 홈 이탈률, LCP, 커뮤니티 도달률을 먼저 수치화했습니다.',
       'LCP 후보 이미지와 비핵심 섹션 로딩 방식을 분리하고, 커뮤니티는 로그인보다 가치 노출을 먼저 하도록 흐름을 재검토했습니다.',
       '대학 catalog를 별도 Next.js zone으로 분리해 SEO 요구와 main web 배포 책임을 분리했습니다.',
+      'React 19와 Next 16 호환 작업은 webpack 안정화 PR과 Turbopack 전환 PR로 나누어 회귀 지점을 좁혔습니다.',
       'Bruno 기반 codegen과 큐 기반 운영 인스펙터로 반복 운영 작업을 줄이고 품질 확인 루프를 자동화했습니다.'
     ],
     takeaway:
@@ -533,6 +579,7 @@ export const portfolioProjects: PortfolioProject[] = [
       { label: '성능 개선 기록', href: '/blog/페이지-속도가-이탈률-감소와-연관이-있을까' },
       { label: '커뮤니티 퍼널 분석', href: '/blog/유령-커뮤니티에-활기를-불어넣는법' },
       { label: '멀티존 전환 기록', href: '/blog/빌드-속도-개선을-위한-마이크로-프론트엔드' },
+      { label: 'React 19 전환기', href: '/blog/솔커-react-19-next-16-업그레이드와-turbopack-전환기' },
       { label: 'Bruno codegen', href: '/blog/bruno-api용-codegen-을-만들자' },
       { label: '운영 인스펙터', href: '/blog/qa를-필요한-사람이-하게-하자' }
     ]
@@ -544,7 +591,7 @@ export const portfolioProjects: PortfolioProject[] = [
     period: '2025.02 ~',
     quote: '게임처럼 즉시 반응하는 웹, 그것이 목표였습니다.',
     summary:
-      'EA FC ProClub 유저를 위한 팀 매칭, 토너먼트, 채팅 통합 플랫폼입니다. 매치 생성부터 토너먼트 자동 생성까지 클라이언트 연산과 낙관적 UI로 빠르게 반응하도록 설계했습니다.',
+      'EA FC ProClub 유저를 위한 팀 매칭, 커뮤니티, 비공식 대회, 팀 관리 플랫폼입니다. README의 서비스 목표처럼 “혼자가 아닌 함께 뛰는 공간”을 만들기 위해 매치 생성부터 토너먼트 자동 생성까지 클라이언트 연산과 낙관적 UI로 빠르게 반응하도록 설계했습니다.',
     role: '실시간 데이터 및 대시보드 성능 최적화 담당',
     team: 'FE 2명, BE 2명',
     contribution: '기여도 85%',
@@ -559,6 +606,7 @@ export const portfolioProjects: PortfolioProject[] = [
       { value: '5ms 이하', label: '클라이언트 연산', detail: '비순차 매치 데이터를 브래킷으로 변환' }
     ],
     highlights: [
+      '유저/팀 매칭, 커뮤니티, 비공식 대회, 팀 관리라는 README 핵심 기능을 하나의 대시보드 경험으로 연결',
       '비순차 매치 데이터를 기반으로 토너먼트 브래킷을 실시간 시각화',
       'React Query 없이 커스텀 낙관적 업데이트와 캐싱 흐름 구현',
       'Socket.io 기반 팀 채팅 시스템과 floating 버튼 진입 구조 설계'
@@ -580,6 +628,7 @@ export const portfolioProjects: PortfolioProject[] = [
     approach: [
       '서버 응답 전 임시 매치 데이터를 먼저 삽입하고 실패 시 이전 상태로 되돌리는 낙관적 업데이트 흐름을 만들었습니다.',
       'Raw match 데이터를 라운드와 참가팀 기준으로 재구성해 브래킷 UI가 서버 가공 없이도 갱신되도록 했습니다.',
+      '팀 모집, 일정 공지, 전적 기록처럼 README에 정의된 팀 관리 흐름을 사용자 역할별 화면으로 나누었습니다.',
       '채팅은 전역 floating 버튼으로 접근성을 높이고, 소켓 이벤트가 화면 상태를 과도하게 흔들지 않도록 상태 경계를 나눴습니다.'
     ],
     takeaway:
@@ -596,13 +645,51 @@ export const portfolioProjects: PortfolioProject[] = [
     period: '2025.04',
     quote: '정확한 예측보다 먼저, 4주 안에 납득 가능한 제품을 만드는 것이 문제였습니다.',
     summary:
-      '인천 지역 버스 사용자를 위한 초정밀 도착 예측 및 실시간 위치 시각화 서비스입니다. WebSocket 채팅, Naver Maps 기반 위치 표시, EC2 배포와 HTTPS 자동화까지 MVP 완성 조건을 직접 다뤘습니다.',
+      '인천 지역 버스 사용자를 위한 도착 예측 및 실시간 위치 추적 서비스입니다. BusLive README에 정리된 노드 좌표와 구간별 평균 속도 기반 예측, 모바일 웹 UI, 정거장 채팅, FSD 구조를 바탕으로 MVP 완성 조건을 직접 다뤘습니다.',
     role: '프론트엔드 구현, 실시간 UI, 배포 파이프라인 구축',
+    team: 'FE/UI·UX 1명, BE 1명',
     contribution: '인컴해커톤 Linced 3.0 사업단장상 대상',
-    image: '/images/projects/incheon-bus-cover.jpg',
-    imageAlt: '인천 버스 도착 예측 서비스 지도 화면',
-    imageWidth: 1600,
-    imageHeight: 900,
+    image: '/images/projects/buslive-move.gif',
+    imageAlt: 'BusLive 실시간 버스 이동 화면',
+    imageWidth: 666,
+    imageHeight: 1194,
+    gallery: [
+      {
+        src: '/images/projects/buslive-login.png',
+        alt: 'BusLive 로그인 화면',
+        caption: 'Login Page',
+        width: 668,
+        height: 1194
+      },
+      {
+        src: '/images/projects/buslive-move.gif',
+        alt: 'BusLive 메인 지도 이동 화면',
+        caption: 'Main Page',
+        width: 666,
+        height: 1194
+      },
+      {
+        src: '/images/projects/buslive-chat-list.png',
+        alt: 'BusLive 채팅 목록 화면',
+        caption: 'Chat List',
+        width: 668,
+        height: 1194
+      },
+      {
+        src: '/images/projects/buslive-chat-page.png',
+        alt: 'BusLive 정류장 채팅 화면',
+        caption: 'Chat Page',
+        width: 668,
+        height: 1194
+      },
+      {
+        src: '/images/projects/buslive-move-small.gif',
+        alt: 'BusLive 버스 이동 상세 화면',
+        caption: 'Move Feature',
+        width: 666,
+        height: 1194
+      }
+    ],
     visualMode: 'phone',
     accent: '#2563eb',
     metrics: [
@@ -612,6 +699,8 @@ export const portfolioProjects: PortfolioProject[] = [
     ],
     highlights: [
       '정류장별 WebSocket 채팅과 실시간 위치 시각화 구현',
+      '노드 좌표와 구간별 평균 속도를 활용해 인천 지역의 초정밀 위치 추적 공백을 보완',
+      'README의 FSD 구조처럼 Bus, Chat entity와 Map/Chat page를 나누어 유지보수성 확보',
       'AWS EC2 웹서버 셋업, GitHub Actions, Let’s Encrypt HTTPS 자동화',
       'Google 애드센스 영역과 채팅 UI가 겹치는 문제를 레이아웃 위계 조정으로 해결'
     ],
@@ -626,12 +715,25 @@ export const portfolioProjects: PortfolioProject[] = [
       { label: '해커톤 결과', before: '12팀 경쟁', after: '대상 수상', effect: '제품 방향성 검증' },
       { label: '배포 자동화', before: '수동 배포', after: 'GitHub Actions + HTTPS', effect: '배포 민첩성 확보' }
     ],
-    techStack: ['React', 'Recoil', 'Styled-components', 'WebSocket', 'Naver Maps API', 'AWS EC2', 'GitHub Actions', 'Let’s Encrypt'],
+    techStack: [
+      'React',
+      'Recoil',
+      'Styled-components',
+      'WebSocket',
+      'Node.js',
+      'Express',
+      'Naver Maps API',
+      'AWS EC2',
+      'GitHub Actions',
+      'Let’s Encrypt',
+      'FSD'
+    ],
     problem:
       '팀은 AI 예측을 핵심으로 가져가고 싶었지만, 4주 안에 안정적으로 구현하기에는 리스크가 컸습니다. 동시에 실제 사용자가 볼 수 있는 지도, 채팅, 도착 정보는 빠르게 완성되어야 했습니다.',
     approach: [
       '팀장과 개발진을 따로 만나 우려와 목표를 분리해 들은 뒤, 모두가 원하는 대상 수상이라는 공통 목표를 먼저 맞췄습니다.',
       'AI 예측은 나중에 확장 가능한 구조로 남기고, MVP에서는 정류장별 도착 예측과 위치 시각화의 신뢰도를 우선했습니다.',
+      '카카오 버스 초정밀 위치 추적이 인천에서 지원되지 않는 문제를 노드 좌표와 구간별 평균 속도 기반 계산으로 보완했습니다.',
       '광고, 채팅, 지도처럼 서로 충돌하기 쉬운 UI 요소는 계층과 영역을 명확히 나눠 실제 서비스 화면으로 정리했습니다.'
     ],
     takeaway:
@@ -645,14 +747,30 @@ export const portfolioProjects: PortfolioProject[] = [
     period: '2024.10 ~ 2025.02',
     quote: '구글 지도 18개를 동시에 띄우면 어떤 일이 벌어질까?',
     summary:
-      'DMAP 프로필 페이지의 3×3 지도 썸네일 그리드를 구현하며 WebGL 크래시, Google Maps API 과금, 렌더링 성능 저하를 해결한 프로젝트입니다.',
+      'DMAP은 사용자가 이동 경로를 지도 위에 선으로 남기고 이를 SNS 피드로 공유하는 서비스입니다. README의 홈/경로 트래킹 화면과 블로그 기록을 기준으로, 프로필 페이지 3×3 지도 썸네일 그리드에서 WebGL 크래시, Google Maps API 과금, 렌더링 성능 저하를 해결한 과정을 정리했습니다.',
     role: '프로필 기능 전담, 렌더링 최적화 및 지도 구조 개선 주도',
     team: 'FE 2명, BE 2명',
     contribution: '기여도 90%',
-    image: '/images/projects/dmap-cover.jpg',
-    imageAlt: 'DMAP 경로 드로잉과 지도 트래킹 화면',
-    imageWidth: 1600,
-    imageHeight: 900,
+    image: '/images/projects/dmap-readme-tracking.png',
+    imageAlt: 'DMAP README 경로 트래킹 화면',
+    imageWidth: 411,
+    imageHeight: 740,
+    gallery: [
+      {
+        src: '/images/projects/dmap-readme-home.png',
+        alt: 'DMAP README 홈 화면',
+        caption: '홈 화면',
+        width: 413,
+        height: 734
+      },
+      {
+        src: '/images/projects/dmap-readme-tracking.png',
+        alt: 'DMAP README 경로 트래킹 화면',
+        caption: '경로 트래킹',
+        width: 411,
+        height: 740
+      }
+    ],
     visualMode: 'phone',
     accent: '#ea580c',
     metrics: [
@@ -662,13 +780,15 @@ export const portfolioProjects: PortfolioProject[] = [
     ],
     highlights: [
       'WebGL 기반 벡터 지도의 컨텍스트 한계와 크래시 원인 분석',
+      'README의 실시간 경로 트래킹, 경로 그림 그리기, SNS 피드 흐름을 지도 렌더링 구조와 연결',
       '6가지 실패 방식 이후 정적 지도 + 전역 단일 동적 지도 하이브리드 전략 설계',
       'React Portal 기반 상세 지도 전환과 Google API 비용 알림 체계 구축'
     ],
     contributions: [
       '벡터 지도 16개 초과 시 발생하는 WebGL 컨텍스트 크래시를 재현하고 병목을 분석했습니다.',
       '지도 18개 썸네일은 정적 이미지로, 상세 뷰는 동적 지도 1개로 분리해 안정성과 UX를 동시에 확보했습니다.',
-      '과금 폭탄 이후 Google API 사용량을 분석하고 모니터링 및 알림 설정까지 정리했습니다.'
+      '과금 폭탄 이후 Google API 사용량을 분석하고 모니터링 및 알림 설정까지 정리했습니다.',
+      '팀 내 구현 방식 차이와 무한 스크롤/API 호출 방식의 갈등을 회고하며 유지보수 비용을 낮추는 방향으로 합의했습니다.'
     ],
     results: [
       { label: '지도 타입', before: '벡터 WebGL 지도', after: '정적 + 전역 동적 1개', effect: '메모리 사용량 감소' },
@@ -682,13 +802,15 @@ export const portfolioProjects: PortfolioProject[] = [
     approach: [
       'WebGL 컨텍스트 해제, key 기반 리렌더링, 스켈레톤, 캡처, 인스턴스 재사용 등 6가지 방식을 실험하며 실패 원인을 좁혔습니다.',
       '최종적으로 목록에서는 정적 지도 이미지를 사용하고, 상세 확인이 필요한 순간에만 전역 동적 지도 1개를 재사용했습니다.',
-      'Google Maps 과금 구조를 확인하고 알림을 설정해 기술 해결이 운영 비용 절감으로 이어지도록 마무리했습니다.'
+      'Google Maps 과금 구조를 확인하고 알림을 설정해 기술 해결이 운영 비용 절감으로 이어지도록 마무리했습니다.',
+      '팀장과의 코드 컨벤션, API 호출 방식, 무한 스크롤 구현 차이를 조율하며 팀 전체 속도를 우선하는 방향을 선택했습니다.'
     ],
     takeaway:
       '렌더링 최적화는 빠르게 만드는 것만이 아니라 브라우저 자원, 외부 API 비용, 사용자 흐름을 함께 설계하는 일이라는 점을 배웠습니다.',
     links: [
       { label: 'GitHub 저장소', href: 'https://github.com/Stageus/DMap-homepage/tree/master', external: true },
-      { label: 'WebGL 문제 해결 과정', href: '/blog/구글-지도-18개를-동시에-렌더링하려다-마주한-webgl-지옥-탈출기' }
+      { label: 'WebGL/비용 해결 과정', href: '/blog/구글지도-api-비용-120만원-청산' },
+      { label: '팀 협업 회고', href: '/blog/코드의-옳고-그름보다-중요한-것-팀의-속도를-높이는-팔로워십' }
     ]
   }
 ];
@@ -698,6 +820,6 @@ export const featuredPostSlugs = [
   'relay-react-activity-gc-크래시',
   '페이지-속도가-이탈률-감소와-연관이-있을까',
   '딸깍이면-내-프로젝트도-해외-진출',
-  '웹뷰에도-오프라인-기능이-필요하지-않을까요',
+  '공사-현장에서-오프라인-기능이-필요하지-않을까요',
   'bruno-api용-codegen-을-만들자'
 ] as const;

@@ -1,9 +1,13 @@
 ---
 title: "React 생태계 도구를 Rust로 옮기며 배운 것들"
+description: "swc에서 받은 영감"
 pubDate: 2025-11-27T00:00:00.000Z
 tags: ["I18nexus"]
 notionId: "35f7cf19-a364-8072-ab0a-f217bef01ea4"
 ---
+![491153F9-289B-4DA4-885B-0B81143BB9AE.png](/images/react-생태계-도구를-rust로-옮기며-배운-것들-0.png)
+
+
 React를 오래 사용하다 보면 어느 순간 프레임워크의 사용법보다 그 아래에서 동작하는 도구들이 더 궁금해지는 순간이 온다. 나에게는 React Compiler가 그 계기였다.
 
 

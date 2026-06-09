@@ -1,7 +1,8 @@
 ---
 title: "AI 토큰을 낭비하지 않는 삶 "
 pubDate: 2026-03-28T00:00:00.000Z
-tags: ["AI", "자동화", "프로젝트"]
+tags: ["사주"]
+notes: true
 notionId: "3307cf19-a364-8008-b795-e6aa1582d2c7"
 ---
 # “토큰을 태우자”로 시작, 운영 구조의 인사이트를 얻었다!
@@ -197,3 +198,4 @@ Perplexity 리서치 기반으로 표현을 계속 다듬었고,
 
 
 연애 결과를 보고 싶다면 [https://www.mannomi.cloud/saju](https://www.mannomi.cloud/saju) 여기서 받아보시길 바랍니다~!!!
+

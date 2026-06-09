@@ -1,9 +1,13 @@
 ---
 title: "Cloudflare Workers + TanStack Start — 빌드/배포 파이프라인의 복합 버그를 해부하다"
+description: "런타임 , 번들러 , CI/CD 이슈 트래킹"
 pubDate: 2026-01-16T00:00:00.000Z
-tags: ["배포", "디버깅", "프론트엔드"]
+tags: ["당근마켓"]
 notionId: "32f7cf19-a364-801e-9af7-f20b1af09282"
----> `web`의 SSR 인프라를 Vercel에서 Cloudflare Workers로 마이그레이션하면서, CJS/ESM interop 빌드 실패부터 Turborepo 캐시 충돌, Worker 이름 이중 suffix까지 — Cloudflare Workers + TanStack Start + Turborepo 3개 도구가 맞물리는 지점에서 발생한 복합적인 문제들을 해결한 기록이에요.
+---
+![cloudflare-down-01-1536x1152.avif](/images/cloudflare-workers-tanstack-start-빌드-배포-파이프라인의-복합-버그를-해부하다-0.avif)
+
+> `web`의 SSR 인프라를 Vercel에서 Cloudflare Workers로 마이그레이션하면서, CJS/ESM interop 빌드 실패부터 Turborepo 캐시 충돌, Worker 이름 이중 suffix까지 — Cloudflare Workers + TanStack Start + Turborepo 3개 도구가 맞물리는 지점에서 발생한 복합적인 문제들을 해결한 기록이에요.
 
 ---
 
