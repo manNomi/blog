@@ -1,7 +1,7 @@
 {
   "databaseId": "2af7cf19a36480648f08f4072d1246c5",
   "totalPages": 44,
-  "hash": "619b48c0c80d19b64c98a1d4044281520127684ec824089b54093f4b92eeb6d8",
+  "hash": "be1a1d7bb56ce5c17b5dfa2bb94c05e8c194d0e7509b83719c3bc3aa0b2673e9",
   "pages": [
     {
       "notionId": "2af7cf19-a364-8004-a41a-dc5735d98b2b",
@@ -41,7 +41,7 @@
     },
     {
       "notionId": "2af7cf19-a364-80f1-a8ae-fe7c7bd2c1d8",
-      "lastEditedTime": "2026-06-09T10:27:00.000Z",
+      "lastEditedTime": "2026-06-09T10:37:00.000Z",
       "createdTime": "2025-11-18T13:21:00.000Z",
       "title": "페이지 속도가 이탈률 감소와 연관이 있을까? "
     },
@@ -268,7 +268,7 @@
       "title": "Node.js 강의 v3 "
     }
   ],
-  "syncedAt": "2026-06-09T10:33:53.972Z",
+  "syncedAt": "2026-06-09T10:39:52.496Z",
   "files": [
     {
       "notionId": "2af7cf19-a364-8004-a41a-dc5735d98b2b",
@@ -423,10 +423,14 @@
       "notionId": "2af7cf19-a364-80f1-a8ae-fe7c7bd2c1d8",
       "filename": "페이지-속도가-이탈률-감소와-연관이-있을까.md",
       "title": "페이지 속도가 이탈률 감소와 연관이 있을까? ",
-      "lastEditedTime": "2026-06-09T10:27:00.000Z",
+      "lastEditedTime": "2026-06-09T10:37:00.000Z",
       "heroImage": "",
       "heroImageSourceKey": "",
       "imageAssets": [
+        {
+          "sourceKey": "https://prod-files-secure.s3.us-west-2.amazonaws.com/010ca544-7c43-45a2-9139-842dd522bfa6/716ebb72-16cb-4927-86ce-b47f9628be82/vignetteMCL25.avif",
+          "localPath": "/images/페이지-속도가-이탈률-감소와-연관이-있을까-0.avif"
+        },
         {
           "sourceKey": "https://prod-files-secure.s3.us-west-2.amazonaws.com/010ca544-7c43-45a2-9139-842dd522bfa6/dbbcf591-78ba-4fc4-acf1-ee9c4c885a2b/GA.png",
           "localPath": "/images/페이지-속도가-이탈률-감소와-연관이-있을까-0.png"

@@ -3,8 +3,7 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import ProjectCard from '../components/ProjectCard.astro';
-import { portfolioProfile, portfolioProjects } from '../data/portfolio';
+import { portfolioProfile } from '../data/portfolio';
 import { extractFirstImage } from '../utils/extractFirstImage';
 import { getArticlePosts } from '../utils/postFilters';
 
@@ -170,20 +169,6 @@ const homeJsonLd = [
         </p>
       </section>
 
-      <section class="pt-[84px]">
-        <div class="section-head">
-          <div>
-            <div class="eyebrow mb-2">Case studies · {portfolioProjects.length}</div>
-            <h2 class="section-title">프로젝트</h2>
-          </div>
-          <a href="/about#projects" class="mono whitespace-nowrap" style="color: var(--text-dim);">전체 보기 →</a>
-        </div>
-
-        <div class="mt-5">
-          {portfolioProjects.map((project, index) => <ProjectCard project={project} index={index} />)}
-          <hr class="rule" />
-        </div>
-      </section>
     </div>
   </main>
 
