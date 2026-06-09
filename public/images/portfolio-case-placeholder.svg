@@ -1,28 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
-  <title id="title">Portfolio case study placeholder</title>
-  <desc id="desc">Neutral product interface placeholder for future portfolio screenshots.</desc>
-  <rect width="1200" height="800" fill="#f6f5f2"/>
-  <rect x="56" y="56" width="1088" height="688" rx="20" fill="#ffffff" stroke="#1f2937" stroke-opacity="0.16" stroke-width="2"/>
-  <rect x="96" y="102" width="1008" height="74" rx="12" fill="#111827"/>
-  <circle cx="136" cy="139" r="10" fill="#16a34a"/>
-  <circle cx="168" cy="139" r="10" fill="#2563eb"/>
-  <circle cx="200" cy="139" r="10" fill="#ea580c"/>
-  <rect x="248" y="128" width="260" height="22" rx="11" fill="#f8fafc" opacity="0.88"/>
-  <g transform="translate(581 116) scale(0.095)" opacity="0.95">
-    <path fill="#fff" d="M393.794 170.505c-2.88 2.24-54.063 30.71-54.063 95.01 0 74.216 64.94 100.448 66.859 101.088-.32 1.92-10.237 35.828-34.23 71.017-21.112 30.71-43.825 61.74-77.734 61.74s-42.867-20.153-81.894-20.153c-38.388 0-51.823 20.793-82.854 20.793s-52.783-28.79-77.735-63.66C23.353 395.074 0 331.414 0 270.633c0-96.929 63.02-148.752 125.4-148.752 32.95 0 60.46 21.753 81.254 21.753 19.514 0 50.224-23.033 87.972-23.033 14.395 0 65.579 1.28 99.168 49.904zm-184.58-55.342c-2.56 0-5.12-.32-6.719-.64-.32-1.28-.96-5.118-.96-8.957 0-25.911 13.116-51.503 27.512-67.818C246.96 16.635 277.35.96 302.303 0c.64 2.88.96 6.398.96 9.917 0 25.592-10.877 51.183-26.232 69.738-16.634 20.473-45.105 35.508-67.818 35.508z"/>
-  </g>
-  <rect x="96" y="220" width="388" height="234" rx="16" fill="#f0fdf4" stroke="#16a34a" stroke-opacity="0.24"/>
-  <rect x="526" y="220" width="578" height="92" rx="16" fill="#eff6ff" stroke="#2563eb" stroke-opacity="0.22"/>
-  <rect x="526" y="346" width="578" height="108" rx="16" fill="#fff7ed" stroke="#ea580c" stroke-opacity="0.22"/>
-  <rect x="96" y="494" width="1008" height="160" rx="16" fill="#f8fafc" stroke="#111827" stroke-opacity="0.1"/>
-  <rect x="132" y="258" width="180" height="22" rx="11" fill="#14532d" opacity="0.9"/>
-  <rect x="132" y="300" width="292" height="18" rx="9" fill="#166534" opacity="0.22"/>
-  <rect x="132" y="336" width="248" height="18" rx="9" fill="#166534" opacity="0.18"/>
-  <rect x="132" y="372" width="312" height="18" rx="9" fill="#166534" opacity="0.14"/>
-  <rect x="566" y="252" width="210" height="18" rx="9" fill="#1d4ed8" opacity="0.74"/>
-  <rect x="566" y="382" width="248" height="18" rx="9" fill="#c2410c" opacity="0.74"/>
-  <rect x="132" y="536" width="186" height="18" rx="9" fill="#111827" opacity="0.42"/>
-  <rect x="132" y="580" width="820" height="16" rx="8" fill="#111827" opacity="0.12"/>
-  <rect x="132" y="616" width="676" height="16" rx="8" fill="#111827" opacity="0.1"/>
-  <text x="600" y="714" text-anchor="middle" fill="#374151" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">Screenshot placeholder</text>
+  <title id="title">Portfolio placeholder</title>
+  <desc id="desc">Neutral striped placeholder with a centered apple-shaped mark.</desc>
+  <defs>
+    <pattern id="stripe" width="28" height="28" patternUnits="userSpaceOnUse" patternTransform="rotate(135)">
+      <rect width="14" height="28" fill="#e8e7e4"/>
+      <rect x="14" width="14" height="28" fill="#deddd9"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="800" fill="url(#stripe)"/>
+  <path
+    transform="translate(437.5 200) scale(0.65)"
+    fill="#4b5563"
+    opacity="0.36"
+    d="M393.794 170.505c-2.88 2.24-54.063 30.71-54.063 95.01 0 74.216 64.94 100.448 66.859 101.088-.32 1.92-10.237 35.828-34.23 71.017-21.112 30.71-43.825 61.74-77.734 61.74s-42.867-20.153-81.894-20.153c-38.388 0-51.823 20.793-82.854 20.793s-52.783-28.79-77.735-63.66C23.353 395.074 0 331.414 0 270.633c0-96.929 63.02-148.752 125.4-148.752 32.95 0 60.46 21.753 81.254 21.753 19.514 0 50.224-23.033 87.972-23.033 14.395 0 65.579 1.28 99.168 49.904zm-184.58-55.342c-2.56 0-5.12-.32-6.719-.64-.32-1.28-.96-5.118-.96-8.957 0-25.911 13.116-51.503 27.512-67.818C246.96 16.635 277.35.96 302.303 0c.64 2.88.96 6.398.96 9.917 0 25.592-10.877 51.183-26.232 69.738-16.634 20.473-45.105 35.508-67.818 35.508z"
+  />
 </svg>

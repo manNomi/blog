@@ -46,7 +46,7 @@ const canonicalPath = `/about/${project?.slug ?? experience?.slug}`;
 const detailURL = new URL(canonicalPath, siteURL).href;
 const hasProjectImage = Boolean(project && !project.image.includes('portfolio-case-placeholder'));
 const ogImage =
-  project && project.image.endsWith('.svg') ? '/images/portfolio-case-placeholder.png' : project?.image ?? '/og-image.png';
+  project && project.image.endsWith('.svg') ? '/og-image.png' : project?.image ?? '/og-image.png';
 const imageAlt = project?.imageAlt ?? `${portfolioProfile.name} 경력 상세`;
 const imageWidth = project?.imageWidth ?? 1200;
 const imageHeight = project?.imageHeight ?? 630;

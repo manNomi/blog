@@ -373,19 +373,18 @@ body {
 }
 
 .ph::after {
-  content: attr(data-label);
-  padding: 3px 8px;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  background: var(--bg);
-  color: var(--text-faint);
-  font-family: var(--font-mono-ref);
-  font-size: 0.68rem;
-  letter-spacing: 0.04em;
+  display: block;
+  width: clamp(42px, 13%, 82px);
+  aspect-ratio: 406.59 / 500;
+  background: color-mix(in oklab, var(--text) 62%, var(--bg));
+  content: '';
+  opacity: 0.36;
+  -webkit-mask: url('/images/placeholder-apple.svg') center / contain no-repeat;
+  mask: url('/images/placeholder-apple.svg') center / contain no-repeat;
 }
 
 .ph--silent::after {
-  display: none;
+  display: block;
 }
 
 .site-header {
