@@ -2,7 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { portfolioMetrics, portfolioProfile, resumeExperiences } from '../data/portfolio';
+import { portfolioProfile, portfolioProjects, resumeExperiences } from '../data/portfolio';
 ---
 
 <BaseLayout title="소개 | 한만욱" description={portfolioProfile.intro}>
@@ -21,32 +21,155 @@ import { portfolioMetrics, portfolioProfile, resumeExperiences } from '../data/p
         {portfolioProfile.focus.map((item) => <span class="focus-chip">{item}</span>)}
       </div>
 
-      <section class="mt-16">
-        <div class="eyebrow mb-[18px]">Selected impact</div>
-        <div class="grid border-t md:grid-cols-2" style="border-color: var(--border);">
-          {portfolioMetrics.map((metric) => (
-            <div class="border-b py-5 pr-6" style="border-color: var(--border);">
-              <div class="text-[1.7rem] font-bold leading-none tracking-[-0.03em]" style="color: var(--text);">{metric.value}</div>
-              <div class="mt-2 text-[0.9rem] font-semibold" style="color: var(--text);">{metric.label}</div>
-              <div class="mt-1 text-[0.82rem] leading-[1.5]" style="color: var(--text-faint);">{metric.detail}</div>
-            </div>
-          ))}
+      <section id="experience" class="mt-16 scroll-mt-24">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow mb-2">Experience</div>
+            <h2 class="section-title">경력</h2>
+          </div>
+          <span class="mono">{resumeExperiences.length} roles</span>
         </div>
+
+        {resumeExperiences.map((experience, index) => (
+          <details class="detail-card" id={`experience-${index + 1}`}>
+            <summary class="detail-summary">
+              <span class="mono pt-1" style="color: var(--text-faint);">{experience.period}</span>
+              <span class="min-w-0">
+                <span class="m-0 block text-[1.15rem] font-bold tracking-[-0.02em]" style="color: var(--text);">{experience.company}</span>
+                <span class="my-1 block text-[0.9rem]" style="color: var(--text-dim);">{experience.role}</span>
+                <span class="m-0 block max-w-[64ch] text-[0.95rem] leading-[1.6]" style="color: var(--text-dim);">{experience.description}</span>
+              </span>
+              <span class="detail-toggle" aria-hidden="true">+</span>
+            </summary>
+
+            <div class="detail-body">
+              <p class="m-0 max-w-[64ch] text-[0.95rem] leading-[1.65]" style="color: var(--text);">{experience.team}</p>
+              <div class="detail-list mt-6">
+                {experience.highlights.map((highlight) => (
+                  <article class="detail-list-item">
+                    <div>
+                      <h3 class="m-0 text-[0.98rem] font-bold tracking-[-0.02em]" style="color: var(--text);">{highlight.title}</h3>
+                      {highlight.metric && <div class="mono mt-1" style="color: var(--text-faint);">{highlight.metric}</div>}
+                    </div>
+                    <p class="m-0 text-[0.92rem] leading-[1.65]" style="color: var(--text-dim);">{highlight.description}</p>
+                    {highlight.href && (
+                      <a href={highlight.href} class="mono detail-link" style="color: var(--text);">관련 글 →</a>
+                    )}
+                  </article>
+                ))}
+              </div>
+            </div>
+          </details>
+        ))}
       </section>
 
-      <section class="mt-16">
-        <div class="eyebrow mb-[18px]">Experience</div>
-        {resumeExperiences.map((experience) => (
-          <div class="flow-row !py-[26px]">
-            <div class="mono pt-1" style="color: var(--text-faint);">{experience.period}</div>
-            <div>
-              <h3 class="m-0 text-[1.15rem] font-bold tracking-[-0.02em]" style="color: var(--text);">{experience.company}</h3>
-              <div class="my-1 text-[0.9rem]" style="color: var(--text-dim);">{experience.role}</div>
-              <p class="m-0 max-w-[56ch] text-[0.95rem] leading-[1.6]" style="color: var(--text-dim);">{experience.description}</p>
-            </div>
+      <section id="projects" class="mt-16 scroll-mt-24">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow mb-2">Case studies</div>
+            <h2 class="section-title">프로젝트</h2>
           </div>
+          <span class="mono">{portfolioProjects.length} projects</span>
+        </div>
+
+        {portfolioProjects.map((project, index) => (
+          <details class="detail-card project-detail-card" id={`project-${project.slug}`}>
+            <summary class="detail-summary">
+              <span class="mono pt-1" style="color: var(--text-faint);">{String(index + 1).padStart(2, '0')} · {project.period}</span>
+              <span class="min-w-0">
+                <span class="eyebrow mb-2 block">{project.eyebrow}</span>
+                <span class="m-0 block text-[1.35rem] font-bold leading-tight tracking-[-0.03em]" style="color: var(--text);">{project.title}</span>
+                <span class="mt-3 block max-w-[66ch] text-[0.95rem] leading-[1.65]" style="color: var(--text-dim);">{project.summary}</span>
+                <span class="mt-4 flex flex-wrap gap-4">
+                  {project.metrics.slice(0, 3).map((metric) => (
+                    <span class="flex items-baseline gap-1.5">
+                      <span class="text-[1.05rem] font-bold tracking-[-0.02em]" style="color: var(--text);">{metric.value}</span>
+                      <span class="mono text-[0.66rem]">{metric.label}</span>
+                    </span>
+                  ))}
+                </span>
+              </span>
+              <span class="detail-toggle" aria-hidden="true">+</span>
+            </summary>
+
+            <div class="detail-body">
+              <div class="project-detail-grid">
+                <div>
+                  <div class="mono mb-1.5" style="color: var(--text-faint);">Quote</div>
+                  <p class="m-0 text-[1.1rem] font-semibold leading-[1.6] tracking-[-0.02em]" style="color: var(--text);">“{project.quote}”</p>
+                </div>
+                <div>
+                  <div class="mono mb-1.5" style="color: var(--text-faint);">Role</div>
+                  <p class="m-0 text-[0.94rem] leading-[1.65]" style="color: var(--text-dim);">
+                    {[project.role, project.team, project.contribution].filter(Boolean).join(' · ')}
+                  </p>
+                </div>
+              </div>
+
+              <div class="mt-7">
+                <div class="mono mb-3" style="color: var(--text-faint);">Problem</div>
+                <p class="m-0 max-w-[68ch] text-[0.98rem] leading-[1.75]" style="color: var(--text);">{project.problem}</p>
+              </div>
+
+              <div class="project-detail-grid mt-7">
+                <div>
+                  <div class="mono mb-3" style="color: var(--text-faint);">Approach</div>
+                  <ol class="m-0 flex list-none flex-col gap-4 p-0">
+                    {project.approach.map((item, itemIndex) => (
+                      <li class="grid grid-cols-[auto_1fr] items-start gap-3">
+                        <span class="mono grid h-[24px] w-[24px] place-items-center rounded-full border text-[0.66rem]" style="border-color: var(--border); color: var(--text-dim);">{itemIndex + 1}</span>
+                        <span class="text-[0.93rem] leading-[1.65]" style="color: var(--text-dim);">{item}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+                <div>
+                  <div class="mono mb-3" style="color: var(--text-faint);">Contribution</div>
+                  <div class="detail-list">
+                    {project.contributions.map((item) => (
+                      <div class="detail-list-item">
+                        <p class="m-0 text-[0.93rem] leading-[1.65]" style="color: var(--text-dim);">{item}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-7 overflow-hidden rounded-[14px] border" style="border-color: var(--border);">
+                {project.results.map((result, resultIndex) => (
+                  <div class={`result-row ${resultIndex > 0 ? 'border-t' : ''}`} style="border-color: var(--border);">
+                    <div class="text-[0.9rem] font-semibold" style="color: var(--text);">{result.label}</div>
+                    <div class="flex items-center gap-3 text-[0.9rem]" style="color: var(--text-dim);">
+                      {result.before && <><span class="mono whitespace-nowrap line-through opacity-70">{result.before}</span><span class="opacity-50">→</span></>}
+                      <span class="whitespace-nowrap font-bold" style="color: var(--text);">{result.after}</span>
+                    </div>
+                    <div class="mono text-right" style="color: var(--text-faint);">{result.effect}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div class="mt-7">
+                <div class="mono mb-2" style="color: var(--text-faint);">Takeaway</div>
+                <p class="m-0 max-w-[66ch] text-[1rem] leading-[1.7]" style="color: var(--text);">{project.takeaway}</p>
+              </div>
+
+              <div class="mt-6 flex flex-wrap gap-2">
+                {project.techStack.map((tech) => <span class="pill cursor-default">{tech}</span>)}
+                {project.links.map((link) => (
+                  <a
+                    href={link.href}
+                    target={link.external ? '_blank' : undefined}
+                    rel={link.external ? 'noopener noreferrer' : undefined}
+                    class="pill"
+                    style="color: var(--text); border-color: var(--border-strong);"
+                  >
+                    {link.label} →
+                  </a>
+                ))}
+              </div>
+            </div>
+          </details>
         ))}
-        <hr class="rule" />
       </section>
 
       <section class="mt-16">
@@ -61,3 +184,19 @@ import { portfolioMetrics, portfolioProfile, resumeExperiences } from '../data/p
 
   <Footer />
 </BaseLayout>
+
+<script>
+  const openHashDetail = () => {
+    const hash = decodeURIComponent(window.location.hash.slice(1));
+    if (!hash) return;
+
+    const target = document.getElementById(hash);
+    if (target instanceof HTMLDetailsElement) {
+      target.open = true;
+      target.scrollIntoView({ block: 'start' });
+    }
+  };
+
+  openHashDetail();
+  window.addEventListener('hashchange', openHashDetail);
+</script>

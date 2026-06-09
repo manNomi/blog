@@ -4,13 +4,14 @@ import type { PortfolioProject } from '../data/portfolio';
 interface Props {
   project: PortfolioProject;
   index: number;
+  href?: string;
 }
 
-const { project, index } = Astro.props;
+const { project, index, href = `/about#project-${project.slug}` } = Astro.props;
 const hasProjectImage = !project.image.includes('portfolio-case-placeholder');
 ---
 
-<a href={`/projects/${project.slug}`} class="project-card">
+<a href={href} class="project-card">
   <div>
     <div class="mb-3.5 flex items-center gap-3">
       <span class="mono" style="color: var(--text-faint);">{String(index + 1).padStart(2, '0')}</span>
