@@ -4,9 +4,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import PostCard from '../components/PostCard.astro';
-import { sortPostsByPubDateDesc } from '../utils/postFilters';
+import { getArticlePosts, isNotePost } from '../utils/postFilters';
 
-const allPosts = sortPostsByPubDateDesc(await getCollection('blog'));
+const allPosts = getArticlePosts(await getCollection('blog'));
 const allTags = [...new Set(allPosts.flatMap((post) => post.data.tags || []))].sort((a, b) => {
   const diff = allPosts.filter((post) => (post.data.tags || []).includes(b)).length - allPosts.filter((post) => (post.data.tags || []).includes(a)).length;
   return diff || a.localeCompare(b, 'ko-KR');
@@ -17,7 +17,7 @@ const tagCounts = allTags.reduce((acc, tag) => {
 }, {} as Record<string, number>);
 ---
 
-<BaseLayout title="태그 | 한만욱" description="주제별로 글과 노트를 탐색하세요.">
+<BaseLayout title="태그 | 한만욱" description="주제별로 일반 글을 탐색하세요.">
   <Header />
 
   <main class="site-main">
@@ -25,12 +25,22 @@ const tagCounts = allTags.reduce((acc, tag) => {
       <header class="page-head rise">
         <div class="eyebrow mb-[18px]">Browse by topic</div>
         <h1>태그</h1>
-        <p>주제별로 글과 노트를 탐색하세요.</p>
+        <p>주제별로 일반 글을 탐색하세요. 노트는 별도 Notes 페이지에서 관리합니다.</p>
       </header>
 
       <hr class="rule" />
 
       <section class="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-0" aria-label="Tag cards">
+        <a
+          href="/tags"
+          class="tag-card flex items-baseline justify-between border-b py-[26px] pr-[18px] transition-[padding-left]"
+          data-tag-card="all"
+          data-active="true"
+          style="border-color: var(--border); color: var(--text);"
+        >
+          <span class="text-[1.25rem] font-bold tracking-[-0.02em]">ALL</span>
+          <span class="mono">{String(allPosts.length).padStart(2, '0')}</span>
+        </a>
         {allTags.map((tag) => (
           <a
             href={`/tags?tag=${encodeURIComponent(tag)}`}
@@ -44,11 +54,11 @@ const tagCounts = allTags.reduce((acc, tag) => {
         ))}
       </section>
 
-      <section class="mt-16 hidden" data-selected-section aria-live="polite">
+      <section class="mt-16" data-selected-section aria-live="polite">
         <div class="section-head">
           <div>
             <div class="eyebrow mb-2">Selected topic</div>
-            <h2 class="section-title" data-tag-title>전체</h2>
+            <h2 class="section-title" data-tag-title>ALL ({allPosts.length})</h2>
           </div>
           <a href="/tags" class="mono whitespace-nowrap" style="color: var(--text-dim);">전체 태그 →</a>
         </div>
@@ -66,7 +76,7 @@ const tagCounts = allTags.reduce((acc, tag) => {
                 pubDate={post.data.pubDate}
                 tags={post.data.tags}
                 pinned={post.data.pinned}
-                notes={post.data.notes}
+                notes={isNotePost(post)}
                 variant="compact"
               />
             </div>
@@ -83,7 +93,7 @@ const tagCounts = allTags.reduce((acc, tag) => {
 
 <script>
   // @ts-nocheck
-  const selectedTag = new URLSearchParams(window.location.search).get('tag');
+  const selectedTag = new URLSearchParams(window.location.search).get('tag') || 'all';
   const selectedSection = document.querySelector('[data-selected-section]');
   const titleNode = document.querySelector('[data-tag-title]');
   const emptyNode = document.querySelector('[data-tag-empty]');
@@ -97,22 +107,22 @@ const tagCounts = allTags.reduce((acc, tag) => {
     }
   };
 
-  if (selectedTag && selectedSection) {
+  if (selectedSection) {
     selectedSection.classList.remove('hidden');
     let visibleCount = 0;
 
     items.forEach((item) => {
-      const visible = parseTags(item).includes(selectedTag);
+      const visible = selectedTag === 'all' || parseTags(item).includes(selectedTag);
       item.classList.toggle('hidden', !visible);
       if (visible) visibleCount += 1;
     });
 
-    if (titleNode) titleNode.textContent = `${selectedTag} (${visibleCount})`;
+    if (titleNode) titleNode.textContent = selectedTag === 'all' ? `ALL (${visibleCount})` : `${selectedTag} (${visibleCount})`;
     if (emptyNode) emptyNode.classList.toggle('hidden', visibleCount > 0);
 
-    const activeCard = Array.from(document.querySelectorAll('[data-tag-card]')).find(
-      (card) => card.getAttribute('data-tag-card') === selectedTag
-    );
+    const tagCards = Array.from(document.querySelectorAll('[data-tag-card]'));
+    tagCards.forEach((card) => card.removeAttribute('data-active'));
+    const activeCard = tagCards.find((card) => card.getAttribute('data-tag-card') === selectedTag);
     activeCard?.setAttribute('data-active', 'true');
   }
 </script>

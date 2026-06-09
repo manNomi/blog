@@ -70,6 +70,7 @@ const heroImage = post.data.heroImage || extractFirstImage(post.body) || undefin
 <BlogPost
   {...post.data}
   heroImage={heroImage}
+  notes={isNotePost(post)}
   slug={post.slug}
   readingTime={readingTime}
   previousPost={previousPost}

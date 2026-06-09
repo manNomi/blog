@@ -4,9 +4,25 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import PostCard from '../components/PostCard.astro';
-import { getNotePosts } from '../utils/postFilters';
+import { getNotePosts, isNotePost } from '../utils/postFilters';
 
 const notes = getNotePosts(await getCollection('blog'));
+const noteGroups = Array.from(
+  notes.reduce((groups, post) => {
+    const tags = post.data.tags?.length ? post.data.tags : ['태그 없음'];
+
+    tags.forEach((tag) => {
+      const groupedPosts = groups.get(tag) ?? [];
+      groupedPosts.push(post);
+      groups.set(tag, groupedPosts);
+    });
+
+    return groups;
+  }, new Map<string, typeof notes>())
+).sort(([tagA, postsA], [tagB, postsB]) => {
+  const countDiff = postsB.length - postsA.length;
+  return countDiff || tagA.localeCompare(tagB, 'ko-KR');
+});
 ---
 
 <BaseLayout title="Notes | 한만욱" description="짧은 기록과 논문 메모를 분리해 모아둔 페이지입니다.">
@@ -22,22 +38,36 @@ const notes = getNotePosts(await getCollection('blog'));
 
       <hr class="rule" />
 
-      <div class="flex flex-col">
-        {notes.length > 0 ? (
-          notes.map((post, index) => (
-            <>
-              {index > 0 && <hr class="rule" />}
-              <PostCard
-                title={post.data.title}
-                description={post.data.description}
-                slug={post.slug}
-                pubDate={post.data.pubDate}
-                tags={post.data.tags}
-                pinned={post.data.pinned}
-                notes={post.data.notes}
-                variant="compact"
-              />
-            </>
+      <div class="note-tag-stack">
+        {noteGroups.length > 0 ? (
+          noteGroups.map(([tag, posts], groupIndex) => (
+            <details class="note-tag-group" data-note-tag-group open={groupIndex === 0}>
+              <summary class="note-tag-group__summary">
+                <span class="note-tag-group__label">
+                  <span>{tag}</span>
+                  <span class="mono">{String(posts.length).padStart(2, '0')}</span>
+                </span>
+                <span class="note-tag-group__toggle" aria-hidden="true"></span>
+              </summary>
+
+              <div class="note-tag-group__content">
+                {posts.map((post, index) => (
+                  <>
+                    {index > 0 && <hr class="rule" />}
+                    <PostCard
+                      title={post.data.title}
+                      description={post.data.description}
+                      slug={post.slug}
+                      pubDate={post.data.pubDate}
+                      tags={post.data.tags}
+                      pinned={post.data.pinned}
+                      notes={isNotePost(post)}
+                      variant="compact"
+                    />
+                  </>
+                ))}
+              </div>
+            </details>
           ))
         ) : (
           <div class="mono py-12" style="color: var(--text-faint);">notes 체크박스가 켜진 글이 아직 없습니다.</div>
@@ -48,3 +78,17 @@ const notes = getNotePosts(await getCollection('blog'));
 
   <Footer />
 </BaseLayout>
+
+<script>
+  // @ts-nocheck
+  const noteTagGroups = Array.from(document.querySelectorAll('[data-note-tag-group]'));
+
+  noteTagGroups.forEach((group) => {
+    group.addEventListener('toggle', () => {
+      if (!group.open) return;
+      noteTagGroups.forEach((otherGroup) => {
+        if (otherGroup !== group) otherGroup.open = false;
+      });
+    });
+  });
+</script>

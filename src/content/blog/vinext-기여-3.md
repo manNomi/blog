@@ -2,6 +2,7 @@
 title: "vinext 기여 3"
 pubDate: 2026-05-30T00:00:00.000Z
 tags: ["오픈소스"]
+notes: true
 notionId: "36e7cf19-a364-8076-96fa-c6a893c9d618"
 ---
 ---

@@ -4,7 +4,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import PostCard from '../components/PostCard.astro';
-import { getArticlePosts } from '../utils/postFilters';
+import { getArticlePosts, isNotePost } from '../utils/postFilters';
 
 const posts = getArticlePosts(await getCollection('blog'));
 const allTags = [...new Set(posts.flatMap((post) => post.data.tags || []))].sort((a, b) => a.localeCompare(b, 'ko-KR'));
@@ -47,7 +47,7 @@ const tagCounts = allTags.reduce((acc, tag) => {
               pubDate={post.data.pubDate}
               tags={post.data.tags}
               pinned={post.data.pinned}
-              notes={post.data.notes}
+              notes={isNotePost(post)}
               variant="compact"
             />
           </>

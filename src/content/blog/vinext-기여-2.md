@@ -2,6 +2,7 @@
 title: "vinext 기여 2"
 pubDate: 2026-05-30T00:00:00.000Z
 tags: ["오픈소스"]
+notes: true
 notionId: "36c7cf19-a364-8029-b139-d46ad0b52463"
 ---
 [https://github.com/cloudflare/vinext/pull/1590](https://github.com/cloudflare/vinext/pull/1590)

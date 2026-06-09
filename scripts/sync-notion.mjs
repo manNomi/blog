@@ -769,8 +769,8 @@ async function syncNotion() {
       const heroImageUrl = getPageProperty(page, 'Cover');
       // Pinned 속성 안전하게 처리 (checkbox 타입)
       const pinned = getPageProperty(page, 'Pinned') === true;
-      // notes 속성은 Notion 체크박스 이름을 그대로 사용합니다.
-      const notes = getPageProperty(page, 'notes') === true;
+      // notes 속성은 기존 복수형과 Notion의 단수형 note 체크박스를 함께 지원합니다.
+      const notes = getPageProperty(page, 'notes') === true || getPageProperty(page, 'note') === true;
       const previousFileEntry = previousFilesMap.get(page.id);
 
       console.log(`📝 처리 중: ${title}`);

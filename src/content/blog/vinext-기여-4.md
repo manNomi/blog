@@ -2,6 +2,7 @@
 title: "vinext 기여 4"
 pubDate: 2026-05-30T00:00:00.000Z
 tags: ["오픈소스"]
+notes: true
 notionId: "3747cf19-a364-8064-a04c-e2242add52bd"
 ---
 # vinext에서 `useRouter().bfcacheId`를 구현하며 배운 것

@@ -10,6 +10,7 @@ const blog = defineCollection({
     heroImage: z.string().optional(),
     tags: z.array(z.string()).optional(),
     pinned: z.boolean().optional(),
+    note: z.boolean().optional(),
     notes: z.boolean().optional(),
     notionId: z.string().optional(),
   }),
