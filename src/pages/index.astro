@@ -27,9 +27,43 @@ const formatDate = (date: Date) =>
 
 const getPostImage = (post: (typeof posts)[number]) => post.data.heroImage || extractFirstImage(post.body) || undefined;
 const featuredPostImage = featuredPost ? getPostImage(featuredPost) : undefined;
+const homeDescription = '프론트엔드 개발자 한만욱의 이모저모';
+const homeURL = new URL('/', Astro.site || Astro.url.origin).href;
+const homeJsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: '한만욱의 이모저모',
+    url: homeURL,
+    description: homeDescription,
+    inLanguage: 'ko-KR',
+    author: {
+      '@type': 'Person',
+      name: portfolioProfile.name,
+      jobTitle: portfolioProfile.role,
+      url: homeURL,
+      sameAs: [portfolioProfile.github]
+    }
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: portfolioProfile.name,
+    jobTitle: portfolioProfile.role,
+    url: homeURL,
+    email: `mailto:${portfolioProfile.email}`,
+    sameAs: [portfolioProfile.github]
+  }
+];
 ---
 
-<BaseLayout title="한만욱 · Frontend Developer" description={portfolioProfile.intro}>
+<BaseLayout
+  title="한만욱의 이모저모 | 프론트엔드 개발자"
+  description={homeDescription}
+  imageAlt="프론트엔드 개발자 한만욱의 이모저모 홈 화면"
+  keywords={['프론트엔드 포트폴리오', '웹뷰', '제품 개발', '성능 최적화']}
+  jsonLd={homeJsonLd}
+>
   <Header />
 
   <main class="site-main">

@@ -18,11 +18,11 @@ interface Props {
 
 const {
   title,
-  description = '프론트엔드 개발과 일상에 대해서 이야기를 적고 있습니다.',
+  description = '프론트엔드 개발자 한만욱의 이모저모',
   keywords = [],
   author = '한만욱',
   image = '/og-image.png',
-  imageAlt = title,
+  imageAlt = '프론트엔드 개발자 한만욱의 이모저모 공유 이미지',
   imageWidth = 1200,
   imageHeight = 630,
   canonicalURL = Astro.url.pathname,
@@ -31,6 +31,18 @@ const {
   jsonLd
 } = Astro.props;
 
+const siteName = '한만욱의 이모저모';
+const defaultKeywords = [
+  '한만욱',
+  '프론트엔드 개발자',
+  '프론트엔드',
+  'React',
+  'TypeScript',
+  'Astro',
+  '웹 성능',
+  '개발 블로그'
+];
+const metaKeywords = Array.from(new Set([...defaultKeywords, ...keywords]));
 const siteURL = Astro.site || Astro.url.origin;
 const fullURL = new URL(canonicalURL, siteURL).href;
 const ogImage = new URL(image, siteURL).href;
@@ -64,7 +76,10 @@ const themeInitScript = `
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
-    {keywords.length > 0 && <meta name="keywords" content={keywords.join(', ')} />}
+    <meta name="application-name" content={siteName} />
+    <meta name="theme-color" content="#18191c" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f7f4ee" media="(prefers-color-scheme: light)" />
+    <meta name="keywords" content={metaKeywords.join(', ')} />
     <meta name="author" content={author} />
     <meta name="robots" content={robots} />
     <link rel="canonical" href={fullURL} />
@@ -81,10 +96,11 @@ const themeInitScript = `
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={ogImage} />
+    <meta property="og:image:secure_url" content={ogImage} />
     <meta property="og:image:alt" content={imageAlt} />
     <meta property="og:image:width" content={String(imageWidth)} />
     <meta property="og:image:height" content={String(imageHeight)} />
-    <meta property="og:site_name" content="Nomi Journal" />
+    <meta property="og:site_name" content={siteName} />
     <meta property="og:locale" content="ko_KR" />
 
     <meta name="twitter:card" content="summary_large_image" />
