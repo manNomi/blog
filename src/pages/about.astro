@@ -2,7 +2,8 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { portfolioMetrics, portfolioProfile, resumeExperiences } from '../data/portfolio';
+import ProjectCard from '../components/ProjectCard.astro';
+import { portfolioProfile, portfolioProjects, resumeExperiences } from '../data/portfolio';
 ---
 
 <BaseLayout title="소개 | 한만욱" description={portfolioProfile.intro}>
@@ -21,32 +22,43 @@ import { portfolioMetrics, portfolioProfile, resumeExperiences } from '../data/p
         {portfolioProfile.focus.map((item) => <span class="focus-chip">{item}</span>)}
       </div>
 
-      <section class="mt-16">
-        <div class="eyebrow mb-[18px]">Selected impact</div>
-        <div class="grid border-t md:grid-cols-2" style="border-color: var(--border);">
-          {portfolioMetrics.map((metric) => (
-            <div class="border-b py-5 pr-6" style="border-color: var(--border);">
-              <div class="text-[1.7rem] font-bold leading-none tracking-[-0.03em]" style="color: var(--text);">{metric.value}</div>
-              <div class="mt-2 text-[0.9rem] font-semibold" style="color: var(--text);">{metric.label}</div>
-              <div class="mt-1 text-[0.82rem] leading-[1.5]" style="color: var(--text-faint);">{metric.detail}</div>
-            </div>
-          ))}
+      <section id="experience" class="mt-16 scroll-mt-24">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow mb-2">Experience</div>
+            <h2 class="section-title">경력</h2>
+          </div>
+          <span class="mono">{resumeExperiences.length} roles</span>
         </div>
+
+        {resumeExperiences.map((experience, index) => (
+          <a href={`/about/${experience.slug}`} class="detail-card detail-card-link" id={`experience-${index + 1}`}>
+            <span class="detail-summary">
+              <span class="mono pt-1" style="color: var(--text-faint);">{experience.period}</span>
+              <span class="min-w-0">
+                <span class="m-0 block text-[1.15rem] font-bold tracking-[-0.02em]" style="color: var(--text);">{experience.company}</span>
+                <span class="my-1 block text-[0.9rem]" style="color: var(--text-dim);">{experience.role}</span>
+                <span class="m-0 block max-w-[64ch] text-[0.95rem] leading-[1.6]" style="color: var(--text-dim);">{experience.description}</span>
+              </span>
+              <span class="pj-arrow text-2xl" aria-hidden="true">↗</span>
+            </span>
+          </a>
+        ))}
       </section>
 
-      <section class="mt-16">
-        <div class="eyebrow mb-[18px]">Experience</div>
-        {resumeExperiences.map((experience) => (
-          <div class="flow-row !py-[26px]">
-            <div class="mono pt-1" style="color: var(--text-faint);">{experience.period}</div>
-            <div>
-              <h3 class="m-0 text-[1.15rem] font-bold tracking-[-0.02em]" style="color: var(--text);">{experience.company}</h3>
-              <div class="my-1 text-[0.9rem]" style="color: var(--text-dim);">{experience.role}</div>
-              <p class="m-0 max-w-[56ch] text-[0.95rem] leading-[1.6]" style="color: var(--text-dim);">{experience.description}</p>
-            </div>
+      <section id="projects" class="mt-16 scroll-mt-24">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow mb-2">Case studies</div>
+            <h2 class="section-title">프로젝트</h2>
           </div>
-        ))}
-        <hr class="rule" />
+          <span class="mono">{portfolioProjects.length} projects</span>
+        </div>
+
+        <div class="mt-5">
+          {portfolioProjects.map((project, index) => <ProjectCard project={project} index={index} />)}
+          <hr class="rule" />
+        </div>
       </section>
 
       <section class="mt-16">

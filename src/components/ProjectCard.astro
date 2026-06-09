@@ -4,13 +4,14 @@ import type { PortfolioProject } from '../data/portfolio';
 interface Props {
   project: PortfolioProject;
   index: number;
+  href?: string;
 }
 
-const { project, index } = Astro.props;
+const { project, index, href = `/about/${project.slug}` } = Astro.props;
 const hasProjectImage = !project.image.includes('portfolio-case-placeholder');
 ---
 
-<a href={`/projects/${project.slug}`} class="project-card">
+<a href={href} class="project-card">
   <div>
     <div class="mb-3.5 flex items-center gap-3">
       <span class="mono" style="color: var(--text-faint);">{String(index + 1).padStart(2, '0')}</span>
@@ -35,7 +36,21 @@ const hasProjectImage = !project.image.includes('portfolio-case-placeholder');
     </div>
   </div>
 
-  {hasProjectImage ? (
+  {hasProjectImage && project.visualMode === 'phone' ? (
+    <div class="phone-frame phone-frame--card" role="img" aria-label={project.imageAlt}>
+      <div class="phone-frame__screen">
+        <img
+          src={project.image}
+          alt=""
+          width={project.imageWidth}
+          height={project.imageHeight}
+          class="phone-frame__image"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+    </div>
+  ) : hasProjectImage ? (
     <img
       src={project.image}
       alt={project.imageAlt}
