@@ -911,12 +911,12 @@ body {
 
 .company-logo--mark.company-logo--list img {
   height: 66%;
-  transform: translateY(-2px);
+  transform: translateY(-5px);
 }
 
 .company-logo--mark.company-logo--hero img {
   height: 68%;
-  transform: translateY(-2px);
+  transform: translateY(-6px);
 }
 
 .detail-body {
