@@ -1,7 +1,7 @@
 {
   "databaseId": "2af7cf19a36480648f08f4072d1246c5",
   "totalPages": 38,
-  "hash": "3415be8bbd1a9de1d822c0e3084c4ab927a5a95caadfda00bdbe41f1d9916644",
+  "hash": "38d492000adbaa85026ead5486580eee080568a595b7f4a8d4c4d477123db48f",
   "pages": [
     {
       "notionId": "2af7cf19-a364-8004-a41a-dc5735d98b2b",
@@ -35,9 +35,9 @@
     },
     {
       "notionId": "2af7cf19-a364-80ed-8af5-f8bad16e275a",
-      "lastEditedTime": "2026-06-08T12:10:00.000Z",
+      "lastEditedTime": "2026-06-09T06:07:00.000Z",
       "createdTime": "2025-11-18T14:51:00.000Z",
-      "title": "🗺️ 구글 지도 18개를 동시에 렌더링하려다 마주한 WebGL 지옥 탈출기"
+      "title": "구글지도 API 비용 : 120만원 청산 "
     },
     {
       "notionId": "2af7cf19-a364-80f1-a8ae-fe7c7bd2c1d8",
@@ -101,7 +101,7 @@
     },
     {
       "notionId": "32f7cf19-a364-803d-92af-f05d62d6e9e7",
-      "lastEditedTime": "2026-05-13T04:37:00.000Z",
+      "lastEditedTime": "2026-06-09T06:23:00.000Z",
       "createdTime": "2026-03-26T13:50:00.000Z",
       "title": "Android 백버튼 시스템 설계"
     },
@@ -221,7 +221,7 @@
     },
     {
       "notionId": "3797cf19-a364-801a-bc43-cee4de75009d",
-      "lastEditedTime": "2026-06-08T12:23:00.000Z",
+      "lastEditedTime": "2026-06-09T06:20:00.000Z",
       "createdTime": "2026-06-08T12:22:00.000Z",
       "title": "High Performance Browser Networking"
     },
@@ -232,7 +232,7 @@
       "title": "vinext 구조 총정리"
     }
   ],
-  "syncedAt": "2026-06-08T13:19:55.633Z",
+  "syncedAt": "2026-06-09T06:25:08.089Z",
   "files": [
     {
       "notionId": "2af7cf19-a364-8004-a41a-dc5735d98b2b",
@@ -327,9 +327,9 @@
     },
     {
       "notionId": "2af7cf19-a364-80ed-8af5-f8bad16e275a",
-      "filename": "구글-지도-18개를-동시에-렌더링하려다-마주한-webgl-지옥-탈출기.md",
-      "title": "🗺️ 구글 지도 18개를 동시에 렌더링하려다 마주한 WebGL 지옥 탈출기",
-      "lastEditedTime": "2026-06-08T12:10:00.000Z",
+      "filename": "구글지도-api-비용-120만원-청산.md",
+      "title": "구글지도 API 비용 : 120만원 청산 ",
+      "lastEditedTime": "2026-06-09T06:07:00.000Z",
       "heroImage": "",
       "heroImageSourceKey": "",
       "imageAssets": [
@@ -611,10 +611,15 @@
       "notionId": "32f7cf19-a364-803d-92af-f05d62d6e9e7",
       "filename": "android-백버튼-시스템-설계.md",
       "title": "Android 백버튼 시스템 설계",
-      "lastEditedTime": "2026-05-13T04:37:00.000Z",
+      "lastEditedTime": "2026-06-09T06:23:00.000Z",
       "heroImage": "",
       "heroImageSourceKey": "",
-      "imageAssets": []
+      "imageAssets": [
+        {
+          "sourceKey": "https://prod-files-secure.s3.us-west-2.amazonaws.com/010ca544-7c43-45a2-9139-842dd522bfa6/20c76edd-2526-4b72-a194-7f4ab0f16bb1/94C73F07-2622-45A5-A821-29F7FEE5B9D2.png",
+          "localPath": "/images/android-백버튼-시스템-설계-0.png"
+        }
+      ]
     },
     {
       "notionId": "32f7cf19-a364-804d-a9af-c1708e29d149",
@@ -806,7 +811,7 @@
       "notionId": "3797cf19-a364-801a-bc43-cee4de75009d",
       "filename": "high-performance-browser-networking.md",
       "title": "High Performance Browser Networking",
-      "lastEditedTime": "2026-06-08T12:23:00.000Z",
+      "lastEditedTime": "2026-06-09T06:20:00.000Z",
       "heroImage": "",
       "heroImageSourceKey": "",
       "imageAssets": [
