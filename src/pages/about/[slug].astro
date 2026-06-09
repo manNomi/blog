@@ -380,7 +380,7 @@ const experienceLinks = experience?.highlights.filter((highlight) => highlight.h
             </div>
             <div class="experience-heading">
               {experience.logo && (
-                <span class="company-logo company-logo--hero" aria-hidden="true">
+                <span class={`company-logo company-logo--hero company-logo--${experience.logo.shape}`} aria-hidden="true">
                   <img
                     src={experience.logo.src}
                     alt=""

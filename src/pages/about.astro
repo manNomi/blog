@@ -38,7 +38,7 @@ import { portfolioProfile, portfolioProjects, resumeExperiences, resumeOpenSourc
               <span class="min-w-0">
                 <span class="experience-company-line">
                   {experience.logo && (
-                    <span class="company-logo company-logo--list" aria-hidden="true">
+                    <span class={`company-logo company-logo--list company-logo--${experience.logo.shape}`} aria-hidden="true">
                       <img
                         src={experience.logo.src}
                         alt=""

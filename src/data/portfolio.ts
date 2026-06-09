@@ -72,6 +72,7 @@ export type CompanyLogo = {
   alt: string;
   width: number;
   height: number;
+  shape: 'mark' | 'wide';
 };
 
 export type ResumeExperience = {
@@ -185,7 +186,8 @@ export const resumeExperiences: ResumeExperience[] = [
       src: '/images/companies/daangn-logo.png',
       alt: '당근 로고',
       width: 48,
-      height: 77
+      height: 77,
+      shape: 'mark'
     },
     team: '신뢰도 높은 생활밀착형 정보를 제공하는 부동산 거래 플랫폼',
     role: 'Frontend Developer Intern',
@@ -245,7 +247,8 @@ export const resumeExperiences: ResumeExperience[] = [
       src: '/images/companies/upsite-logo.png',
       alt: '업사이트 로고',
       width: 127,
-      height: 42
+      height: 42,
+      shape: 'wide'
     },
     team: 'AI와 데이터 디지털화를 통해 3D 건설 현장 데이터를 시각화하는 대시보드 웹 솔루션',
     role: 'Frontend Developer Intern',
