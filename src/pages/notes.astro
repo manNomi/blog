@@ -3,10 +3,18 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import PostCard from '../components/PostCard.astro';
 import { getNotePosts } from '../utils/postFilters';
 
 const notes = getNotePosts(await getCollection('blog'));
+
+const formatDate = (date: Date) =>
+  new Intl.DateTimeFormat('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  })
+    .format(date)
+    .replaceAll(' ', '');
 ---
 
 <BaseLayout title="Notes | 한만욱" description="짧은 기록과 논문 메모를 분리해 모아둔 페이지입니다.">
@@ -22,27 +30,32 @@ const notes = getNotePosts(await getCollection('blog'));
 
       <hr class="rule" />
 
-      <div class="flex flex-col">
+      <section class="note-card-grid" aria-label="노트 목록">
         {notes.length > 0 ? (
-          notes.map((post, index) => (
-            <>
-              {index > 0 && <hr class="rule" />}
-              <PostCard
-                title={post.data.title}
-                description={post.data.description}
-                slug={post.slug}
-                pubDate={post.data.pubDate}
-                tags={post.data.tags}
-                pinned={post.data.pinned}
-                notes={post.data.notes}
-                variant="compact"
-              />
-            </>
+          notes.map((post) => (
+            <a href={`/blog/${post.slug}`} class="note-card">
+              <span class="note-card__meta">
+                <span class="mono">{formatDate(post.data.pubDate)}</span>
+                {post.data.pinned && <span class="mono">Featured</span>}
+              </span>
+
+              <span class="note-card__body">
+                <span class="note-card__title">{post.data.title}</span>
+                {post.data.description && <span class="note-card__description">{post.data.description}</span>}
+              </span>
+
+              <span class="note-card__footer">
+                <span class="note-card__tags">
+                  {(post.data.tags || []).slice(0, 3).map((tag) => <span class="mono">#{tag}</span>)}
+                </span>
+                <span class="mono">읽기</span>
+              </span>
+            </a>
           ))
         ) : (
           <div class="mono py-12" style="color: var(--text-faint);">notes 체크박스가 켜진 글이 아직 없습니다.</div>
         )}
-      </div>
+      </section>
     </div>
   </main>
 
