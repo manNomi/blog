@@ -215,6 +215,7 @@ const experienceLinks = experience?.highlights.filter((highlight) => highlight.h
               </div>
               <div class="live-preview-wrap">
                 <div class="phone-frame phone-frame--iframe">
+                  <img src={phoneBezelImage} alt="" class="phone-frame__bezel" loading="lazy" decoding="async" aria-hidden="true" />
                   <div class="phone-frame__screen">
                     <iframe
                       src={project.livePreview.url}
@@ -316,31 +317,18 @@ const experienceLinks = experience?.highlights.filter((highlight) => highlight.h
                   </div>
                 </div>
               ) : (
-                <div class="demo-panel" data-dmap-demo>
-                  <div class="phone-frame phone-frame--demo">
+                <div class="demo-panel demo-panel--single">
+                  <div class="phone-frame phone-frame--dmap-live">
                     <img src={phoneBezelImage} alt="" class="phone-frame__bezel" loading="lazy" decoding="async" aria-hidden="true" />
-                    <div class="phone-frame__screen dmap-demo-screen">
-                      <div class="demo-app-bar">
-                        <span class="mono">DMAP</span>
-                        <span data-dmap-mode>static grid</span>
-                      </div>
-                      <div class="dmap-grid" data-dmap-grid>
-                        {Array.from({ length: 9 }).map((_, index) => <span class="dmap-tile" style={`--tile-offset: ${index * 6}%`}></span>)}
-                      </div>
-                      <div class="dmap-live-map" data-dmap-live>
-                        <span class="dmap-path"></span>
-                        <span class="dmap-marker dmap-marker--start"></span>
-                        <span class="dmap-marker dmap-marker--end"></span>
-                      </div>
-                      <div class="demo-card dmap-demo-card">
-                        <strong data-dmap-title>정적 썸네일 9개</strong>
-                        <span data-dmap-copy>목록에서는 이미지로 렌더링해 WebGL 컨텍스트를 사용하지 않습니다.</span>
-                      </div>
+                    <div class="phone-frame__screen">
+                      <iframe
+                        src="/demos/portfolio-dmap-demo.html"
+                        title="DMap 실제 동작 데모"
+                        class="demo-iframe"
+                        loading="lazy"
+                        sandbox="allow-scripts allow-same-origin allow-forms"
+                      ></iframe>
                     </div>
-                  </div>
-                  <div class="demo-controls">
-                    <button type="button" class="pill h-9" data-dmap-toggle>상세 지도 열기</button>
-                    <span class="mono" style="color: var(--text-faint);">WebGL instance · <b data-dmap-count>0</b></span>
                   </div>
                 </div>
               )}
@@ -511,29 +499,3 @@ const experienceLinks = experience?.highlights.filter((highlight) => highlight.h
 
   <Footer />
 </BaseLayout>
-
-<script>
-  const dmapDemo = document.querySelector('[data-dmap-demo]');
-  if (dmapDemo) {
-    let live = false;
-    const mode = dmapDemo.querySelector('[data-dmap-mode]');
-    const title = dmapDemo.querySelector('[data-dmap-title]');
-    const copy = dmapDemo.querySelector('[data-dmap-copy]');
-    const count = dmapDemo.querySelector('[data-dmap-count]');
-    const toggle = dmapDemo.querySelector('[data-dmap-toggle]');
-
-    const renderDmap = () => {
-      dmapDemo.classList.toggle('demo-panel--live', live);
-      if (mode) mode.textContent = live ? 'single live map' : 'static grid';
-      if (title) title.textContent = live ? '전역 동적 지도 1개' : '정적 썸네일 9개';
-      if (copy) copy.textContent = live ? '상세 확인 시점에만 동적 지도를 열어 컨텍스트 사용량을 제한합니다.' : '목록에서는 이미지로 렌더링해 WebGL 컨텍스트를 사용하지 않습니다.';
-      if (count) count.textContent = live ? '1' : '0';
-      if (toggle) toggle.textContent = live ? '썸네일로 돌아가기' : '상세 지도 열기';
-    };
-
-    toggle?.addEventListener('click', () => {
-      live = !live;
-      renderDmap();
-    });
-  }
-</script>
