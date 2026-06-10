@@ -826,6 +826,87 @@ body {
   color: var(--text);
 }
 
+.open-source-summary {
+  grid-template-columns: minmax(0, 160px) minmax(0, 1fr) minmax(180px, auto);
+}
+
+.open-source-copy,
+.open-source-title-line,
+.open-source-contributions,
+.open-source-contribution,
+.open-source-contribution-head,
+.open-source-actions {
+  min-width: 0;
+}
+
+.open-source-title-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.open-source-contributions {
+  display: grid;
+  gap: 9px;
+  margin-top: 14px;
+}
+
+.open-source-contribution {
+  display: grid;
+  gap: 4px;
+  padding-left: 12px;
+  border-left: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.open-source-contribution-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--text);
+}
+
+.open-source-contribution-head strong {
+  font-size: 0.93rem;
+  line-height: 1.35;
+}
+
+.open-source-contribution-head .mono {
+  color: var(--text-faint);
+  font-size: 0.66rem;
+}
+
+.open-source-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.open-source-link-button {
+  height: 32px;
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
+.open-source-actions .pj-arrow {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  color: var(--text-faint);
+  transition: transform 0.25s ease;
+}
+
+.open-source-card:hover .open-source-actions .pj-arrow {
+  transform: translateX(4px);
+}
+
 .experience-company-line,
 .experience-heading {
   display: flex;
@@ -1547,6 +1628,22 @@ body {
   .detail-summary {
     grid-template-columns: 1fr auto !important;
     gap: 14px !important;
+  }
+
+  .open-source-summary {
+    grid-template-columns: 1fr !important;
+  }
+
+  .open-source-summary > .mono:first-child {
+    grid-column: auto !important;
+  }
+
+  .open-source-actions {
+    justify-content: flex-start !important;
+  }
+
+  .open-source-actions .pj-arrow {
+    display: none !important;
   }
 
   .detail-summary > .mono:first-child {
