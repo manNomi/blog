@@ -118,6 +118,8 @@ import { portfolioProfile, portfolioProjects, resumeExperiences, resumeOpenSourc
                   item.href ? (
                     <a
                       href={item.href}
+                      target={item.href.startsWith('http') ? '_blank' : undefined}
+                      rel={item.href.startsWith('http') ? 'noopener noreferrer' : undefined}
                       class="rounded-[14px] border p-4 transition-opacity hover:opacity-70"
                       style="border-color: var(--border); color: var(--text); background: var(--surface);"
                     >

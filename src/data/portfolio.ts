@@ -345,61 +345,18 @@ export const resumeFeatureProject: ResumeFeatureProject = {
 
 export const resumeOpenSourceGroups: ResumeOpenSourceGroup[] = [
   {
-    title: '솔리드 커넥션',
-    subtitle: '총 사용자 4,000+, MAU 400+의 교환학생 멘토링 및 정보 공유 플랫폼',
-    period: '2025.06 ~',
+    title: 'DefinitelyTyped [relay-runtime]',
+    subtitle: 'Relay Activity Crash 해결 과정에서 누락된 타입 정의 기여',
     links: [
-      { label: 'GitHub 저장소', href: 'https://github.com/solid-connection/solid-connect-web', external: true },
-      { label: '성능 개선 기록', href: '/blog/페이지-속도가-이탈률-감소와-연관이-있을까' },
-      { label: '커뮤니티 퍼널 분석', href: '/blog/유령-커뮤니티에-활기를-불어넣는법' },
-      { label: 'React 19 전환기', href: '/blog/솔커-react-19-next-16-업그레이드와-turbopack-전환기' },
-      { label: 'Bruno codegen', href: '/blog/bruno-api용-codegen-을-만들자' },
-      { label: '운영 인스펙터', href: '/blog/qa를-필요한-사람이-하게-하자' }
+      { label: 'GitHub 저장소', href: 'https://github.com/DefinitelyTyped/DefinitelyTyped', external: true },
+      { label: 'PR #74280', href: 'https://github.com/DefinitelyTyped/DefinitelyTyped/pull/74280', external: true }
     ],
     bullets: [
       {
-        title: '홈페이지 LCP 91.2% 단축',
-        metric: '이탈률 21% → 16%',
-        description: '서버 요청을 67% 줄이고 LCP를 1.3초 단축했습니다.',
-        href: '/blog/페이지-속도가-이탈률-감소와-연관이-있을까'
-      },
-      {
-        title: '낮은 페이지 도달률 문제 해결',
-        metric: '커뮤니티 도달률 4.3%',
-        description: '커뮤니티 접속 시도 대비 낮은 도달률을 퍼널 분석으로 추적했습니다.',
-        href: '/blog/유령-커뮤니티에-활기를-불어넣는법'
-      },
-      {
-        title: 'Bruno 기반 AI CLI와 API codegen',
-        description: 'API 명세 연동 반복 작업을 줄이기 위해 Bruno Docs 기반 codegen 흐름을 개발했습니다.',
-        href: '/blog/bruno-api용-codegen-을-만들자'
-      },
-      {
-        title: '큐 기반 운영 인스펙터',
-        description: '추가 운영비 없이 자연어 요청만으로 코드 변경, PR 생성, 프리뷰 확인까지 자동화했습니다.',
-        href: '/blog/qa를-필요한-사람이-하게-하자'
-      },
-      {
-        title: 'Turborepo 공통 컴포넌트 구조',
-        description: '어드민과 웹 서비스 사이 중복 UI를 줄이고 관리 효율을 높였습니다.'
-      },
-      {
-        title: 'React 19, Next 16, Turbopack 전환',
-        metric: 'compile 7.5s',
-        description: 'React 메이저 업그레이드와 Next 16 호환 작업을 분리하고, Turbopack 전환까지 단계적으로 안정화했습니다.',
-        href: '/blog/솔커-react-19-next-16-업그레이드와-turbopack-전환기'
-      }
-    ]
-  },
-  {
-    title: 'DefinitelyTyped [relay-runtime]',
-    subtitle: 'Relay Activity Crash 해결 과정에서 누락된 타입 정의 기여',
-    links: [{ label: 'GitHub 저장소', href: 'https://github.com/DefinitelyTyped/DefinitelyTyped', external: true }],
-    bullets: [
-      {
         title: 'Relay Activity 호환 타입 보강',
-        description: 'Relay Activity Crash 해결 과정에서 호환 설정 적용에 필요한 누락 타입을 보강했습니다.',
-        href: '/blog/relay-react-activity-gc-크래시'
+        metric: 'DefinitelyTyped #74280',
+        description: 'relay-runtime v20.1.1에서 필요한 RelayFeatureFlags 타입 누락을 보강했습니다.',
+        href: 'https://github.com/DefinitelyTyped/DefinitelyTyped/pull/74280'
       }
     ]
   },
@@ -408,32 +365,35 @@ export const resumeOpenSourceGroups: ResumeOpenSourceGroup[] = [
     subtitle: 'App Router와 static export, cache 회귀를 다룬 런타임/라우터 기여',
     links: [
       { label: 'GitHub 저장소', href: 'https://github.com/cloudflare/vinext', external: true },
-      { label: 'Vinext 빌드 기록', href: '/blog/next를-vite로-빌드하는-vinext' },
-      { label: '기여 1', href: '/blog/vinext-기여-1' },
-      { label: '기여 2', href: '/blog/vinext-기여-2' },
-      { label: '기여 3', href: '/blog/vinext-기여-3' },
-      { label: '기여 4', href: '/blog/vinext-기여-4' }
+      { label: 'PR #1192', href: 'https://github.com/cloudflare/vinext/pull/1192', external: true },
+      { label: 'PR #1588', href: 'https://github.com/cloudflare/vinext/pull/1588', external: true },
+      { label: 'PR #1590', href: 'https://github.com/cloudflare/vinext/pull/1590', external: true },
+      { label: 'PR #1626', href: 'https://github.com/cloudflare/vinext/pull/1626', external: true }
     ],
     bullets: [
       {
         title: 'bfcacheId undefined 런타임 크래시 수정',
-        description: 'Cloudflare 환경에서 발생한 런타임 크래시를 수정했습니다.',
-        href: '/blog/vinext-기여-1'
-      },
-      {
-        title: 'metadata asset 누락 수정',
-        description: 'App Router static export에서 file-based metadata asset이 누락되는 문제를 Next.js 호환 경로로 보정했습니다.',
-        href: '/blog/vinext-기여-2'
-      },
-      {
-        title: 'query string cache 회귀 E2E 추가',
-        description: 'router.replace 후 이전 query string이 복원되는 회귀를 막기 위한 App Router E2E fixture를 추가했습니다.',
-        href: '/blog/vinext-기여-3'
+        metric: 'vinext #1192',
+        description: 'Next.js 최신 useRouter().bfcacheId API에 맞춰 App Router shim과 관련 타입을 보강했습니다.',
+        href: 'https://github.com/cloudflare/vinext/pull/1192'
       },
       {
         title: 'useRouter().bfcacheId 동작 구현',
+        metric: 'vinext #1588',
         description: 'history state 기반 bfcache identity map으로 Next.js와 유사한 navigation identity semantics를 구현했습니다.',
-        href: '/blog/vinext-기여-4'
+        href: 'https://github.com/cloudflare/vinext/pull/1588'
+      },
+      {
+        title: 'metadata asset 누락 수정',
+        metric: 'vinext #1590',
+        description: 'App Router static export에서 file-based metadata asset이 누락되는 문제를 Next.js 호환 경로로 보정했습니다.',
+        href: 'https://github.com/cloudflare/vinext/pull/1590'
+      },
+      {
+        title: 'query string cache 회귀 E2E 추가',
+        metric: 'vinext #1626',
+        description: 'router.replace 후 이전 query string이 복원되는 회귀를 막기 위한 App Router E2E fixture를 추가했습니다.',
+        href: 'https://github.com/cloudflare/vinext/pull/1626'
       }
     ]
   }
