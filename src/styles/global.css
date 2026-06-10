@@ -1262,6 +1262,112 @@ body {
   line-height: 1.7;
 }
 
+.package-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  min-width: 0;
+}
+
+.package-card {
+  display: grid;
+  align-content: start;
+  gap: 15px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: color-mix(in oklab, var(--surface) 82%, transparent);
+}
+
+.package-card-head {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.package-card-head > div {
+  min-width: 0;
+}
+
+.package-card-label {
+  color: var(--text-faint);
+  font-size: 0.68rem;
+}
+
+.package-card h3 {
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+  color: var(--text);
+  font-size: clamp(1.12rem, 2vw, 1.35rem);
+  font-weight: 760;
+  letter-spacing: -0.035em;
+  line-height: 1.16;
+}
+
+.package-card p {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 0.92rem;
+  line-height: 1.68;
+}
+
+.package-command {
+  display: flex;
+  min-width: 0;
+  min-height: 40px;
+  align-items: center;
+  overflow-x: auto;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--bg-soft) 70%, transparent);
+  color: var(--text);
+  font-family: var(--font-mono-ref);
+  font-size: 0.76rem;
+  line-height: 1;
+  scrollbar-width: none;
+  white-space: nowrap;
+}
+
+.package-command::-webkit-scrollbar {
+  display: none;
+}
+
+.package-focus {
+  color: var(--text-faint);
+  font-size: 0.68rem;
+}
+
+.package-points {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.package-points li {
+  position: relative;
+  padding-left: 14px;
+  color: var(--text-dim);
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+.package-points li::before {
+  position: absolute;
+  top: 0.72em;
+  left: 0;
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--text-faint);
+  content: "";
+}
+
 .demo-section {
   align-items: start;
 }
@@ -1784,6 +1890,10 @@ body {
 
   .live-preview-copy {
     order: -1;
+  }
+
+  .package-grid {
+    grid-template-columns: 1fr !important;
   }
 }
 
