@@ -5,17 +5,7 @@ import Footer from '../components/Footer.astro';
 import ProjectCard from '../components/ProjectCard.astro';
 import { portfolioProfile, portfolioProjects, resumeExperiences, resumeOpenSourceGroups } from '../data/portfolio';
 
-const openSourceContributions = resumeOpenSourceGroups.flatMap((group) => {
-  const repositoryLink = group.links?.find((link) => link.label.includes('저장소'));
-
-  return group.bullets.map((item) => ({
-    groupTitle: group.title,
-    repositoryLink,
-    item,
-    prHref: item.href ?? repositoryLink?.href ?? '#',
-    prLabel: item.metric?.match(/#\d+/)?.[0] ?? 'PR'
-  }));
-});
+const openSourceContributionCount = resumeOpenSourceGroups.reduce((total, group) => total + group.bullets.length, 0);
 ---
 
 <BaseLayout title="소개 | 한만욱" description={portfolioProfile.intro}>
@@ -93,59 +83,85 @@ const openSourceContributions = resumeOpenSourceGroups.flatMap((group) => {
             <div class="eyebrow mb-2">Open Source</div>
             <h2 class="section-title">오픈소스</h2>
           </div>
-          <span class="mono">{openSourceContributions.length} PRs</span>
+          <span class="mono">{resumeOpenSourceGroups.length} folders · {openSourceContributionCount} PRs</span>
         </div>
 
-        <div class="mt-5">
-          {openSourceContributions.map((contribution, index) => (
-            <a
-              href={contribution.prHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="detail-card detail-card-link open-source-card"
-            >
-              <span class="detail-summary open-source-summary">
-                <span class="mono pt-1" style="color: var(--text-faint);">PR {String(index + 1).padStart(2, '0')}</span>
-                <span class="open-source-copy">
-                  <span class="open-source-title-line">
-                    <span class="m-0 block text-[1.15rem] font-bold tracking-[-0.02em]" style="color: var(--text);">{contribution.item.title}</span>
-                    {contribution.item.metric && <span class="mono opacity-60">{contribution.item.metric}</span>}
+        <div class="open-source-folder-list mt-6">
+          {resumeOpenSourceGroups.map((group) => {
+            const repositoryLink = group.links?.find((link) => link.label.includes('저장소'));
+
+            return (
+              <details class="open-source-folder" open>
+                <summary class="open-source-folder-summary">
+                  <span class="note-folder__icon open-source-folder-icon" aria-hidden="true"><span></span></span>
+                  <span class="open-source-folder-copy">
+                    <span class="open-source-folder-title">{group.title}</span>
+                    <span class="open-source-folder-description">{group.subtitle}</span>
                   </span>
-                  <span class="my-1 block text-[0.9rem]" style="color: var(--text-dim);">{contribution.groupTitle}</span>
-                  <span class="open-source-contribution">
-                    <span>{contribution.item.description}</span>
+                  <span class="open-source-folder-meta">
+                    <span class="mono">{group.bullets.length} PRs</span>
+                    {repositoryLink && (
+                      <button
+                        type="button"
+                        class="pill open-source-link-button"
+                        data-open-source-link
+                        data-href={repositoryLink.href}
+                        data-external={repositoryLink.external ? 'true' : 'false'}
+                        aria-label={`${group.title} ${repositoryLink.label} 열기`}
+                      >
+                        {repositoryLink.label} ↗
+                      </button>
+                    )}
+                    <span class="open-source-folder-toggle" aria-hidden="true">+</span>
                   </span>
-                </span>
-                <span class="open-source-actions" aria-label={`${contribution.item.title} GitHub 링크`}>
-                  {contribution.repositoryLink && (
-                    <button
-                      type="button"
-                      class="pill open-source-link-button"
-                      data-open-source-link
-                      data-href={contribution.repositoryLink.href}
-                      data-external={contribution.repositoryLink.external ? 'true' : 'false'}
-                      aria-label={`${contribution.groupTitle} ${contribution.repositoryLink.label} 열기`}
-                    >
-                      {contribution.repositoryLink.label} ↗
-                    </button>
-                  )}
-                  {contribution.item.href && (
-                    <button
-                      type="button"
-                      class="pill open-source-link-button"
-                      data-open-source-link
-                      data-href={contribution.item.href}
-                      data-external={contribution.item.href.startsWith('http') ? 'true' : 'false'}
-                      aria-label={`${contribution.item.title} ${contribution.prLabel} 열기`}
-                    >
-                      {contribution.prLabel} ↗
-                    </button>
-                  )}
-                  <span class="pj-arrow text-2xl" aria-hidden="true">↗</span>
-                </span>
-              </span>
-            </a>
-          ))}
+                </summary>
+
+                <div class="open-source-folder-body">
+                  {group.bullets.map((item, index) => {
+                    const prHref = item.href ?? repositoryLink?.href ?? '#';
+                    const prLabel = item.metric?.match(/#\d+/)?.[0] ?? 'PR';
+
+                    return (
+                      <a
+                        href={prHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="detail-card detail-card-link open-source-card"
+                      >
+                        <span class="detail-summary open-source-summary">
+                          <span class="mono pt-1" style="color: var(--text-faint);">PR {String(index + 1).padStart(2, '0')}</span>
+                          <span class="open-source-copy">
+                            <span class="open-source-title-line">
+                              <span class="m-0 block text-[1.15rem] font-bold tracking-[-0.02em]" style="color: var(--text);">{item.title}</span>
+                              {item.metric && <span class="mono opacity-60">{item.metric}</span>}
+                            </span>
+                            <span class="open-source-contribution">
+                              <span>{item.description}</span>
+                            </span>
+                          </span>
+                          <span class="open-source-actions" aria-label={`${item.title} GitHub 링크`}>
+                            {item.href && (
+                              <button
+                                type="button"
+                                class="pill open-source-link-button"
+                                data-open-source-link
+                                data-href={item.href}
+                                data-external={item.href.startsWith('http') ? 'true' : 'false'}
+                                aria-label={`${item.title} ${prLabel} 열기`}
+                              >
+                                {prLabel} ↗
+                              </button>
+                            )}
+                            <span class="pj-arrow text-2xl" aria-hidden="true">↗</span>
+                          </span>
+                        </span>
+                      </a>
+                    );
+                  })}
+                </div>
+              </details>
+            );
+          })}
         </div>
       </section>
 

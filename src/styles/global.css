@@ -826,6 +826,127 @@ body {
   color: var(--text);
 }
 
+.open-source-folder-list {
+  display: grid;
+  gap: 20px;
+}
+
+.open-source-folder {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: color-mix(in oklab, var(--surface) 82%, transparent);
+  box-shadow: 0 16px 34px oklch(0 0 0 / 0.1);
+}
+
+.open-source-folder::before {
+  position: absolute;
+  top: -13px;
+  left: 24px;
+  width: 138px;
+  height: 14px;
+  border: 1px solid var(--border);
+  border-bottom: 0;
+  border-radius: 12px 12px 0 0;
+  background: color-mix(in oklab, var(--surface-2) 88%, var(--bg));
+  content: "";
+}
+
+.open-source-folder-summary {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) minmax(180px, auto);
+  gap: 16px;
+  align-items: center;
+  min-width: 0;
+  padding: 22px 24px;
+  list-style: none;
+  cursor: pointer;
+}
+
+.open-source-folder-summary::-webkit-details-marker {
+  display: none;
+}
+
+.open-source-folder-icon {
+  align-self: start;
+}
+
+.open-source-folder-copy {
+  min-width: 0;
+}
+
+.open-source-folder-title {
+  display: block;
+  overflow-wrap: anywhere;
+  color: var(--text);
+  font-size: 1.08rem;
+  font-weight: 750;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+}
+
+.open-source-folder-description {
+  display: block;
+  margin-top: 7px;
+  max-width: 62ch;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.open-source-folder-meta {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.open-source-folder-meta > .mono {
+  color: var(--text-faint);
+  font-size: 0.7rem;
+}
+
+.open-source-folder-toggle {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-dim);
+  font-family: var(--font-mono-ref);
+  line-height: 1;
+  transition: transform 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.open-source-folder[open] .open-source-folder-toggle {
+  transform: rotate(45deg);
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
+.open-source-folder-body {
+  min-width: 0;
+  border-top: 1px solid var(--border);
+  padding: 0 16px;
+}
+
+.open-source-folder-body .open-source-card:first-child {
+  border-top: 0;
+}
+
+.open-source-folder-body .open-source-card:last-child {
+  border-bottom: 0;
+}
+
+.open-source-folder-body .open-source-summary {
+  padding: 22px 4px;
+}
+
 .open-source-summary {
   grid-template-columns: minmax(0, 160px) minmax(0, 1fr) minmax(180px, auto);
 }
@@ -1628,6 +1749,25 @@ body {
   .detail-summary {
     grid-template-columns: 1fr auto !important;
     gap: 14px !important;
+  }
+
+  .open-source-folder-summary {
+    grid-template-columns: 40px minmax(0, 1fr) !important;
+    padding: 20px 18px !important;
+  }
+
+  .open-source-folder-icon {
+    width: 40px !important;
+    height: 30px !important;
+  }
+
+  .open-source-folder-meta {
+    grid-column: 1 / -1;
+    justify-content: flex-start !important;
+  }
+
+  .open-source-folder-body {
+    padding: 0 14px !important;
   }
 
   .open-source-summary {
