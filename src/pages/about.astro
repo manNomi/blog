@@ -4,6 +4,8 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import ProjectCard from '../components/ProjectCard.astro';
 import { portfolioProfile, portfolioProjects, resumeExperiences, resumeOpenSourceGroups } from '../data/portfolio';
+
+const openSourceContributionCount = resumeOpenSourceGroups.reduce((total, group) => total + group.bullets.length, 0);
 ---
 
 <BaseLayout title="소개 | 한만욱" description={portfolioProfile.intro}>
@@ -81,70 +83,83 @@ import { portfolioProfile, portfolioProjects, resumeExperiences, resumeOpenSourc
             <div class="eyebrow mb-2">Open Source</div>
             <h2 class="section-title">오픈소스</h2>
           </div>
-          <span class="mono">{resumeOpenSourceGroups.length} groups</span>
+          <span class="mono">{resumeOpenSourceGroups.length} folders · {openSourceContributionCount} PRs</span>
         </div>
 
-        <div class="mt-5 grid gap-4">
-          {resumeOpenSourceGroups.map((group) => (
-            <article class="detail-card">
-              <div class="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <div class="flex flex-wrap items-center gap-3">
-                    <h3 class="m-0 text-[1.2rem] font-bold tracking-[-0.02em]" style="color: var(--text);">{group.title}</h3>
-                    {group.period && <span class="mono opacity-60">{group.period}</span>}
-                  </div>
-                  <p class="mb-0 mt-2 max-w-[62ch] text-[0.95rem] leading-[1.65]" style="color: var(--text-dim);">{group.subtitle}</p>
+        <div class="open-source-folder-list mt-6">
+          {resumeOpenSourceGroups.map((group) => {
+            const repositoryLink = group.links?.find((link) => link.label.includes('저장소'));
+
+            return (
+              <div class="open-source-folder">
+                <div class="open-source-folder-summary">
+                  <span class="open-source-folder-copy">
+                    <span class="open-source-folder-title">{group.title}</span>
+                    <span class="open-source-folder-description">{group.subtitle}</span>
+                  </span>
+                  <span class="open-source-folder-meta">
+                    <span class="mono">{group.bullets.length} PRs</span>
+                    {repositoryLink && (
+                      <button
+                        type="button"
+                        class="pill open-source-link-button"
+                        data-open-source-link
+                        data-href={repositoryLink.href}
+                        data-external={repositoryLink.external ? 'true' : 'false'}
+                        aria-label={`${group.title} ${repositoryLink.label} 열기`}
+                    >
+                      {repositoryLink.label} ↗
+                    </button>
+                  )}
+                  </span>
                 </div>
 
-                {group.links && group.links.length > 0 && (
-                  <div class="flex flex-wrap justify-end gap-2">
-                    {group.links.map((link) => (
-                      <a
-                        href={link.href}
-                        target={link.external ? '_blank' : undefined}
-                        rel={link.external ? 'noopener noreferrer' : undefined}
-                        class="pill h-8"
-                        style="color: var(--text); border-color: var(--border-strong);"
-                      >
-                        {link.label} →
-                      </a>
-                    ))}
-                  </div>
-                )}
-              </div>
+                <div class="open-source-folder-body">
+                  {group.bullets.map((item, index) => {
+                    const prHref = item.href ?? repositoryLink?.href ?? '#';
+                    const prLabel = item.metric?.match(/#\d+/)?.[0] ?? 'PR';
 
-              <div class="mt-5 grid gap-3 md:grid-cols-2">
-                {group.bullets.map((item) => (
-                  item.href ? (
-                    <a
-                      href={item.href}
-                      target={item.href.startsWith('http') ? '_blank' : undefined}
-                      rel={item.href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                      class="rounded-[14px] border p-4 transition-opacity hover:opacity-70"
-                      style="border-color: var(--border); color: var(--text); background: var(--surface);"
-                    >
-                      <div class="flex flex-wrap items-center gap-2">
-                        <strong class="text-[0.95rem]">{item.title}</strong>
-                        {item.metric && <span class="mono text-[0.68rem]" style="color: var(--text-faint);">{item.metric}</span>}
-                      </div>
-                      <p class="mb-0 mt-2 text-[0.88rem] leading-[1.55]" style="color: var(--text-dim);">{item.description}</p>
-                    </a>
-                  ) : (
-                    <div
-                      class="rounded-[14px] border p-4"
-                      style="border-color: var(--border); color: var(--text); background: var(--surface);"
-                    >
-                      <div class="flex flex-wrap items-center gap-2">
-                        <strong class="text-[0.95rem]">{item.title}</strong>
-                        {item.metric && <span class="mono text-[0.68rem]" style="color: var(--text-faint);">{item.metric}</span>}
-                      </div>
-                      <p class="mb-0 mt-2 text-[0.88rem] leading-[1.55]" style="color: var(--text-dim);">{item.description}</p>
-                    </div>
-                  )
-                ))}
+                    return (
+                      <a
+                        href={prHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="detail-card detail-card-link open-source-card"
+                      >
+                        <span class="detail-summary open-source-summary">
+                          <span class="mono pt-1" style="color: var(--text-faint);">PR {String(index + 1).padStart(2, '0')}</span>
+                          <span class="open-source-copy">
+                            <span class="open-source-title-line">
+                              <span class="m-0 block text-[1.15rem] font-bold tracking-[-0.02em]" style="color: var(--text);">{item.title}</span>
+                              {item.metric && <span class="mono opacity-60">{item.metric}</span>}
+                            </span>
+                            <span class="open-source-contribution">
+                              <span>{item.description}</span>
+                            </span>
+                          </span>
+                          <span class="open-source-actions" aria-label={`${item.title} GitHub 링크`}>
+                            {item.href && (
+                              <button
+                                type="button"
+                                class="pill open-source-link-button"
+                                data-open-source-link
+                                data-href={item.href}
+                                data-external={item.href.startsWith('http') ? 'true' : 'false'}
+                                aria-label={`${item.title} ${prLabel} 열기`}
+                              >
+                                {prLabel} ↗
+                              </button>
+                            )}
+                            <span class="pj-arrow text-2xl" aria-hidden="true">↗</span>
+                          </span>
+                        </span>
+                      </a>
+                    );
+                  })}
+                </div>
               </div>
-            </article>
-          ))}
+            );
+          })}
         </div>
       </section>
 
@@ -160,3 +175,23 @@ import { portfolioProfile, portfolioProjects, resumeExperiences, resumeOpenSourc
 
   <Footer />
 </BaseLayout>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-open-source-link]').forEach((button) => {
+    button.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const href = button.dataset.href;
+      if (!href) return;
+
+      if (button.dataset.external === 'true') {
+        const opened = window.open(href, '_blank', 'noopener,noreferrer');
+        if (opened) opened.opener = null;
+        return;
+      }
+
+      window.location.assign(href);
+    });
+  });
+</script>
