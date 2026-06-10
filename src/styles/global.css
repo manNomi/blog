@@ -1124,6 +1124,71 @@ body {
   justify-content: center;
 }
 
+.route-demo-panel {
+  display: grid;
+  grid-template-columns: minmax(300px, 430px) minmax(0, 1fr);
+  gap: clamp(24px, 4vw, 52px);
+  align-items: center;
+  min-width: 0;
+}
+
+.route-demo-copy {
+  display: grid;
+  min-width: 0;
+  gap: 18px;
+  align-content: center;
+  padding: clamp(10px, 2vw, 20px) 0;
+}
+
+.route-demo-kicker {
+  color: var(--text-faint);
+}
+
+.route-demo-copy h3 {
+  max-width: 12ch;
+  margin: 0;
+  color: var(--text);
+  font-size: clamp(1.65rem, 3.2vw, 2.45rem);
+  font-weight: 800;
+  line-height: 1.16;
+  letter-spacing: 0;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.route-demo-copy p {
+  max-width: 42ch;
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 1rem;
+  line-height: 1.72;
+}
+
+.route-demo-tech {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.route-demo-tech .pill {
+  height: 30px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.route-demo-note {
+  display: grid;
+  gap: 8px;
+  max-width: 46ch;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.route-demo-note .mono {
+  color: var(--text-faint);
+}
+
 .demo-iframe {
   display: block;
   width: 100%;
@@ -1513,6 +1578,20 @@ body {
 
   .demo-panel {
     align-items: flex-start !important;
+  }
+
+  .route-demo-panel {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+
+  .route-demo-copy {
+    order: -1;
+    padding: 4px 0 0 !important;
+  }
+
+  .route-demo-copy h3 {
+    max-width: 16ch;
   }
 
   .live-preview-wrap {
