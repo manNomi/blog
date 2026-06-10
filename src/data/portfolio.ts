@@ -31,6 +31,16 @@ export type PortfolioLivePreview = {
   description: string;
 };
 
+export type PortfolioPackage = {
+  name: string;
+  label: string;
+  href: string;
+  description: string;
+  installCommand: string;
+  focus: string;
+  points: string[];
+};
+
 export type PortfolioProject = {
   slug: string;
   title: string;
@@ -48,6 +58,7 @@ export type PortfolioProject = {
   gallery?: PortfolioGalleryImage[];
   visualMode?: 'phone';
   livePreview?: PortfolioLivePreview;
+  packages?: PortfolioPackage[];
   accent: string;
   metrics: PortfolioMetric[];
   highlights: string[];
@@ -501,6 +512,34 @@ export const portfolioProjects: PortfolioProject[] = [
       'Google Sheets를 번역 협업의 source of truth로 두고 upload/download 명령을 만들었습니다.',
       'runtime core와 tools가 같은 namespace/key 계약을 공유하게 해 코드와 리소스 불일치를 줄였습니다.',
       'i18next보다 빠른 런타임이 아니라 React 앱의 번역 운영 비용을 줄이는 toolkit으로 메시지를 좁혔습니다.'
+    ],
+    packages: [
+      {
+        name: 'i18nexus',
+        label: 'Core runtime',
+        href: 'https://www.npmjs.com/package/i18nexus',
+        description:
+          'React와 Next.js에서 namespace snapshot, typed t(), SSR helper를 담당하는 런타임 패키지입니다.',
+        installCommand: 'npm install i18nexus',
+        focus: 'React · SSR · type-safe runtime',
+        points: [
+          '컴포넌트 렌더 경로에서는 이미 준비된 snapshot을 조회하도록 설계했습니다.',
+          'server helper와 client hook이 같은 namespace/key 계약을 공유하게 만들었습니다.'
+        ]
+      },
+      {
+        name: 'i18nexus-tools',
+        label: 'Automation CLI',
+        href: 'https://www.npmjs.com/package/i18nexus-tools',
+        description:
+          '하드코딩 문자열 탐지, t() 래핑, 번역 키 추출, 타입 생성, 진단, Google Sheets 동기화를 담당하는 자동화 CLI 패키지입니다.',
+        installCommand: 'npm install -D i18nexus-tools',
+        focus: 'AST · extract · type · sync',
+        points: [
+          'wrap, extract, type, diagnose, sync 흐름으로 반복적인 다국어 작업을 자동화했습니다.',
+          'runtime이 기대하는 key/type 계약을 빌드 전에 생성해 번역 리소스 drift를 줄였습니다.'
+        ]
+      }
     ],
     links: [
       { label: 'GitHub 저장소', href: 'https://github.com/i18n-global/i18n-mono', external: true },
