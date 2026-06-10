@@ -85,7 +85,10 @@ const projectPackageLinks = new Set(project?.packages?.map((item) => item.href) 
 const projectGithubLinks = project?.links.filter(isGithubLink) ?? [];
 const projectReferenceLinks = project?.links.filter((link) => !isGithubLink(link) && !projectPackageLinks.has(link.href)) ?? [];
 const hasProjectPackages = Boolean(project?.packages?.length);
-const hasProjectRouteDemo = Boolean(project && (project.slug === 'incheon-bus' || project.slug === 'dmap-map-grid'));
+const hasProjectResponsiveDemo = Boolean(project?.responsiveDemo);
+const hasProjectRouteDemo = Boolean(
+  project && (project.slug === 'incheon-bus' || project.slug === 'dmap-map-grid' || hasProjectResponsiveDemo)
+);
 const demoStepLabel = hasProjectPackages ? '05' : '04';
 const resultsStepLabel = String(4 + Number(hasProjectPackages) + Number(hasProjectRouteDemo)).padStart(2, '0');
 const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProjectRouteDemo)).padStart(2, '0');
@@ -366,7 +369,59 @@ const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProje
                 <h2 class="m-0 text-[1.25rem] font-bold tracking-[-0.02em]" style="color: var(--text);">동작 데모</h2>
               </div>
 
-              {project.slug === 'incheon-bus' ? (
+              {project.responsiveDemo ? (
+                <div class="responsive-demo-panel" data-responsive-demo data-viewport="mobile">
+                  <div class="responsive-demo-toolbar">
+                    <div>
+                      <div class="mono route-demo-kicker">{project.responsiveDemo.label}</div>
+                      <p>{project.responsiveDemo.description}</p>
+                    </div>
+                    <div class="responsive-demo-toggle" role="group" aria-label="풋볼스퀘어 데모 뷰 선택">
+                      <button type="button" class="responsive-demo-toggle-button" data-demo-viewport="mobile" aria-pressed="true">
+                        모바일
+                      </button>
+                      <button type="button" class="responsive-demo-toggle-button" data-demo-viewport="desktop" aria-pressed="false">
+                        데스크톱
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="responsive-demo-stage">
+                    <div class="responsive-demo-view responsive-demo-view--mobile" data-demo-view="mobile">
+                      <div class="phone-frame phone-frame--football-demo">
+                        <img src={phoneBezelImage} alt="" class="phone-frame__bezel" loading="lazy" decoding="async" aria-hidden="true" />
+                        <div class="phone-frame__screen">
+                          <iframe
+                            src={project.responsiveDemo.url}
+                            title={`${project.title} 모바일 데모`}
+                            class="responsive-demo-iframe"
+                            loading="eager"
+                            sandbox="allow-scripts allow-same-origin allow-forms"
+                          ></iframe>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="responsive-demo-view responsive-demo-view--desktop" data-demo-view="desktop">
+                      <div class="desktop-demo-frame">
+                        <div class="desktop-demo-chrome" aria-hidden="true">
+                          <span></span>
+                          <span></span>
+                          <span></span>
+                          <strong>{project.responsiveDemo.label}</strong>
+                        </div>
+                        <iframe
+                          src={project.responsiveDemo.url}
+                          title={`${project.title} 데스크톱 데모`}
+                          class="responsive-demo-iframe"
+                          loading="eager"
+                          sandbox="allow-scripts allow-same-origin allow-forms"
+                        ></iframe>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : project.slug === 'incheon-bus' ? (
                 <div class="route-demo-panel" data-route-demo="bus">
                   <div class="phone-frame phone-frame--bus-live">
                     <img src={phoneBezelImage} alt="" class="phone-frame__bezel" loading="lazy" decoding="async" aria-hidden="true" />
@@ -731,6 +786,23 @@ const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProje
       iframe.addEventListener('load', syncCopy);
       syncCopy();
       window.setInterval(syncCopy, 350);
+    });
+
+    document.querySelectorAll('[data-responsive-demo]').forEach((panel) => {
+      const buttons = Array.from(panel.querySelectorAll('[data-demo-viewport]'));
+
+      const setViewport = (viewport) => {
+        panel.dataset.viewport = viewport;
+        buttons.forEach((button) => {
+          button.setAttribute('aria-pressed', String(button.dataset.demoViewport === viewport));
+        });
+      };
+
+      buttons.forEach((button) => {
+        button.addEventListener('click', () => setViewport(button.dataset.demoViewport || 'mobile'));
+      });
+
+      setViewport(panel.dataset.viewport || 'mobile');
     });
   </script>
 </BaseLayout>
