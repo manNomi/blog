@@ -329,30 +329,30 @@ const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProje
                 {project.packages?.map((item) => (
                   <article class="package-card">
                     <div class="package-card-head">
-                      <div>
-                        <div class="mono package-card-label">{item.label}</div>
-                        <h3>{item.name}</h3>
+                      <div class="mono package-card-label">{item.label}</div>
+                      <h3>{item.name}</h3>
+                    </div>
+                    <div class="package-card-body">
+                      <p>{item.description}</p>
+                      <div class="package-command" aria-label={`${item.name} 설치 명령어`}>
+                        <span>{item.installCommand}</span>
                       </div>
-                      <a
-                        href={item.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="pill h-8"
-                        style="color: var(--text); border-color: var(--border-strong);"
-                      >
-                        npm →
-                      </a>
+                      <div class="mono package-focus">{item.focus}</div>
+                      <ul class="package-points">
+                        {item.points.map((point) => (
+                          <li>{point}</li>
+                        ))}
+                      </ul>
                     </div>
-                    <p>{item.description}</p>
-                    <div class="package-command" aria-label={`${item.name} 설치 명령어`}>
-                      <span>{item.installCommand}</span>
-                    </div>
-                    <div class="mono package-focus">{item.focus}</div>
-                    <ul class="package-points">
-                      {item.points.map((point) => (
-                        <li>{point}</li>
-                      ))}
-                    </ul>
+                    <a
+                      href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="pill h-8 package-card-action"
+                      style="color: var(--text); border-color: var(--border-strong);"
+                    >
+                      npm →
+                    </a>
                   </article>
                 ))}
               </div>
