@@ -828,49 +828,34 @@ body {
 
 .open-source-folder-list {
   display: grid;
-  gap: 20px;
+  gap: 0;
+  border-top: 1px solid var(--border);
 }
 
 .open-source-folder {
-  position: relative;
   min-width: 0;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  background: color-mix(in oklab, var(--surface) 82%, transparent);
-  box-shadow: 0 16px 34px oklch(0 0 0 / 0.1);
-}
-
-.open-source-folder::before {
-  position: absolute;
-  top: -13px;
-  left: 24px;
-  width: 138px;
-  height: 14px;
-  border: 1px solid var(--border);
-  border-bottom: 0;
-  border-radius: 12px 12px 0 0;
-  background: color-mix(in oklab, var(--surface-2) 88%, var(--bg));
-  content: "";
+  border-bottom: 1px solid var(--border);
 }
 
 .open-source-folder-summary {
   display: grid;
-  grid-template-columns: 46px minmax(0, 1fr) minmax(180px, auto);
-  gap: 16px;
-  align-items: center;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, auto);
+  gap: clamp(16px, 4vw, 56px);
+  align-items: start;
   min-width: 0;
-  padding: 22px 24px;
+  padding: 28px 4px;
   list-style: none;
   cursor: pointer;
+  transition: padding-left 0.25s ease, background 0.2s;
 }
 
 .open-source-folder-summary::-webkit-details-marker {
   display: none;
 }
 
-.open-source-folder-icon {
-  align-self: start;
+.open-source-folder-summary:hover {
+  padding-left: 16px;
+  background: color-mix(in oklab, var(--surface) 62%, transparent);
 }
 
 .open-source-folder-copy {
@@ -932,7 +917,7 @@ body {
 .open-source-folder-body {
   min-width: 0;
   border-top: 1px solid var(--border);
-  padding: 0 16px;
+  padding: 0 0 0 clamp(16px, 4vw, 56px);
 }
 
 .open-source-folder-body .open-source-card:first-child {
@@ -976,8 +961,6 @@ body {
 .open-source-contribution {
   display: grid;
   gap: 4px;
-  padding-left: 12px;
-  border-left: 1px solid var(--border);
   color: var(--text-dim);
   font-size: 0.88rem;
   line-height: 1.55;
@@ -1752,22 +1735,17 @@ body {
   }
 
   .open-source-folder-summary {
-    grid-template-columns: 40px minmax(0, 1fr) !important;
-    padding: 20px 18px !important;
-  }
-
-  .open-source-folder-icon {
-    width: 40px !important;
-    height: 30px !important;
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+    padding: 24px 4px !important;
   }
 
   .open-source-folder-meta {
-    grid-column: 1 / -1;
     justify-content: flex-start !important;
   }
 
   .open-source-folder-body {
-    padding: 0 14px !important;
+    padding: 0 0 0 14px !important;
   }
 
   .open-source-summary {
