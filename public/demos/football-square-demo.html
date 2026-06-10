@@ -1,0 +1,2141 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FootballSquare Mock Demo</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #090d12;
+        --surface: #121821;
+        --surface-2: #18212c;
+        --surface-3: #202b37;
+        --line: #2a3645;
+        --muted: #93a4b8;
+        --text: #f4f7fb;
+        --grass: #33d17a;
+        --grass-2: #0f9f63;
+        --cyan: #3ddbd9;
+        --amber: #ffb84d;
+        --red: #ff6b6b;
+        --blue: #5b8cff;
+        --radius: 8px;
+        --shadow: 0 22px 70px rgba(0, 0, 0, 0.28);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        min-width: 320px;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          Inter, Pretendard, ui-sans-serif, system-ui, -apple-system,
+          BlinkMacSystemFont, "Segoe UI", sans-serif;
+        letter-spacing: 0;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      button {
+        border: 0;
+        cursor: pointer;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .app-nav {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        min-height: 72px;
+        padding: 12px clamp(16px, 4vw, 44px);
+        border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+        background: rgba(9, 13, 18, 0.86);
+        backdrop-filter: blur(16px);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 210px;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 42px;
+        height: 42px;
+        place-items: center;
+        border: 1px solid rgba(51, 209, 122, 0.45);
+        border-radius: 8px;
+        background:
+          linear-gradient(135deg, rgba(51, 209, 122, 0.26), transparent),
+          #0f171f;
+        color: var(--grass);
+        font-weight: 900;
+      }
+
+      .brand-title {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.08;
+      }
+
+      .brand-title strong {
+        font-size: 16px;
+      }
+
+      .brand-title span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .nav-links {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+
+      .nav-links a,
+      .role-tab,
+      .secondary-button,
+      .primary-button,
+      .ghost-button {
+        min-height: 40px;
+        border-radius: 8px;
+        transition:
+          transform 160ms ease,
+          background 160ms ease,
+          border 160ms ease;
+      }
+
+      .nav-links a {
+        padding: 10px 12px;
+        color: #c8d2de;
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .nav-links a:hover {
+        background: rgba(255, 255, 255, 0.07);
+      }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 36px;
+        padding: 8px 12px;
+        border: 1px solid rgba(51, 209, 122, 0.28);
+        border-radius: 999px;
+        background: rgba(51, 209, 122, 0.1);
+        color: #bff5d4;
+        font-size: 12px;
+        font-weight: 800;
+        white-space: nowrap;
+      }
+
+      .pulse-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--grass);
+        box-shadow: 0 0 0 6px rgba(51, 209, 122, 0.14);
+      }
+
+      main {
+        overflow: hidden;
+      }
+
+      .section {
+        min-height: min(900px, calc(100vh - 72px));
+        padding: clamp(28px, 5vw, 60px) clamp(16px, 4vw, 44px);
+        border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+      }
+
+      .section-inner {
+        width: min(1440px, 100%);
+        margin: 0 auto;
+      }
+
+      .section-header {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 22px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+        color: var(--cyan);
+        font-size: 12px;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        max-width: 760px;
+        font-size: clamp(42px, 7vw, 92px);
+        line-height: 0.94;
+      }
+
+      h2 {
+        font-size: clamp(28px, 4vw, 48px);
+        line-height: 1;
+      }
+
+      h3 {
+        font-size: 18px;
+      }
+
+      .supporting {
+        max-width: 640px;
+        color: #bac7d6;
+        font-size: clamp(15px, 1.5vw, 18px);
+        line-height: 1.55;
+      }
+
+      .grid {
+        display: grid;
+        gap: 18px;
+      }
+
+      .onboarding-grid {
+        grid-template-columns: minmax(0, 1fr) minmax(360px, 0.82fr);
+        align-items: stretch;
+      }
+
+      .hero-copy {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 560px;
+        padding: clamp(24px, 4vw, 48px);
+        border: 1px solid rgba(148, 163, 184, 0.15);
+        border-radius: 8px;
+        background:
+          linear-gradient(135deg, rgba(51, 209, 122, 0.18), transparent 45%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent),
+          var(--surface);
+        box-shadow: var(--shadow);
+      }
+
+      .hero-actions,
+      .action-row,
+      .stat-row,
+      .team-row,
+      .match-topline,
+      .panel-head,
+      .chat-header,
+      .input-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .hero-actions {
+        margin-top: 28px;
+      }
+
+      .primary-button,
+      .secondary-button,
+      .ghost-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 14px;
+        font-size: 13px;
+        font-weight: 900;
+        color: var(--text);
+      }
+
+      .primary-button {
+        background: var(--grass);
+        color: #06120b;
+      }
+
+      .secondary-button {
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .ghost-button {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: transparent;
+        color: #d8e0ea;
+      }
+
+      .primary-button:hover,
+      .secondary-button:hover,
+      .ghost-button:hover,
+      .role-tab:hover {
+        transform: translateY(-1px);
+      }
+
+      .flow-board {
+        display: grid;
+        gap: 12px;
+        margin-top: 24px;
+      }
+
+      .flow-step {
+        display: grid;
+        grid-template-columns: 48px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 12px;
+        padding: 14px;
+        border: 1px solid rgba(148, 163, 184, 0.14);
+        border-radius: 8px;
+        background: rgba(10, 16, 22, 0.66);
+      }
+
+      .flow-step.active {
+        border-color: rgba(51, 209, 122, 0.5);
+        background: rgba(51, 209, 122, 0.1);
+      }
+
+      .step-icon,
+      .emblem,
+      .avatar,
+      .tiny-icon {
+        display: grid;
+        place-items: center;
+        flex: 0 0 auto;
+        border-radius: 8px;
+        font-weight: 900;
+      }
+
+      .step-icon {
+        width: 48px;
+        height: 48px;
+        background: var(--surface-3);
+        color: var(--cyan);
+      }
+
+      .flow-step strong,
+      .match-title,
+      .team-name {
+        overflow-wrap: anywhere;
+      }
+
+      .flow-step p {
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .flow-badge,
+      .tag,
+      .mini-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 24px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 900;
+        white-space: nowrap;
+      }
+
+      .flow-badge {
+        padding: 4px 9px;
+        background: rgba(61, 219, 217, 0.12);
+        color: #aef7f6;
+      }
+
+      .phone-shell {
+        padding: 14px;
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        border-radius: 8px;
+        background:
+          radial-gradient(circle at top, rgba(61, 219, 217, 0.14), transparent 34%),
+          var(--surface);
+        box-shadow: var(--shadow);
+      }
+
+      .phone-screen {
+        min-height: 560px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        overflow: hidden;
+        background: #0d141c;
+      }
+
+      .phone-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        background: #121a24;
+      }
+
+      .screen-tabs {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+        padding: 12px;
+      }
+
+      .screen-tab {
+        padding: 10px 8px;
+        border-radius: 8px;
+        background: #1a2430;
+        color: #aab7c7;
+        font-size: 12px;
+        font-weight: 800;
+        text-align: center;
+      }
+
+      .screen-tab.active {
+        background: var(--grass);
+        color: #07120c;
+      }
+
+      .pitch-visual {
+        position: relative;
+        height: 230px;
+        margin: 12px;
+        border: 2px solid rgba(255, 255, 255, 0.42);
+        border-radius: 8px;
+        background:
+          linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+          linear-gradient(0deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+          linear-gradient(135deg, #166236, #0f3f2b);
+        background-size: 38px 38px, 38px 38px, auto;
+      }
+
+      .pitch-visual::before {
+        content: "";
+        position: absolute;
+        inset: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.42);
+        border-radius: 50%;
+      }
+
+      .pitch-line {
+        position: absolute;
+        left: 50%;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        background: rgba(255, 255, 255, 0.42);
+      }
+
+      .player-dot {
+        position: absolute;
+        display: grid;
+        width: 30px;
+        height: 30px;
+        place-items: center;
+        border: 2px solid rgba(255, 255, 255, 0.72);
+        border-radius: 999px;
+        background: #101820;
+        color: var(--text);
+        font-size: 11px;
+        font-weight: 900;
+      }
+
+      .quick-stat-board {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        padding: 12px;
+      }
+
+      .metric {
+        padding: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .metric strong {
+        display: block;
+        font-size: 21px;
+      }
+
+      .metric span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .workspace {
+        grid-template-columns: minmax(0, 1fr) 340px;
+        align-items: start;
+      }
+
+      .panel {
+        border: 1px solid rgba(148, 163, 184, 0.15);
+        border-radius: 8px;
+        background: var(--surface);
+      }
+
+      .panel-head {
+        justify-content: space-between;
+        min-height: 72px;
+        padding: 16px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+      }
+
+      .panel-body {
+        padding: 16px;
+      }
+
+      .match-list {
+        display: grid;
+        gap: 12px;
+        min-height: 460px;
+      }
+
+      .match-card {
+        position: relative;
+        display: grid;
+        grid-template-columns: 170px minmax(0, 1fr) 110px;
+        gap: 14px;
+        align-items: center;
+        padding: 14px;
+        border: 1px solid rgba(148, 163, 184, 0.12);
+        border-left: 4px solid var(--grass);
+        border-radius: 8px;
+        background: #111923;
+      }
+
+      .match-card.optimistic {
+        border-color: rgba(51, 209, 122, 0.62);
+        box-shadow: 0 0 0 1px rgba(51, 209, 122, 0.22);
+      }
+
+      .match-card.flash,
+      .bracket-card.flash,
+      .feed-item.flash,
+      .message.flash {
+        animation: flashIn 900ms ease both;
+      }
+
+      @keyframes flashIn {
+        0% {
+          transform: translateY(-6px);
+          box-shadow: 0 0 0 1px rgba(51, 209, 122, 0.1);
+        }
+        35% {
+          box-shadow: 0 0 0 5px rgba(51, 209, 122, 0.22);
+        }
+        100% {
+          transform: translateY(0);
+          box-shadow: none;
+        }
+      }
+
+      .match-time {
+        color: #dbe5f1;
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .match-meta {
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .match-title {
+        color: var(--grass);
+        font-size: 15px;
+        font-weight: 900;
+      }
+
+      .versus {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+        color: #d6e0eb;
+        font-size: 13px;
+      }
+
+      .tag {
+        padding: 4px 8px;
+        background: rgba(255, 255, 255, 0.07);
+        color: #d4deea;
+      }
+
+      .tag.grass {
+        background: rgba(51, 209, 122, 0.12);
+        color: #bdf6d2;
+      }
+
+      .tag.amber {
+        background: rgba(255, 184, 77, 0.13);
+        color: #ffe0a8;
+      }
+
+      .tag.cyan {
+        background: rgba(61, 219, 217, 0.12);
+        color: #adf5f4;
+      }
+
+      .tag.red {
+        background: rgba(255, 107, 107, 0.13);
+        color: #ffc4c4;
+      }
+
+      .tag.blue {
+        background: rgba(91, 140, 255, 0.14);
+        color: #c9d8ff;
+      }
+
+      .emblem {
+        width: 34px;
+        height: 34px;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        color: white;
+        font-size: 12px;
+      }
+
+      .queue-list,
+      .feed-list,
+      .role-stack,
+      .checklist-grid {
+        display: grid;
+        gap: 10px;
+      }
+
+      .queue-item,
+      .feed-item,
+      .role-item,
+      .check-item,
+      .raw-card {
+        padding: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.12);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .queue-item {
+        display: grid;
+        grid-template-columns: 36px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .avatar {
+        width: 36px;
+        height: 36px;
+        background: #263140;
+        color: #dfe8f4;
+        font-size: 12px;
+      }
+
+      .queue-item strong,
+      .feed-item strong {
+        display: block;
+        font-size: 13px;
+      }
+
+      .queue-item span,
+      .feed-item span,
+      .raw-card span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .bracket-layout {
+        grid-template-columns: 310px minmax(0, 1fr);
+        align-items: stretch;
+      }
+
+      .raw-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .raw-card {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .raw-card strong {
+        color: var(--cyan);
+        font-size: 13px;
+      }
+
+      .bracket-stage {
+        min-height: 580px;
+        overflow-x: auto;
+      }
+
+      .bracket {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(230px, 1fr));
+        gap: 16px;
+        min-width: 760px;
+      }
+
+      .round {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .round-title {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        padding: 10px 12px;
+        border-radius: 8px;
+        background: var(--surface-3);
+        color: #e8eef6;
+        font-weight: 900;
+        text-align: center;
+      }
+
+      .bracket-card {
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.16);
+        border-radius: 8px;
+        background: #111923;
+      }
+
+      .bracket-card .match-topline {
+        justify-content: space-between;
+        padding: 10px 12px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .team-line {
+        display: grid;
+        grid-template-columns: 28px minmax(0, 1fr) 34px;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+      }
+
+      .team-line + .team-line {
+        border-top: 1px solid rgba(148, 163, 184, 0.1);
+      }
+
+      .team-line.winner {
+        background: rgba(51, 209, 122, 0.12);
+      }
+
+      .mini-emblem {
+        display: grid;
+        place-items: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: #2a3543;
+        color: white;
+        font-size: 10px;
+        font-weight: 900;
+      }
+
+      .score {
+        display: grid;
+        place-items: center;
+        min-width: 32px;
+        height: 30px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.08);
+        font-weight: 900;
+      }
+
+      .team-line.winner .score {
+        background: var(--grass);
+        color: #06120b;
+      }
+
+      .role-grid {
+        grid-template-columns: 260px minmax(0, 1fr);
+      }
+
+      .role-tabs {
+        display: grid;
+        gap: 10px;
+      }
+
+      .role-tab {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 14px;
+        border: 1px solid rgba(148, 163, 184, 0.13);
+        background: rgba(255, 255, 255, 0.045);
+        color: var(--text);
+        text-align: left;
+      }
+
+      .role-tab.active {
+        border-color: rgba(51, 209, 122, 0.5);
+        background: rgba(51, 209, 122, 0.12);
+      }
+
+      .role-detail {
+        display: grid;
+        grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+        gap: 16px;
+      }
+
+      .identity-panel {
+        min-height: 470px;
+        overflow: hidden;
+      }
+
+      .team-banner {
+        height: 130px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+        background:
+          linear-gradient(120deg, rgba(51, 209, 122, 0.22), rgba(61, 219, 217, 0.1)),
+          repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0 2px, transparent 2px 18px),
+          #102016;
+      }
+
+      .team-profile {
+        display: grid;
+        grid-template-columns: 74px minmax(0, 1fr);
+        gap: 14px;
+        align-items: center;
+        padding: 16px;
+      }
+
+      .large-emblem {
+        display: grid;
+        place-items: center;
+        width: 74px;
+        height: 74px;
+        border: 2px solid rgba(255, 255, 255, 0.28);
+        border-radius: 8px;
+        background: #0a5a38;
+        color: white;
+        font-size: 20px;
+        font-weight: 900;
+      }
+
+      .role-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        padding: 0 16px 16px;
+      }
+
+      .action-tile {
+        min-height: 82px;
+        padding: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.12);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .action-tile strong {
+        display: block;
+        font-size: 13px;
+      }
+
+      .action-tile span {
+        display: block;
+        margin-top: 5px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .dashboard-columns {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+      }
+
+      .mini-board {
+        min-height: 206px;
+        padding: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.12);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .mini-board h4 {
+        margin: 0 0 10px;
+        font-size: 13px;
+      }
+
+      .mini-list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .mini-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        min-height: 34px;
+        padding: 7px 8px;
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.16);
+        color: #d7e0eb;
+        font-size: 12px;
+      }
+
+      .capture-checklist {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .check-item {
+        display: grid;
+        grid-template-columns: 28px minmax(0, 1fr);
+        gap: 10px;
+        align-items: start;
+      }
+
+      .checkmark {
+        display: grid;
+        place-items: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: rgba(51, 209, 122, 0.14);
+        color: var(--grass);
+        font-weight: 900;
+      }
+
+      .check-item strong {
+        display: block;
+        font-size: 14px;
+      }
+
+      .check-item span {
+        display: block;
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .chat-launcher {
+        position: fixed;
+        right: 22px;
+        bottom: 22px;
+        z-index: 40;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 56px;
+        padding: 0 18px;
+        border: 1px solid rgba(51, 209, 122, 0.32);
+        border-radius: 999px;
+        background: var(--grass);
+        color: #06120b;
+        font-weight: 900;
+        box-shadow: 0 16px 60px rgba(0, 0, 0, 0.38);
+      }
+
+      .chat-badge {
+        position: absolute;
+        top: -6px;
+        right: -4px;
+        display: grid;
+        min-width: 24px;
+        height: 24px;
+        place-items: center;
+        padding: 0 6px;
+        border: 2px solid var(--bg);
+        border-radius: 999px;
+        background: var(--red);
+        color: white;
+        font-size: 12px;
+      }
+
+      .chat-panel {
+        position: fixed;
+        right: 22px;
+        bottom: 92px;
+        z-index: 45;
+        display: none;
+        width: min(410px, calc(100vw - 32px));
+        height: min(620px, calc(100vh - 132px));
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        border-radius: 8px;
+        background: #0f151d;
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+        overflow: hidden;
+      }
+
+      .chat-panel.open {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .chat-header {
+        justify-content: space-between;
+        padding: 14px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.13);
+        background: #151d27;
+      }
+
+      .chat-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .tiny-icon {
+        width: 32px;
+        height: 32px;
+        background: rgba(51, 209, 122, 0.12);
+        color: var(--grass);
+      }
+
+      .icon-button {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        place-items: center;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.07);
+        color: white;
+      }
+
+      .messages {
+        flex: 1;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 14px;
+        background: #0c1219;
+      }
+
+      .message {
+        display: grid;
+        gap: 5px;
+        max-width: 76%;
+        padding: 10px 12px;
+        border-radius: 8px;
+        background: #1b2633;
+      }
+
+      .message.own {
+        align-self: end;
+        background: rgba(51, 209, 122, 0.88);
+        color: #06120b;
+      }
+
+      .message strong {
+        font-size: 12px;
+      }
+
+      .message p {
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .message time {
+        color: rgba(222, 232, 244, 0.72);
+        font-size: 11px;
+      }
+
+      .message.own time {
+        color: rgba(6, 18, 11, 0.62);
+      }
+
+      .chat-form {
+        padding: 12px;
+        border-top: 1px solid rgba(148, 163, 184, 0.13);
+        background: #151d27;
+      }
+
+      .chat-form input {
+        flex: 1;
+        min-width: 0;
+        height: 42px;
+        padding: 0 12px;
+        border: 1px solid rgba(148, 163, 184, 0.16);
+        border-radius: 8px;
+        outline: none;
+        background: #0f151d;
+        color: var(--text);
+      }
+
+      .chat-form input:focus {
+        border-color: rgba(51, 209, 122, 0.6);
+      }
+
+      .send-button {
+        display: grid;
+        width: 42px;
+        height: 42px;
+        place-items: center;
+        border-radius: 8px;
+        background: var(--grass);
+        color: #06120b;
+        font-weight: 900;
+      }
+
+      .mobile-only {
+        display: none;
+      }
+
+      @media (max-width: 1180px) {
+        .onboarding-grid,
+        .workspace,
+        .bracket-layout,
+        .role-grid,
+        .role-detail {
+          grid-template-columns: 1fr;
+        }
+
+        .hero-copy {
+          min-height: auto;
+        }
+
+        .phone-screen {
+          min-height: 500px;
+        }
+      }
+
+      @media (max-width: 760px) {
+        .app-nav {
+          align-items: flex-start;
+          flex-direction: column;
+          min-height: auto;
+        }
+
+        .brand {
+          width: 100%;
+          justify-content: space-between;
+        }
+
+        .nav-links {
+          justify-content: flex-start;
+        }
+
+        .section {
+          min-height: auto;
+        }
+
+        .section-header,
+        .panel-head {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .match-card {
+          grid-template-columns: 1fr;
+        }
+
+        .capture-checklist,
+        .dashboard-columns,
+        .role-actions {
+          grid-template-columns: 1fr;
+        }
+
+        .flow-step {
+          grid-template-columns: 42px minmax(0, 1fr);
+        }
+
+        .flow-badge {
+          grid-column: 2;
+          justify-self: start;
+        }
+
+        .chat-launcher {
+          right: 16px;
+          bottom: 16px;
+        }
+
+        .chat-panel {
+          right: 16px;
+          bottom: 84px;
+        }
+
+        .mobile-only {
+          display: inline;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="app-nav" aria-label="FootballSquare demo navigation">
+      <a class="brand" href="#onboarding">
+        <span class="brand-mark">FS</span>
+        <span class="brand-title">
+          <strong>FootballSquare</strong>
+          <span>FC ProClub Match Platform</span>
+        </span>
+      </a>
+      <div class="nav-links" aria-label="capture sections">
+        <a href="#onboarding">온보딩</a>
+        <a href="#matches">매치</a>
+        <a href="#bracket">브래킷</a>
+        <a href="#roles">역할 뷰</a>
+        <a href="#checklist">체크리스트</a>
+      </div>
+      <div class="status-pill"><span class="pulse-dot"></span> MOCK STATE</div>
+    </nav>
+
+    <main>
+      <section class="section" id="onboarding">
+        <div class="section-inner grid onboarding-grid">
+          <div class="hero-copy">
+            <div>
+              <div class="eyebrow">FC ProClub Team Matching</div>
+              <h1>팀을 만들고 매치를 잡고 대회까지 운영합니다.</h1>
+              <p class="supporting" style="margin-top: 20px">
+                FootballSquare는 팀 생성, 자유 매치, 토너먼트 운영, 팀 채팅이
+                하나의 흐름으로 이어지는 FC ProClub 매칭 플랫폼입니다.
+              </p>
+              <div class="hero-actions">
+                <button class="primary-button" data-flow-target="create">
+                  <span aria-hidden="true">+</span> 팀 생성
+                </button>
+                <button class="secondary-button" data-flow-target="select">
+                  <span aria-hidden="true">▣</span> 팀 선택
+                </button>
+                <button class="secondary-button" data-flow-target="join">
+                  <span aria-hidden="true">↗</span> 대회 참가
+                </button>
+              </div>
+            </div>
+
+            <div class="flow-board" id="flowBoard">
+              <div class="flow-step active" data-step="create">
+                <div class="step-icon">01</div>
+                <div>
+                  <strong>팀 생성</strong>
+                  <p>팀명, 약칭, 컬러, 모집 상태를 설정합니다.</p>
+                </div>
+                <span class="flow-badge">READY</span>
+              </div>
+              <div class="flow-step" data-step="select">
+                <div class="step-icon">02</div>
+                <div>
+                  <strong>팀 선택</strong>
+                  <p>내 팀 권한으로 매치와 게시판 접근 범위가 바뀝니다.</p>
+                </div>
+                <span class="flow-badge">LOCKED</span>
+              </div>
+              <div class="flow-step" data-step="join">
+                <div class="step-icon">03</div>
+                <div>
+                  <strong>대회 참가</strong>
+                  <p>참가 승인 후 대회 매치와 브래킷에 반영됩니다.</p>
+                </div>
+                <span class="flow-badge">NEXT</span>
+              </div>
+            </div>
+          </div>
+
+          <aside class="phone-shell" aria-label="onboarding service preview">
+            <div class="phone-screen">
+              <div class="phone-top">
+                <strong>내 팀 허브</strong>
+                <span class="tag grass">온라인 9명</span>
+              </div>
+              <div class="screen-tabs">
+                <div class="screen-tab active">팀</div>
+                <div class="screen-tab">매치</div>
+                <div class="screen-tab">대회</div>
+              </div>
+              <div class="pitch-visual">
+                <div class="pitch-line"></div>
+                <span class="player-dot" style="left: 18%; top: 42%">GK</span>
+                <span class="player-dot" style="left: 34%; top: 20%">CB</span>
+                <span class="player-dot" style="left: 40%; top: 62%">CM</span>
+                <span class="player-dot" style="left: 58%; top: 33%">ST</span>
+                <span class="player-dot" style="left: 71%; top: 58%">RW</span>
+              </div>
+              <div class="quick-stat-board">
+                <div class="metric">
+                  <strong>12</strong>
+                  <span>팀원</span>
+                </div>
+                <div class="metric">
+                  <strong>4</strong>
+                  <span>예정 매치</span>
+                </div>
+                <div class="metric">
+                  <strong>8강</strong>
+                  <span>KFPL Cup</span>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div class="queue-list">
+                  <div class="queue-item">
+                    <div class="avatar">JW</div>
+                    <div>
+                      <strong>JinWing</strong>
+                      <span>CAM · PS5 · 팀장</span>
+                    </div>
+                    <span class="tag amber">승인</span>
+                  </div>
+                  <div class="queue-item">
+                    <div class="avatar">MK</div>
+                    <div>
+                      <strong>MetaKim</strong>
+                      <span>CDM · PC · 선수</span>
+                    </div>
+                    <span class="tag grass">접속</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="section" id="matches">
+        <div class="section-inner">
+          <div class="section-header">
+            <div>
+              <div class="eyebrow">Optimistic Match Dashboard</div>
+              <h2>매치 생성 즉시 카드가 추가됩니다.</h2>
+            </div>
+            <div class="action-row">
+              <button class="primary-button" id="createMatchBtn">
+                <span aria-hidden="true">+</span> 매치 생성
+              </button>
+              <button class="ghost-button" id="resetMatchBtn">
+                <span aria-hidden="true">↺</span> 초기화
+              </button>
+            </div>
+          </div>
+
+          <div class="grid workspace">
+            <section class="panel">
+              <div class="panel-head">
+                <div>
+                  <h3>현재 경기</h3>
+                  <p class="supporting" style="font-size: 14px">
+                    자유 매치와 팀 매치를 한 목록에서 확인합니다.
+                  </p>
+                </div>
+                <div class="stat-row">
+                  <span class="tag grass" id="matchCountTag">0개 매치</span>
+                  <span class="tag cyan">API OFF</span>
+                  <span class="tag amber">0ms UI</span>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div class="match-list" id="matchList"></div>
+              </div>
+            </section>
+
+            <aside class="panel">
+              <div class="panel-head">
+                <div>
+                  <h3>매치 대기 인원</h3>
+                  <p class="supporting" style="font-size: 14px">
+                    포지션과 플랫폼이 바로 보입니다.
+                  </p>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div class="queue-list" id="standbyList"></div>
+                <div style="height: 16px"></div>
+                <div class="feed-list" id="eventFeed"></div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="bracket">
+        <div class="section-inner">
+          <div class="section-header">
+            <div>
+              <div class="eyebrow">Tournament Auto Bracket</div>
+              <h2>비순차 매치 데이터가 라운드별로 정렬됩니다.</h2>
+            </div>
+            <div class="action-row">
+              <button class="secondary-button" id="sortBracketBtn">
+                <span aria-hidden="true">⇅</span> 브래킷 정렬
+              </button>
+              <button class="primary-button" id="applyScoreBtn">
+                <span aria-hidden="true">✓</span> 결과 입력
+              </button>
+            </div>
+          </div>
+
+          <div class="grid bracket-layout">
+            <aside class="panel">
+              <div class="panel-head">
+                <div>
+                  <h3>수신된 원본 순서</h3>
+                  <p class="supporting" style="font-size: 14px">
+                    mock API 배열은 섞여 있습니다.
+                  </p>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div class="raw-list" id="rawMatchList"></div>
+              </div>
+            </aside>
+
+            <section class="panel bracket-stage">
+              <div class="panel-head">
+                <div>
+                  <h3>2026 KFPL 끝물 토너먼트</h3>
+                  <p class="supporting" style="font-size: 14px">
+                    결과 입력 시 다음 라운드 슬롯이 mock state로 갱신됩니다.
+                  </p>
+                </div>
+                <span class="tag blue" id="bracketStatus">정렬 완료</span>
+              </div>
+              <div class="panel-body">
+                <div class="bracket" id="bracketBoard"></div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="roles">
+        <div class="section-inner">
+          <div class="section-header">
+            <div>
+              <div class="eyebrow">Team · My · Championship Views</div>
+              <h2>역할에 따라 화면 액션이 달라집니다.</h2>
+            </div>
+            <button class="secondary-button" id="openChatAction">
+              <span aria-hidden="true">▤</span> 채팅 열기
+            </button>
+          </div>
+
+          <div class="grid role-grid">
+            <aside class="panel">
+              <div class="panel-head">
+                <h3>현재 역할</h3>
+              </div>
+              <div class="panel-body">
+                <div class="role-tabs" id="roleTabs"></div>
+              </div>
+            </aside>
+
+            <section class="grid role-detail">
+              <div class="panel identity-panel">
+                <div class="team-banner"></div>
+                <div class="team-profile">
+                  <div class="large-emblem">RMA</div>
+                  <div>
+                    <h3 id="roleTitle">레알 #RMA</h3>
+                    <p class="supporting" id="roleSubtitle" style="font-size: 14px">
+                      팀원 모집 중 · 멀티 포지션 환영
+                    </p>
+                    <div class="stat-row" style="margin-top: 10px">
+                      <span class="tag grass">팀 매치 3</span>
+                      <span class="tag amber">신청 4</span>
+                      <span class="tag cyan">채팅 활성</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="role-actions" id="roleActions"></div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-head">
+                  <div>
+                    <h3>서비스 주요 뷰</h3>
+                    <p class="supporting" style="font-size: 14px">
+                      팀, 마이, 대회 화면이 같은 mock state를 공유합니다.
+                    </p>
+                  </div>
+                </div>
+                <div class="panel-body">
+                  <div class="dashboard-columns">
+                    <div class="mini-board">
+                      <h4>팀 뷰</h4>
+                      <div class="mini-list">
+                        <div class="mini-row"><span>팀원</span><strong>12명</strong></div>
+                        <div class="mini-row"><span>대기 승인</span><strong>4건</strong></div>
+                        <div class="mini-row"><span>팀 게시판</span><strong>접근 가능</strong></div>
+                        <div class="mini-row"><span>팀 채팅</span><strong>floating</strong></div>
+                      </div>
+                    </div>
+                    <div class="mini-board">
+                      <h4>마이 뷰</h4>
+                      <div class="mini-list">
+                        <div class="mini-row"><span>게임 ID</span><strong>JinWing</strong></div>
+                        <div class="mini-row"><span>포지션</span><strong>CAM</strong></div>
+                        <div class="mini-row"><span>수상 기록</span><strong>2개</strong></div>
+                        <div class="mini-row"><span>프로필</span><strong>수정 모드</strong></div>
+                      </div>
+                    </div>
+                    <div class="mini-board">
+                      <h4>대회 뷰</h4>
+                      <div class="mini-list">
+                        <div class="mini-row"><span>타입</span><strong>8강</strong></div>
+                        <div class="mini-row"><span>매치</span><strong id="roleMatchCount">4개</strong></div>
+                        <div class="mini-row"><span>브래킷</span><strong>자동 정렬</strong></div>
+                        <div class="mini-row"><span>운영 액션</span><strong id="rolePermission">허용</strong></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="checklist">
+        <div class="section-inner">
+          <div class="section-header">
+            <div>
+              <div class="eyebrow">Capture Checklist</div>
+              <h2>포트폴리오 캡처 순서</h2>
+            </div>
+            <span class="status-pill"><span class="pulse-dot"></span> Standalone HTML</span>
+          </div>
+
+          <div class="capture-checklist">
+            <div class="check-item">
+              <div class="checkmark">1</div>
+              <div>
+                <strong>온보딩 첫 화면</strong>
+                <span>팀 생성, 팀 선택, 대회 참가 흐름과 모바일형 서비스 프리뷰를 함께 캡처합니다.</span>
+              </div>
+            </div>
+            <div class="check-item">
+              <div class="checkmark">2</div>
+              <div>
+                <strong>매치 생성 직후</strong>
+                <span>매치 생성 버튼을 누른 뒤 초록 테두리의 optimistic 카드와 이벤트 피드를 캡처합니다.</span>
+              </div>
+            </div>
+            <div class="check-item">
+              <div class="checkmark">3</div>
+              <div>
+                <strong>브래킷 정렬</strong>
+                <span>왼쪽의 섞인 원본 매치 순서와 오른쪽의 라운드별 정렬 결과가 같이 보이게 캡처합니다.</span>
+              </div>
+            </div>
+            <div class="check-item">
+              <div class="checkmark">4</div>
+              <div>
+                <strong>스코어 반영</strong>
+                <span>결과 입력 버튼을 눌러 4강 승자가 결승 슬롯에 자동 반영된 상태를 캡처합니다.</span>
+              </div>
+            </div>
+            <div class="check-item">
+              <div class="checkmark">5</div>
+              <div>
+                <strong>역할 기반 뷰</strong>
+                <span>대회 운영자, 팀장, 선수 탭을 바꿔 권한별 액션 차이를 캡처합니다.</span>
+              </div>
+            </div>
+            <div class="check-item">
+              <div class="checkmark">6</div>
+              <div>
+                <strong>팀 채팅 패널</strong>
+                <span>floating 채팅 열기 후 mock 메시지가 추가된 패널을 함께 캡처합니다.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <button class="chat-launcher" id="chatLauncher" type="button">
+      <span aria-hidden="true">▤</span>
+      <span>채팅 열기</span>
+      <span class="chat-badge" id="chatBadge">2</span>
+    </button>
+
+    <aside class="chat-panel" id="chatPanel" aria-label="team chat panel">
+      <div class="chat-header">
+        <div class="chat-title">
+          <div class="tiny-icon">TC</div>
+          <div>
+            <strong>팀 채팅방</strong>
+            <div class="tag grass" style="margin-top: 5px">Mock 연결됨</div>
+          </div>
+        </div>
+        <button class="icon-button" id="closeChatBtn" type="button" aria-label="close chat">×</button>
+      </div>
+      <div class="messages" id="messages"></div>
+      <form class="chat-form" id="chatForm">
+        <div class="input-row">
+          <input id="chatInput" autocomplete="off" placeholder="메시지를 입력하세요..." />
+          <button class="send-button" type="submit" aria-label="send message">↗</button>
+        </div>
+      </form>
+    </aside>
+
+    <script>
+      const clone = (value) => JSON.parse(JSON.stringify(value));
+
+      const teams = {
+        SEO: { name: "FC 서울", short: "SEO", color: "#c91a09" },
+        ULS: { name: "울산 현대", short: "ULS", color: "#0f6fca" },
+        JEJ: { name: "제주 유나이티드", short: "JEJ", color: "#ff7a1a" },
+        INC: { name: "인천 유나이티드", short: "INC", color: "#243c8f" },
+        GWA: { name: "광주 FC", short: "GWA", color: "#e4002b" },
+        SUW: { name: "수원 FC", short: "SUW", color: "#b51247" },
+        BUS: { name: "부산 아이파크", short: "BUS", color: "#e41e24" },
+        DAJ: { name: "대전 하나", short: "DAJ", color: "#8b1e1e" },
+      };
+
+      const initialMatches = [
+        {
+          id: 1407,
+          time: "오늘 22:30",
+          title: "11v11 공개 스크림",
+          home: "레알 #RMA",
+          away: "상대팀 모집중",
+          host: "JinWing",
+          type: "자유 매치",
+          participation: "승인 참여",
+          status: "진행중",
+        },
+        {
+          id: 1406,
+          time: "오늘 23:00",
+          title: "KFPL 컵 대비 팀 매치",
+          home: "FC 서울",
+          away: "울산 현대",
+          host: "MetaKim",
+          type: "팀 매치",
+          participation: "초대 참여",
+          status: "예정",
+        },
+        {
+          id: 1403,
+          time: "내일 21:30",
+          title: "RUSH 테스트 로비",
+          home: "부산 아이파크",
+          away: "대전 하나",
+          host: "ParkCDM",
+          type: "자유 매치",
+          participation: "즉시 참여",
+          status: "대기",
+        },
+      ];
+
+      const standbyPlayers = [
+        ["JinWing", "CAM", "PS5"],
+        ["MetaKim", "CDM", "PC"],
+        ["HanGK", "GK", "PS5"],
+        ["DoriST", "ST", "Xbox"],
+        ["NeoWing", "RW", "PC"],
+      ];
+
+      const initialRawMatches = [
+        {
+          id: 10,
+          round: "SEMIFINAL",
+          slot: 1,
+          teams: ["SEO", "INC"],
+          score: [null, null],
+          finished: false,
+        },
+        {
+          id: 3,
+          round: "QUARTERFINAL",
+          slot: 3,
+          teams: ["GWA", "SUW"],
+          score: [2, 0],
+          finished: true,
+        },
+        {
+          id: 1,
+          round: "QUARTERFINAL",
+          slot: 1,
+          teams: ["SEO", "ULS"],
+          score: [2, 1],
+          finished: true,
+        },
+        {
+          id: 11,
+          round: "SEMIFINAL",
+          slot: 2,
+          teams: ["GWA", "BUS"],
+          score: [null, null],
+          finished: false,
+        },
+        {
+          id: 4,
+          round: "QUARTERFINAL",
+          slot: 4,
+          teams: ["BUS", "DAJ"],
+          score: [4, 2],
+          finished: true,
+        },
+        {
+          id: 2,
+          round: "QUARTERFINAL",
+          slot: 2,
+          teams: ["JEJ", "INC"],
+          score: [1, 3],
+          finished: true,
+        },
+        {
+          id: 12,
+          round: "FINAL",
+          slot: 1,
+          teams: ["WIN_SF1", "WIN_SF2"],
+          score: [null, null],
+          finished: false,
+        },
+      ];
+
+      const roleData = [
+        {
+          key: "manager",
+          label: "대회 운영자",
+          subtitle: "커뮤니티 매니저 · 대회 운영 권한",
+          permission: "허용",
+          actions: [
+            ["대회 매치 생성", "참가 팀을 선택해 브래킷에 추가"],
+            ["결과 종료 처리", "스코어와 진행 상태를 즉시 반영"],
+            ["대회 수정", "기본 정보, 참가 팀, 수상 항목 관리"],
+            ["스태프 승인", "커뮤니티 운영 권한 관리"],
+          ],
+        },
+        {
+          key: "captain",
+          label: "팀장",
+          subtitle: "팀장 · 팀 매치와 팀원 관리",
+          permission: "부분 허용",
+          actions: [
+            ["팀 매치 생성", "내 팀 기준으로 경기 예약"],
+            ["팀원 승인", "가입 신청을 승인 또는 거절"],
+            ["팀 프로필 수정", "배너, 엠블럼, 공지 변경"],
+            ["팀 채팅", "floating 채팅으로 즉시 소통"],
+          ],
+        },
+        {
+          key: "player",
+          label: "선수",
+          subtitle: "선수 · 참가와 기록 확인 중심",
+          permission: "제한",
+          actions: [
+            ["매치 참가", "공개 매치 대기열에 등록"],
+            ["스탯 제출", "득점, 도움, 패스 성공률 입력"],
+            ["내 프로필", "플랫폼, 포지션, Discord 태그 관리"],
+            ["수상 기록", "대회 참여 이력과 트로피 확인"],
+          ],
+        },
+      ];
+
+      const state = {
+        matches: clone(initialMatches),
+        rawMatches: clone(initialRawMatches),
+        eventFeed: [
+          "mock 데이터 로딩 완료",
+          "Socket 연결 대신 JS 이벤트 사용",
+          "인증 상태는 내 팀 RMA로 고정",
+        ],
+        chatOpen: false,
+        unread: 2,
+        role: "manager",
+        chatMessages: [
+          {
+            sender: "MetaKim",
+            text: "오늘 22:30 공개 스크림 인원 채워졌습니다.",
+            own: false,
+            time: "22:10",
+          },
+          {
+            sender: "JinWing",
+            text: "확인했습니다. 끝나고 스탯도 바로 입력할게요.",
+            own: true,
+            time: "22:11",
+          },
+        ],
+      };
+
+      const formatTeam = (key) => {
+        if (key === "WIN_SF1") return { name: "승자 (4강 1경기)", short: "W1", color: "#667085" };
+        if (key === "WIN_SF2") return { name: "승자 (4강 2경기)", short: "W2", color: "#667085" };
+        return teams[key];
+      };
+
+      const winnerKey = (match) => {
+        if (!match.finished || match.score[0] === null || match.score[1] === null) return null;
+        if (match.score[0] === match.score[1]) return null;
+        return match.score[0] > match.score[1] ? match.teams[0] : match.teams[1];
+      };
+
+      const addEvent = (text) => {
+        state.eventFeed.unshift(text);
+        state.eventFeed = state.eventFeed.slice(0, 5);
+        renderEventFeed(true);
+      };
+
+      const renderFlow = (activeKey) => {
+        document.querySelectorAll(".flow-step").forEach((step) => {
+          const isActive = step.dataset.step === activeKey;
+          step.classList.toggle("active", isActive);
+          const badge = step.querySelector(".flow-badge");
+          if (badge) badge.textContent = isActive ? "ACTIVE" : activeKey === "join" ? "DONE" : "NEXT";
+        });
+      };
+
+      const renderMatches = (flashId) => {
+        const list = document.getElementById("matchList");
+        document.getElementById("matchCountTag").textContent = `${state.matches.length}개 매치`;
+        document.getElementById("roleMatchCount").textContent = `${state.matches.length}개`;
+
+        list.innerHTML = state.matches
+          .map((match) => {
+            const optimistic = match.optimistic ? " optimistic" : "";
+            const flash = match.id === flashId ? " flash" : "";
+            return `
+              <article class="match-card${optimistic}${flash}">
+                <div>
+                  <div class="match-time">${match.time}</div>
+                  <div class="match-meta">Host: ${match.host} · ID ${match.id}</div>
+                </div>
+                <div>
+                  <div class="match-title">${match.title}</div>
+                  <div class="versus">
+                    <span>${match.home}</span>
+                    <span class="tag">VS</span>
+                    <span>${match.away}</span>
+                  </div>
+                </div>
+                <div class="stat-row" style="justify-content:flex-end">
+                  <span class="tag ${match.status === "진행중" ? "grass" : "amber"}">${match.status}</span>
+                  <span class="tag cyan">${match.type}</span>
+                  ${match.optimistic ? `<span class="tag grass">optimistic</span>` : ""}
+                </div>
+              </article>
+            `;
+          })
+          .join("");
+      };
+
+      const renderStandby = () => {
+        document.getElementById("standbyList").innerHTML = standbyPlayers
+          .map(([name, position, platform]) => {
+            const initials = name.slice(0, 2).toUpperCase();
+            return `
+              <div class="queue-item">
+                <div class="avatar">${initials}</div>
+                <div>
+                  <strong>${name}</strong>
+                  <span>${position} · ${platform}</span>
+                </div>
+                <span class="tag blue">대기</span>
+              </div>
+            `;
+          })
+          .join("");
+      };
+
+      const renderEventFeed = (flashFirst = false) => {
+        document.getElementById("eventFeed").innerHTML = state.eventFeed
+          .map((text, index) => `
+            <div class="feed-item ${flashFirst && index === 0 ? "flash" : ""}">
+              <strong>${text}</strong>
+              <span>${index === 0 ? "방금 전" : `${index + 1}분 전`}</span>
+            </div>
+          `)
+          .join("");
+      };
+
+      const renderRawMatches = () => {
+        const labelMap = {
+          QUARTERFINAL: "8강",
+          SEMIFINAL: "4강",
+          FINAL: "결승",
+        };
+        document.getElementById("rawMatchList").innerHTML = state.rawMatches
+          .map((match) => `
+            <div class="raw-card">
+              <strong>M${match.id}</strong>
+              <span>${labelMap[match.round]} · slot ${match.slot}</span>
+              <span class="tag ${match.finished ? "grass" : "amber"}">${match.finished ? "종료" : "예정"}</span>
+            </div>
+          `)
+          .join("");
+      };
+
+      const buildResolvedMatches = () => {
+        const matches = clone(state.rawMatches);
+        const sf1 = matches.find((match) => match.round === "SEMIFINAL" && match.slot === 1);
+        const sf2 = matches.find((match) => match.round === "SEMIFINAL" && match.slot === 2);
+        const final = matches.find((match) => match.round === "FINAL");
+        const sf1Winner = sf1 ? winnerKey(sf1) : null;
+        const sf2Winner = sf2 ? winnerKey(sf2) : null;
+
+        if (final) {
+          final.teams = [sf1Winner || "WIN_SF1", sf2Winner || "WIN_SF2"];
+        }
+
+        return matches;
+      };
+
+      const renderBracket = (flashMatchId) => {
+        const board = document.getElementById("bracketBoard");
+        const roundConfig = [
+          ["QUARTERFINAL", "8강"],
+          ["SEMIFINAL", "4강"],
+          ["FINAL", "결승"],
+        ];
+        const resolved = buildResolvedMatches();
+
+        board.innerHTML = roundConfig
+          .map(([roundKey, label]) => {
+            const sorted = resolved
+              .filter((match) => match.round === roundKey)
+              .sort((a, b) => a.slot - b.slot);
+
+            return `
+              <div class="round">
+                <div class="round-title">${label}</div>
+                ${sorted.map((match) => renderBracketCard(match, flashMatchId)).join("")}
+              </div>
+            `;
+          })
+          .join("");
+      };
+
+      const renderBracketCard = (match, flashMatchId) => {
+        const first = formatTeam(match.teams[0]);
+        const second = formatTeam(match.teams[1]);
+        const winner = winnerKey(match);
+        const firstWon = winner === match.teams[0];
+        const secondWon = winner === match.teams[1];
+        const scoreA = match.score[0] === null ? "-" : match.score[0];
+        const scoreB = match.score[1] === null ? "-" : match.score[1];
+
+        return `
+          <article class="bracket-card ${match.id === flashMatchId ? "flash" : ""}" data-match-id="${match.id}">
+            <div class="match-topline">
+              <strong>M${match.id}</strong>
+              <span class="tag ${match.finished ? "grass" : "amber"}">${match.finished ? "종료" : "예정"}</span>
+            </div>
+            <div class="team-line ${firstWon ? "winner" : ""}">
+              <span class="mini-emblem" style="background:${first.color}">${first.short}</span>
+              <span class="team-name">${first.name}</span>
+              <span class="score">${scoreA}</span>
+            </div>
+            <div class="team-line ${secondWon ? "winner" : ""}">
+              <span class="mini-emblem" style="background:${second.color}">${second.short}</span>
+              <span class="team-name">${second.name}</span>
+              <span class="score">${scoreB}</span>
+            </div>
+          </article>
+        `;
+      };
+
+      const renderRoles = () => {
+        const tabs = document.getElementById("roleTabs");
+        tabs.innerHTML = roleData
+          .map((role) => `
+            <button class="role-tab ${state.role === role.key ? "active" : ""}" data-role="${role.key}">
+              <span>
+                <strong>${role.label}</strong><br />
+                <small style="color:var(--muted)">${role.subtitle}</small>
+              </span>
+              <span class="tag ${role.key === "manager" ? "grass" : role.key === "captain" ? "cyan" : "amber"}">${role.permission}</span>
+            </button>
+          `)
+          .join("");
+
+        const selected = roleData.find((role) => role.key === state.role) || roleData[0];
+        document.getElementById("roleTitle").textContent = selected.label === "대회 운영자" ? "KFPL 운영 허브" : "레알 #RMA";
+        document.getElementById("roleSubtitle").textContent = selected.subtitle;
+        document.getElementById("rolePermission").textContent = selected.permission;
+        document.getElementById("roleActions").innerHTML = selected.actions
+          .map(([title, detail]) => `
+            <div class="action-tile">
+              <strong>${title}</strong>
+              <span>${detail}</span>
+            </div>
+          `)
+          .join("");
+      };
+
+      const renderChat = (flashLast = false) => {
+        const panel = document.getElementById("chatPanel");
+        panel.classList.toggle("open", state.chatOpen);
+        document.getElementById("chatLauncher").style.display = state.chatOpen
+          ? "none"
+          : "inline-flex";
+        const badge = document.getElementById("chatBadge");
+        badge.textContent = state.unread;
+        badge.style.display = state.unread > 0 && !state.chatOpen ? "grid" : "none";
+
+        const messages = document.getElementById("messages");
+        messages.innerHTML = state.chatMessages
+          .map((message, index) => `
+            <div class="message ${message.own ? "own" : ""} ${flashLast && index === state.chatMessages.length - 1 ? "flash" : ""}">
+              <strong>${message.sender}</strong>
+              <p>${message.text}</p>
+              <time>${message.time}</time>
+            </div>
+          `)
+          .join("");
+        messages.scrollTop = messages.scrollHeight;
+      };
+
+      const createMatch = () => {
+        const id = Date.now().toString().slice(-5);
+        const newMatch = {
+          id,
+          time: "방금 생성 · 오늘 23:30",
+          title: "RMA 즉석 11v11 매치",
+          home: "레알 #RMA",
+          away: "상대팀 모집중",
+          host: "JinWing",
+          type: "자유 매치",
+          participation: "승인 참여",
+          status: "진행중",
+          optimistic: true,
+        };
+        state.matches.unshift(newMatch);
+        renderMatches(id);
+        addEvent(`매치 ${id}가 서버 대기 없이 추가됨`);
+      };
+
+      const resetMatches = () => {
+        state.matches = clone(initialMatches);
+        renderMatches();
+        addEvent("매치 목록을 초기 mock state로 되돌림");
+      };
+
+      const sortBracket = () => {
+        document.getElementById("bracketStatus").textContent = "slot 기준 재정렬";
+        renderBracket();
+        addEvent("비순차 대회 매치를 라운드와 slot으로 정렬");
+        window.setTimeout(() => {
+          document.getElementById("bracketStatus").textContent = "정렬 완료";
+        }, 1200);
+      };
+
+      const applyScore = () => {
+        const match = state.rawMatches.find((item) => item.id === 10);
+        if (!match) return;
+        match.score = [3, 2];
+        match.finished = true;
+        renderRawMatches();
+        renderBracket(10);
+        document.getElementById("bracketStatus").textContent = "결승 슬롯 갱신";
+        addEvent("M10 결과 입력: FC 서울이 결승에 자동 반영됨");
+      };
+
+      const openChat = () => {
+        state.chatOpen = true;
+        state.unread = 0;
+        renderChat();
+        window.setTimeout(() => {
+          const alreadyAdded = state.chatMessages.some((message) =>
+            message.text.includes("mock 메시지")
+          );
+          if (!alreadyAdded) {
+            state.chatMessages.push({
+              sender: "HanGK",
+              text: "floating 채팅 mock 메시지입니다. 오늘 경기 라인업 확인했습니다.",
+              own: false,
+              time: "방금",
+            });
+            renderChat(true);
+            addEvent("팀 채팅 패널에 mock 메시지 수신");
+          }
+        }, 280);
+      };
+
+      const closeChat = () => {
+        state.chatOpen = false;
+        renderChat();
+      };
+
+      const sendChat = (text) => {
+        const clean = text.trim();
+        if (!clean) return;
+        state.chatMessages.push({
+          sender: "JinWing",
+          text: clean,
+          own: true,
+          time: "방금",
+        });
+        renderChat(true);
+        window.setTimeout(() => {
+          state.chatMessages.push({
+            sender: "MetaKim",
+            text: "확인했습니다. mock state에 바로 반영됐어요.",
+            own: false,
+            time: "방금",
+          });
+          renderChat(true);
+        }, 450);
+      };
+
+      document.querySelectorAll("[data-flow-target]").forEach((button) => {
+        button.addEventListener("click", () => renderFlow(button.dataset.flowTarget));
+      });
+
+      document.getElementById("createMatchBtn").addEventListener("click", createMatch);
+      document.getElementById("resetMatchBtn").addEventListener("click", resetMatches);
+      document.getElementById("sortBracketBtn").addEventListener("click", sortBracket);
+      document.getElementById("applyScoreBtn").addEventListener("click", applyScore);
+      document.getElementById("chatLauncher").addEventListener("click", openChat);
+      document.getElementById("openChatAction").addEventListener("click", openChat);
+      document.getElementById("closeChatBtn").addEventListener("click", closeChat);
+      document.getElementById("chatForm").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const input = document.getElementById("chatInput");
+        sendChat(input.value);
+        input.value = "";
+      });
+
+      document.getElementById("roleTabs").addEventListener("click", (event) => {
+        const tab = event.target.closest("[data-role]");
+        if (!tab) return;
+        state.role = tab.dataset.role;
+        renderRoles();
+      });
+
+      renderFlow("create");
+      renderMatches();
+      renderStandby();
+      renderEventFeed();
+      renderRawMatches();
+      renderBracket();
+      renderRoles();
+      renderChat();
+    </script>
+  </body>
+</html>

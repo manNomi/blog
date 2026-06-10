@@ -41,6 +41,12 @@ export type PortfolioPackage = {
   points: string[];
 };
 
+export type PortfolioResponsiveDemo = {
+  url: string;
+  label: string;
+  description: string;
+};
+
 export type PortfolioProject = {
   slug: string;
   title: string;
@@ -59,6 +65,7 @@ export type PortfolioProject = {
   visualMode?: 'phone';
   livePreview?: PortfolioLivePreview;
   packages?: PortfolioPackage[];
+  responsiveDemo?: PortfolioResponsiveDemo;
   accent: string;
   metrics: PortfolioMetric[];
   highlights: string[];
@@ -633,6 +640,12 @@ export const portfolioProjects: PortfolioProject[] = [
     imageAlt: 'FootBallSquare 축구 커뮤니티 배너 이미지',
     imageWidth: 1600,
     imageHeight: 900,
+    responsiveDemo: {
+      url: '/demos/football-square-demo.html',
+      label: 'FootballSquare mock demo',
+      description:
+        '매치 생성, 비순차 브래킷 정렬, 역할별 대시보드, floating 채팅까지 핵심 동작을 반응형 mock으로 확인할 수 있습니다.'
+    },
     accent: '#16a34a',
     metrics: [
       { value: '0ms', label: '매치 생성 체감 반응', detail: 'Optimistic UI로 즉시 화면 반영' },
