@@ -91,8 +91,8 @@ const openSourceContributionCount = resumeOpenSourceGroups.reduce((total, group)
             const repositoryLink = group.links?.find((link) => link.label.includes('저장소'));
 
             return (
-              <details class="open-source-folder" open>
-                <summary class="open-source-folder-summary">
+              <div class="open-source-folder">
+                <div class="open-source-folder-summary">
                   <span class="open-source-folder-copy">
                     <span class="open-source-folder-title">{group.title}</span>
                     <span class="open-source-folder-description">{group.subtitle}</span>
@@ -107,13 +107,12 @@ const openSourceContributionCount = resumeOpenSourceGroups.reduce((total, group)
                         data-href={repositoryLink.href}
                         data-external={repositoryLink.external ? 'true' : 'false'}
                         aria-label={`${group.title} ${repositoryLink.label} 열기`}
-                      >
-                        {repositoryLink.label} ↗
-                      </button>
-                    )}
-                    <span class="open-source-folder-toggle" aria-hidden="true">+</span>
+                    >
+                      {repositoryLink.label} ↗
+                    </button>
+                  )}
                   </span>
-                </summary>
+                </div>
 
                 <div class="open-source-folder-body">
                   {group.bullets.map((item, index) => {
@@ -158,7 +157,7 @@ const openSourceContributionCount = resumeOpenSourceGroups.reduce((total, group)
                     );
                   })}
                 </div>
-              </details>
+              </div>
             );
           })}
         </div>

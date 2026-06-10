@@ -844,18 +844,6 @@ body {
   align-items: start;
   min-width: 0;
   padding: 28px 4px;
-  list-style: none;
-  cursor: pointer;
-  transition: padding-left 0.25s ease, background 0.2s;
-}
-
-.open-source-folder-summary::-webkit-details-marker {
-  display: none;
-}
-
-.open-source-folder-summary:hover {
-  padding-left: 16px;
-  background: color-mix(in oklab, var(--surface) 62%, transparent);
 }
 
 .open-source-folder-copy {
@@ -893,25 +881,6 @@ body {
 .open-source-folder-meta > .mono {
   color: var(--text-faint);
   font-size: 0.7rem;
-}
-
-.open-source-folder-toggle {
-  display: grid;
-  width: 32px;
-  height: 32px;
-  place-items: center;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  color: var(--text-dim);
-  font-family: var(--font-mono-ref);
-  line-height: 1;
-  transition: transform 0.2s, border-color 0.2s, color 0.2s;
-}
-
-.open-source-folder[open] .open-source-folder-toggle {
-  transform: rotate(45deg);
-  border-color: var(--border-strong);
-  color: var(--text);
 }
 
 .open-source-folder-body {
