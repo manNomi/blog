@@ -5,8 +5,17 @@ import Footer from '../components/Footer.astro';
 import ProjectCard from '../components/ProjectCard.astro';
 import { portfolioProfile, portfolioProjects, resumeExperiences, resumeOpenSourceGroups } from '../data/portfolio';
 
-const getOpenSourcePrimaryHref = (group: (typeof resumeOpenSourceGroups)[number]) =>
-  group.links?.find((link) => link.label.startsWith('PR'))?.href ?? group.links?.[0]?.href ?? '#';
+const openSourceContributions = resumeOpenSourceGroups.flatMap((group) => {
+  const repositoryLink = group.links?.find((link) => link.label.includes('저장소'));
+
+  return group.bullets.map((item) => ({
+    groupTitle: group.title,
+    repositoryLink,
+    item,
+    prHref: item.href ?? repositoryLink?.href ?? '#',
+    prLabel: item.metric?.match(/#\d+/)?.[0] ?? 'PR'
+  }));
+});
 ---
 
 <BaseLayout title="소개 | 한만욱" description={portfolioProfile.intro}>
@@ -84,50 +93,54 @@ const getOpenSourcePrimaryHref = (group: (typeof resumeOpenSourceGroups)[number]
             <div class="eyebrow mb-2">Open Source</div>
             <h2 class="section-title">오픈소스</h2>
           </div>
-          <span class="mono">{resumeOpenSourceGroups.length} groups</span>
+          <span class="mono">{openSourceContributions.length} PRs</span>
         </div>
 
         <div class="mt-5">
-          {resumeOpenSourceGroups.map((group, index) => (
+          {openSourceContributions.map((contribution, index) => (
             <a
-              href={getOpenSourcePrimaryHref(group)}
+              href={contribution.prHref}
               target="_blank"
               rel="noopener noreferrer"
               class="detail-card detail-card-link open-source-card"
             >
               <span class="detail-summary open-source-summary">
-                <span class="mono pt-1" style="color: var(--text-faint);">OSS {String(index + 1).padStart(2, '0')}</span>
+                <span class="mono pt-1" style="color: var(--text-faint);">PR {String(index + 1).padStart(2, '0')}</span>
                 <span class="open-source-copy">
                   <span class="open-source-title-line">
-                    <span class="m-0 block text-[1.15rem] font-bold tracking-[-0.02em]" style="color: var(--text);">{group.title}</span>
-                    {group.period && <span class="mono opacity-60">{group.period}</span>}
+                    <span class="m-0 block text-[1.15rem] font-bold tracking-[-0.02em]" style="color: var(--text);">{contribution.item.title}</span>
+                    {contribution.item.metric && <span class="mono opacity-60">{contribution.item.metric}</span>}
                   </span>
-                  <span class="my-1 block text-[0.9rem]" style="color: var(--text-dim);">{group.subtitle}</span>
-                  <span class="open-source-contributions">
-                    {group.bullets.map((item) => (
-                      <span class="open-source-contribution">
-                        <span class="open-source-contribution-head">
-                          <strong>{item.title}</strong>
-                          {item.metric && <span class="mono">{item.metric}</span>}
-                        </span>
-                        <span>{item.description}</span>
-                      </span>
-                    ))}
+                  <span class="my-1 block text-[0.9rem]" style="color: var(--text-dim);">{contribution.groupTitle}</span>
+                  <span class="open-source-contribution">
+                    <span>{contribution.item.description}</span>
                   </span>
                 </span>
-                <span class="open-source-actions" aria-label={`${group.title} GitHub 링크`}>
-                  {group.links?.map((link) => (
+                <span class="open-source-actions" aria-label={`${contribution.item.title} GitHub 링크`}>
+                  {contribution.repositoryLink && (
                     <button
                       type="button"
                       class="pill open-source-link-button"
                       data-open-source-link
-                      data-href={link.href}
-                      data-external={link.external ? 'true' : 'false'}
-                      aria-label={`${group.title} ${link.label} 열기`}
+                      data-href={contribution.repositoryLink.href}
+                      data-external={contribution.repositoryLink.external ? 'true' : 'false'}
+                      aria-label={`${contribution.groupTitle} ${contribution.repositoryLink.label} 열기`}
                     >
-                      {link.label} ↗
+                      {contribution.repositoryLink.label} ↗
                     </button>
-                  ))}
+                  )}
+                  {contribution.item.href && (
+                    <button
+                      type="button"
+                      class="pill open-source-link-button"
+                      data-open-source-link
+                      data-href={contribution.item.href}
+                      data-external={contribution.item.href.startsWith('http') ? 'true' : 'false'}
+                      aria-label={`${contribution.item.title} ${contribution.prLabel} 열기`}
+                    >
+                      {contribution.prLabel} ↗
+                    </button>
+                  )}
                   <span class="pj-arrow text-2xl" aria-hidden="true">↗</span>
                 </span>
               </span>
