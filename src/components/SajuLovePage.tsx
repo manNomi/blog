@@ -75,7 +75,7 @@ const flowOrder: FlowTarget[] = ['name', 'birthDate', 'birthTime', 'details', 'd
 
 const fortuneOptions: FortuneEntryOption[] = [
   { type: 'form', value: 'exam', label: '시험운 보기', description: '과목과 결과 기준에 맞춘 시험 흐름을 받아요.' },
-  { type: 'form', value: 'love', label: '애정운 보기', description: '관계 상태와 고민을 바탕으로 애정 리포트를 받아요.' },
+  { type: 'form', value: 'love', label: '연애운 보기', description: '관계 상태와 고민을 바탕으로 연애 리포트를 받아요.' },
   { type: 'link', href: '/saju-dice', label: '주사위 운보기', description: '개인정보 입력 없이 주사위로 가볍게 흐름을 확인해요.' }
 ];
 
@@ -109,6 +109,13 @@ function formatBirthDateInput(value: string) {
   if (digits.length <= 4) return digits;
   if (digits.length <= 6) return `${digits.slice(0, 4)}-${digits.slice(4)}`;
   return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6)}`;
+}
+
+function formatBirthTimeInput(value: string) {
+  const digits = value.replace(/\D/g, '').slice(0, 4);
+
+  if (digits.length <= 2) return digits;
+  return `${digits.slice(0, 2)}:${digits.slice(2)}`;
 }
 
 function isValidBirthDate(value: string) {
@@ -240,28 +247,51 @@ export default function SajuLovePage() {
   const concernLength = watched.concern?.length ?? 0;
   const examSubjectLength = watched.examSubject?.length ?? 0;
 
-  const fortuneLabel = selectedFortuneType === 'exam' ? '시험운' : selectedFortuneType === 'love' ? '애정운' : '미선택';
+  const fortuneLabel = selectedFortuneType === 'exam' ? '시험운' : selectedFortuneType === 'love' ? '연애운' : '미선택';
   const relationshipLabel = relationshipOptions.find((option) => option.value === selectedRelationship)?.label ?? '미선택';
   const examResultFormatLabel = examResultFormatOptions.find((option) => option.value === selectedExamResultFormat)?.label ?? '예상 학점';
 
-  const nameLength = watched.name?.trim().length ?? 0;
-  const birthPlaceLength = watched.birthPlace?.trim().length ?? 0;
-  const hasName = nameLength >= 2 && nameLength <= 30 && (selectedGender === 'female' || selectedGender === 'male') && (selectedCalendarType === 'solar' || selectedCalendarType === 'lunar');
-  const hasBirthDate = isValidBirthDate(watched.birthDate || '');
-  const hasBirthTime = Boolean(watched.birthTimeUnknown) || TIME_REGEX.test(watched.birthTime || '');
+  const getFlowCompletion = (values: RequestFormValues) => {
+    const nameLength = values.name?.trim().length ?? 0;
+    const birthPlaceLength = values.birthPlace?.trim().length ?? 0;
+    const hasName =
+      nameLength >= 2 &&
+      nameLength <= 30 &&
+      (values.gender === 'female' || values.gender === 'male') &&
+      (values.calendarType === 'solar' || values.calendarType === 'lunar');
+    const hasBirthDate = isValidBirthDate(values.birthDate || '');
+    const hasBirthTime = Boolean(values.birthTimeUnknown) || TIME_REGEX.test(values.birthTime || '');
+    const hasDetails =
+      values.fortuneType === 'exam'
+        ? Boolean(values.examSubject?.trim()) &&
+          (values.examSubject?.trim().length ?? 0) <= 80 &&
+          (values.examResultFormat === 'grade' || values.examResultFormat === 'score')
+        : values.fortuneType === 'love'
+          ? Boolean(values.relationshipStatus)
+          : false;
+    const hasDelivery = EMAIL_REGEX.test(values.email?.trim() || '') && birthPlaceLength >= 2 && birthPlaceLength <= 50;
+
+    return { hasName, hasBirthDate, hasBirthTime, hasDetails, hasDelivery };
+  };
+
+  const getFirstIncompleteFlowTarget = (values: RequestFormValues): FlowTarget => {
+    const completion = getFlowCompletion(values);
+
+    if (!completion.hasName) return 'name';
+    if (!completion.hasBirthDate) return 'birthDate';
+    if (!completion.hasBirthTime) return 'birthTime';
+    if (!completion.hasDetails) return 'details';
+    if (!completion.hasDelivery) return 'delivery';
+    return 'review';
+  };
+
+  const { hasName, hasBirthDate, hasBirthTime, hasDetails, hasDelivery } = getFlowCompletion(watched);
   const hasBasicInfo = hasName && hasBirthDate && hasBirthTime;
-  const hasDetails =
-    selectedFortuneType === 'exam'
-      ? Boolean(watched.examSubject?.trim()) && (watched.examSubject?.trim().length ?? 0) <= 80 && (selectedExamResultFormat === 'grade' || selectedExamResultFormat === 'score')
-      : selectedFortuneType === 'love'
-        ? Boolean(selectedRelationship)
-        : false;
-  const hasDelivery = EMAIL_REGEX.test(watched.email?.trim() || '') && birthPlaceLength >= 2 && birthPlaceLength <= 50;
 
   const completedCount = [hasName, hasBirthDate, hasBirthTime, hasDetails, hasDelivery].filter(Boolean).length;
   const completionPercent = Math.round((completedCount / REQUIRED_COUNT) * 100);
 
-  const firstIncompleteFlowTarget: FlowTarget = !hasName ? 'name' : !hasBirthDate ? 'birthDate' : !hasBirthTime ? 'birthTime' : !hasDetails ? 'details' : !hasDelivery ? 'delivery' : 'review';
+  const firstIncompleteFlowTarget = getFirstIncompleteFlowTarget(watched);
   const visibleFlowIndex = flowOrder.indexOf(visibleFlowTarget);
   const firstIncompleteFlowIndex = flowOrder.indexOf(firstIncompleteFlowTarget);
   const renderedFlowTarget = firstIncompleteFlowIndex < visibleFlowIndex ? firstIncompleteFlowTarget : visibleFlowTarget;
@@ -278,6 +308,7 @@ export default function SajuLovePage() {
   const isFlowVisible = (target: FlowTarget) => flowOrder.indexOf(target) <= renderedFlowIndex;
   const shouldShowNext = (target: AdvanceableFlowTarget) => step === 'input' && renderedFlowTarget === target && currentTargetComplete[target] && !isSubmitting;
   const birthDateField = requestForm.register('birthDate');
+  const birthTimeField = requestForm.register('birthTime');
 
   useEffect(() => {
     if (!notice) return;
@@ -296,6 +327,20 @@ export default function SajuLovePage() {
       setVisibleFlowTarget(firstIncompleteFlowTarget);
     }
   }, [firstIncompleteFlowIndex, firstIncompleteFlowTarget, step, visibleFlowIndex]);
+
+  useEffect(() => {
+    if (step !== 'input' || isSubmitting) return;
+
+    if (renderedFlowTarget === 'birthDate' && hasBirthDate) {
+      previousFlowTarget.current = null;
+      setVisibleFlowTarget('birthTime');
+    }
+
+    if (renderedFlowTarget === 'birthTime' && hasBirthTime) {
+      previousFlowTarget.current = null;
+      setVisibleFlowTarget('details');
+    }
+  }, [hasBirthDate, hasBirthTime, isSubmitting, renderedFlowTarget, step]);
 
   useEffect(() => {
     if (step !== 'input') return;
@@ -334,24 +379,29 @@ export default function SajuLovePage() {
     void birthDateField.onChange(event);
   };
 
+  const handleBirthTimeChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatBirthTimeInput(event.currentTarget.value);
+    event.currentTarget.value = formatted;
+    void birthTimeField.onChange(event);
+  };
+
   const handleFortuneChange = (fortuneType: FortuneType) => {
     if (isSubmitting) return;
 
     requestForm.setValue('fortuneType', fortuneType, { shouldValidate: true, shouldDirty: true });
 
     if (fortuneType === 'exam') {
-      requestForm.setValue('concern', '', { shouldValidate: true, shouldDirty: true });
-      requestForm.setValue('relationshipStatus', undefined, { shouldValidate: true, shouldDirty: true });
       requestForm.setValue('examResultFormat', requestForm.getValues('examResultFormat') ?? 'grade', { shouldValidate: true, shouldDirty: true });
       requestForm.clearErrors(['concern', 'relationshipStatus']);
     } else {
-      requestForm.setValue('examSubject', '', { shouldValidate: true, shouldDirty: true });
-      requestForm.setValue('examResultFormat', 'grade', { shouldValidate: true, shouldDirty: true });
       requestForm.clearErrors(['examSubject']);
     }
 
+    const nextValues = requestForm.getValues();
+    nextValues.fortuneType = fortuneType;
+
     previousFlowTarget.current = null;
-    setVisibleFlowTarget('name');
+    setVisibleFlowTarget(getFirstIncompleteFlowTarget(nextValues));
     setStep('input');
     window.setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 80);
   };
@@ -392,7 +442,7 @@ export default function SajuLovePage() {
       setNotice(
         fortuneType === 'exam'
           ? '요청이 접수되었습니다. 분석이 완료되면 입력하신 이메일로 시험운 리포트를 보내드립니다.'
-          : '요청이 접수되었습니다. 분석이 완료되면 입력하신 이메일로 애정운 결과를 보내드립니다.'
+          : '요청이 접수되었습니다. 분석이 완료되면 입력하신 이메일로 연애운 결과를 보내드립니다.'
       );
     } catch (requestError) {
       setApiError(requestError instanceof Error ? requestError.message : '요청 접수 중 오류가 발생했습니다.');
@@ -447,7 +497,7 @@ export default function SajuLovePage() {
                 setStep('fortune');
               }}
             >
-              {fortuneLabel} 변경
+              처음으로 돌아가기
             </button>
           )}
         </div>
@@ -597,10 +647,13 @@ export default function SajuLovePage() {
                 <label className="grid gap-1.5">
                   <span className="text-sm font-medium text-[var(--text-dim)]">출생시간 *</span>
                   <input
-                    type="time"
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={5}
+                    placeholder="HH:mm"
                     disabled={isSubmitting || birthTimeUnknown}
-                    {...requestForm.register('birthTime')}
-                    onInput={(event) => requestForm.setValue('birthTime', event.currentTarget.value, { shouldValidate: true, shouldDirty: true })}
+                    {...birthTimeField}
+                    onChange={handleBirthTimeChange}
                     className="saju-input disabled:opacity-60"
                   />
                   <FieldError message={requestForm.formState.errors.birthTime?.message} />
@@ -714,7 +767,7 @@ export default function SajuLovePage() {
                       disabled={isSubmitting}
                       placeholder="요즘 가장 고민되는 연애 이슈"
                       {...requestForm.register('concern')}
-                      className="saju-input min-h-[104px] resize-y py-2.5 leading-[1.55]"
+                      className="saju-input min-h-[104px] resize-y pb-2.5 pt-4 leading-[1.55]"
                     />
                     <FieldError message={requestForm.formState.errors.concern?.message} />
                   </label>
@@ -806,7 +859,7 @@ export default function SajuLovePage() {
         <section className="saju-card grid gap-4 px-4 py-5 md:px-7 md:py-6 animate-result-pop">
           <h2 className="text-[26px] font-semibold tracking-[-0.02em] text-[var(--text)] md:text-[30px]">접수가 완료되었습니다</h2>
           <p className="text-[15px] leading-[1.6] text-[var(--text-dim)]">
-            분석 완료 시 이메일로 {requestState?.input.fortuneType === 'exam' ? '시험운 리포트' : '애정운 결과'}를 보내드립니다. 스팸함도 함께 확인해 주세요.
+            분석 완료 시 이메일로 {requestState?.input.fortuneType === 'exam' ? '시험운 리포트' : '연애운 결과'}를 보내드립니다. 스팸함도 함께 확인해 주세요.
           </p>
 
           {requestState && (
@@ -818,7 +871,7 @@ export default function SajuLovePage() {
 
           <div className="pt-1">
             <button type="button" onClick={resetForNewRequest} className="btn-pill-dark transition-transform duration-200 hover:-translate-y-0.5">
-              새 요청 작성
+              처음으로 돌아가기
             </button>
           </div>
         </section>
