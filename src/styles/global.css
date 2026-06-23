@@ -902,7 +902,8 @@ body {
 }
 
 .open-source-summary {
-  grid-template-columns: minmax(0, 160px) minmax(0, 1fr) minmax(180px, auto);
+  grid-template-columns: max-content minmax(0, 1fr) minmax(180px, auto);
+  gap: clamp(12px, 1.6vw, 24px);
 }
 
 .open-source-copy,
