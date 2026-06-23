@@ -1,8 +1,8 @@
 ---
 title: "Express 강의 v2"
-description: "강의"
+description: "Express"
 pubDate: 2026-06-09T00:00:00.000Z
-tags: ["강의"]
+tags: ["강의자료"]
 notes: true
 notionId: "37a7cf19-a364-80cd-baeb-c444b8828fbb"
 ---

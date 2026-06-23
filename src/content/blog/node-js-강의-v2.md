@@ -1,8 +1,8 @@
 ---
 title: "Node.js 강의 v2"
-description: "강의"
+description: "Node"
 pubDate: 2026-06-09T00:00:00.000Z
-tags: ["강의"]
+tags: ["강의자료"]
 notes: true
 notionId: "37a7cf19-a364-8088-889f-d6238ca3da9f"
 ---
