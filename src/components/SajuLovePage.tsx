@@ -76,6 +76,7 @@ const flowOrder: FlowTarget[] = ['name', 'birthDate', 'birthTime', 'details', 'd
 const fortuneOptions: FortuneEntryOption[] = [
   { type: 'form', value: 'exam', label: '시험운 보기', description: '과목과 결과 기준에 맞춘 시험 흐름을 받아요.' },
   { type: 'form', value: 'love', label: '연애운 보기', description: '관계 상태와 고민을 바탕으로 연애 리포트를 받아요.' },
+  { type: 'link', href: '/saju/compatibility', label: '궁합 별자리 보기', description: '이름과 MBTI로 사람들의 궁합 흐름을 별자리 그래프로 봐요.' },
   { type: 'link', href: '/saju-dice', label: '주사위 운보기', description: '개인정보 입력 없이 주사위로 가볍게 흐름을 확인해요.' }
 ];
 
@@ -483,7 +484,7 @@ export default function SajuLovePage() {
               사주 운세 요청
             </h1>
             <p className="mt-3 max-w-[620px] text-[15px] leading-[1.62] text-[var(--text-dim)] md:text-[16px] [animation-delay:140ms] animate-step-enter">
-              한 번에 하나씩 입력하면 결과를 이메일로 받아볼 수 있습니다.
+              먼저 보고 싶은 흐름을 고르고, 필요한 정보만 차례대로 입력합니다.
             </p>
           </div>
           {step === 'input' && (
@@ -523,7 +524,7 @@ export default function SajuLovePage() {
             <p className="mt-1 text-sm leading-[1.6] text-[var(--text-dim)]">선택한 운세 방식에 맞는 화면으로 이동합니다.</p>
           </div>
 
-          <div className="grid gap-2 md:grid-cols-3" role="group" aria-label="운세 종류 선택">
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4" role="group" aria-label="운세 종류 선택">
             {fortuneOptions.map((option) => {
               const active = option.type === 'form' && selectedFortuneType === option.value;
               if (option.type === 'link') {
