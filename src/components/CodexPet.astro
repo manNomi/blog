@@ -68,9 +68,7 @@
       x: window.innerWidth * 0.72,
       y: window.innerHeight * 0.68,
       active: false,
-      inside: false,
-      following: false,
-      readingUntil: 0
+      inside: false
     };
     const drag = {
       tracking: false,
@@ -84,7 +82,8 @@
       action: 'idle',
       actionUntil: 0,
       messageUntil: 0,
-      clickIndex: 0
+      clickIndex: 0,
+      dragIndex: 0
     };
     const clickActions = [
       { name: 'wave', message: '여기 보고 있어요', duration: 1500 },
@@ -92,6 +91,7 @@
       { name: 'focus', message: '같이 읽을게요', duration: 1700 },
       { name: 'nap', message: '잠깐 쉬어도 좋아요', duration: 1600 }
     ];
+    const dragMessages = ['여기까지 읽었군요', '이 부분 좋아요', '흐름 따라가는 중', '잠깐 표시해둘게요'];
     const position = {
       x: 0,
       y: 0,
@@ -103,7 +103,9 @@
     };
     const wander = {
       nextTargetAt: 0,
-      resting: false
+      resting: false,
+      forcedUntil: 0,
+      targetReason: 'home'
     };
     const look = { x: 0, y: 0 };
     const mood = { curiosity: 0, blink: 0, ear: 0, tail: 0 };
@@ -313,8 +315,6 @@
       stage.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`;
     };
 
-    const isReadingActive = () => pointer.following || performance.now() < pointer.readingUntil;
-
     const setInteraction = (name, message = '', duration = 1400) => {
       root.dataset.interaction = name;
       bubble.textContent = message;
@@ -323,18 +323,9 @@
 
     const syncInteractionState = () => {
       const now = performance.now();
-      const readingActive = isReadingActive();
 
       if (interaction.action !== 'idle' && now >= interaction.actionUntil) {
         interaction.action = 'idle';
-      }
-
-      if (readingActive) {
-        root.dataset.interaction = 'reading';
-        if (!bubble.textContent) {
-          bubble.textContent = '같이 읽는 중';
-        }
-        return;
       }
 
       if (interaction.action !== 'idle') {
@@ -351,10 +342,10 @@
       interaction.messageUntil = 0;
     };
 
-    const setWanderTarget = () => {
-      const horizontalInset = clamp(window.innerWidth * 0.1, 18, 42);
-      const topInset = margin + 88;
-      const bottomInset = window.innerHeight - petSize - 28;
+    const setWanderTarget = (reason = 'wander') => {
+      const horizontalInset = clamp(window.innerWidth * 0.08, 18, 72);
+      const topInset = margin + (window.innerWidth < 640 ? 108 : 96);
+      const bottomInset = window.innerHeight - petSize - 34;
       const target = clampPosition(
         randomBetween(horizontalInset, window.innerWidth - petSize - horizontalInset),
         randomBetween(topInset, Math.max(topInset, bottomInset))
@@ -363,53 +354,55 @@
       position.targetY = target.y;
       wander.resting = false;
       wander.nextTargetAt = Number.POSITIVE_INFINITY;
+      wander.targetReason = reason;
+    };
+
+    const setDragTalkTarget = (x, y) => {
+      const sideOffset = x < window.innerWidth * 0.5 ? 36 : -petSize - 36;
+      const verticalOffset = y < window.innerHeight * 0.72 ? 34 : -petSize - 18;
+      const target = clampPosition(x + sideOffset, y + verticalOffset);
+      position.targetX = target.x;
+      position.targetY = target.y;
+      wander.resting = false;
+      wander.forcedUntil = performance.now() + 2600;
+      wander.nextTargetAt = Number.POSITIVE_INFINITY;
+      wander.targetReason = 'drag-end';
     };
 
     const updateWalkTarget = (snap = false) => {
       const home = getHomePosition();
-      const wanderMode = isWanderMode();
 
       if (hidden) {
         position.targetX = home.x;
         position.targetY = home.y;
-      } else if (wanderMode) {
-        pointer.inside = false;
-
+        wander.targetReason = 'hidden';
+      } else {
         if (snap || !position.initialized) {
           position.targetX = home.x;
           position.targetY = home.y;
           setRootPosition(home.x, home.y);
           position.initialized = true;
           wander.resting = true;
-          wander.nextTargetAt = performance.now() + 650;
+          wander.nextTargetAt = performance.now() + 420;
+          wander.targetReason = 'home';
           return;
         }
 
         const now = performance.now();
+        if (now < wander.forcedUntil) {
+          return;
+        }
+
         const distance = Math.hypot(position.targetX - position.x, position.targetY - position.y);
         if (distance < 8 && !wander.resting) {
           wander.resting = true;
-          wander.nextTargetAt = now + randomBetween(1400, 3600);
+          wander.nextTargetAt = now + randomBetween(320, 1150);
         }
         if (distance < 8 && now >= wander.nextTargetAt) {
           setWanderTarget();
         } else if (distance >= 8) {
           wander.resting = false;
         }
-      } else if (!isReadingActive()) {
-        position.targetX = home.x;
-        position.targetY = home.y;
-      } else {
-        const offsetX = 44;
-        const offsetY = 46;
-        const preferRight = pointer.x + petSize + offsetX < window.innerWidth - margin;
-        const preferBottom = pointer.y + petSize + offsetY < window.innerHeight - margin;
-        const target = clampPosition(
-          preferRight ? pointer.x + offsetX : pointer.x - petSize - offsetX,
-          preferBottom ? pointer.y + offsetY : pointer.y - petSize - offsetY
-        );
-        position.targetX = target.x;
-        position.targetY = target.y;
       }
 
       if (snap || !position.initialized) {
@@ -428,10 +421,9 @@
       } catch {}
 
       if (hidden) {
-        pointer.following = false;
-        pointer.readingUntil = 0;
         drag.tracking = false;
         drag.active = false;
+        wander.forcedUntil = 0;
         interaction.action = 'idle';
         interaction.actionUntil = 0;
         interaction.messageUntil = 0;
@@ -474,7 +466,7 @@
     };
 
     const updateLook = () => {
-      if (isWanderMode()) {
+      if (isWanderMode() || !pointer.inside) {
         const dx = position.targetX - position.x;
         const dy = position.targetY - position.y;
         const distance = Math.hypot(dx, dy);
@@ -519,8 +511,8 @@
         return;
       }
 
-      const maxStep = window.innerWidth < 640 ? 4.8 : 6.2;
-      const step = clamp(distance * 0.045, 0.8, maxStep);
+      const maxStep = window.innerWidth < 640 ? 2.6 : 3.35;
+      const step = clamp(distance * 0.028, 0.45, maxStep);
       const nextX = position.x + (dx / distance) * step;
       const nextY = position.y + (dy / distance) * step;
       setRootPosition(nextX, nextY);
@@ -648,7 +640,6 @@
       pointer.y = event.clientY;
       pointer.inside = true;
       pointer.active = true;
-      pointer.readingUntil = 0;
     };
 
     const handlePointerMove = (event) => {
@@ -666,34 +657,48 @@
         const distance = Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY);
         if (distance > 8) {
           drag.active = true;
-          pointer.following = true;
-          setInteraction('reading', '같이 읽는 중', 1400);
         }
-      }
-
-      if (pointer.following || performance.now() < pointer.readingUntil) {
-        updateWalkTarget();
       }
     };
 
-    const handlePointerUp = () => {
+    const handlePointerUp = (event) => {
       if (!drag.tracking) {
         return;
       }
 
+      if (typeof event?.clientX === 'number' && typeof event?.clientY === 'number') {
+        drag.lastX = event.clientX;
+        drag.lastY = event.clientY;
+      }
+
       if (drag.active) {
-        pointer.readingUntil = performance.now() + 1800;
         suppressNextClick = true;
         window.setTimeout(() => {
           suppressNextClick = false;
         }, 350);
-        setInteraction('reading', '여기 같이 볼게요', 1700);
+        const message = dragMessages[interaction.dragIndex % dragMessages.length];
+        interaction.dragIndex += 1;
+        setDragTalkTarget(drag.lastX, drag.lastY);
+        setInteraction('drag-talk', message, 2300);
       }
 
       drag.tracking = false;
       drag.active = false;
-      pointer.following = false;
       updateWalkTarget();
+    };
+
+    const handlePointerCancel = () => {
+      if (!drag.active) {
+        drag.tracking = false;
+      }
+    };
+
+    const handleNativeDragStart = (event) => {
+      if (!drag.tracking) {
+        return;
+      }
+
+      event.preventDefault();
     };
 
     const handleClickCapture = (event) => {
@@ -711,7 +716,6 @@
         return;
       }
       pointer.inside = false;
-      pointer.following = false;
       drag.tracking = false;
       drag.active = false;
       updateWalkTarget();
@@ -726,8 +730,6 @@
       interaction.clickIndex += 1;
       interaction.action = action.name;
       interaction.actionUntil = performance.now() + action.duration;
-      pointer.readingUntil = 0;
-      pointer.following = false;
       setInteraction(`click-${action.name}`, action.message, action.duration);
       start();
       render();
@@ -755,8 +757,10 @@
     window.addEventListener('pointerdown', handlePointerDown, { passive: true });
     window.addEventListener('pointermove', handlePointerMove, { passive: true });
     window.addEventListener('pointerup', handlePointerUp, { passive: true });
-    window.addEventListener('pointercancel', handlePointerUp, { passive: true });
+    window.addEventListener('pointercancel', handlePointerCancel, { passive: true });
+    window.addEventListener('mouseup', handlePointerUp, { passive: true });
     window.addEventListener('click', handleClickCapture, true);
+    window.addEventListener('dragstart', handleNativeDragStart, true);
     window.addEventListener('pointerleave', handlePointerLeave);
     document.documentElement.addEventListener('mouseleave', handlePointerLeave);
     window.addEventListener('blur', handlePointerLeave);
@@ -797,8 +801,9 @@
         targetY: Math.round(position.targetY),
         speed: Number(position.speed.toFixed(2)),
         walking: position.walking,
-        following: pointer.following,
-        readingActive: isReadingActive(),
+        dragActive: drag.active,
+        targetReason: wander.targetReason,
+        forcedTargetActive: performance.now() < wander.forcedUntil,
         lookX: Number(look.x.toFixed(3)),
         lookY: Number(look.y.toFixed(3)),
         curiosity: Number(mood.curiosity.toFixed(3)),

@@ -2392,7 +2392,7 @@ body {
   white-space: nowrap;
 }
 
-.codex-pet-shell[data-interaction="reading"] .codex-pet__bubble,
+.codex-pet-shell[data-interaction="drag-talk"] .codex-pet__bubble,
 .codex-pet-shell[data-interaction^="click-"] .codex-pet__bubble {
   opacity: 1;
   transform: translate3d(0, 0, 0) scale(1);
