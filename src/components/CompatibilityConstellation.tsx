@@ -302,6 +302,7 @@ function ConstellationCanvas({
     });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.8));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.domElement.style.display = 'block';
     container.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
@@ -431,7 +432,7 @@ function ConstellationCanvas({
     const setRendererSize = () => {
       const width = Math.max(container.clientWidth, 320);
       const height = Math.max(container.clientHeight, 360);
-      renderer.setSize(width, height, false);
+      renderer.setSize(width, height, true);
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
     };
