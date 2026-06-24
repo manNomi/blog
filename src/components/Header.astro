@@ -4,7 +4,7 @@ const navItems = [
   { href: '/', label: '글', match: (path: string) => path === '/' || path.startsWith('/blog') || path.startsWith('/posts') },
   { href: '/about', label: '소개', match: (path: string) => path.startsWith('/about') },
   { href: '/tags', label: '태그', match: (path: string) => path.startsWith('/tags') },
-  { href: '/saju', label: '사주', match: (path: string) => path.startsWith('/saju') },
+  { href: '/game', label: '게임', match: (path: string) => path.startsWith('/game') || path.startsWith('/saju') },
   { href: '/notes', label: '노트', match: (path: string) => path.startsWith('/notes') }
 ];
 ---

@@ -1,0 +1,27 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import LadderGamePage from '../../components/LadderGamePage';
+---
+
+<BaseLayout title="3D 사다리타기 | Nomi Journal" description="명화풍 배경 위에서 참가자와 결과를 연결하는 3D 사다리타기 미니게임">
+  <Header />
+
+  <main class="main-shell">
+    <section class="container-shell">
+      <div class="mx-auto max-w-[1180px]">
+        <nav class="mb-4 flex flex-wrap gap-2" aria-label="게임 메뉴">
+          <a href="/game" class="pill">게임 목록</a>
+          <a href="/game/fortune" class="pill">운세보기</a>
+          <a href="/game/compatibility" class="pill">궁합 보기</a>
+          <a href="/game/dice" class="pill">주사위 게임</a>
+        </nav>
+
+        <LadderGamePage client:load />
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</BaseLayout>

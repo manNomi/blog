@@ -1,18 +1,5 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
-import SajuDicePage from '../components/SajuDicePage';
+export const prerender = false;
+
+return Astro.redirect('/game/dice', 301);
 ---
-
-<BaseLayout title="주사위 사주 | Nomi Journal" description="개인정보 없이 숫자와 키워드로 가볍게 보는 오락용 주사위 사주">
-  <Header />
-
-  <main class="main-shell">
-    <section class="container-shell">
-      <SajuDicePage client:load />
-    </section>
-  </main>
-
-  <Footer />
-</BaseLayout>

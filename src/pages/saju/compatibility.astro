@@ -1,25 +1,5 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import Header from '../../components/Header.astro';
-import Footer from '../../components/Footer.astro';
-import CompatibilityConstellation from '../../components/CompatibilityConstellation';
+export const prerender = false;
+
+return Astro.redirect('/game/compatibility', 301);
 ---
-
-<BaseLayout title="궁합 별자리 | Nomi Journal" description="이름과 MBTI로 사람들의 궁합을 별자리 그래프로 살펴보는 사주 궁합 도구.">
-  <Header />
-
-  <main class="main-shell">
-    <section class="container-shell">
-      <div class="mx-auto max-w-[1080px]">
-        <nav class="mb-4 flex flex-wrap gap-2" aria-label="사주 메뉴">
-          <a href="/saju" class="pill">사주 메인</a>
-          <a href="/saju-dice" class="pill">주사위 운보기</a>
-        </nav>
-
-        <CompatibilityConstellation client:load />
-      </div>
-    </section>
-  </main>
-
-  <Footer />
-</BaseLayout>

@@ -46,16 +46,16 @@ export default function SajuDicePage() {
       <section className="saju-card px-4 py-5 md:px-7 md:py-7">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="eyebrow animate-step-enter">Saju Dice</p>
+            <p className="eyebrow animate-step-enter">Dice Game</p>
             <h1 className="mt-3 text-[30px] font-semibold leading-[1.12] tracking-[-0.03em] text-[var(--text)] md:text-[44px] [animation-delay:80ms] animate-step-enter">
-              주사위 운보기
+              주사위 게임
             </h1>
             <p className="mt-3 max-w-[620px] text-[15px] leading-[1.62] text-[var(--text-dim)] md:text-[16px] [animation-delay:140ms] animate-step-enter">
               생년월일 없이 숫자와 키워드만으로 오늘의 가벼운 흐름을 확인합니다.
             </p>
           </div>
-          <a href="/saju" className="pill w-fit">
-            다른 운세 보기
+          <a href="/game" className="pill w-fit">
+            게임 목록
           </a>
         </div>
       </section>

@@ -1,20 +1,5 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
-import SajuLovePage from '../components/SajuLovePage';
+export const prerender = false;
+
+return Astro.redirect('/game', 301);
 ---
-
-<BaseLayout title="Saju Atelier | Nomi Journal" description="Async saju request flow with email delivery.">
-  <Header />
-
-  <main class="main-shell">
-    <section class="container-shell">
-      <div class="mx-auto max-w-[1080px]">
-        <SajuLovePage client:load />
-      </div>
-    </section>
-  </main>
-
-  <Footer />
-</BaseLayout>

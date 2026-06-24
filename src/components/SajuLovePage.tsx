@@ -76,8 +76,8 @@ const flowOrder: FlowTarget[] = ['name', 'birthDate', 'birthTime', 'details', 'd
 const fortuneOptions: FortuneEntryOption[] = [
   { type: 'form', value: 'exam', label: '시험운 보기', description: '과목과 결과 기준에 맞춘 시험 흐름을 받아요.' },
   { type: 'form', value: 'love', label: '연애운 보기', description: '관계 상태와 고민을 바탕으로 연애 리포트를 받아요.' },
-  { type: 'link', href: '/saju/compatibility', label: '궁합 별자리 보기', description: '이름과 MBTI로 사람들의 궁합 흐름을 별자리 그래프로 봐요.' },
-  { type: 'link', href: '/saju-dice', label: '주사위 운보기', description: '개인정보 입력 없이 주사위로 가볍게 흐름을 확인해요.' }
+  { type: 'link', href: '/game/compatibility', label: '궁합 보기', description: '이름과 MBTI로 사람들의 궁합 흐름을 별자리 그래프로 봐요.' },
+  { type: 'link', href: '/game/dice', label: '주사위 게임', description: '개인정보 입력 없이 주사위로 가볍게 흐름을 확인해요.' }
 ];
 
 const relationshipOptions: Array<{ value: RelationshipStatus; label: string; description: string }> = [
@@ -479,9 +479,9 @@ export default function SajuLovePage() {
       <section className="saju-card px-4 py-5 md:px-7 md:py-7">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="eyebrow animate-step-enter">Saju Atelier</p>
+            <p className="eyebrow animate-step-enter">Fortune Game</p>
             <h1 className="mt-3 text-[30px] font-semibold leading-[1.12] tracking-[-0.03em] text-[var(--text)] md:text-[44px] [animation-delay:80ms] animate-step-enter">
-              사주 운세 요청
+              운세보기
             </h1>
             <p className="mt-3 max-w-[620px] text-[15px] leading-[1.62] text-[var(--text-dim)] md:text-[16px] [animation-delay:140ms] animate-step-enter">
               먼저 보고 싶은 흐름을 고르고, 필요한 정보만 차례대로 입력합니다.
@@ -498,7 +498,7 @@ export default function SajuLovePage() {
                 setStep('fortune');
               }}
             >
-              처음으로 돌아가기
+              운세 다시 고르기
             </button>
           )}
         </div>
@@ -839,8 +839,8 @@ export default function SajuLovePage() {
                 <button type="submit" disabled={isSubmitting} className="btn-pill-dark h-11 transition-transform duration-200 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60">
                   {isSubmitting ? '접수 중...' : '요청 접수하기'}
                 </button>
-                <a href="/saju-dice" aria-disabled={isSubmitting} className={`btn-pill-soft h-11 transition-transform duration-200 hover:-translate-y-0.5 ${isSubmitting ? 'pointer-events-none opacity-60' : ''}`}>
-                  주사위 운보기
+                <a href="/game/dice" aria-disabled={isSubmitting} className={`btn-pill-soft h-11 transition-transform duration-200 hover:-translate-y-0.5 ${isSubmitting ? 'pointer-events-none opacity-60' : ''}`}>
+                  주사위 게임
                 </a>
               </div>
 
