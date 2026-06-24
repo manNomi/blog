@@ -41,12 +41,14 @@
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "react-hook-form": "^7.72.0",
+    "three": "^0.184.0",
     "typescript": "^5.6.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {
     "@astrojs/tailwind": "^6.0.2",
     "@notionhq/client": "^2.2.15",
+    "@types/three": "^0.184.1",
     "dotenv": "^16.4.5",
     "notion-to-md": "^3.1.1",
     "tailwindcss": "^3.4.19",

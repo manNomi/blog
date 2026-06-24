@@ -1,18 +1,21 @@
 ---
 import '../styles/global.css';
+import CodexPet from '../components/CodexPet.astro';
 
 interface Props {
   title: string;
   description?: string;
   image?: string;
   canonicalURL?: string;
+  showPet?: boolean;
 }
 
 const {
   title,
   description = '기술 글월 누리집',
   image = '/og-image.png',
-  canonicalURL = Astro.url.pathname
+  canonicalURL = Astro.url.pathname,
+  showPet = true
 } = Astro.props;
 
 const siteURL = Astro.site || 'https://yourblog.com';
@@ -46,5 +49,6 @@ const ogImage = new URL(image, siteURL).href;
   </head>
   <body>
     <slot />
+    {showPet && <CodexPet />}
   </body>
 </html>

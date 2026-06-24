@@ -1,0 +1,606 @@
+<div class="codex-pet" data-codex-pet data-hidden="false">
+  <canvas class="codex-pet__canvas" data-codex-pet-canvas aria-hidden="true"></canvas>
+  <button
+    type="button"
+    class="codex-pet__toggle"
+    data-codex-pet-toggle
+    aria-label="펫 숨기기"
+    title="펫 숨기기"
+  >
+    <svg class="codex-pet__toggle-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 12s2.7-5 8-5 8 5 8 5-2.7 5-8 5-8-5-8-5Z" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path>
+      <circle cx="12" cy="12" r="2.6" fill="currentColor"></circle>
+    </svg>
+  </button>
+</div>
+
+<script>
+  // @ts-nocheck
+  import * as THREE from 'three';
+
+  const STORAGE_KEY = 'nomi-codex-pet-hidden';
+  const DEBUG_KEY = '__nomiPet';
+
+  const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+  const ease = (from, to, amount) => from + (to - from) * amount;
+  const readTheme = () => (document.documentElement.dataset.theme === 'light' ? 'light' : 'dark');
+
+  document.querySelectorAll('[data-codex-pet]').forEach((root) => {
+    if (root.dataset.ready === 'true') {
+      return;
+    }
+    root.dataset.ready = 'true';
+
+    const canvas = root.querySelector('[data-codex-pet-canvas]');
+    const toggle = root.querySelector('[data-codex-pet-toggle]');
+    if (!(canvas instanceof HTMLCanvasElement) || !(toggle instanceof HTMLButtonElement)) {
+      return;
+    }
+
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const coarsePointerQuery = window.matchMedia('(hover: none), (pointer: coarse)');
+    let hidden = false;
+    let frameId = 0;
+    let frames = 0;
+    let petSize = 126;
+    let expression = 'calm';
+    let lastWanderMode = false;
+    const margin = 16;
+
+    const pointer = {
+      x: window.innerWidth * 0.72,
+      y: window.innerHeight * 0.68,
+      active: false,
+      inside: false
+    };
+    const position = {
+      x: 0,
+      y: 0,
+      targetX: 0,
+      targetY: 0,
+      speed: 0,
+      walking: false,
+      initialized: false
+    };
+    const wander = {
+      nextTargetAt: 0,
+      resting: false
+    };
+    const look = { x: 0, y: 0 };
+    const mood = { curiosity: 0, blink: 0, ear: 0, tail: 0 };
+
+    const isWanderMode = () => coarsePointerQuery.matches || window.innerWidth < 640;
+    const randomBetween = (min, max) => min + Math.random() * Math.max(0, max - min);
+
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      alpha: true,
+      antialias: true,
+      powerPreference: 'low-power',
+      preserveDrawingBuffer: true
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setClearColor(0x000000, 0);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.OrthographicCamera(-2.25, 2.25, 2.25, -2.25, 0.1, 100);
+    camera.position.set(0, 0.16, 7);
+
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.7);
+    keyLight.position.set(2.8, 4.2, 4.4);
+    scene.add(keyLight);
+    scene.add(new THREE.AmbientLight(0xffffff, 1.65));
+
+    const cat = new THREE.Group();
+    const bodyGroup = new THREE.Group();
+    const head = new THREE.Group();
+    const face = new THREE.Group();
+    const pupils = new THREE.Group();
+    const whiskers = new THREE.Group();
+    const ears = new THREE.Group();
+    scene.add(cat);
+    cat.add(bodyGroup);
+    cat.add(head);
+    head.add(face);
+    face.add(pupils);
+    face.add(whiskers);
+    head.add(ears);
+
+    const materials = {
+      fur: new THREE.MeshStandardMaterial({ color: 0xf2f3f5, roughness: 0.48, metalness: 0.02 }),
+      furSoft: new THREE.MeshStandardMaterial({ color: 0xd6d9df, roughness: 0.62, metalness: 0.02 }),
+      innerEar: new THREE.MeshStandardMaterial({ color: 0xd9b5c7, roughness: 0.7 }),
+      eye: new THREE.MeshStandardMaterial({ color: 0x202126, roughness: 0.42 }),
+      eyeGlow: new THREE.MeshStandardMaterial({ color: 0x7fb0ff, roughness: 0.2, emissive: 0x20365f, emissiveIntensity: 0.05 }),
+      mouth: new THREE.MeshStandardMaterial({ color: 0x2c2d33, roughness: 0.55 }),
+      cheek: new THREE.MeshStandardMaterial({ color: 0xc9ccd4, roughness: 0.7 }),
+      whisker: new THREE.MeshStandardMaterial({ color: 0xdfe2e8, roughness: 0.4 })
+    };
+
+    const body = new THREE.Mesh(new THREE.SphereGeometry(0.9, 36, 28), materials.fur);
+    body.scale.set(0.86, 0.76, 0.72);
+    body.position.set(0, -0.7, 0);
+    bodyGroup.add(body);
+
+    const chest = new THREE.Mesh(new THREE.SphereGeometry(0.46, 28, 20), materials.furSoft);
+    chest.scale.set(0.95, 0.72, 0.46);
+    chest.position.set(0, -0.66, 0.55);
+    bodyGroup.add(chest);
+
+    const headMesh = new THREE.Mesh(new THREE.SphereGeometry(0.86, 42, 32), materials.fur);
+    headMesh.scale.set(1.02, 0.88, 0.86);
+    headMesh.position.set(0, 0.14, 0);
+    head.add(headMesh);
+
+    const makeEar = (side) => {
+      const group = new THREE.Group();
+      const ear = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.64, 4), materials.fur);
+      ear.rotation.y = Math.PI / 4;
+      ear.rotation.z = side * -0.2;
+      group.add(ear);
+
+      const inner = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.34, 4), materials.innerEar);
+      inner.position.set(0, -0.02, 0.04);
+      inner.rotation.y = Math.PI / 4;
+      inner.scale.set(0.75, 0.8, 0.5);
+      group.add(inner);
+
+      group.position.set(side * 0.49, 0.84, -0.02);
+      group.rotation.z = side * -0.44;
+      return group;
+    };
+
+    const leftEar = makeEar(-1);
+    const rightEar = makeEar(1);
+    ears.add(leftEar, rightEar);
+
+    const leftFoot = new THREE.Mesh(new THREE.SphereGeometry(0.24, 24, 18), materials.furSoft);
+    leftFoot.scale.set(1.22, 0.48, 0.74);
+    leftFoot.position.set(-0.34, -1.18, 0.12);
+    bodyGroup.add(leftFoot);
+
+    const rightFoot = leftFoot.clone();
+    rightFoot.position.x = 0.34;
+    bodyGroup.add(rightFoot);
+
+    const leftEye = new THREE.Mesh(new THREE.SphereGeometry(0.11, 20, 16), materials.eye);
+    leftEye.scale.set(0.9, 1, 0.65);
+    leftEye.position.set(-0.27, 0.22, 0.72);
+    face.add(leftEye);
+
+    const rightEye = leftEye.clone();
+    rightEye.position.x = 0.27;
+    face.add(rightEye);
+
+    const leftPupil = new THREE.Mesh(new THREE.SphereGeometry(0.042, 14, 10), materials.eyeGlow);
+    leftPupil.position.set(-0.245, 0.245, 0.79);
+    pupils.add(leftPupil);
+
+    const rightPupil = leftPupil.clone();
+    rightPupil.position.x = 0.295;
+    pupils.add(rightPupil);
+
+    const nose = new THREE.Mesh(new THREE.SphereGeometry(0.05, 16, 12), materials.innerEar);
+    nose.scale.set(1.2, 0.78, 0.68);
+    nose.position.set(0, 0.04, 0.78);
+    face.add(nose);
+
+    const mouth = new THREE.Group();
+    const mouthLeft = new THREE.Mesh(new THREE.SphereGeometry(0.035, 12, 8), materials.mouth);
+    mouthLeft.scale.set(1.4, 0.45, 0.35);
+    mouthLeft.position.set(-0.055, -0.075, 0.79);
+    const mouthRight = mouthLeft.clone();
+    mouthRight.position.x = 0.055;
+    mouth.add(mouthLeft, mouthRight);
+    face.add(mouth);
+
+    const leftCheek = new THREE.Mesh(new THREE.SphereGeometry(0.072, 16, 12), materials.cheek);
+    leftCheek.scale.set(1.5, 0.58, 0.38);
+    leftCheek.position.set(-0.43, -0.02, 0.7);
+    face.add(leftCheek);
+
+    const rightCheek = leftCheek.clone();
+    rightCheek.position.x = 0.43;
+    face.add(rightCheek);
+
+    const makeWhisker = (side, y, angle) => {
+      const whisker = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.58, 8), materials.whisker);
+      whisker.position.set(side * 0.44, y, 0.69);
+      whisker.rotation.z = Math.PI / 2 + side * angle;
+      whisker.rotation.y = side * 0.12;
+      return whisker;
+    };
+
+    whiskers.add(
+      makeWhisker(-1, 0.04, 0.12),
+      makeWhisker(-1, -0.04, -0.02),
+      makeWhisker(-1, -0.12, -0.15),
+      makeWhisker(1, 0.04, 0.12),
+      makeWhisker(1, -0.04, -0.02),
+      makeWhisker(1, -0.12, -0.15)
+    );
+
+    const tail = new THREE.Group();
+    const tailBase = new THREE.Mesh(new THREE.SphereGeometry(0.18, 18, 14), materials.furSoft);
+    tailBase.scale.set(0.9, 0.72, 0.7);
+    tailBase.position.set(0.72, -0.58, -0.08);
+    const tailTip = new THREE.Mesh(new THREE.SphereGeometry(0.18, 18, 14), materials.furSoft);
+    tailTip.scale.set(0.82, 0.72, 0.64);
+    tailTip.position.set(1.02, -0.34, -0.08);
+    tail.add(tailBase, tailTip);
+    bodyGroup.add(tail);
+
+    const applyTheme = () => {
+      const isLight = readTheme() === 'light';
+      materials.fur.color.set(isLight ? '#353740' : '#f2f3f5');
+      materials.furSoft.color.set(isLight ? '#565a65' : '#d6d9df');
+      materials.innerEar.color.set(isLight ? '#8d7182' : '#d9b5c7');
+      materials.eye.color.set(isLight ? '#f8f8f9' : '#202126');
+      materials.eyeGlow.color.set(isLight ? '#b9d2ff' : '#7fb0ff');
+      materials.mouth.color.set(isLight ? '#f3f4f6' : '#2c2d33');
+      materials.cheek.color.set(isLight ? '#777d89' : '#c9ccd4');
+      materials.whisker.color.set(isLight ? '#9aa0ad' : '#dfe2e8');
+    };
+
+    const getRootRect = () => {
+      const rect = root.getBoundingClientRect();
+      return {
+        left: Math.round(rect.left),
+        top: Math.round(rect.top),
+        right: Math.round(rect.right),
+        bottom: Math.round(rect.bottom)
+      };
+    };
+
+    const getCatCenter = () => {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: rect.left + rect.width * 0.5,
+        y: rect.top + rect.height * 0.45
+      };
+    };
+
+    const clampPosition = (x, y) => ({
+      x: clamp(x, margin, Math.max(margin, window.innerWidth - petSize - margin)),
+      y: clamp(y, margin + 64, Math.max(margin + 64, window.innerHeight - petSize - margin))
+    });
+
+    const getHomePosition = () =>
+      clampPosition(window.innerWidth - petSize - 22, window.innerHeight - petSize - 22);
+
+    const setRootPosition = (x, y) => {
+      position.x = x;
+      position.y = y;
+      root.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`;
+    };
+
+    const setWanderTarget = () => {
+      const horizontalInset = clamp(window.innerWidth * 0.1, 18, 42);
+      const topInset = margin + 88;
+      const bottomInset = window.innerHeight - petSize - 28;
+      const target = clampPosition(
+        randomBetween(horizontalInset, window.innerWidth - petSize - horizontalInset),
+        randomBetween(topInset, Math.max(topInset, bottomInset))
+      );
+      position.targetX = target.x;
+      position.targetY = target.y;
+      wander.resting = false;
+      wander.nextTargetAt = Number.POSITIVE_INFINITY;
+    };
+
+    const updateWalkTarget = (snap = false) => {
+      const home = getHomePosition();
+      const wanderMode = isWanderMode();
+
+      if (hidden) {
+        position.targetX = home.x;
+        position.targetY = home.y;
+      } else if (wanderMode) {
+        pointer.inside = false;
+
+        if (snap || !position.initialized) {
+          position.targetX = home.x;
+          position.targetY = home.y;
+          setRootPosition(home.x, home.y);
+          position.initialized = true;
+          wander.resting = true;
+          wander.nextTargetAt = performance.now() + 650;
+          return;
+        }
+
+        const now = performance.now();
+        const distance = Math.hypot(position.targetX - position.x, position.targetY - position.y);
+        if (distance < 8 && !wander.resting) {
+          wander.resting = true;
+          wander.nextTargetAt = now + randomBetween(1400, 3600);
+        }
+        if (distance < 8 && now >= wander.nextTargetAt) {
+          setWanderTarget();
+        } else if (distance >= 8) {
+          wander.resting = false;
+        }
+      } else if (!pointer.inside) {
+        position.targetX = home.x;
+        position.targetY = home.y;
+      } else {
+        const offsetX = window.innerWidth < 640 ? 52 : 62;
+        const offsetY = window.innerWidth < 640 ? 76 : 58;
+        const preferRight = pointer.x + petSize + offsetX < window.innerWidth - margin;
+        const preferBottom = pointer.y + petSize + offsetY < window.innerHeight - margin;
+        const target = clampPosition(
+          preferRight ? pointer.x + offsetX : pointer.x - petSize - offsetX,
+          preferBottom ? pointer.y + offsetY : pointer.y - petSize - offsetY
+        );
+        position.targetX = target.x;
+        position.targetY = target.y;
+      }
+
+      if (snap || !position.initialized) {
+        setRootPosition(position.targetX, position.targetY);
+        position.initialized = true;
+      }
+    };
+
+    const setHidden = (nextHidden) => {
+      hidden = nextHidden;
+      root.dataset.hidden = String(hidden);
+      toggle.setAttribute('aria-label', hidden ? '펫 보이기' : '펫 숨기기');
+      toggle.setAttribute('title', hidden ? '펫 보이기' : '펫 숨기기');
+      try {
+        localStorage.setItem(STORAGE_KEY, hidden ? 'true' : 'false');
+      } catch {}
+      if (!hidden) {
+        start();
+      }
+      render();
+    };
+
+    const syncSize = () => {
+      petSize = window.innerWidth < 640 ? 92 : 126;
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+      renderer.setPixelRatio(pixelRatio);
+      renderer.setSize(petSize, petSize, false);
+      camera.updateProjectionMatrix();
+      root.style.setProperty('--pet-size', `${petSize}px`);
+      const nextWanderMode = isWanderMode();
+      updateWalkTarget(!position.initialized || nextWanderMode !== lastWanderMode);
+      lastWanderMode = nextWanderMode;
+    };
+
+    const samplePixels = () => {
+      const gl = renderer.getContext();
+      const width = Math.max(1, Math.floor(canvas.width / 3));
+      const height = Math.max(1, Math.floor(canvas.height / 3));
+      const x = Math.max(0, Math.floor((canvas.width - width) / 2));
+      const y = Math.max(0, Math.floor((canvas.height - height) / 2));
+      const pixels = new Uint8Array(width * height * 4);
+      gl.readPixels(x, y, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+      let colored = 0;
+      for (let i = 0; i < pixels.length; i += 4) {
+        if (pixels[i + 3] > 0 && (pixels[i] > 0 || pixels[i + 1] > 0 || pixels[i + 2] > 0)) {
+          colored += 1;
+        }
+      }
+      return { colored, total: width * height };
+    };
+
+    const updateLook = () => {
+      if (isWanderMode()) {
+        const dx = position.targetX - position.x;
+        const dy = position.targetY - position.y;
+        const distance = Math.hypot(dx, dy);
+        const idleSweep = Math.sin(performance.now() * 0.0008) * 0.24;
+        const targetLookX = distance > 8 ? clamp(dx / Math.max(window.innerWidth * 0.28, 1), -0.9, 0.9) : idleSweep;
+        const targetLookY = distance > 8 ? clamp(dy / Math.max(window.innerHeight * 0.24, 1), -0.72, 0.72) : 0.08;
+        const targetCuriosity = distance > 8 ? 0.34 : 0.12;
+
+        look.x = ease(look.x, targetLookX, motionQuery.matches ? 0.45 : 0.08);
+        look.y = ease(look.y, targetLookY, motionQuery.matches ? 0.45 : 0.08);
+        mood.curiosity = ease(mood.curiosity, targetCuriosity, motionQuery.matches ? 0.45 : 0.05);
+        mood.ear = ease(mood.ear, distance > 8 ? 0.8 : 0.32, 0.08);
+        expression = position.walking ? 'walking' : 'calm';
+        return;
+      }
+
+      const center = getCatCenter();
+      const dx = pointer.inside ? pointer.x - center.x : 0;
+      const dy = pointer.inside ? pointer.y - center.y : 0;
+      const distance = Math.hypot(dx, dy);
+      const nearDistance = window.innerWidth < 640 ? 170 : 240;
+      const targetLookX = pointer.inside ? clamp(dx / Math.max(window.innerWidth * 0.22, 1), -1, 1) : 0;
+      const targetLookY = pointer.inside ? clamp(dy / Math.max(window.innerHeight * 0.2, 1), -1, 1) : 0;
+      const targetCuriosity = pointer.inside ? clamp(1 - distance / nearDistance, 0, 1) : 0;
+
+      look.x = ease(look.x, targetLookX, motionQuery.matches ? 0.45 : 0.085);
+      look.y = ease(look.y, targetLookY, motionQuery.matches ? 0.45 : 0.085);
+      mood.curiosity = ease(mood.curiosity, targetCuriosity, motionQuery.matches ? 0.45 : 0.075);
+      mood.ear = ease(mood.ear, pointer.inside ? 1 : 0, 0.08);
+      expression = position.walking ? 'walking' : mood.curiosity > 0.62 ? 'curious' : pointer.inside ? 'watching' : 'calm';
+    };
+
+    const updateWalk = () => {
+      updateWalkTarget();
+      const dx = position.targetX - position.x;
+      const dy = position.targetY - position.y;
+      const distance = Math.hypot(dx, dy);
+
+      if (motionQuery.matches || distance < 0.6) {
+        position.speed = ease(position.speed, 0, 0.28);
+        position.walking = false;
+        return;
+      }
+
+      const maxStep = window.innerWidth < 640 ? 4.8 : 6.2;
+      const step = clamp(distance * 0.045, 0.8, maxStep);
+      const nextX = position.x + (dx / distance) * step;
+      const nextY = position.y + (dy / distance) * step;
+      setRootPosition(nextX, nextY);
+      position.speed = ease(position.speed, step, 0.22);
+      position.walking = distance > 8;
+    };
+
+    const render = () => {
+      frames += 1;
+      updateWalk();
+      updateLook();
+
+      const time = performance.now() * 0.001;
+      const calmBlink = Math.pow(Math.max(0, Math.sin(time * 0.72 + 1.2)), 18);
+      const curiousBlink = Math.pow(Math.max(0, Math.sin(time * 2.1)), 26) * mood.curiosity * 0.35;
+      mood.blink = ease(mood.blink, clamp(calmBlink + curiousBlink, 0, 1), 0.18);
+      mood.tail = ease(mood.tail, mood.curiosity, 0.07);
+
+      const walkIntensity = clamp(position.speed / 5.8, 0, 1);
+      const walkCycle = time * (8.5 + walkIntensity * 5.2);
+      const breathing = motionQuery.matches ? 0 : Math.sin(time * 2.0) * 0.026;
+      const walkBob = motionQuery.matches ? 0 : Math.abs(Math.sin(walkCycle)) * 0.055 * walkIntensity;
+      const tailWave = Math.sin(time * (2.1 + mood.tail * 2.4 + walkIntensity * 1.4)) * (0.14 + mood.tail * 0.28 + walkIntensity * 0.18);
+
+      cat.rotation.z = Math.sin(time * 1.2) * 0.018 + look.x * 0.045;
+      bodyGroup.position.y = breathing + walkBob;
+      bodyGroup.rotation.z = look.x * 0.028 + Math.sin(walkCycle) * 0.045 * walkIntensity;
+      head.rotation.y = ease(head.rotation.y, look.x * 0.52, 0.1);
+      head.rotation.x = ease(head.rotation.x, -look.y * 0.28 + mood.curiosity * 0.08, 0.1);
+      head.rotation.z = ease(head.rotation.z, look.x * -0.07, 0.1);
+      pupils.position.x = ease(pupils.position.x, look.x * 0.07, 0.18);
+      pupils.position.y = ease(pupils.position.y, -look.y * 0.045, 0.18);
+
+      const eyeScaleY = clamp(1 - mood.blink * 0.78 + mood.curiosity * 0.12, 0.16, 1.14);
+      leftEye.scale.y = ease(leftEye.scale.y, eyeScaleY, 0.2);
+      rightEye.scale.y = ease(rightEye.scale.y, eyeScaleY, 0.2);
+      leftPupil.scale.setScalar(1 + mood.curiosity * 0.24);
+      rightPupil.scale.setScalar(1 + mood.curiosity * 0.24);
+      materials.eyeGlow.emissiveIntensity = 0.06 + mood.curiosity * 0.35;
+
+      leftEar.rotation.z = -0.44 - look.x * 0.12 + mood.ear * 0.08;
+      rightEar.rotation.z = 0.44 - look.x * 0.12 - mood.ear * 0.08;
+      ears.rotation.x = -mood.curiosity * 0.08 + look.y * 0.04;
+
+      mouth.scale.x = ease(mouth.scale.x, 1 + mood.curiosity * 0.35, 0.16);
+      mouth.scale.y = ease(mouth.scale.y, 1 + mood.curiosity * 0.65, 0.16);
+      mouth.position.y = ease(mouth.position.y, -mood.curiosity * 0.015, 0.16);
+      leftCheek.scale.x = ease(leftCheek.scale.x, 1.5 + mood.curiosity * 0.24, 0.16);
+      rightCheek.scale.x = leftCheek.scale.x;
+      whiskers.rotation.z = look.x * 0.06;
+      whiskers.position.y = -mood.curiosity * 0.018;
+
+      tail.rotation.z = 0.18 + tailWave;
+      tail.position.y = Math.sin(time * 1.6) * 0.025;
+      leftFoot.position.y = -1.18 + Math.sin(walkCycle) * 0.045 * walkIntensity;
+      rightFoot.position.y = -1.18 + Math.sin(walkCycle + Math.PI) * 0.045 * walkIntensity;
+      leftFoot.rotation.z = Math.sin(walkCycle) * 0.18 * walkIntensity;
+      rightFoot.rotation.z = Math.sin(walkCycle + Math.PI) * 0.18 * walkIntensity;
+
+      renderer.render(scene, camera);
+    };
+
+    const animate = () => {
+      if (document.hidden || hidden) {
+        frameId = 0;
+        return;
+      }
+      render();
+      frameId = window.requestAnimationFrame(animate);
+    };
+
+    const start = () => {
+      if (!frameId && !document.hidden && !hidden) {
+        frameId = window.requestAnimationFrame(animate);
+      }
+    };
+
+    const stop = () => {
+      if (frameId) {
+        window.cancelAnimationFrame(frameId);
+        frameId = 0;
+      }
+    };
+
+    const handlePointerMove = (event) => {
+      if (isWanderMode()) {
+        return;
+      }
+      pointer.x = event.clientX;
+      pointer.y = event.clientY;
+      pointer.active = true;
+      pointer.inside = true;
+      updateWalkTarget();
+    };
+
+    const handlePointerLeave = () => {
+      if (isWanderMode()) {
+        return;
+      }
+      pointer.inside = false;
+      updateWalkTarget();
+    };
+
+    const handleResize = () => {
+      syncSize();
+      render();
+    };
+
+    toggle.addEventListener('click', () => {
+      setHidden(!hidden);
+    });
+    window.addEventListener('pointermove', handlePointerMove, { passive: true });
+    window.addEventListener('mousemove', handlePointerMove, { passive: true });
+    window.addEventListener('pointerleave', handlePointerLeave);
+    document.documentElement.addEventListener('mouseleave', handlePointerLeave);
+    window.addEventListener('blur', handlePointerLeave);
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('themechange', applyTheme);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        stop();
+      } else {
+        start();
+      }
+    });
+    motionQuery.addEventListener?.('change', render);
+    coarsePointerQuery.addEventListener?.('change', handleResize);
+
+    syncSize();
+    applyTheme();
+    try {
+      hidden = localStorage.getItem(STORAGE_KEY) === 'true';
+    } catch {
+      hidden = false;
+    }
+    root.dataset.hidden = String(hidden);
+    toggle.setAttribute('aria-label', hidden ? '펫 보이기' : '펫 숨기기');
+    toggle.setAttribute('title', hidden ? '펫 보이기' : '펫 숨기기');
+    render();
+    if (!hidden) {
+      start();
+    }
+
+    window[DEBUG_KEY] = {
+      getState: () => ({
+      hidden,
+      frames,
+        x: Math.round(position.x),
+        y: Math.round(position.y),
+        targetX: Math.round(position.targetX),
+        targetY: Math.round(position.targetY),
+        speed: Number(position.speed.toFixed(2)),
+        walking: position.walking,
+        lookX: Number(look.x.toFixed(3)),
+        lookY: Number(look.y.toFixed(3)),
+        curiosity: Number(mood.curiosity.toFixed(3)),
+        expression,
+        pointerInside: pointer.inside,
+        mode: isWanderMode() ? 'wander' : 'cursor',
+        nextWanderIn: Number.isFinite(wander.nextTargetAt)
+          ? Math.max(0, Math.round(wander.nextTargetAt - performance.now()))
+          : null,
+        canvasWidth: canvas.width,
+        canvasHeight: canvas.height,
+        rootRect: getRootRect(),
+        childCount: scene.children.length,
+        rootHidden: root.dataset.hidden
+      }),
+      samplePixels
+    };
+  });
+</script>
