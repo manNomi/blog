@@ -1,0 +1,27 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import SajuLovePage from '../../components/SajuLovePage';
+---
+
+<BaseLayout title="운세보기 | Nomi Journal" description="시험운과 연애운을 단계형 입력으로 요청하는 미니게임">
+  <Header />
+
+  <main class="main-shell">
+    <section class="container-shell">
+      <div class="mx-auto max-w-[1080px]">
+        <nav class="mb-4 flex flex-wrap gap-2" aria-label="게임 메뉴">
+          <a href="/game" class="pill">게임 목록</a>
+          <a href="/game/compatibility" class="pill">궁합 보기</a>
+          <a href="/game/dice" class="pill">주사위 게임</a>
+          <a href="/game/ladder" class="pill">사다리타기</a>
+        </nav>
+
+        <SajuLovePage client:load />
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</BaseLayout>
