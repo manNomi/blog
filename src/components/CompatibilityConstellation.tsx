@@ -525,21 +525,21 @@ export default function CompatibilityConstellation() {
   const renderSummaryCards = () =>
     topPair ? (
       <>
-        <article className="rounded-md border border-emerald-200/24 bg-black/30 p-3 backdrop-blur-md">
-          <p className="text-xs text-emerald-100/72">가장 밝은 연결</p>
+        <article className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-3 shadow-soft">
+          <p className="text-xs text-[var(--text-faint)]">가장 밝은 연결</p>
           <p className="mt-1 text-sm font-semibold">
             {topPair.from.name} × {topPair.to.name} · {topPair.score}점
           </p>
-          <p className="mt-1 text-xs leading-[1.5] text-white/58">{topPair.summary}</p>
+          <p className="mt-1 text-xs leading-[1.5] text-[var(--text-dim)]">{topPair.summary}</p>
         </article>
 
         {lowPair && lowPair.id !== topPair.id && (
-          <article className="rounded-md border border-amber-200/18 bg-black/30 p-3 backdrop-blur-md">
-            <p className="text-xs text-amber-100/70">조율이 필요한 연결</p>
+          <article className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-3 shadow-soft">
+            <p className="text-xs text-[var(--text-faint)]">조율이 필요한 연결</p>
             <p className="mt-1 text-sm font-semibold">
               {lowPair.from.name} × {lowPair.to.name} · {lowPair.score}점
             </p>
-            <p className="mt-1 text-xs leading-[1.5] text-white/58">{lowPair.summary}</p>
+            <p className="mt-1 text-xs leading-[1.5] text-[var(--text-dim)]">{lowPair.summary}</p>
           </article>
         )}
       </>
@@ -590,23 +590,23 @@ export default function CompatibilityConstellation() {
   };
 
   return (
-    <section className="relative isolate overflow-hidden rounded-md border border-[color:var(--border)] bg-[radial-gradient(circle_at_20%_0%,rgba(94,231,167,0.12),transparent_28%),radial-gradient(circle_at_88%_18%,rgba(246,200,95,0.12),transparent_30%),linear-gradient(135deg,rgba(16,18,22,0.98),rgba(26,27,30,0.94))] text-white shadow-[0_18px_70px_rgba(0,0,0,0.28)] animate-panel-reveal">
-      <div className="absolute inset-0 opacity-[0.18] [background-image:linear-gradient(rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:42px_42px]" />
+    <section className="saju-card relative isolate overflow-hidden text-[var(--text)] animate-panel-reveal">
+      <div className="absolute inset-0 opacity-[0.18] [background-image:linear-gradient(var(--border)_1px,transparent_1px),linear-gradient(90deg,var(--border)_1px,transparent_1px)] [background-size:42px_42px]" />
 
       <div className="relative grid min-h-[720px] gap-5 px-4 py-5 md:min-h-[620px] md:grid-cols-[minmax(280px,360px)_1fr] md:px-6 md:py-6">
         <div className="z-10 flex flex-col gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.08em] text-emerald-200/80">Compatibility Constellation</p>
+            <p className="eyebrow">Compatibility Constellation</p>
             <h2 className="mt-2 text-[28px] font-semibold leading-[1.12] md:text-[36px]">궁합 별자리</h2>
-            <p className="mt-3 text-sm leading-[1.65] text-white/68">
+            <p className="mt-3 text-sm leading-[1.65] text-[var(--text-dim)]">
               이름과 MBTI를 넣으면 사람들을 별자리처럼 배치하고, 궁합의 흐름을 연결선으로 보여줍니다.
             </p>
           </div>
 
-          <div className="grid gap-3 rounded-md border border-white/10 bg-black/24 p-3 backdrop-blur-md">
+          <div className="grid gap-3 rounded-md border border-[var(--border)] bg-[var(--surface-2)] p-3">
             <div className="grid gap-2 sm:grid-cols-[1fr_116px] md:grid-cols-1">
               <label className="grid gap-1.5">
-                <span className="text-xs font-medium text-white/62">이름</span>
+                <span className="text-xs font-medium text-[var(--text-dim)]">이름</span>
                 <input
                   type="text"
                   value={name}
@@ -622,19 +622,19 @@ export default function CompatibilityConstellation() {
                       addPerson();
                     }
                   }}
-                  className="h-10 rounded-md border border-white/12 bg-white/8 px-3 text-sm text-white outline-none transition placeholder:text-white/34 focus:border-emerald-200/70 focus:ring-2 focus:ring-emerald-200/20"
+                  className="saju-input h-10 text-sm"
                 />
               </label>
 
               <label className="grid gap-1.5">
-                <span className="text-xs font-medium text-white/62">MBTI</span>
+                <span className="text-xs font-medium text-[var(--text-dim)]">MBTI</span>
                 <select
                   value={mbti}
                   onChange={(event) => setMbti(event.target.value as MbtiType)}
-                  className="h-10 rounded-md border border-white/12 bg-white/8 px-3 text-sm text-white outline-none transition focus:border-emerald-200/70 focus:ring-2 focus:ring-emerald-200/20"
+                  className="saju-input h-10 appearance-none text-sm"
                 >
                   {MBTI_TYPES.map((type) => (
-                    <option key={type} value={type} className="bg-zinc-950 text-white">
+                    <option key={type} value={type}>
                       {type}
                     </option>
                   ))}
@@ -643,20 +643,20 @@ export default function CompatibilityConstellation() {
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={addPerson} className="h-10 rounded-md bg-emerald-200 px-4 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-100">
+              <button type="button" onClick={addPerson} className="btn-pill-dark h-10 px-4 text-sm">
                 별 추가
               </button>
-              <button type="button" onClick={resetPeople} className="h-10 rounded-md border border-white/14 bg-white/8 px-4 text-sm font-semibold text-white/82 transition hover:bg-white/14">
+              <button type="button" onClick={resetPeople} className="btn-pill-soft h-10 px-4 text-sm">
                 모두 지우기
               </button>
             </div>
 
-            {error && <p className="rounded-md border border-red-300/30 bg-red-400/10 px-3 py-2 text-xs text-red-100">{error}</p>}
+            {error && <p className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-300/40 dark:bg-red-950/30 dark:text-red-200">{error}</p>}
           </div>
 
           <div className="flex flex-wrap gap-2">
             {people.length === 0 && (
-              <p className="rounded-md border border-dashed border-white/12 bg-white/[0.04] px-3 py-2 text-xs leading-[1.55] text-white/54">
+              <p className="rounded-md border border-dashed border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-xs leading-[1.55] text-[var(--text-dim)]">
                 아직 추가된 사람이 없어요. 이름과 MBTI를 입력해 첫 번째 별을 만들어 주세요.
               </p>
             )}
@@ -668,19 +668,21 @@ export default function CompatibilityConstellation() {
                 <span
                   key={person.id}
                   className={`inline-flex h-9 items-center overflow-hidden rounded-full border text-xs font-semibold transition ${
-                    active ? 'border-emerald-200 bg-emerald-200 text-zinc-950' : 'border-white/12 bg-white/8 text-white/78 hover:bg-white/14'
+                    active
+                      ? 'border-[var(--accent)] bg-[var(--accent)] text-[var(--on-accent)]'
+                      : 'border-[var(--border)] bg-[var(--surface-2)] text-[var(--text)] hover:border-[var(--border-strong)]'
                   }`}
                 >
                   <button type="button" onClick={() => setSelectedPersonId(person.id)} className="flex h-full items-center gap-2 pl-3 pr-2">
                     <span>{person.name}</span>
-                    <span className={active ? 'text-zinc-700' : 'text-white/46'}>{person.mbti}</span>
+                    <span className={active ? 'text-[var(--on-accent)] opacity-70' : 'text-[var(--text-faint)]'}>{person.mbti}</span>
                   </button>
                   <button
                     type="button"
                     aria-label={`${person.name} 제거`}
                     onClick={() => removePerson(person.id)}
                     className={`grid h-5 w-5 place-items-center rounded-full text-[13px] transition ${
-                      active ? 'bg-zinc-950/10 text-zinc-800 hover:bg-zinc-950/18' : 'bg-white/10 text-white/60 hover:bg-white/20'
+                      active ? 'bg-black/10 text-[var(--on-accent)] hover:bg-black/15' : 'bg-[var(--surface)] text-[var(--text-dim)] hover:text-[var(--text)]'
                     }`}
                   >
                     ×
@@ -691,19 +693,19 @@ export default function CompatibilityConstellation() {
             })}
           </div>
 
-          <div className="grid gap-2 rounded-md border border-white/10 bg-black/20 p-3 backdrop-blur-md">
+          <div className="grid gap-2 rounded-md border border-[var(--border)] bg-[var(--surface-2)] p-3">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-xs text-white/50">선택한 별</p>
+                <p className="text-xs text-[var(--text-faint)]">선택한 별</p>
                 {selectedPerson ? (
                   <p className="mt-0.5 text-lg font-semibold">
-                    {selectedPerson.name} <span className="text-sm text-emerald-200">{selectedPerson.mbti}</span>
+                    {selectedPerson.name} <span className="text-sm text-[var(--text-dim)]">{selectedPerson.mbti}</span>
                   </p>
                 ) : (
-                  <p className="mt-0.5 text-sm leading-[1.55] text-white/58">사람을 추가하면 선택한 별과 궁합 목록이 여기에 표시됩니다.</p>
+                  <p className="mt-0.5 text-sm leading-[1.55] text-[var(--text-dim)]">사람을 추가하면 선택한 별과 궁합 목록이 여기에 표시됩니다.</p>
                 )}
               </div>
-              {topPair && <strong className="rounded-full bg-white/10 px-3 py-1.5 text-sm text-emerald-100">최고 {topPair.score}점</strong>}
+              {topPair && <strong className="rounded-full bg-[var(--accent)] px-3 py-1.5 text-sm text-[var(--on-accent)]">최고 {topPair.score}점</strong>}
             </div>
 
             <div className="grid gap-2">
@@ -711,21 +713,21 @@ export default function CompatibilityConstellation() {
                 const partner = pair.from.id === selectedPerson.id ? pair.to : pair.from;
 
                 return (
-                  <article key={pair.id} className="rounded-md border border-white/9 bg-white/[0.06] p-3">
+                  <article key={pair.id} className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-3">
                     <div className="flex items-center justify-between gap-3">
                       <p className="text-sm font-semibold">
-                        {partner.name} <span className="text-xs text-white/46">{partner.mbti}</span>
+                        {partner.name} <span className="text-xs text-[var(--text-faint)]">{partner.mbti}</span>
                       </p>
                       <span className="text-sm font-bold" style={{ color: pair.color }}>
                         {pair.score}점
                       </span>
                     </div>
-                    <p className="mt-1 text-xs leading-[1.55] text-white/58">{pair.label}</p>
+                    <p className="mt-1 text-xs leading-[1.55] text-[var(--text-dim)]">{pair.label}</p>
                   </article>
                 );
               })}
               {selectedPerson && selectedPairs.length === 0 && (
-                <p className="rounded-md border border-dashed border-white/12 bg-white/[0.04] px-3 py-3 text-xs leading-[1.55] text-white/54">
+                <p className="rounded-md border border-dashed border-[var(--border)] bg-[var(--surface)] px-3 py-3 text-xs leading-[1.55] text-[var(--text-dim)]">
                   한 명을 더 추가하면 두 사람 사이의 궁합 점수와 연결선이 나타납니다.
                 </p>
               )}
@@ -733,20 +735,20 @@ export default function CompatibilityConstellation() {
           </div>
         </div>
 
-        <div className="relative min-h-[420px] overflow-hidden rounded-md md:min-h-0">
+        <div className="relative min-h-[420px] overflow-hidden rounded-md border border-[var(--border)] bg-[var(--bg)] md:min-h-0">
           {people.length > 0 ? (
             <ConstellationCanvas people={people} pairs={pairs} selectedPersonId={selectedPerson?.id ?? null} onSelect={setSelectedPersonId} />
           ) : (
             <div className="absolute inset-0 grid place-items-center">
-              <div className="mx-auto max-w-[280px] rounded-md border border-dashed border-white/14 bg-black/24 px-4 py-4 text-center backdrop-blur-md">
-                <p className="text-sm font-semibold text-white">별자리를 기다리는 중</p>
-                <p className="mt-2 text-xs leading-[1.55] text-white/56">왼쪽에서 이름과 MBTI를 추가하면 이 공간에 궁합 별자리가 그려집니다.</p>
+              <div className="mx-auto max-w-[280px] rounded-md border border-dashed border-[var(--border)] bg-[var(--surface)] px-4 py-4 text-center shadow-soft">
+                <p className="text-sm font-semibold text-[var(--text)]">별자리를 기다리는 중</p>
+                <p className="mt-2 text-xs leading-[1.55] text-[var(--text-dim)]">왼쪽에서 이름과 MBTI를 추가하면 이 공간에 궁합 별자리가 그려집니다.</p>
               </div>
             </div>
           )}
 
           {people.length > 0 && (
-            <div className="pointer-events-none absolute left-3 top-3 rounded-full border border-white/10 bg-black/24 px-3 py-1.5 text-xs text-white/62 backdrop-blur-md">
+            <div className="pointer-events-none absolute left-3 top-3 rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs text-[var(--text-dim)] shadow-soft">
               별을 눌러 궁합 보기
             </div>
           )}
