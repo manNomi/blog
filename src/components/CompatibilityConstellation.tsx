@@ -44,8 +44,8 @@ type NodeRenderItem = {
 };
 
 const DEFAULT_PEOPLE: Person[] = [
-  { id: 'minji', name: '민지', mbti: 'ENFP' },
-  { id: 'jiho', name: '지호', mbti: 'INTJ' },
+  { id: 'minji', name: '민지', mbti: 'ENTJ' },
+  { id: 'jiho', name: '지호', mbti: 'INFP' },
   { id: 'haeun', name: '하은', mbti: 'ISFJ' },
   { id: 'doyun', name: '도윤', mbti: 'ESTP' }
 ];
@@ -62,7 +62,9 @@ const idealPairKeys = new Set([
   'ISTJ-ESFP',
   'ESFP-ISTJ',
   'ENTJ-INTP',
-  'INTP-ENTJ'
+  'INTP-ENTJ',
+  'ENTJ-INFP',
+  'INFP-ENTJ'
 ]);
 
 const accentByScore = {
@@ -87,7 +89,7 @@ function clamp(value: number, min: number, max: number) {
 }
 
 function getPairLabel(score: number) {
-  if (score >= 84) return '강한 끌림';
+  if (score >= 84) return '매우 좋은 궁합';
   if (score >= 72) return '편안한 호흡';
   if (score >= 58) return '천천히 맞추기';
   return '리듬 조율 필요';
@@ -110,6 +112,11 @@ function asPartner(value: string) {
 
 function getPairSummary(score: number, from: Person, to: Person) {
   const pairName = `${asPartner(from.name)} ${asSubject(to.name)}`;
+  const pairKey = `${from.mbti}-${to.mbti}`;
+
+  if (pairKey === 'ENTJ-INFP' || pairKey === 'INFP-ENTJ') {
+    return `${pairName} 추진력과 상상력이 잘 맞물리는 좋은 궁합이에요.`;
+  }
 
   if (score >= 84) return `${pairName} 서로의 빈칸을 밝게 채우는 흐름이에요.`;
   if (score >= 72) return `${pairName} 대화 속도가 안정적으로 맞는 편이에요.`;
@@ -596,7 +603,7 @@ export default function CompatibilityConstellation() {
             <p className="text-xs uppercase tracking-[0.08em] text-emerald-200/80">Compatibility Constellation</p>
             <h2 className="mt-2 text-[28px] font-semibold leading-[1.12] md:text-[36px]">궁합 별자리</h2>
             <p className="mt-3 text-sm leading-[1.65] text-white/68">
-              이름과 MBTI를 넣으면 사람들을 별자리처럼 배치하고, 관계의 온도를 연결선으로 보여줍니다.
+              이름과 MBTI를 넣으면 사람들을 별자리처럼 배치하고, 궁합의 흐름을 연결선으로 보여줍니다.
             </p>
           </div>
 
@@ -719,7 +726,7 @@ export default function CompatibilityConstellation() {
           <ConstellationCanvas people={people} pairs={pairs} selectedPersonId={selectedPerson.id} onSelect={setSelectedPersonId} />
 
           <div className="pointer-events-none absolute left-3 top-3 rounded-full border border-white/10 bg-black/24 px-3 py-1.5 text-xs text-white/62 backdrop-blur-md">
-            별을 눌러 관계 보기
+            별을 눌러 궁합 보기
           </div>
 
           {topPair && <div className="pointer-events-none absolute bottom-3 left-3 right-3 hidden gap-2 md:grid md:grid-cols-2">{renderSummaryCards()}</div>}
