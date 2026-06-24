@@ -111,7 +111,6 @@
     const mood = { curiosity: 0, blink: 0, ear: 0, tail: 0 };
 
     const isWanderMode = () => coarsePointerQuery.matches || window.innerWidth < 640;
-    const randomBetween = (min, max) => min + Math.random() * Math.max(0, max - min);
 
     const renderer = new THREE.WebGLRenderer({
       canvas,
@@ -342,21 +341,6 @@
       interaction.messageUntil = 0;
     };
 
-    const setWanderTarget = (reason = 'wander') => {
-      const horizontalInset = clamp(window.innerWidth * 0.08, 18, 72);
-      const topInset = margin + (window.innerWidth < 640 ? 108 : 96);
-      const bottomInset = window.innerHeight - petSize - 34;
-      const target = clampPosition(
-        randomBetween(horizontalInset, window.innerWidth - petSize - horizontalInset),
-        randomBetween(topInset, Math.max(topInset, bottomInset))
-      );
-      position.targetX = target.x;
-      position.targetY = target.y;
-      wander.resting = false;
-      wander.nextTargetAt = Number.POSITIVE_INFINITY;
-      wander.targetReason = reason;
-    };
-
     const setDragTalkTarget = (x, y) => {
       const sideOffset = x < window.innerWidth * 0.5 ? 36 : -petSize - 36;
       const verticalOffset = y < window.innerHeight * 0.72 ? 34 : -petSize - 18;
@@ -364,7 +348,7 @@
       position.targetX = target.x;
       position.targetY = target.y;
       wander.resting = false;
-      wander.forcedUntil = performance.now() + 2600;
+      wander.forcedUntil = 0;
       wander.nextTargetAt = Number.POSITIVE_INFINITY;
       wander.targetReason = 'drag-end';
     };
@@ -383,23 +367,15 @@
           setRootPosition(home.x, home.y);
           position.initialized = true;
           wander.resting = true;
-          wander.nextTargetAt = performance.now() + 420;
-          wander.targetReason = 'home';
-          return;
-        }
-
-        const now = performance.now();
-        if (now < wander.forcedUntil) {
+          wander.nextTargetAt = Number.POSITIVE_INFINITY;
+          wander.targetReason = 'fixed';
           return;
         }
 
         const distance = Math.hypot(position.targetX - position.x, position.targetY - position.y);
         if (distance < 8 && !wander.resting) {
           wander.resting = true;
-          wander.nextTargetAt = now + randomBetween(320, 1150);
-        }
-        if (distance < 8 && now >= wander.nextTargetAt) {
-          setWanderTarget();
+          wander.nextTargetAt = Number.POSITIVE_INFINITY;
         } else if (distance >= 8) {
           wander.resting = false;
         }
@@ -811,7 +787,7 @@
         interaction: root.dataset.interaction,
         action: interaction.action,
         pointerInside: pointer.inside,
-        mode: isWanderMode() ? 'wander' : 'desktop',
+        mode: isWanderMode() ? 'fixed-touch' : 'fixed-desktop',
         nextWanderIn: Number.isFinite(wander.nextTargetAt)
           ? Math.max(0, Math.round(wander.nextTargetAt - performance.now()))
           : null,
