@@ -1,5 +1,14 @@
-<div class="codex-pet" data-codex-pet data-hidden="false">
-  <canvas class="codex-pet__canvas" data-codex-pet-canvas aria-hidden="true"></canvas>
+<div class="codex-pet-shell" data-codex-pet data-hidden="false" data-interaction="idle">
+  <div class="codex-pet" data-codex-pet-stage>
+    <canvas
+      class="codex-pet__canvas"
+      data-codex-pet-canvas
+      aria-label="고양이 펫"
+      role="button"
+      tabindex="0"
+    ></canvas>
+    <div class="codex-pet__bubble" data-codex-pet-bubble aria-live="polite"></div>
+  </div>
   <button
     type="button"
     class="codex-pet__toggle"
@@ -31,9 +40,16 @@
     }
     root.dataset.ready = 'true';
 
+    const stage = root.querySelector('[data-codex-pet-stage]');
     const canvas = root.querySelector('[data-codex-pet-canvas]');
+    const bubble = root.querySelector('[data-codex-pet-bubble]');
     const toggle = root.querySelector('[data-codex-pet-toggle]');
-    if (!(canvas instanceof HTMLCanvasElement) || !(toggle instanceof HTMLButtonElement)) {
+    if (
+      !(stage instanceof HTMLElement) ||
+      !(canvas instanceof HTMLCanvasElement) ||
+      !(bubble instanceof HTMLElement) ||
+      !(toggle instanceof HTMLButtonElement)
+    ) {
       return;
     }
 
@@ -45,14 +61,37 @@
     let petSize = 126;
     let expression = 'calm';
     let lastWanderMode = false;
+    let suppressNextClick = false;
     const margin = 16;
 
     const pointer = {
       x: window.innerWidth * 0.72,
       y: window.innerHeight * 0.68,
       active: false,
-      inside: false
+      inside: false,
+      following: false,
+      readingUntil: 0
     };
+    const drag = {
+      tracking: false,
+      active: false,
+      startX: 0,
+      startY: 0,
+      lastX: 0,
+      lastY: 0
+    };
+    const interaction = {
+      action: 'idle',
+      actionUntil: 0,
+      messageUntil: 0,
+      clickIndex: 0
+    };
+    const clickActions = [
+      { name: 'wave', message: '여기 보고 있어요', duration: 1500 },
+      { name: 'hop', message: '좋은 흐름입니다', duration: 1300 },
+      { name: 'focus', message: '같이 읽을게요', duration: 1700 },
+      { name: 'nap', message: '잠깐 쉬어도 좋아요', duration: 1600 }
+    ];
     const position = {
       x: 0,
       y: 0,
@@ -243,7 +282,7 @@
     };
 
     const getRootRect = () => {
-      const rect = root.getBoundingClientRect();
+      const rect = stage.getBoundingClientRect();
       return {
         left: Math.round(rect.left),
         top: Math.round(rect.top),
@@ -271,7 +310,45 @@
     const setRootPosition = (x, y) => {
       position.x = x;
       position.y = y;
-      root.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`;
+      stage.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`;
+    };
+
+    const isReadingActive = () => pointer.following || performance.now() < pointer.readingUntil;
+
+    const setInteraction = (name, message = '', duration = 1400) => {
+      root.dataset.interaction = name;
+      bubble.textContent = message;
+      interaction.messageUntil = message ? performance.now() + duration : 0;
+    };
+
+    const syncInteractionState = () => {
+      const now = performance.now();
+      const readingActive = isReadingActive();
+
+      if (interaction.action !== 'idle' && now >= interaction.actionUntil) {
+        interaction.action = 'idle';
+      }
+
+      if (readingActive) {
+        root.dataset.interaction = 'reading';
+        if (!bubble.textContent) {
+          bubble.textContent = '같이 읽는 중';
+        }
+        return;
+      }
+
+      if (interaction.action !== 'idle') {
+        root.dataset.interaction = `click-${interaction.action}`;
+        return;
+      }
+
+      if (interaction.messageUntil && now < interaction.messageUntil) {
+        return;
+      }
+
+      root.dataset.interaction = 'idle';
+      bubble.textContent = '';
+      interaction.messageUntil = 0;
     };
 
     const setWanderTarget = () => {
@@ -319,12 +396,12 @@
         } else if (distance >= 8) {
           wander.resting = false;
         }
-      } else if (!pointer.inside) {
+      } else if (!isReadingActive()) {
         position.targetX = home.x;
         position.targetY = home.y;
       } else {
-        const offsetX = window.innerWidth < 640 ? 52 : 62;
-        const offsetY = window.innerWidth < 640 ? 76 : 58;
+        const offsetX = 44;
+        const offsetY = 46;
         const preferRight = pointer.x + petSize + offsetX < window.innerWidth - margin;
         const preferBottom = pointer.y + petSize + offsetY < window.innerHeight - margin;
         const target = clampPosition(
@@ -349,7 +426,19 @@
       try {
         localStorage.setItem(STORAGE_KEY, hidden ? 'true' : 'false');
       } catch {}
-      if (!hidden) {
+
+      if (hidden) {
+        pointer.following = false;
+        pointer.readingUntil = 0;
+        drag.tracking = false;
+        drag.active = false;
+        interaction.action = 'idle';
+        interaction.actionUntil = 0;
+        interaction.messageUntil = 0;
+        root.dataset.interaction = 'idle';
+        bubble.textContent = '';
+        stop();
+      } else {
         start();
       }
       render();
@@ -441,10 +530,23 @@
 
     const render = () => {
       frames += 1;
+      syncInteractionState();
       updateWalk();
       updateLook();
 
+      const now = performance.now();
       const time = performance.now() * 0.001;
+      const actionActive = interaction.action !== 'idle' && now < interaction.actionUntil;
+      const actionName = actionActive ? interaction.action : 'idle';
+      const actionCuriosity = actionName === 'focus' ? 0.45 : 0;
+      const napAmount = actionName === 'nap' ? 0.68 : 0;
+      const hopLift = actionName === 'hop' && !motionQuery.matches ? Math.abs(Math.sin(time * 16)) * 0.16 : 0;
+      const waveAmount = actionName === 'wave' && !motionQuery.matches ? Math.sin(time * 13) : 0;
+
+      if (actionActive) {
+        expression = actionName === 'nap' ? 'nap' : actionName === 'hop' ? 'hop' : 'playful';
+      }
+
       const calmBlink = Math.pow(Math.max(0, Math.sin(time * 0.72 + 1.2)), 18);
       const curiousBlink = Math.pow(Math.max(0, Math.sin(time * 2.1)), 26) * mood.curiosity * 0.35;
       mood.blink = ease(mood.blink, clamp(calmBlink + curiousBlink, 0, 1), 0.18);
@@ -457,39 +559,40 @@
       const tailWave = Math.sin(time * (2.1 + mood.tail * 2.4 + walkIntensity * 1.4)) * (0.14 + mood.tail * 0.28 + walkIntensity * 0.18);
 
       cat.rotation.z = Math.sin(time * 1.2) * 0.018 + look.x * 0.045;
-      bodyGroup.position.y = breathing + walkBob;
+      bodyGroup.position.y = breathing + walkBob + hopLift - napAmount * 0.045;
       bodyGroup.rotation.z = look.x * 0.028 + Math.sin(walkCycle) * 0.045 * walkIntensity;
       head.rotation.y = ease(head.rotation.y, look.x * 0.52, 0.1);
-      head.rotation.x = ease(head.rotation.x, -look.y * 0.28 + mood.curiosity * 0.08, 0.1);
-      head.rotation.z = ease(head.rotation.z, look.x * -0.07, 0.1);
+      head.rotation.x = ease(head.rotation.x, -look.y * 0.28 + mood.curiosity * 0.08 + napAmount * 0.18, 0.1);
+      head.rotation.z = ease(head.rotation.z, look.x * -0.07 + waveAmount * 0.05, 0.1);
       pupils.position.x = ease(pupils.position.x, look.x * 0.07, 0.18);
       pupils.position.y = ease(pupils.position.y, -look.y * 0.045, 0.18);
 
-      const eyeScaleY = clamp(1 - mood.blink * 0.78 + mood.curiosity * 0.12, 0.16, 1.14);
+      const effectiveCuriosity = clamp(mood.curiosity + actionCuriosity, 0, 1);
+      const eyeScaleY = clamp(1 - mood.blink * 0.78 + effectiveCuriosity * 0.12 - napAmount * 0.54, 0.16, 1.14);
       leftEye.scale.y = ease(leftEye.scale.y, eyeScaleY, 0.2);
       rightEye.scale.y = ease(rightEye.scale.y, eyeScaleY, 0.2);
-      leftPupil.scale.setScalar(1 + mood.curiosity * 0.24);
-      rightPupil.scale.setScalar(1 + mood.curiosity * 0.24);
-      materials.eyeGlow.emissiveIntensity = 0.06 + mood.curiosity * 0.35;
+      leftPupil.scale.setScalar(1 + effectiveCuriosity * 0.24);
+      rightPupil.scale.setScalar(1 + effectiveCuriosity * 0.24);
+      materials.eyeGlow.emissiveIntensity = 0.06 + effectiveCuriosity * 0.35;
 
-      leftEar.rotation.z = -0.44 - look.x * 0.12 + mood.ear * 0.08;
-      rightEar.rotation.z = 0.44 - look.x * 0.12 - mood.ear * 0.08;
-      ears.rotation.x = -mood.curiosity * 0.08 + look.y * 0.04;
+      leftEar.rotation.z = -0.44 - look.x * 0.12 + mood.ear * 0.08 + waveAmount * 0.04;
+      rightEar.rotation.z = 0.44 - look.x * 0.12 - mood.ear * 0.08 + waveAmount * 0.05;
+      ears.rotation.x = -effectiveCuriosity * 0.08 + look.y * 0.04 + napAmount * 0.06;
 
-      mouth.scale.x = ease(mouth.scale.x, 1 + mood.curiosity * 0.35, 0.16);
-      mouth.scale.y = ease(mouth.scale.y, 1 + mood.curiosity * 0.65, 0.16);
-      mouth.position.y = ease(mouth.position.y, -mood.curiosity * 0.015, 0.16);
-      leftCheek.scale.x = ease(leftCheek.scale.x, 1.5 + mood.curiosity * 0.24, 0.16);
+      mouth.scale.x = ease(mouth.scale.x, 1 + effectiveCuriosity * 0.35, 0.16);
+      mouth.scale.y = ease(mouth.scale.y, 1 + effectiveCuriosity * 0.65, 0.16);
+      mouth.position.y = ease(mouth.position.y, -effectiveCuriosity * 0.015 + napAmount * 0.02, 0.16);
+      leftCheek.scale.x = ease(leftCheek.scale.x, 1.5 + effectiveCuriosity * 0.24, 0.16);
       rightCheek.scale.x = leftCheek.scale.x;
       whiskers.rotation.z = look.x * 0.06;
-      whiskers.position.y = -mood.curiosity * 0.018;
+      whiskers.position.y = -effectiveCuriosity * 0.018 + napAmount * 0.02;
 
-      tail.rotation.z = 0.18 + tailWave;
+      tail.rotation.z = 0.18 + tailWave + waveAmount * 0.24;
       tail.position.y = Math.sin(time * 1.6) * 0.025;
       leftFoot.position.y = -1.18 + Math.sin(walkCycle) * 0.045 * walkIntensity;
-      rightFoot.position.y = -1.18 + Math.sin(walkCycle + Math.PI) * 0.045 * walkIntensity;
+      rightFoot.position.y = -1.18 + Math.sin(walkCycle + Math.PI) * 0.045 * walkIntensity + Math.max(0, waveAmount) * 0.055;
       leftFoot.rotation.z = Math.sin(walkCycle) * 0.18 * walkIntensity;
-      rightFoot.rotation.z = Math.sin(walkCycle + Math.PI) * 0.18 * walkIntensity;
+      rightFoot.rotation.z = Math.sin(walkCycle + Math.PI) * 0.18 * walkIntensity + waveAmount * 0.24;
 
       renderer.render(scene, camera);
     };
@@ -516,6 +619,38 @@
       }
     };
 
+    const shouldIgnoreDragTarget = (target) =>
+      target instanceof Element &&
+      Boolean(
+        target.closest(
+          'button, input, textarea, select, summary, [role="button"], [contenteditable="true"], [data-codex-pet]'
+        )
+      );
+
+    const handlePointerDown = (event) => {
+      if (
+        hidden ||
+        isWanderMode() ||
+        event.button !== 0 ||
+        event.isPrimary === false ||
+        shouldIgnoreDragTarget(event.target)
+      ) {
+        return;
+      }
+
+      drag.tracking = true;
+      drag.active = false;
+      drag.startX = event.clientX;
+      drag.startY = event.clientY;
+      drag.lastX = event.clientX;
+      drag.lastY = event.clientY;
+      pointer.x = event.clientX;
+      pointer.y = event.clientY;
+      pointer.inside = true;
+      pointer.active = true;
+      pointer.readingUntil = 0;
+    };
+
     const handlePointerMove = (event) => {
       if (isWanderMode()) {
         return;
@@ -524,7 +659,51 @@
       pointer.y = event.clientY;
       pointer.active = true;
       pointer.inside = true;
+
+      if (drag.tracking) {
+        drag.lastX = event.clientX;
+        drag.lastY = event.clientY;
+        const distance = Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY);
+        if (distance > 8) {
+          drag.active = true;
+          pointer.following = true;
+          setInteraction('reading', '같이 읽는 중', 1400);
+        }
+      }
+
+      if (pointer.following || performance.now() < pointer.readingUntil) {
+        updateWalkTarget();
+      }
+    };
+
+    const handlePointerUp = () => {
+      if (!drag.tracking) {
+        return;
+      }
+
+      if (drag.active) {
+        pointer.readingUntil = performance.now() + 1800;
+        suppressNextClick = true;
+        window.setTimeout(() => {
+          suppressNextClick = false;
+        }, 350);
+        setInteraction('reading', '여기 같이 볼게요', 1700);
+      }
+
+      drag.tracking = false;
+      drag.active = false;
+      pointer.following = false;
       updateWalkTarget();
+    };
+
+    const handleClickCapture = (event) => {
+      if (!suppressNextClick) {
+        return;
+      }
+
+      suppressNextClick = false;
+      event.preventDefault();
+      event.stopPropagation();
     };
 
     const handlePointerLeave = () => {
@@ -532,7 +711,26 @@
         return;
       }
       pointer.inside = false;
+      pointer.following = false;
+      drag.tracking = false;
+      drag.active = false;
       updateWalkTarget();
+    };
+
+    const triggerCatAction = () => {
+      if (hidden) {
+        return;
+      }
+
+      const action = clickActions[interaction.clickIndex % clickActions.length];
+      interaction.clickIndex += 1;
+      interaction.action = action.name;
+      interaction.actionUntil = performance.now() + action.duration;
+      pointer.readingUntil = 0;
+      pointer.following = false;
+      setInteraction(`click-${action.name}`, action.message, action.duration);
+      start();
+      render();
     };
 
     const handleResize = () => {
@@ -543,8 +741,22 @@
     toggle.addEventListener('click', () => {
       setHidden(!hidden);
     });
+    canvas.addEventListener('click', (event) => {
+      event.stopPropagation();
+      triggerCatAction();
+    });
+    canvas.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') {
+        return;
+      }
+      event.preventDefault();
+      triggerCatAction();
+    });
+    window.addEventListener('pointerdown', handlePointerDown, { passive: true });
     window.addEventListener('pointermove', handlePointerMove, { passive: true });
-    window.addEventListener('mousemove', handlePointerMove, { passive: true });
+    window.addEventListener('pointerup', handlePointerUp, { passive: true });
+    window.addEventListener('pointercancel', handlePointerUp, { passive: true });
+    window.addEventListener('click', handleClickCapture, true);
     window.addEventListener('pointerleave', handlePointerLeave);
     document.documentElement.addEventListener('mouseleave', handlePointerLeave);
     window.addEventListener('blur', handlePointerLeave);
@@ -577,20 +789,24 @@
 
     window[DEBUG_KEY] = {
       getState: () => ({
-      hidden,
-      frames,
+        hidden,
+        frames,
         x: Math.round(position.x),
         y: Math.round(position.y),
         targetX: Math.round(position.targetX),
         targetY: Math.round(position.targetY),
         speed: Number(position.speed.toFixed(2)),
         walking: position.walking,
+        following: pointer.following,
+        readingActive: isReadingActive(),
         lookX: Number(look.x.toFixed(3)),
         lookY: Number(look.y.toFixed(3)),
         curiosity: Number(mood.curiosity.toFixed(3)),
         expression,
+        interaction: root.dataset.interaction,
+        action: interaction.action,
         pointerInside: pointer.inside,
-        mode: isWanderMode() ? 'wander' : 'cursor',
+        mode: isWanderMode() ? 'wander' : 'desktop',
         nextWanderIn: Number.isFinite(wander.nextTargetAt)
           ? Math.max(0, Math.round(wander.nextTargetAt - performance.now()))
           : null,
