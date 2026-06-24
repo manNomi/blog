@@ -33,6 +33,7 @@ type PairScore = {
   from: Person;
   to: Person;
   score: number;
+  grade: CompatibilityGrade;
   label: string;
   summary: string;
   color: string;
@@ -46,27 +47,70 @@ type NodeRenderItem = {
 const INITIAL_MBTI: MbtiType = 'ENFP';
 const MAX_PEOPLE = 8;
 
-const idealPairKeys = new Set([
-  'ENFP-INFJ',
-  'INFJ-ENFP',
-  'ENTP-INTJ',
-  'INTJ-ENTP',
-  'INFP-ENFJ',
-  'ENFJ-INFP',
-  'ISFP-ESFJ',
-  'ESFJ-ISFP',
-  'ISTJ-ESFP',
-  'ESFP-ISTJ',
-  'ENTJ-INTP',
-  'INTP-ENTJ',
-  'ENTJ-INFP',
-  'INFP-ENTJ'
-]);
+const MBTI_CHART_ORDER = [
+  'INFP',
+  'ENFP',
+  'INFJ',
+  'ENFJ',
+  'INTJ',
+  'ENTJ',
+  'INTP',
+  'ENTP',
+  'ISFP',
+  'ESFP',
+  'ISTP',
+  'ESTP',
+  'ISFJ',
+  'ESFJ',
+  'ISTJ',
+  'ESTJ'
+] as const satisfies readonly MbtiType[];
 
-const accentByScore = {
-  high: '#5ee7a7',
-  mid: '#f6c85f',
-  low: '#f87171'
+type CompatibilityGrade = 'best' | 'good' | 'mixed' | 'low' | 'worst';
+type CompatibilityChartCode = 'B' | 'G' | 'L' | 'O' | 'R';
+
+// User-provided MBTI chart colors: Blue, Green, Light green, Orange, Red.
+const MBTI_COMPATIBILITY_ROWS = [
+  'GGGBGBGGRRRRRRRR',
+  'GGBGBGGGRRRRRRRR',
+  'GBGGGGGBRRRRRRRR',
+  'BGGGGGGGBRRRRRRR',
+  'GBGGGGGBLLLLOOOO',
+  'BGGGGBBGLLLLLLLL',
+  'GGGGGBGGLLLLOOOB',
+  'GGBGBGGGLLLLOOOO',
+  'RRRBLLLLOOOOLBLB',
+  'RRRRLLLLOOOOBLBL',
+  'RRRRLLLLOOOOLBLB',
+  'RRRRLLLLOOOOBLBL',
+  'RRRROLOOLBLBGGGG',
+  'RRRROLOOBLBLGGGG',
+  'RRRROLOOLBLBGGGG',
+  'RRRROLBOBLBLGGGG'
+] as const;
+
+const chartGradeByCode: Record<CompatibilityChartCode, CompatibilityGrade> = {
+  B: 'best',
+  G: 'good',
+  L: 'mixed',
+  O: 'low',
+  R: 'worst'
+};
+
+const scoreByGrade: Record<CompatibilityGrade, { base: number; min: number; max: number }> = {
+  best: { base: 95, min: 90, max: 98 },
+  good: { base: 84, min: 78, max: 89 },
+  mixed: { base: 68, min: 61, max: 74 },
+  low: { base: 49, min: 42, max: 56 },
+  worst: { base: 32, min: 24, max: 39 }
+};
+
+const accentByGrade: Record<CompatibilityGrade, string> = {
+  best: '#8ac4ff',
+  good: '#5ee7a7',
+  mixed: '#bfe174',
+  low: '#f6c85f',
+  worst: '#f87171'
 };
 
 function hashString(value: string) {
@@ -84,11 +128,29 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
-function getPairLabel(score: number) {
-  if (score >= 84) return '매우 좋은 궁합';
-  if (score >= 72) return '편안한 호흡';
-  if (score >= 58) return '천천히 맞추기';
-  return '리듬 조율 필요';
+function getChartGrade(fromMbti: MbtiType, toMbti: MbtiType) {
+  const fromIndex = MBTI_CHART_ORDER.indexOf(fromMbti);
+  const toIndex = MBTI_CHART_ORDER.indexOf(toMbti);
+  const code = MBTI_COMPATIBILITY_ROWS[fromIndex]?.[toIndex] as CompatibilityChartCode | undefined;
+
+  return code ? chartGradeByCode[code] : 'mixed';
+}
+
+function getPairLabel(grade: CompatibilityGrade) {
+  switch (grade) {
+    case 'best':
+      return '최고 궁합';
+    case 'good':
+      return '좋은 궁합';
+    case 'mixed':
+      return '반반 궁합';
+    case 'low':
+      return '조율 필요';
+    case 'worst':
+      return '충돌 주의';
+    default:
+      return '궁합 확인';
+  }
 }
 
 function hasFinalConsonant(value: string) {
@@ -106,49 +168,49 @@ function asPartner(value: string) {
   return `${value}${hasFinalConsonant(value) ? '과' : '와'}`;
 }
 
-function getPairSummary(score: number, from: Person, to: Person) {
+function getPairSummary(grade: CompatibilityGrade, from: Person, to: Person) {
   const pairName = `${asPartner(from.name)} ${asSubject(to.name)}`;
   const pairKey = `${from.mbti}-${to.mbti}`;
 
   if (pairKey === 'ENTJ-INFP' || pairKey === 'INFP-ENTJ') {
-    return `${pairName} 추진력과 상상력이 잘 맞물리는 좋은 궁합이에요.`;
+    return `${pairName} 표 기준에서도 추진력과 상상력이 잘 맞물리는 좋은 궁합이에요.`;
   }
 
-  if (score >= 84) return `${pairName} 서로의 빈칸을 밝게 채우는 흐름이에요.`;
-  if (score >= 72) return `${pairName} 대화 속도가 안정적으로 맞는 편이에요.`;
-  if (score >= 58) return `${pairName} 기준을 맞추면 좋은 연결로 자랄 수 있어요.`;
-  return `${pairName} 표현 방식과 속도를 먼저 조율하는 게 좋아요.`;
+  switch (grade) {
+    case 'best':
+      return `${pairName} 표 기준으로 서로의 강점이 가장 잘 맞물리는 흐름이에요.`;
+    case 'good':
+      return `${pairName} 편안하게 좋은 관계로 이어질 가능성이 높아요.`;
+    case 'mixed':
+      return `${pairName} 맞는 부분과 다른 부분이 반반이라 기준을 맞추면 좋아요.`;
+    case 'low':
+      return `${pairName} 최악은 아니지만 표현 방식과 속도 조율이 필요해요.`;
+    case 'worst':
+      return `${pairName} 충돌이 커지기 쉬워 거리감과 역할을 먼저 정하는 게 좋아요.`;
+    default:
+      return `${pairName} 서로의 흐름을 천천히 확인해 보세요.`;
+  }
 }
 
-function getPairColor(score: number) {
-  if (score >= 80) return accentByScore.high;
-  if (score >= 62) return accentByScore.mid;
-  return accentByScore.low;
+function getPairColor(grade: CompatibilityGrade) {
+  return accentByGrade[grade];
 }
 
 function scorePair(from: Person, to: Person): PairScore {
-  let score = 48;
-
-  score += from.mbti[0] === to.mbti[0] ? 4 : 9;
-  score += from.mbti[1] === to.mbti[1] ? 16 : -5;
-  score += from.mbti[2] === to.mbti[2] ? 8 : 5;
-  score += from.mbti[3] === to.mbti[3] ? 5 : 8;
-
-  if (idealPairKeys.has(`${from.mbti}-${to.mbti}`)) {
-    score += 12;
-  }
-
-  const namePulse = (hashString(`${from.name}:${to.name}`) % 19) - 7;
-  const finalScore = clamp(score + namePulse, 28, 98);
+  const grade = getChartGrade(from.mbti, to.mbti);
+  const scoreRange = scoreByGrade[grade];
+  const namePulse = (hashString(`${from.name}:${to.name}`) % 7) - 3;
+  const finalScore = clamp(scoreRange.base + namePulse, scoreRange.min, scoreRange.max);
 
   return {
     id: `${from.id}-${to.id}`,
     from,
     to,
     score: finalScore,
-    label: getPairLabel(finalScore),
-    summary: getPairSummary(finalScore, from, to),
-    color: getPairColor(finalScore)
+    grade,
+    label: getPairLabel(grade),
+    summary: getPairSummary(grade, from, to),
+    color: getPairColor(grade)
   };
 }
 
@@ -600,7 +662,7 @@ export default function CompatibilityConstellation() {
             <p className="eyebrow">Compatibility Constellation</p>
             <h2 className="mt-2 text-[28px] font-semibold leading-[1.12] md:text-[36px]">궁합 별자리</h2>
             <p className="mt-3 text-sm leading-[1.65] text-[var(--text-dim)]">
-              이름과 MBTI를 넣으면 사람들을 별자리처럼 배치하고, 궁합의 흐름을 연결선으로 보여줍니다.
+              MBTI 유형별 궁합표를 기준으로 사람들을 별자리처럼 배치하고, 궁합의 흐름을 연결선으로 보여줍니다.
             </p>
           </div>
 
