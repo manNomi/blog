@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { ExamResultFormat, FortuneType, LoveJobPublic, RelationshipStatus } from '../lib/saju/love-job-types';
+import CompatibilityConstellation from './CompatibilityConstellation';
 
 const TIME_REGEX = /^([01]\d|2[0-3]):([0-5]\d)$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -514,6 +515,8 @@ export default function SajuLovePage() {
           </div>
         )}
       </section>
+
+      <CompatibilityConstellation />
 
       {step === 'fortune' && (
         <section className="saju-card grid gap-4 px-4 py-5 md:px-7 md:py-6 animate-panel-reveal">
