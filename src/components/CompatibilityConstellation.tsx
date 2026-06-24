@@ -43,12 +43,8 @@ type NodeRenderItem = {
   position: THREE.Vector3;
 };
 
-const DEFAULT_PEOPLE: Person[] = [
-  { id: 'minji', name: '민지', mbti: 'ENTJ' },
-  { id: 'jiho', name: '지호', mbti: 'INFP' },
-  { id: 'haeun', name: '하은', mbti: 'ISFJ' },
-  { id: 'doyun', name: '도윤', mbti: 'ESTP' }
-];
+const INITIAL_MBTI: MbtiType = 'ENFP';
+const MAX_PEOPLE = 8;
 
 const idealPairKeys = new Set([
   'ENFP-INFJ',
@@ -260,6 +256,11 @@ function disposeScene(scene: THREE.Scene) {
 }
 
 function buildNodePositions(people: Person[]) {
+  if (people.length === 0) return [];
+  if (people.length === 1) {
+    return [{ person: people[0], position: new THREE.Vector3(0, 0, 0) }];
+  }
+
   const radius = 2.34 + people.length * 0.1;
 
   return people.map((person, index): NodeRenderItem => {
@@ -285,7 +286,7 @@ function ConstellationCanvas({
 }: {
   people: Person[];
   pairs: PairScore[];
-  selectedPersonId: string;
+  selectedPersonId: string | null;
   onSelect: (personId: string) => void;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -509,15 +510,15 @@ function ConstellationCanvas({
 }
 
 export default function CompatibilityConstellation() {
-  const [people, setPeople] = useState<Person[]>(DEFAULT_PEOPLE);
+  const [people, setPeople] = useState<Person[]>([]);
   const [name, setName] = useState('');
-  const [mbti, setMbti] = useState<MbtiType>('ENFP');
-  const [selectedPersonId, setSelectedPersonId] = useState(DEFAULT_PEOPLE[0].id);
+  const [mbti, setMbti] = useState<MbtiType>(INITIAL_MBTI);
+  const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
   const [error, setError] = useState('');
 
   const pairs = useMemo(() => buildPairs(people), [people]);
-  const selectedPerson = people.find((person) => person.id === selectedPersonId) ?? people[0];
-  const selectedPairs = pairs.filter((pair) => pair.from.id === selectedPerson.id || pair.to.id === selectedPerson.id);
+  const selectedPerson = people.find((person) => person.id === selectedPersonId) ?? people[0] ?? null;
+  const selectedPairs = selectedPerson ? pairs.filter((pair) => pair.from.id === selectedPerson.id || pair.to.id === selectedPerson.id) : [];
   const topPair = pairs[0];
   const lowPair = pairs[pairs.length - 1];
 
@@ -552,8 +553,8 @@ export default function CompatibilityConstellation() {
       return;
     }
 
-    if (people.length >= 8) {
-      setError('별자리는 최대 8명까지 한눈에 볼 수 있어요.');
+    if (people.length >= MAX_PEOPLE) {
+      setError(`별자리는 최대 ${MAX_PEOPLE}명까지 한눈에 볼 수 있어요.`);
       return;
     }
 
@@ -570,15 +571,10 @@ export default function CompatibilityConstellation() {
   };
 
   const removePerson = (personId: string) => {
-    if (people.length <= 2) {
-      setError('궁합 그래프에는 최소 2명이 필요해요.');
-      return;
-    }
-
     setPeople((prev) => {
       const nextPeople = prev.filter((person) => person.id !== personId);
       if (selectedPersonId === personId) {
-        setSelectedPersonId(nextPeople[0].id);
+        setSelectedPersonId(nextPeople[0]?.id ?? null);
       }
       return nextPeople;
     });
@@ -586,10 +582,10 @@ export default function CompatibilityConstellation() {
   };
 
   const resetPeople = () => {
-    setPeople(DEFAULT_PEOPLE);
-    setSelectedPersonId(DEFAULT_PEOPLE[0].id);
+    setPeople([]);
+    setSelectedPersonId(null);
     setName('');
-    setMbti('ENFP');
+    setMbti(INITIAL_MBTI);
     setError('');
   };
 
@@ -651,7 +647,7 @@ export default function CompatibilityConstellation() {
                 별 추가
               </button>
               <button type="button" onClick={resetPeople} className="h-10 rounded-md border border-white/14 bg-white/8 px-4 text-sm font-semibold text-white/82 transition hover:bg-white/14">
-                초기화
+                모두 지우기
               </button>
             </div>
 
@@ -659,8 +655,14 @@ export default function CompatibilityConstellation() {
           </div>
 
           <div className="flex flex-wrap gap-2">
+            {people.length === 0 && (
+              <p className="rounded-md border border-dashed border-white/12 bg-white/[0.04] px-3 py-2 text-xs leading-[1.55] text-white/54">
+                아직 추가된 사람이 없어요. 이름과 MBTI를 입력해 첫 번째 별을 만들어 주세요.
+              </p>
+            )}
+
             {people.map((person) => {
-              const active = person.id === selectedPerson.id;
+              const active = person.id === selectedPerson?.id;
 
               return (
                 <span
@@ -693,9 +695,13 @@ export default function CompatibilityConstellation() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs text-white/50">선택한 별</p>
-                <p className="mt-0.5 text-lg font-semibold">
-                  {selectedPerson.name} <span className="text-sm text-emerald-200">{selectedPerson.mbti}</span>
-                </p>
+                {selectedPerson ? (
+                  <p className="mt-0.5 text-lg font-semibold">
+                    {selectedPerson.name} <span className="text-sm text-emerald-200">{selectedPerson.mbti}</span>
+                  </p>
+                ) : (
+                  <p className="mt-0.5 text-sm leading-[1.55] text-white/58">사람을 추가하면 선택한 별과 궁합 목록이 여기에 표시됩니다.</p>
+                )}
               </div>
               {topPair && <strong className="rounded-full bg-white/10 px-3 py-1.5 text-sm text-emerald-100">최고 {topPair.score}점</strong>}
             </div>
@@ -718,16 +724,32 @@ export default function CompatibilityConstellation() {
                   </article>
                 );
               })}
+              {selectedPerson && selectedPairs.length === 0 && (
+                <p className="rounded-md border border-dashed border-white/12 bg-white/[0.04] px-3 py-3 text-xs leading-[1.55] text-white/54">
+                  한 명을 더 추가하면 두 사람 사이의 궁합 점수와 연결선이 나타납니다.
+                </p>
+              )}
             </div>
           </div>
         </div>
 
         <div className="relative min-h-[420px] overflow-hidden rounded-md md:min-h-0">
-          <ConstellationCanvas people={people} pairs={pairs} selectedPersonId={selectedPerson.id} onSelect={setSelectedPersonId} />
+          {people.length > 0 ? (
+            <ConstellationCanvas people={people} pairs={pairs} selectedPersonId={selectedPerson?.id ?? null} onSelect={setSelectedPersonId} />
+          ) : (
+            <div className="absolute inset-0 grid place-items-center">
+              <div className="mx-auto max-w-[280px] rounded-md border border-dashed border-white/14 bg-black/24 px-4 py-4 text-center backdrop-blur-md">
+                <p className="text-sm font-semibold text-white">별자리를 기다리는 중</p>
+                <p className="mt-2 text-xs leading-[1.55] text-white/56">왼쪽에서 이름과 MBTI를 추가하면 이 공간에 궁합 별자리가 그려집니다.</p>
+              </div>
+            </div>
+          )}
 
-          <div className="pointer-events-none absolute left-3 top-3 rounded-full border border-white/10 bg-black/24 px-3 py-1.5 text-xs text-white/62 backdrop-blur-md">
-            별을 눌러 궁합 보기
-          </div>
+          {people.length > 0 && (
+            <div className="pointer-events-none absolute left-3 top-3 rounded-full border border-white/10 bg-black/24 px-3 py-1.5 text-xs text-white/62 backdrop-blur-md">
+              별을 눌러 궁합 보기
+            </div>
+          )}
 
           {topPair && <div className="pointer-events-none absolute bottom-3 left-3 right-3 hidden gap-2 md:grid md:grid-cols-2">{renderSummaryCards()}</div>}
         </div>
