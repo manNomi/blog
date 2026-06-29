@@ -3,6 +3,7 @@ title: "Relay × React Activity GC 크래시"
 description: "약 한달 넘게 고민에 고민을 하게 되었던 이슈 "
 pubDate: 2026-01-02T00:00:00.000Z
 tags: ["당근마켓"]
+pinned: true
 notionId: "32f7cf19-a364-8094-b013-ff863acbf713"
 ---
 ![react.jpg](/images/relay-react-activity-gc-크래시-0.jpg)

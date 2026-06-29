@@ -3,6 +3,7 @@ title: "React 생태계 도구를 Rust로 옮기며 배운 것들"
 description: "swc에서 받은 영감"
 pubDate: 2025-11-27T00:00:00.000Z
 tags: ["I18nexus"]
+pinned: true
 notionId: "35f7cf19-a364-8072-ab0a-f217bef01ea4"
 ---
 ![491153F9-289B-4DA4-885B-0B81143BB9AE.png](/images/react-생태계-도구를-rust로-옮기며-배운-것들-0.png)

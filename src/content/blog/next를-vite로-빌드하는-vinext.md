@@ -2,6 +2,7 @@
 title: "next를 vite로 빌드하는 vinext"
 description: "vinext 버그를 수정"
 pubDate: 2026-06-09T00:00:00.000Z
+pinned: true
 notionId: "37a7cf19-a364-80ce-8b1e-c77742806d0f"
 ---
 ![cloudflare-down-01-1536x1152.avif](/images/next를-vite로-빌드하는-vinext-0.avif)
