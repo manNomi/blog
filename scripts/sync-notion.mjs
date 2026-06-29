@@ -767,6 +767,8 @@ async function syncNotion() {
       const pubDate = getPageProperty(page, 'Created') || new Date().toISOString();
       const tags = getPageTags(page, 'Tags');
       const heroImageUrl = getPageProperty(page, 'Cover');
+      // Main 속성 안전하게 처리 (checkbox 타입)
+      const main = getPageProperty(page, 'Main') === true;
       // Pinned 속성 안전하게 처리 (checkbox 타입)
       const pinned = getPageProperty(page, 'Pinned') === true;
       // notes 속성은 Notion 체크박스 이름을 그대로 사용합니다.
@@ -944,6 +946,7 @@ async function syncNotion() {
         `pubDate: ${new Date(pubDate).toISOString()}`,
         heroImage ? `heroImage: "${heroImage}"` : '',
         tags.length > 0 ? `tags: [${tags.map((tag) => `"${escapeYamlString(tag)}"`).join(', ')}]` : '',
+        main ? `main: true` : '',
         pinned ? `pinned: true` : '',
         notes ? `notes: true` : '',
         `notionId: "${page.id}"`,

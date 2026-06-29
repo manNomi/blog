@@ -3,6 +3,7 @@ title: "i18nexus는 i18next보다 빠른가? 질문을 조금 바꿔야 한다"
 description: "i18n 라이브러리의 개선판이 효능이 있을까 ? "
 pubDate: 2026-05-30T00:00:00.000Z
 tags: ["I18nexus"]
+pinned: true
 notionId: "3747cf19-a364-801f-98e6-ff38fc411177"
 ---
 ![491153F9-289B-4DA4-885B-0B81143BB9AE.png](/images/i18nexus는-i18next보다-빠른가-질문을-조금-바꿔야-한다-0.png)

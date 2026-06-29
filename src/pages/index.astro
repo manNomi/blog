@@ -11,9 +11,9 @@ const posts = getArticlePosts(await getCollection('blog'));
 const featuredPost = posts.find((post) => post.data.pinned) || posts[0];
 const restPosts = posts.filter((post) => post.slug !== featuredPost?.slug);
 const defaultPostSlugs = new Set(restPosts.slice(0, 8).map((post) => post.slug));
-const allTags = [...new Set(posts.flatMap((post) => post.data.tags || []))].sort((a, b) => a.localeCompare(b, 'ko-KR'));
+const allTags = [...new Set(restPosts.flatMap((post) => post.data.tags || []))].sort((a, b) => a.localeCompare(b, 'ko-KR'));
 const tagCounts = allTags.reduce((acc, tag) => {
-  acc[tag] = posts.filter((post) => (post.data.tags || []).includes(tag)).length;
+  acc[tag] = restPosts.filter((post) => (post.data.tags || []).includes(tag)).length;
   return acc;
 }, {} as Record<string, number>);
 
@@ -113,21 +113,21 @@ const homeJsonLd = [
       <section class="pt-10">
         <div class="section-head">
           <div>
-            <div class="eyebrow mb-2">All writing · {posts.length}</div>
+            <div class="eyebrow mb-2">All writing · {restPosts.length}</div>
             <h2 class="section-title">글</h2>
           </div>
           <a href="/tags" class="mono whitespace-nowrap" style="color: var(--text-dim);">태그 전체 →</a>
         </div>
 
         <div class="my-5 flex flex-wrap gap-2" data-home-tag-filter>
-          <button type="button" class="pill" data-home-tag="all" data-active="true" aria-pressed="true">전체 <span class="opacity-60">{posts.length}</span></button>
+          <button type="button" class="pill" data-home-tag="all" data-active="true" aria-pressed="true">전체 <span class="opacity-60">{restPosts.length}</span></button>
           {allTags.slice(0, 10).map((tag) => (
             <button type="button" class="pill" data-home-tag={tag} aria-pressed="false">{tag} <span class="opacity-60">{tagCounts[tag]}</span></button>
           ))}
         </div>
 
         <div class="grid-2 grid gap-x-8 gap-y-[clamp(28px,3.5vw,52px)] md:grid-cols-2">
-          {posts.map((post) => {
+          {restPosts.map((post) => {
             const defaultVisible = defaultPostSlugs.has(post.slug);
             const postImage = getPostImage(post);
             return (

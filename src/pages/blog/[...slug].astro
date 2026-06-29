@@ -3,7 +3,7 @@ import { type CollectionEntry, getCollection } from 'astro:content';
 import BlogPost from '../../layouts/BlogPost.astro';
 import { calculateReadingTime } from '../../utils/readingTime';
 import { extractFirstImage } from '../../utils/extractFirstImage';
-import { isNotePost, sortPostsByPubDateDesc } from '../../utils/postFilters';
+import { comparePostsByMainThenPubDateDesc, isNotePost, sortPostsByPubDateDesc } from '../../utils/postFilters';
 
 type NavPost = { title: string; slug: string };
 type RelatedPost = { title: string; slug: string; description?: string; pubDate: Date };
@@ -32,7 +32,7 @@ export async function getStaticPaths() {
       })
       .sort((a, b) => {
         if (b.sharedTags !== a.sharedTags) return b.sharedTags - a.sharedTags;
-        return b.candidate.data.pubDate.valueOf() - a.candidate.data.pubDate.valueOf();
+        return comparePostsByMainThenPubDateDesc(a.candidate, b.candidate);
       })
       .slice(0, 3)
       .map(({ candidate }) => ({

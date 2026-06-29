@@ -1,8 +1,9 @@
 ---
-title: "Android 백버튼 시스템 설계"
+title: "Android에서만 높은 페이지 이탈률을  해결하며"
 description: "모달이 열리고 뒤로가기를 눌렀는데 페이지가 닫힌다"
 pubDate: 2026-03-20T00:00:00.000Z
 tags: ["당근마켓"]
+main: true
 pinned: true
 notionId: "32f7cf19-a364-803d-92af-f05d62d6e9e7"
 ---
