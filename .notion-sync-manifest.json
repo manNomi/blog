@@ -1,7 +1,7 @@
 {
   "databaseId": "2af7cf19a36480648f08f4072d1246c5",
   "totalPages": 51,
-  "hash": "ad3f6b0903bcb7800e4a0aaf709041508e563dd144ea857f1a874a0a80eb5c95",
+  "hash": "c035ba399446f6db75d85e1290b8dfb162e372e1aae77be9d8275c510a2b4e54",
   "pages": [
     {
       "notionId": "2af7cf19-a364-8004-a41a-dc5735d98b2b",
@@ -101,9 +101,9 @@
     },
     {
       "notionId": "32f7cf19-a364-803d-92af-f05d62d6e9e7",
-      "lastEditedTime": "2026-06-09T10:37:00.000Z",
+      "lastEditedTime": "2026-06-29T04:40:00.000Z",
       "createdTime": "2026-03-26T13:50:00.000Z",
-      "title": "Android 백버튼 시스템 설계"
+      "title": "Android에서만 높은 페이지 이탈률을  해결하며"
     },
     {
       "notionId": "32f7cf19-a364-804d-a9af-c1708e29d149",
@@ -310,7 +310,7 @@
       "title": "백엔드 학습정리 "
     }
   ],
-  "syncedAt": "2026-06-29T04:33:57.497Z",
+  "syncedAt": "2026-06-29T04:47:23.766Z",
   "files": [
     {
       "notionId": "2af7cf19-a364-8004-a41a-dc5735d98b2b",
@@ -712,9 +712,9 @@
     },
     {
       "notionId": "32f7cf19-a364-803d-92af-f05d62d6e9e7",
-      "filename": "android-백버튼-시스템-설계.md",
-      "title": "Android 백버튼 시스템 설계",
-      "lastEditedTime": "2026-06-09T10:37:00.000Z",
+      "filename": "android에서만-높은-페이지-이탈률을-해결하며.md",
+      "title": "Android에서만 높은 페이지 이탈률을  해결하며",
+      "lastEditedTime": "2026-06-29T04:40:00.000Z",
       "heroImage": "",
       "heroImageSourceKey": "",
       "imageAssets": [

@@ -2,11 +2,12 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { getArticlePosts, getNotePosts, sortPostsByPubDateDesc } from '../src/utils/postFilters.ts';
 
-const post = ({ slug, title, pubDate, notes = false }) => ({
+const post = ({ slug, title, pubDate, main = false, notes = false }) => ({
   slug,
   data: {
     title,
     pubDate: new Date(pubDate),
+    main,
     notes
   }
 });
@@ -34,6 +35,19 @@ test('sortPostsByPubDateDesc keeps same-date posts deterministic', () => {
   assert.deepEqual(
     sorted.map((item) => item.slug),
     ['a-slug', 'b-slug', 'z-slug']
+  );
+});
+
+test('sortPostsByPubDateDesc places Main checked posts before regular latest posts', () => {
+  const sorted = sortPostsByPubDateDesc([
+    post({ slug: 'regular-new', title: 'Regular New', pubDate: '2026-06-29' }),
+    post({ slug: 'main-old', title: 'Main Old', pubDate: '2024-01-01', main: true }),
+    post({ slug: 'main-new', title: 'Main New', pubDate: '2025-01-01', main: true })
+  ]);
+
+  assert.deepEqual(
+    sorted.map((item) => item.slug),
+    ['main-new', 'main-old', 'regular-new']
   );
 });
 
