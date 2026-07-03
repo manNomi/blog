@@ -1893,6 +1893,44 @@ body {
   padding: 18px;
 }
 
+.article-body .article-mermaid {
+  margin: 0 0 1.35em;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.article-body .article-mermaid__viewport {
+  min-width: 0;
+  overflow-x: auto;
+  padding: clamp(16px, 3vw, 24px);
+}
+
+.article-body .article-mermaid svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
+.article-body .article-mermaid__status {
+  color: var(--text-faint);
+  font-family: var(--font-mono-ref);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  line-height: 1.6;
+}
+
+.article-body .article-mermaid__fallback {
+  margin: 12px 0 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  padding: 16px 0 0;
+}
+
 .article-body table {
   display: block;
   width: max-content;

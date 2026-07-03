@@ -7,6 +7,7 @@ import ViewCounter from '../components/ViewCounter';
 import ShareButtons from '../components/ShareButtons.astro';
 import Comments from '../components/Comments';
 import PostCard from '../components/PostCard.astro';
+import MermaidRenderer from '../components/MermaidRenderer.astro';
 
 type NavPost = { title: string; slug: string } | null;
 type RelatedPost = { title: string; slug: string; description?: string; pubDate?: Date };
@@ -81,6 +82,7 @@ const collectionLabel = notes ? '노트 목록' : '글 목록';
         <div class="article-body mt-7">
           <slot />
         </div>
+        <MermaidRenderer />
 
         <div class="mono my-7 rounded-xl border border-dashed px-[18px] py-4 leading-[1.7]" style="border-color: var(--border-strong); color: var(--text-faint);">
           Notion sync로 동기화된 Markdown 콘텐츠입니다.

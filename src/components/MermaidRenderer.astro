@@ -1,0 +1,189 @@
+<script>
+  // @ts-nocheck
+  const MERMAID_SOURCE_ATTR = 'data-mermaid-source';
+  const MERMAID_RENDERED_ATTR = 'data-mermaid-rendered';
+  const MERMAID_START_RE =
+    /^(sequenceDiagram|flowchart|graph|classDiagram|classDiagram-v2|stateDiagram|stateDiagram-v2|erDiagram|journey|gantt|pie|mindmap|timeline|gitGraph|quadrantChart|requirementDiagram|c4Context|c4Container|c4Component|c4Dynamic|block-beta|packet-beta|architecture-beta|xychart-beta|sankey-beta)\b/i;
+
+  let renderVersion = 0;
+  let renderId = 0;
+
+  const readTheme = () => (document.documentElement.dataset.theme === 'light' ? 'light' : 'dark');
+
+  const normalizeMermaidSource = (source) =>
+    String(source || '')
+      .replace(/\u00a0/g, ' ')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+
+  const getCodeElement = (pre) => pre.querySelector('code') || pre;
+
+  const isMermaidPre = (pre) => {
+    const code = getCodeElement(pre);
+    const source = normalizeMermaidSource(code.textContent || pre.textContent || '');
+    if (!source) {
+      return false;
+    }
+
+    const classText = `${pre.className || ''} ${code.className || ''}`.toLowerCase();
+    const languageText = `${pre.dataset?.language || ''} ${code.dataset?.language || ''}`.toLowerCase();
+
+    return (
+      classText.includes('language-mermaid') ||
+      classText.split(/\s+/).includes('mermaid') ||
+      languageText.includes('mermaid') ||
+      MERMAID_START_RE.test(source)
+    );
+  };
+
+  const createMermaidFigure = (source) => {
+    const figure = document.createElement('figure');
+    figure.className = 'article-mermaid';
+    figure.setAttribute(MERMAID_SOURCE_ATTR, source);
+    figure.setAttribute(MERMAID_RENDERED_ATTR, 'pending');
+
+    const status = document.createElement('div');
+    status.className = 'article-mermaid__status';
+    status.textContent = '다이어그램 렌더링 중...';
+
+    const viewport = document.createElement('div');
+    viewport.className = 'article-mermaid__viewport';
+    viewport.setAttribute('aria-live', 'polite');
+    viewport.append(status);
+
+    figure.append(viewport);
+    return figure;
+  };
+
+  const upgradeMermaidBlocks = () => {
+    document.querySelectorAll('.article-body pre').forEach((pre) => {
+      if (pre.closest('.article-mermaid') || !isMermaidPre(pre)) {
+        return;
+      }
+
+      const source = normalizeMermaidSource(getCodeElement(pre).textContent || pre.textContent || '');
+      if (!source) {
+        return;
+      }
+
+      pre.replaceWith(createMermaidFigure(source));
+    });
+  };
+
+  const createMermaidConfig = () => {
+    const isDark = readTheme() === 'dark';
+
+    return {
+      startOnLoad: false,
+      securityLevel: 'strict',
+      htmlLabels: false,
+      theme: 'base',
+      themeVariables: isDark
+        ? {
+            background: '#18191c',
+            mainBkg: '#24262b',
+            secondBkg: '#2d3037',
+            tertiaryColor: '#1f2126',
+            primaryColor: '#24262b',
+            primaryTextColor: '#e8e9ec',
+            primaryBorderColor: '#5b5f69',
+            lineColor: '#a1a1aa',
+            textColor: '#e8e9ec',
+            actorBkg: '#24262b',
+            actorBorder: '#71717a',
+            actorTextColor: '#e8e9ec',
+            signalColor: '#d4d4d8',
+            signalTextColor: '#e8e9ec',
+            noteBkgColor: '#30333a',
+            noteTextColor: '#e8e9ec',
+            noteBorderColor: '#71717a'
+          }
+        : {
+            background: '#ffffff',
+            mainBkg: '#f7f7f8',
+            secondBkg: '#f1f2f4',
+            tertiaryColor: '#ffffff',
+            primaryColor: '#f7f7f8',
+            primaryTextColor: '#18191c',
+            primaryBorderColor: '#c8cbd1',
+            lineColor: '#5f636d',
+            textColor: '#18191c',
+            actorBkg: '#ffffff',
+            actorBorder: '#a1a1aa',
+            actorTextColor: '#18191c',
+            signalColor: '#52525b',
+            signalTextColor: '#18191c',
+            noteBkgColor: '#f1f2f4',
+            noteTextColor: '#18191c',
+            noteBorderColor: '#c8cbd1'
+          }
+    };
+  };
+
+  const renderMermaidBlocks = async () => {
+    upgradeMermaidBlocks();
+
+    const figures = Array.from(document.querySelectorAll(`.article-mermaid[${MERMAID_SOURCE_ATTR}]`));
+    if (figures.length === 0) {
+      return;
+    }
+
+    const currentVersion = ++renderVersion;
+    const { default: mermaid } = await import('mermaid');
+    mermaid.initialize(createMermaidConfig());
+
+    for (const figure of figures) {
+      const source = figure.getAttribute(MERMAID_SOURCE_ATTR);
+      const viewport = figure.querySelector('.article-mermaid__viewport');
+      if (!source || !viewport) {
+        continue;
+      }
+
+      figure.classList.remove('article-mermaid--error');
+      figure.setAttribute(MERMAID_RENDERED_ATTR, 'loading');
+      viewport.innerHTML = '<div class="article-mermaid__status">다이어그램 렌더링 중...</div>';
+
+      try {
+        const id = `article-mermaid-${Date.now()}-${renderId++}`;
+        const { svg, bindFunctions } = await mermaid.render(id, source);
+        if (currentVersion !== renderVersion) {
+          return;
+        }
+
+        viewport.innerHTML = svg;
+        bindFunctions?.(viewport);
+        figure.setAttribute(MERMAID_RENDERED_ATTR, 'true');
+      } catch (error) {
+        const fallback = document.createElement('pre');
+        const code = document.createElement('code');
+        const message = document.createElement('div');
+
+        fallback.className = 'article-mermaid__fallback';
+        code.textContent = source;
+        fallback.append(code);
+
+        message.className = 'article-mermaid__status';
+        message.textContent = 'Mermaid 문법을 렌더링하지 못했습니다. 원본 코드를 표시합니다.';
+
+        viewport.replaceChildren(message, fallback);
+        figure.classList.add('article-mermaid--error');
+        figure.setAttribute(MERMAID_RENDERED_ATTR, 'error');
+        console.warn('[mermaid] render failed', error);
+      }
+    }
+  };
+
+  const scheduleRender = () => {
+    window.requestAnimationFrame(() => {
+      renderMermaidBlocks();
+    });
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', scheduleRender, { once: true });
+  } else {
+    scheduleRender();
+  }
+
+  window.addEventListener('themechange', scheduleRender);
+</script>
