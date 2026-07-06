@@ -512,11 +512,15 @@ function ConstellationCanvas({
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.8));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.domElement.style.display = 'block';
+    renderer.domElement.style.touchAction = 'none';
+    renderer.domElement.style.userSelect = 'none';
     container.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
-    camera.position.set(0, 0.35, 10.6);
+    const cameraPan = { x: 0, y: 0 };
+    camera.position.set(cameraPan.x, 0.35 + cameraPan.y, 10.6);
+    camera.lookAt(cameraPan.x, cameraPan.y, 0);
 
     const root = new THREE.Group();
     root.rotation.x = -0.12;
@@ -648,6 +652,16 @@ function ConstellationCanvas({
 
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
+    const dragState = {
+      active: false,
+      dragging: false,
+      pointerId: -1,
+      startX: 0,
+      startY: 0,
+      lastX: 0,
+      lastY: 0,
+      startPersonId: null as string | null
+    };
 
     const setRendererSize = () => {
       const width = Math.max(container.clientWidth, 320);
@@ -657,37 +671,92 @@ function ConstellationCanvas({
       camera.updateProjectionMatrix();
     };
 
-    const updatePointer = (event: PointerEvent) => {
+    const updatePointer = (event: PointerEvent, updateCursor = true) => {
       const rect = renderer.domElement.getBoundingClientRect();
       pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
       raycaster.setFromCamera(pointer, camera);
 
       const hit = raycaster.intersectObjects(nodeMeshes, false)[0];
-      renderer.domElement.style.cursor = hit ? 'pointer' : 'default';
+      if (updateCursor) {
+        renderer.domElement.style.cursor = hit ? 'pointer' : 'grab';
+      }
 
       return hit;
     };
 
     const handlePointerMove = (event: PointerEvent) => {
+      if (dragState.active && event.pointerId === dragState.pointerId) {
+        const totalX = event.clientX - dragState.startX;
+        const totalY = event.clientY - dragState.startY;
+        const movedEnough = Math.hypot(totalX, totalY) > 5;
+
+        if (dragState.dragging || movedEnough) {
+          event.preventDefault();
+          dragState.dragging = true;
+
+          const rect = renderer.domElement.getBoundingClientRect();
+          const panScale = 4.2 / Math.max(rect.width, 1);
+          const deltaX = event.clientX - dragState.lastX;
+          const deltaY = event.clientY - dragState.lastY;
+
+          cameraPan.x = clamp(cameraPan.x - deltaX * panScale, -2.4, 2.4);
+          cameraPan.y = clamp(cameraPan.y + deltaY * panScale, -1.6, 1.6);
+          dragState.lastX = event.clientX;
+          dragState.lastY = event.clientY;
+          renderer.domElement.style.cursor = 'grabbing';
+          return;
+        }
+      }
+
       updatePointer(event);
     };
 
     const handlePointerLeave = () => {
-      renderer.domElement.style.cursor = 'default';
+      if (!dragState.active) {
+        renderer.domElement.style.cursor = 'grab';
+      }
     };
 
     const handlePointerDown = (event: PointerEvent) => {
-      const hit = updatePointer(event);
+      const hit = updatePointer(event, false);
       const personId = hit?.object.userData.personId;
-      if (typeof personId === 'string') {
-        onSelect(personId);
+
+      dragState.active = true;
+      dragState.dragging = false;
+      dragState.pointerId = event.pointerId;
+      dragState.startX = event.clientX;
+      dragState.startY = event.clientY;
+      dragState.lastX = event.clientX;
+      dragState.lastY = event.clientY;
+      dragState.startPersonId = typeof personId === 'string' ? personId : null;
+      renderer.domElement.style.cursor = 'grabbing';
+      renderer.domElement.setPointerCapture(event.pointerId);
+    };
+
+    const finishPointerGesture = (event: PointerEvent) => {
+      if (!dragState.active || event.pointerId !== dragState.pointerId) return;
+
+      if (!dragState.dragging && dragState.startPersonId) {
+        onSelect(dragState.startPersonId);
       }
+
+      if (renderer.domElement.hasPointerCapture(event.pointerId)) {
+        renderer.domElement.releasePointerCapture(event.pointerId);
+      }
+
+      dragState.active = false;
+      dragState.dragging = false;
+      dragState.pointerId = -1;
+      dragState.startPersonId = null;
+      updatePointer(event);
     };
 
     renderer.domElement.addEventListener('pointermove', handlePointerMove);
     renderer.domElement.addEventListener('pointerleave', handlePointerLeave);
     renderer.domElement.addEventListener('pointerdown', handlePointerDown);
+    renderer.domElement.addEventListener('pointerup', finishPointerGesture);
+    renderer.domElement.addEventListener('pointercancel', finishPointerGesture);
 
     const resizeObserver = new ResizeObserver(setRendererSize);
     resizeObserver.observe(container);
@@ -702,6 +771,8 @@ function ConstellationCanvas({
       root.rotation.y = Math.sin(elapsed * 0.18) * 0.2;
       root.rotation.x = -0.12 + Math.sin(elapsed * 0.13) * 0.035;
       stars.rotation.z = elapsed * 0.018;
+      camera.position.set(cameraPan.x, 0.35 + cameraPan.y, 10.6);
+      camera.lookAt(cameraPan.x, cameraPan.y, 0);
 
       nodeMeshes.forEach((mesh, index) => {
         const active = mesh.userData.personId === selectedPersonId;
@@ -721,6 +792,8 @@ function ConstellationCanvas({
       renderer.domElement.removeEventListener('pointermove', handlePointerMove);
       renderer.domElement.removeEventListener('pointerleave', handlePointerLeave);
       renderer.domElement.removeEventListener('pointerdown', handlePointerDown);
+      renderer.domElement.removeEventListener('pointerup', finishPointerGesture);
+      renderer.domElement.removeEventListener('pointercancel', finishPointerGesture);
       disposeScene(scene);
       renderer.dispose();
       renderer.domElement.remove();
@@ -970,7 +1043,7 @@ export default function CompatibilityConstellation() {
 
           {people.length > 0 && (
             <div className="pointer-events-none absolute left-3 top-3 rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs text-[var(--text-dim)] shadow-soft">
-              별을 눌러 궁합 보기
+              드래그로 이동 · 별을 눌러 궁합 보기
             </div>
           )}
 
