@@ -47,8 +47,8 @@ const FOCUS_CAMERA: Record<HotspotId | 'idle', { position: THREE.Vector3; target
     target: new THREE.Vector3(0.92, 1.38, -0.52)
   },
   macbook: {
-    position: new THREE.Vector3(-2.35, 2.0, 2.9),
-    target: new THREE.Vector3(-0.8, 1.45, -0.82)
+    position: new THREE.Vector3(-2.65, 2.05, 2.75),
+    target: new THREE.Vector3(-0.82, 1.58, -0.86)
   },
   notebook: {
     position: new THREE.Vector3(2.85, 2.05, 2.5),
@@ -116,18 +116,96 @@ const roundRect = (ctx: CanvasRenderingContext2D, x: number, y: number, width: n
 
 const makeScreenTexture = (type: 'phone' | 'macbook') =>
   createCanvasTexture((ctx, size) => {
+    if (type === 'macbook') {
+      const gradient = ctx.createLinearGradient(0, 0, size, size);
+      gradient.addColorStop(0, '#09090b');
+      gradient.addColorStop(0.58, '#121316');
+      gradient.addColorStop(1, '#1f2937');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, size, size);
+
+      ctx.fillStyle = 'rgba(255,255,255,0.94)';
+      ctx.font = '800 30px sans-serif';
+      ctx.fillText('한만욱', 36, 46);
+      ctx.fillStyle = 'rgba(255,255,255,0.42)';
+      ctx.font = '700 15px monospace';
+      ctx.fillText('frontend', 126, 46);
+
+      const nav = ['글', '소개', '하우스', '태그'];
+      ctx.font = '700 15px sans-serif';
+      nav.forEach((item, index) => {
+        ctx.fillStyle = index === 1 ? 'rgba(255,255,255,0.96)' : 'rgba(255,255,255,0.52)';
+        ctx.fillText(item, 310 + index * 46, 46);
+      });
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(30, 70);
+      ctx.lineTo(size - 30, 70);
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(255,255,255,0.38)';
+      ctx.font = '700 13px monospace';
+      ctx.fillText('PRODUCT FRONTEND', 38, 116);
+
+      const headline = ['대규모 제품의 UX 결함과', '성능 병목을 끝까지 추적하는', '프론트엔드 개발자.'];
+      ctx.font = '800 34px sans-serif';
+      ctx.fillStyle = 'rgba(255,255,255,0.96)';
+      headline.forEach((line, index) => ctx.fillText(line, 38, 160 + index * 43));
+
+      ctx.font = '500 17px sans-serif';
+      ctx.fillStyle = 'rgba(255,255,255,0.58)';
+      ctx.fillText('Android WebView · LCP · i18n Automation · Open Source', 40, 304);
+
+      const cards = [
+        ['15%p', 'Android UX'],
+        ['50%', 'LCP 개선'],
+        ['13K+', 'i18Nexus'],
+        ['91.2%', 'Solid LCP']
+      ];
+      cards.forEach(([value, label], index) => {
+        const x = 38 + (index % 2) * 222;
+        const y = 338 + Math.floor(index / 2) * 74;
+        ctx.fillStyle = 'rgba(255,255,255,0.075)';
+        roundRect(ctx, x, y, 196, 54, 14);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.11)';
+        ctx.stroke();
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = '800 23px sans-serif';
+        ctx.fillText(value, x + 16, y + 32);
+        ctx.fillStyle = 'rgba(255,255,255,0.54)';
+        ctx.font = '700 13px sans-serif';
+        ctx.fillText(label, x + 84, y + 32);
+      });
+
+      const shine = ctx.createRadialGradient(330, 180, 10, 330, 180, 240);
+      shine.addColorStop(0, 'rgba(125,211,252,0.24)');
+      shine.addColorStop(1, 'rgba(125,211,252,0)');
+      ctx.fillStyle = shine;
+      ctx.fillRect(0, 0, size, size);
+
+      ctx.strokeStyle = 'rgba(125,211,252,0.34)';
+      ctx.lineWidth = 3;
+      roundRect(ctx, 24, 24, size - 48, size - 48, 26);
+      ctx.stroke();
+
+      return;
+    }
+
     const gradient = ctx.createLinearGradient(0, 0, size, size);
-    gradient.addColorStop(0, type === 'phone' ? '#0f172a' : '#111827');
-    gradient.addColorStop(1, type === 'phone' ? '#075985' : '#3b0764');
+    gradient.addColorStop(0, '#0f172a');
+    gradient.addColorStop(1, '#075985');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, size, size);
 
     ctx.fillStyle = 'rgba(255,255,255,0.92)';
     ctx.font = '700 42px sans-serif';
-    ctx.fillText(type === 'phone' ? 'Resume' : 'Work OS', 44, 78);
+    ctx.fillText('Resume', 44, 78);
     ctx.font = '500 22px sans-serif';
     ctx.fillStyle = 'rgba(255,255,255,0.62)';
-    ctx.fillText(type === 'phone' ? portfolioProfile.role : 'Product Frontend', 46, 116);
+    ctx.fillText(portfolioProfile.role, 46, 116);
 
     const colors = ['#38bdf8', '#a78bfa', '#34d399', '#fbbf24', '#f472b6', '#f87171'];
     for (let index = 0; index < 6; index += 1) {
@@ -169,6 +247,23 @@ const makeNotebookTexture = () =>
     ctx.fillText('Android Back Stack', 56, 180);
     ctx.fillText('i18n AST Automation', 56, 226);
     ctx.fillText('WebGL Map Grid', 56, 272);
+  });
+
+const makeClockTexture = () =>
+  createCanvasTexture((ctx, size) => {
+    ctx.fillStyle = '#0b0f14';
+    roundRect(ctx, 28, 156, size - 56, 200, 34);
+    ctx.fill();
+    ctx.shadowColor = '#a7f3ff';
+    ctx.shadowBlur = 22;
+    ctx.fillStyle = '#dffbff';
+    ctx.font = '800 104px monospace';
+    ctx.fillText('22:50', 72, 288);
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+    ctx.lineWidth = 8;
+    roundRect(ctx, 28, 156, size - 56, 200, 34);
+    ctx.stroke();
   });
 
 const createBox = (
@@ -234,7 +329,7 @@ export default function ThreeHouseScene() {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.02;
+    renderer.toneMappingExposure = 0.88;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.domElement.style.display = 'block';
@@ -243,8 +338,8 @@ export default function ThreeHouseScene() {
     viewport.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xeff1f2);
-    scene.fog = new THREE.Fog(0xeff1f2, 7, 13);
+    scene.background = new THREE.Color(0x090a0f);
+    scene.fog = new THREE.Fog(0x090a0f, 4.8, 11);
 
     const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 80);
     camera.position.copy(FOCUS_CAMERA.idle.position);
@@ -279,23 +374,138 @@ export default function ThreeHouseScene() {
         ...options
       });
 
-    const wallMaterial = makeMaterial(0xe5e1da, { roughness: 0.86 });
-    const floorMaterial = makeMaterial(0xb7a48c, { roughness: 0.82 });
-    const woodMaterial = makeMaterial(0x8a6246, { roughness: 0.68 });
+    const wallMaterial = makeMaterial(0x23242c, { roughness: 0.9 });
+    const floorMaterial = makeMaterial(0x17151a, { roughness: 0.86 });
+    const woodMaterial = makeMaterial(0x563826, { roughness: 0.74 });
     const darkMaterial = makeMaterial(0x17191f, { roughness: 0.44, metalness: 0.25 });
-    const metalMaterial = makeMaterial(0xb9c0c7, { roughness: 0.36, metalness: 0.5 });
-    const paperMaterial = makeMaterial(0xf9f1d1, { roughness: 0.95 });
-    const greenMaterial = makeMaterial(0x7a9f72, { roughness: 0.88 });
+    const metalMaterial = makeMaterial(0x6b7280, { roughness: 0.42, metalness: 0.55 });
+    const paperMaterial = makeMaterial(0xc9b98e, { roughness: 0.95 });
+    const greenMaterial = makeMaterial(0x47633f, { roughness: 0.88 });
+    const windowFrameMaterial = makeMaterial(0x8c6948, { roughness: 0.7 });
+    const glassMaterial = new THREE.MeshStandardMaterial({
+      color: 0x7da9bd,
+      roughness: 0.18,
+      metalness: 0.02,
+      transparent: true,
+      opacity: 0.24
+    });
+    const blackMaterial = makeMaterial(0x08090d, { roughness: 0.56, metalness: 0.12 });
+    const linenMaterial = makeMaterial(0xd8d4ca, { roughness: 0.96 });
+    const cabinetMaterial = makeMaterial(0x2a2c33, { roughness: 0.82 });
     const room = new THREE.Group();
     scene.add(room);
 
     room.add(createBox(7.8, 0.12, 5.2, floorMaterial, [0, -0.06, 0]));
     room.add(createBox(7.8, 3.15, 0.12, wallMaterial, [0, 1.5, -2.62]));
     room.add(createBox(0.12, 3.15, 5.2, wallMaterial, [-3.9, 1.5, 0]));
-    room.add(createBox(7.4, 0.035, 2.1, makeMaterial(0xd8cec0, { roughness: 0.9 }), [0.1, 0.015, 1.15]));
-    room.add(createBox(2.4, 0.025, 1.42, makeMaterial(0x28313a, { roughness: 0.88 }), [0.4, 0.03, 0.55]));
+    room.add(createBox(7.4, 0.035, 2.1, makeMaterial(0x2a211d, { roughness: 0.9 }), [0.1, 0.015, 1.15]));
+    room.add(createBox(2.4, 0.025, 1.42, makeMaterial(0x090b10, { roughness: 0.88 }), [0.4, 0.03, 0.55]));
 
-    const cork = createBox(1.85, 1.02, 0.07, makeMaterial(0xc8965f, { roughness: 0.8 }), [1.78, 1.92, -2.55]);
+    const addWindow = (centerX: number, centerY: number, width: number, height: number) => {
+      const pane = createBox(width, height, 0.026, glassMaterial, [centerX, centerY, -2.535]);
+      pane.castShadow = false;
+      room.add(pane);
+      room.add(createBox(width + 0.14, 0.075, 0.055, windowFrameMaterial, [centerX, centerY + height / 2 + 0.04, -2.505]));
+      room.add(createBox(width + 0.14, 0.075, 0.055, windowFrameMaterial, [centerX, centerY - height / 2 - 0.04, -2.505]));
+      room.add(createBox(0.075, height + 0.16, 0.055, windowFrameMaterial, [centerX - width / 2 - 0.04, centerY, -2.505]));
+      room.add(createBox(0.075, height + 0.16, 0.055, windowFrameMaterial, [centerX + width / 2 + 0.04, centerY, -2.505]));
+      room.add(createBox(0.04, height, 0.05, windowFrameMaterial, [centerX, centerY, -2.498]));
+    };
+
+    addWindow(1.1, 1.7, 1.18, 1.58);
+    addWindow(2.72, 1.7, 1.02, 1.58);
+
+    const hangingRail = createBox(1.7, 0.045, 0.045, metalMaterial, [1.85, 2.7, -2.45]);
+    room.add(hangingRail);
+    const clothesColors = [0x1e293b, 0x3f2e24, 0x27272a, 0x334155, 0x14537a] as const;
+    clothesColors.forEach((color, index) => {
+      room.add(createBox(0.24, 0.62, 0.08, makeMaterial(color, { roughness: 0.9 }), [1.25 + index * 0.28, 2.36, -2.38]));
+    });
+
+    const bed = new THREE.Group();
+    bed.position.set(-2.35, 0.18, 0.88);
+    room.add(bed);
+    bed.add(createBox(1.58, 0.24, 2.04, blackMaterial, [0, 0.2, 0.12]));
+    bed.add(createBox(1.46, 0.14, 1.82, makeMaterial(0x494a50, { roughness: 0.86 }), [0, 0.42, 0.12]));
+    bed.add(createBox(1.36, 0.13, 1.1, linenMaterial, [0, 0.54, 0.38]));
+    bed.add(createBox(0.6, 0.11, 0.32, makeMaterial(0xf1eee6, { roughness: 0.97 }), [-0.38, 0.6, -0.62]));
+    bed.add(createBox(0.6, 0.11, 0.32, makeMaterial(0xf1eee6, { roughness: 0.97 }), [0.36, 0.6, -0.62]));
+    bed.add(createBox(0.82, 0.16, 0.42, makeMaterial(0x85858b, { roughness: 0.98 }), [0.08, 0.72, -0.2], [0, 0.06, 0]));
+    bed.add(createBox(1.2, 0.1, 0.76, makeMaterial(0xb9b2a4, { roughness: 0.98 }), [0, 0.67, 0.54], [0.05, 0, 0]));
+    bed.add(createBox(1.68, 0.78, 0.12, blackMaterial, [0, 0.62, -0.94]));
+
+    const sideDrawer = new THREE.Group();
+    sideDrawer.position.set(-1.2, 0.15, -0.75);
+    room.add(sideDrawer);
+    sideDrawer.add(createBox(0.42, 0.86, 0.52, cabinetMaterial, [0, 0.43, 0]));
+    for (let index = 0; index < 3; index += 1) {
+      sideDrawer.add(createBox(0.36, 0.018, 0.42, metalMaterial, [0, 0.22 + index * 0.22, 0.27]));
+    }
+
+    const bedsideLamp = new THREE.Group();
+    bedsideLamp.position.set(-1.2, 1.02, -0.74);
+    room.add(bedsideLamp);
+    const lampBulb = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.13, 0.13, 0.26, 24),
+      new THREE.MeshBasicMaterial({ color: 0xffe8bc, transparent: true, opacity: 0.92 })
+    );
+    lampBulb.position.set(0.22, 0.1, 0);
+    bedsideLamp.add(lampBulb);
+    const bedsideGlow = new THREE.PointLight(0xffd08a, 2.9, 2.5);
+    bedsideGlow.position.set(-0.98, 1.22, -0.72);
+    scene.add(bedsideGlow);
+
+    const wallShelf = new THREE.Group();
+    wallShelf.position.set(-2.55, 2.3, -2.46);
+    room.add(wallShelf);
+    wallShelf.add(createBox(1.1, 0.065, 0.28, makeMaterial(0xd8d3ca, { roughness: 0.78 }), [0, 0, 0]));
+    for (let index = 0; index < 5; index += 1) {
+      wallShelf.add(createBox(0.09, 0.34, 0.18, makeMaterial([0x334155, 0x1f2937, 0x64748b, 0x374151, 0x475569][index] ?? 0x334155), [-0.38 + index * 0.13, 0.23, 0.02]));
+    }
+
+    const digitalClock = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.64, 0.24),
+      new THREE.MeshBasicMaterial({ map: makeClockTexture(), toneMapped: false, transparent: true })
+    );
+    digitalClock.position.set(-1.8, 1.78, -2.49);
+    room.add(digitalClock);
+
+    const wallStand = new THREE.Group();
+    wallStand.position.set(2.6, 2.3, -2.46);
+    room.add(wallStand);
+    wallStand.add(createBox(0.72, 0.045, 0.045, blackMaterial, [0, 0, 0], [0, 0, -0.28]));
+    wallStand.add(createBox(0.045, 0.54, 0.045, blackMaterial, [0.3, -0.26, 0]));
+    const wallShade = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.2, 28), makeMaterial(0xe5e7eb, { roughness: 0.55 }));
+    wallShade.position.set(-0.42, -0.12, 0);
+    wallShade.rotation.set(Math.PI * 0.72, 0, -0.28);
+    wallShade.castShadow = true;
+    wallStand.add(wallShade);
+    const wallLight = new THREE.SpotLight(0xfff1cc, 4.8, 5.5, Math.PI * 0.22, 0.58, 1.2);
+    wallLight.position.set(2.18, 2.18, -2.2);
+    wallLight.target.position.set(1.0, 1.05, -0.55);
+    scene.add(wallLight);
+    scene.add(wallLight.target);
+
+    const shelfDivider = new THREE.Group();
+    shelfDivider.position.set(2.95, 0.1, 0.62);
+    room.add(shelfDivider);
+    [-0.36, 0.36].forEach((x) => shelfDivider.add(createBox(0.055, 1.55, 0.055, blackMaterial, [x, 0.82, 0])));
+    for (let index = 0; index < 4; index += 1) {
+      shelfDivider.add(createBox(0.86, 0.045, 0.54, makeMaterial(0x2f3137, { roughness: 0.76 }), [0, 0.24 + index * 0.38, 0]));
+    }
+
+    const bigRug = createBox(2.75, 0.026, 2.05, makeMaterial(0x34343a, { roughness: 0.94 }), [-0.95, 0.055, 0.92]);
+    room.add(bigRug);
+    for (let index = 0; index < 12; index += 1) {
+      room.add(createBox(2.55, 0.006, 0.018, makeMaterial(index % 2 === 0 ? 0x4a4a50 : 0x26262b, { roughness: 0.9 }), [-0.95, 0.073, 0.02 + index * 0.15]));
+    }
+
+    const curtainMaterial = makeMaterial(0x5f7080, { roughness: 0.94 });
+    for (let index = 0; index < 7; index += 1) {
+      room.add(createBox(0.08, 1.85, 0.045, curtainMaterial, [3.38 + Math.sin(index) * 0.02, 1.54, -2.3 + index * 0.035]));
+    }
+
+    const cork = createBox(1.85, 1.02, 0.07, makeMaterial(0x5f432d, { roughness: 0.84 }), [1.78, 1.92, -2.55]);
     room.add(cork);
     const noteColors = [0xfff0b3, 0xc7d2fe, 0xfbcfe8, 0xbbf7d0, 0xfed7aa] as const;
     for (let index = 0; index < 5; index += 1) {
@@ -324,7 +534,7 @@ export default function ThreeHouseScene() {
     deskGroup.name = 'desk hotspot';
     room.add(deskGroup);
     const tabletop = createBox(4.25, 0.18, 1.45, woodMaterial, [0, 1.02, -0.7]);
-    const frontPanel = createBox(4.1, 0.32, 0.08, makeMaterial(0x6c4d37), [0, 0.78, 0.01]);
+    const frontPanel = createBox(4.1, 0.32, 0.08, makeMaterial(0x342116), [0, 0.78, 0.01]);
     addHotspotMesh('desk', tabletop);
     addHotspotMesh('desk', frontPanel);
     deskGroup.add(tabletop, frontPanel);
@@ -341,17 +551,20 @@ export default function ThreeHouseScene() {
     deskGroup.add(macbook);
     const macBase = createBox(1.62, 0.06, 1.04, metalMaterial, [0, 0, 0.2], [-0.05, 0, 0]);
     const trackpad = createBox(0.42, 0.012, 0.32, makeMaterial(0xdce2e8, { metalness: 0.35 }), [0, 0.04, 0.42], [-0.05, 0, 0]);
-    const macScreen = createBox(1.52, 0.86, 0.055, darkMaterial, [0, 0.58, -0.3], [-0.2, 0, 0]);
+    const macScreen = createBox(2.05, 1.16, 0.062, darkMaterial, [0, 0.7, -0.34], [-0.18, 0, 0]);
     const screenTexture = makeScreenTexture('macbook');
     const macScreenPlane = new THREE.Mesh(
-      new THREE.PlaneGeometry(1.34, 0.66),
+      new THREE.PlaneGeometry(1.84, 0.94),
       new THREE.MeshBasicMaterial({ map: screenTexture, toneMapped: false })
     );
-    macScreenPlane.position.set(0, 0.6, -0.266);
-    macScreenPlane.rotation.x = -0.2;
+    macScreenPlane.position.set(0, 0.72, -0.304);
+    macScreenPlane.rotation.x = -0.18;
     addHotspotMesh('macbook', macBase);
     addHotspotMesh('macbook', macScreen);
     macbook.add(macBase, trackpad, macScreen, macScreenPlane);
+    const monitorGlow = new THREE.PointLight(0x77ddff, 3.8, 3.4);
+    monitorGlow.position.set(-0.78, 1.92, -0.32);
+    scene.add(monitorGlow);
     for (let row = 0; row < 3; row += 1) {
       for (let col = 0; col < 8; col += 1) {
         macbook.add(createBox(0.105, 0.01, 0.045, darkMaterial, [-0.48 + col * 0.14, 0.048, 0.03 + row * 0.105], [-0.05, 0, 0]));
@@ -396,14 +609,14 @@ export default function ThreeHouseScene() {
     deskGroup.add(mug);
     const mugBody = new THREE.Mesh(
       new THREE.CylinderGeometry(0.18, 0.16, 0.32, 32),
-      makeMaterial(0xf4f4f5, { roughness: 0.62 })
+      makeMaterial(0x9ca3af, { roughness: 0.62 })
     );
     mugBody.castShadow = true;
     mugBody.receiveShadow = true;
     mug.add(mugBody);
     const mugHandle = new THREE.Mesh(
       new THREE.TorusGeometry(0.14, 0.025, 10, 24, Math.PI * 1.25),
-      makeMaterial(0xf4f4f5, { roughness: 0.62 })
+      makeMaterial(0x9ca3af, { roughness: 0.62 })
     );
     mugHandle.position.set(0.17, 0.01, 0);
     mugHandle.rotation.y = Math.PI / 2;
@@ -424,12 +637,12 @@ export default function ThreeHouseScene() {
     lamp.position.set(2.42, 1.16, -1.0);
     deskGroup.add(lamp);
     lamp.add(createBox(0.09, 0.78, 0.09, darkMaterial, [0, 0.27, 0]));
-    const shade = new THREE.Mesh(new THREE.ConeGeometry(0.32, 0.28, 32), makeMaterial(0xf4f4f5, { roughness: 0.58 }));
+    const shade = new THREE.Mesh(new THREE.ConeGeometry(0.32, 0.28, 32), makeMaterial(0xddd6c8, { roughness: 0.58 }));
     shade.position.set(0, 0.78, 0);
     shade.rotation.x = Math.PI;
     shade.castShadow = true;
     lamp.add(shade);
-    const lampLight = new THREE.PointLight(0xffe7b0, 7, 4);
+    const lampLight = new THREE.PointLight(0xffb86b, 5.8, 4.2);
     lampLight.position.set(2.42, 2.0, -1.0);
     scene.add(lampLight);
 
@@ -437,7 +650,7 @@ export default function ThreeHouseScene() {
     const dotGeometry = new THREE.SphereGeometry(0.06, 24, 12);
     const dotPositions: Record<HotspotId, [number, number, number]> = {
       iphone: [0.95, 2.0, -0.42],
-      macbook: [-0.78, 2.06, -0.74],
+      macbook: [-1.46, 1.32, -0.18],
       notebook: [1.78, 1.55, -0.42],
       desk: [0, 1.42, 0.1]
     };
@@ -457,9 +670,9 @@ export default function ThreeHouseScene() {
       scene.add(dot);
     });
 
-    const hemisphere = new THREE.HemisphereLight(0xf7fbff, 0x8b735d, 1.85);
+    const hemisphere = new THREE.HemisphereLight(0x526174, 0x120e0c, 0.72);
     scene.add(hemisphere);
-    const sun = new THREE.DirectionalLight(0xfff0d2, 3.6);
+    const sun = new THREE.DirectionalLight(0xaecbff, 1.15);
     sun.position.set(-3.2, 5.5, 3.5);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
@@ -470,7 +683,7 @@ export default function ThreeHouseScene() {
     sun.shadow.camera.top = 5;
     sun.shadow.camera.bottom = -5;
     scene.add(sun);
-    const fill = new THREE.PointLight(0xa7c7ff, 1.6, 8);
+    const fill = new THREE.PointLight(0x5e7ce2, 1.15, 7);
     fill.position.set(2.5, 2.4, 2.6);
     scene.add(fill);
 
@@ -633,9 +846,9 @@ export default function ThreeHouseScene() {
   };
 
   return (
-    <div className="relative min-h-[680px] overflow-hidden rounded-[24px] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow)] md:min-h-[720px]">
+    <div className="relative min-h-[680px] overflow-hidden rounded-[24px] border border-[var(--border)] bg-[#07080c] shadow-[var(--shadow)] md:min-h-[720px]">
       <div ref={viewportRef} className="absolute inset-0" aria-label="3D 포트폴리오 방" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(255,255,255,0.22),transparent_26%),linear-gradient(180deg,transparent_58%,color-mix(in_oklab,var(--bg)_86%,transparent))]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_34%_26%,rgba(125,211,252,0.16),transparent_24%),radial-gradient(circle_at_72%_38%,rgba(255,184,107,0.13),transparent_22%),linear-gradient(180deg,rgba(0,0,0,0.06)_0%,rgba(0,0,0,0.68)_100%)]" />
 
       <div className="absolute left-4 top-4 flex max-w-[calc(100%-2rem)] flex-wrap gap-2 md:left-6 md:top-6">
         {(Object.keys(HOTSPOTS) as HotspotId[]).map((hotspot) => (
