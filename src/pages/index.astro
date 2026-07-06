@@ -3,7 +3,6 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import ThreeHouseScene from '../components/ThreeHouseScene';
 import { portfolioProfile } from '../data/portfolio';
 import { extractFirstImage } from '../utils/extractFirstImage';
 import { getArticlePosts } from '../utils/postFilters';
@@ -107,20 +106,6 @@ const homeJsonLd = [
             </div>
           </a>
         )}
-      </section>
-
-      <section class="pb-[clamp(34px,5vw,60px)]">
-        <div class="section-head">
-          <div>
-            <div class="eyebrow mb-2">Interactive WebGL</div>
-            <h2 class="section-title">Three.js 하우스</h2>
-          </div>
-          <a href="/house" class="mono whitespace-nowrap" style="color: var(--text-dim);">전체 화면 →</a>
-        </div>
-
-        <div class="mt-5">
-          <ThreeHouseScene client:visible />
-        </div>
       </section>
 
       <hr class="rule" />

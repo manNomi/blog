@@ -4,30 +4,26 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import ThreeHouseScene from '../components/ThreeHouseScene';
 
-const description = 'Three.js GLTF, keyframe animation, Sky 환경광으로 구성한 인터랙티브 하우스 씬입니다.';
+const description = '책상, 맥북, 아이폰을 클릭해 이력과 프로젝트를 탐색하는 3D 포트폴리오 룸입니다.';
 ---
 
 <BaseLayout
-  title="Three.js 하우스 | 한만욱"
+  title="3D 포트폴리오 룸 | 한만욱"
   description={description}
-  keywords={['Three.js', 'WebGL', 'GLTF', 'Frontend']}
+  keywords={['Three.js', 'WebGL', 'Portfolio', 'Frontend']}
   showPet={false}
 >
   <Header />
 
   <main class="site-main">
     <section class="wrap py-[clamp(34px,5vw,72px)]">
-      <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+      <div class="mb-6">
         <div>
           <p class="eyebrow mb-3">WebGL Experiment</p>
-          <h1 class="m-0 max-w-[13ch] text-[clamp(2.3rem,7vw,5.8rem)] font-bold leading-[0.92] tracking-[-0.06em]" style="color: var(--text);">
-            Three.js 하우스
+          <h1 class="m-0 max-w-[13ch] text-[clamp(2.3rem,7vw,5.4rem)] font-bold leading-[0.92] tracking-[-0.06em]" style="color: var(--text);">
+            3D Portfolio Room
           </h1>
         </div>
-
-        <p class="max-w-[420px] text-[0.95rem] leading-[1.75]" style="color: var(--text-dim);">
-          three.js keyframes 예제의 구조를 블로그 톤에 맞게 다시 감싼 인터랙티브 씬입니다. 드래그로 회전하고 휠 또는 핀치로 확대할 수 있습니다.
-        </p>
       </div>
 
       <ThreeHouseScene client:only="react" />
