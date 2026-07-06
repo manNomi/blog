@@ -1220,7 +1220,6 @@ function MacbookPanel({ projects }: { projects: typeof portfolioProjects }) {
         <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
         <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
         <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
-        <span className="mono ml-2 text-[0.68rem]">workstation</span>
       </div>
       <div className="space-y-3 p-4">
         {projects.slice(0, 4).map((project) => (
