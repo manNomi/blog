@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { CSS3DObject, CSS3DRenderer } from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 import { portfolioProfile, portfolioProjects, resumeExperiences, resumeFeatureProject } from '../data/portfolio';
 
 type HotspotId = 'iphone' | 'macbook' | 'notebook' | 'desk';
@@ -48,7 +49,7 @@ const FOCUS_CAMERA: Record<HotspotId | 'idle', { position: THREE.Vector3; target
   },
   macbook: {
     position: new THREE.Vector3(-2.65, 2.05, 2.75),
-    target: new THREE.Vector3(-0.82, 1.58, -0.86)
+    target: new THREE.Vector3(-0.42, 1.55, -0.84)
   },
   notebook: {
     position: new THREE.Vector3(2.85, 2.05, 2.5),
@@ -337,6 +338,14 @@ export default function ThreeHouseScene() {
     renderer.domElement.style.width = '100%';
     viewport.appendChild(renderer.domElement);
 
+    const cssRenderer = new CSS3DRenderer();
+    cssRenderer.domElement.style.position = 'absolute';
+    cssRenderer.domElement.style.inset = '0';
+    cssRenderer.domElement.style.pointerEvents = 'none';
+    cssRenderer.domElement.style.height = '100%';
+    cssRenderer.domElement.style.width = '100%';
+    viewport.appendChild(cssRenderer.domElement);
+
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x090a0f);
     scene.fog = new THREE.Fog(0x090a0f, 4.8, 11);
@@ -555,13 +564,43 @@ export default function ThreeHouseScene() {
     const screenTexture = makeScreenTexture('macbook');
     const macScreenPlane = new THREE.Mesh(
       new THREE.PlaneGeometry(1.84, 0.94),
-      new THREE.MeshBasicMaterial({ map: screenTexture, toneMapped: false })
+      new THREE.MeshBasicMaterial({ map: screenTexture, toneMapped: false, transparent: true, opacity: 0.24 })
     );
     macScreenPlane.position.set(0, 0.72, -0.304);
     macScreenPlane.rotation.x = -0.18;
+    const monitorElement = document.createElement('div');
+    Object.assign(monitorElement.style, {
+      width: '920px',
+      height: '470px',
+      overflow: 'hidden',
+      borderRadius: '22px',
+      background: '#05070a',
+      border: '1px solid rgba(148, 163, 184, 0.28)',
+      boxShadow: '0 0 34px rgba(125, 211, 252, 0.24), inset 0 0 28px rgba(255, 255, 255, 0.06)',
+      pointerEvents: 'none',
+      userSelect: 'none'
+    });
+    const monitorIframe = document.createElement('iframe');
+    monitorIframe.src = '/';
+    monitorIframe.title = '한만욱 포트폴리오 실제 홈 화면';
+    monitorIframe.loading = 'eager';
+    monitorIframe.referrerPolicy = 'same-origin';
+    Object.assign(monitorIframe.style, {
+      width: '100%',
+      height: '100%',
+      border: '0',
+      display: 'block',
+      background: '#08090d',
+      pointerEvents: 'inherit'
+    });
+    monitorElement.appendChild(monitorIframe);
+    const monitorObject = new CSS3DObject(monitorElement);
+    monitorObject.position.set(0, 0.72, -0.3);
+    monitorObject.rotation.x = -0.18;
+    monitorObject.scale.setScalar(0.002);
     addHotspotMesh('macbook', macBase);
     addHotspotMesh('macbook', macScreen);
-    macbook.add(macBase, trackpad, macScreen, macScreenPlane);
+    macbook.add(macBase, trackpad, macScreen, macScreenPlane, monitorObject);
     const monitorGlow = new THREE.PointLight(0x77ddff, 3.8, 3.4);
     monitorGlow.position.set(-0.78, 1.92, -0.32);
     scene.add(monitorGlow);
@@ -693,6 +732,7 @@ export default function ThreeHouseScene() {
       const height = Math.max(520, Math.floor(rect.height));
       const isNarrow = width < 720;
       renderer.setSize(width, height, false);
+      cssRenderer.setSize(width, height);
       camera.aspect = width / height;
       if (selectedRef.current == null) {
         const idle = isNarrow
@@ -710,6 +750,20 @@ export default function ThreeHouseScene() {
     const resizeObserver = new ResizeObserver(setRendererSize);
     resizeObserver.observe(viewport);
     setRendererSize();
+
+    const syncMonitorTheme = () => {
+      try {
+        const theme = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+        const monitorDocument = monitorIframe.contentDocument;
+        if (!monitorDocument) return;
+        monitorDocument.documentElement.dataset.theme = theme;
+        monitorDocument.documentElement.classList.toggle('dark', theme === 'dark');
+      } catch {
+        // Same-origin iframe is expected here; ignore browser edge cases without breaking the 3D room.
+      }
+    };
+    monitorIframe.addEventListener('load', syncMonitorTheme);
+    window.addEventListener('themechange', syncMonitorTheme);
 
     const selectHotspot = (hotspot: HotspotId | null) => {
       selectedRef.current = hotspot;
@@ -800,9 +854,11 @@ export default function ThreeHouseScene() {
         material.opacity = active ? 0.95 : hover ? 0.82 : 0.58;
         dot.scale.setScalar(active ? 1.45 : hover ? 1.22 : 1 + Math.sin(elapsedTime * 2.2 + id.length) * 0.04);
       });
+      monitorElement.style.pointerEvents = selected === 'macbook' ? 'auto' : 'none';
 
       controls.update();
       renderer.render(scene, camera);
+      cssRenderer.render(scene, camera);
       if (!disposed) frameId = window.requestAnimationFrame(render);
     };
     render();
@@ -815,6 +871,8 @@ export default function ThreeHouseScene() {
       renderer.domElement.removeEventListener('pointerdown', handlePointerDown);
       renderer.domElement.removeEventListener('pointerup', handlePointerUp);
       resizeObserver.disconnect();
+      monitorIframe.removeEventListener('load', syncMonitorTheme);
+      window.removeEventListener('themechange', syncMonitorTheme);
       sceneSelectRef.current = null;
       controls.dispose();
       scene.traverse((object) => {
@@ -838,6 +896,7 @@ export default function ThreeHouseScene() {
       });
       renderer.dispose();
       renderer.domElement.remove();
+      cssRenderer.domElement.remove();
     };
   }, []);
 
