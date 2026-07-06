@@ -23,8 +23,8 @@ const HOTSPOTS: Record<HotspotId, { label: string; detail: string; tone: string 
     tone: '#7dd3fc'
   },
   macbook: {
-    label: 'MacBook',
-    detail: '제품 문제 해결과 DX 자동화 기록을 엽니다.',
+    label: 'Desktop',
+    detail: '데스크톱 화면에서 포트폴리오를 탐색합니다.',
     tone: '#c4b5fd'
   },
   notebook: {
@@ -39,18 +39,22 @@ const HOTSPOTS: Record<HotspotId, { label: string; detail: string; tone: string 
   }
 };
 
+const PRIMARY_HOTSPOT: HotspotId = 'macbook';
+const INTERACTIVE_HOTSPOTS: HotspotId[] = [PRIMARY_HOTSPOT];
+const isInteractiveHotspot = (id: HotspotId) => id === PRIMARY_HOTSPOT;
+
 const FOCUS_CAMERA: Record<HotspotId | 'idle', { position: THREE.Vector3; target: THREE.Vector3 }> = {
   idle: {
-    position: new THREE.Vector3(4.6, 3.1, 5.9),
-    target: new THREE.Vector3(0, 1.1, -0.55)
+    position: new THREE.Vector3(-0.78, 2.55, 4.7),
+    target: new THREE.Vector3(-0.78, 1.28, -0.82)
   },
   iphone: {
     position: new THREE.Vector3(2.3, 2.05, 2.6),
     target: new THREE.Vector3(0.92, 1.38, -0.52)
   },
   macbook: {
-    position: new THREE.Vector3(-2.65, 2.05, 2.75),
-    target: new THREE.Vector3(-0.42, 1.55, -0.84)
+    position: new THREE.Vector3(-0.78, 2.04, 2.75),
+    target: new THREE.Vector3(-0.78, 1.72, -1.04)
   },
   notebook: {
     position: new THREE.Vector3(2.85, 2.05, 2.5),
@@ -133,7 +137,7 @@ const makeScreenTexture = (type: 'phone' | 'macbook') =>
       ctx.font = '700 15px monospace';
       ctx.fillText('frontend', 126, 46);
 
-      const nav = ['글', '소개', '하우스', '태그'];
+      const nav = ['글', '소개', '3D소개', '태그'];
       ctx.font = '700 15px sans-serif';
       nav.forEach((item, index) => {
         ctx.fillStyle = index === 1 ? 'rgba(255,255,255,0.96)' : 'rgba(255,255,255,0.52)';
@@ -370,7 +374,7 @@ export default function ThreeHouseScene() {
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.04;
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.type = THREE.PCFShadowMap;
     renderer.domElement.style.display = 'block';
     renderer.domElement.style.height = '100%';
     renderer.domElement.style.width = '100%';
@@ -405,6 +409,7 @@ export default function ThreeHouseScene() {
     controls.update();
 
     const addHotspotMesh = (id: HotspotId, mesh: THREE.Mesh) => {
+      if (!isInteractiveHotspot(id)) return;
       mesh.userData.hotspot = id;
       clickableMeshes.push(mesh);
       const material = mesh.material;
@@ -454,21 +459,21 @@ export default function ThreeHouseScene() {
       const pane = createBox(width, height, 0.026, glassMaterial, [centerX, centerY, -2.535]);
       pane.castShadow = false;
       room.add(pane);
-      room.add(createBox(width + 0.14, 0.075, 0.055, windowFrameMaterial, [centerX, centerY + height / 2 + 0.04, -2.505]));
-      room.add(createBox(width + 0.14, 0.075, 0.055, windowFrameMaterial, [centerX, centerY - height / 2 - 0.04, -2.505]));
-      room.add(createBox(0.075, height + 0.16, 0.055, windowFrameMaterial, [centerX - width / 2 - 0.04, centerY, -2.505]));
-      room.add(createBox(0.075, height + 0.16, 0.055, windowFrameMaterial, [centerX + width / 2 + 0.04, centerY, -2.505]));
-      room.add(createBox(0.04, height, 0.05, windowFrameMaterial, [centerX, centerY, -2.498]));
+      room.add(createRoundedBox(width + 0.14, 0.075, 0.055, 0.018, windowFrameMaterial, [centerX, centerY + height / 2 + 0.04, -2.505]));
+      room.add(createRoundedBox(width + 0.14, 0.075, 0.055, 0.018, windowFrameMaterial, [centerX, centerY - height / 2 - 0.04, -2.505]));
+      room.add(createRoundedBox(0.075, height + 0.16, 0.055, 0.018, windowFrameMaterial, [centerX - width / 2 - 0.04, centerY, -2.505]));
+      room.add(createRoundedBox(0.075, height + 0.16, 0.055, 0.018, windowFrameMaterial, [centerX + width / 2 + 0.04, centerY, -2.505]));
+      room.add(createRoundedBox(0.04, height, 0.05, 0.014, windowFrameMaterial, [centerX, centerY, -2.498]));
     };
 
     addWindow(1.1, 1.7, 1.18, 1.58);
     addWindow(2.72, 1.7, 1.02, 1.58);
 
-    const hangingRail = createBox(1.7, 0.045, 0.045, metalMaterial, [1.85, 2.7, -2.45]);
+    const hangingRail = createCylinder(0.023, 0.023, 1.7, metalMaterial, [1.85, 2.7, -2.45], [0, 0, Math.PI / 2], 18);
     room.add(hangingRail);
     const clothesColors = [0x1e293b, 0x3f2e24, 0x27272a, 0x334155, 0x14537a] as const;
     clothesColors.forEach((color, index) => {
-      room.add(createBox(0.24, 0.62, 0.08, makeMaterial(color, { roughness: 0.9 }), [1.25 + index * 0.28, 2.36, -2.38]));
+      room.add(createRoundedBox(0.24, 0.62, 0.08, 0.04, makeMaterial(color, { roughness: 0.9 }), [1.25 + index * 0.28, 2.36, -2.38]));
     });
 
     const bed = new THREE.Group();
@@ -764,13 +769,10 @@ export default function ThreeHouseScene() {
 
     const hotspotDots = new Map<HotspotId, THREE.Mesh>();
     const dotGeometry = new THREE.SphereGeometry(0.06, 24, 12);
-    const dotPositions: Record<HotspotId, [number, number, number]> = {
-      iphone: [0.95, 2.0, -0.42],
-      macbook: [-1.46, 1.32, -0.18],
-      notebook: [1.78, 1.55, -0.42],
-      desk: [0, 1.42, 0.1]
-    };
-    (Object.keys(dotPositions) as HotspotId[]).forEach((id) => {
+    const dotPositions: Array<[HotspotId, [number, number, number]]> = [
+      ['macbook', [-1.46, 1.32, -0.18]]
+    ];
+    dotPositions.forEach(([id, position]) => {
       const dot = new THREE.Mesh(
         dotGeometry,
         new THREE.MeshBasicMaterial({
@@ -779,7 +781,7 @@ export default function ThreeHouseScene() {
           opacity: 0.72
         })
       );
-      dot.position.set(...dotPositions[id]);
+      dot.position.set(...position);
       dot.userData.hotspot = id;
       clickableMeshes.push(dot);
       hotspotDots.set(id, dot);
@@ -816,7 +818,7 @@ export default function ThreeHouseScene() {
       camera.aspect = width / height;
       if (selectedRef.current == null) {
         const idle = isNarrow
-          ? { position: new THREE.Vector3(5.3, 3.2, 6.7), target: new THREE.Vector3(0.12, 1.12, -0.58) }
+          ? { position: new THREE.Vector3(-0.78, 3.0, 6.4), target: new THREE.Vector3(-0.78, 1.22, -0.78) }
           : FOCUS_CAMERA.idle;
         camera.position.copy(idle.position);
         controls.target.copy(idle.target);
@@ -846,12 +848,12 @@ export default function ThreeHouseScene() {
     window.addEventListener('themechange', syncMonitorTheme);
 
     const selectHotspot = (hotspot: HotspotId | null) => {
+      if (hotspot && !isInteractiveHotspot(hotspot)) return;
       selectedRef.current = hotspot;
       const focus = FOCUS_CAMERA[hotspot ?? 'idle'];
       desiredCamera.position.copy(focus.position);
       desiredCamera.target.copy(focus.target);
       setSelectedHotspot(hotspot);
-      if (hotspot === 'iphone') setActivePhoneApp('career');
     };
     sceneSelectRef.current = selectHotspot;
 
@@ -865,8 +867,9 @@ export default function ThreeHouseScene() {
       raycaster.setFromCamera(pointer, camera);
       const intersects = raycaster.intersectObjects(clickableMeshes, false);
       const item = intersects.find((entry) => entry.object.userData.hotspot);
+      const hotspot = item?.object.userData.hotspot as HotspotId | undefined;
 
-      return (item?.object.userData.hotspot as HotspotId | undefined) ?? null;
+      return hotspot && isInteractiveHotspot(hotspot) ? hotspot : null;
     };
 
     const handlePointerMove = (event: PointerEvent) => {
@@ -985,12 +988,12 @@ export default function ThreeHouseScene() {
   };
 
   return (
-    <div className="relative min-h-[680px] overflow-hidden rounded-[24px] border border-[var(--border)] bg-[#07080c] shadow-[var(--shadow)] md:min-h-[720px]">
+    <div className="relative min-h-[680px] overflow-hidden rounded-[30px] border border-white/10 bg-[#07080c] shadow-[var(--shadow)] md:min-h-[720px]">
       <div ref={viewportRef} className="absolute inset-0" aria-label="3D 포트폴리오 방" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_34%_26%,rgba(125,211,252,0.14),transparent_25%),radial-gradient(circle_at_72%_38%,rgba(255,184,107,0.22),transparent_25%),linear-gradient(180deg,rgba(0,0,0,0.02)_0%,rgba(0,0,0,0.44)_100%)]" />
 
       <div className="absolute left-4 top-4 flex max-w-[calc(100%-2rem)] flex-wrap gap-2 md:left-6 md:top-6">
-        {(Object.keys(HOTSPOTS) as HotspotId[]).map((hotspot) => (
+        {INTERACTIVE_HOTSPOTS.map((hotspot) => (
           <button
             key={hotspot}
             type="button"
@@ -1004,20 +1007,18 @@ export default function ThreeHouseScene() {
       </div>
 
       <div className="pointer-events-none absolute bottom-4 left-4 hidden rounded-md border border-[var(--border)] bg-[color-mix(in_oklab,var(--bg)_72%,transparent)] px-3 py-2 text-[0.72rem] backdrop-blur-md md:block" style={{ color: 'var(--text-dim)' }}>
-        <span className="mono">{hoveredHotspot ? HOTSPOTS[hoveredHotspot].detail : selectedHotspot ? HOTSPOTS[selectedHotspot].detail : 'object ready'}</span>
+        <span className="mono">
+          {hoveredHotspot
+            ? HOTSPOTS[hoveredHotspot].detail
+            : selectedHotspot
+              ? '실제 포트폴리오 화면을 클릭해 탐색할 수 있습니다.'
+              : 'Desktop 화면을 클릭해 3D 소개를 엽니다.'}
+        </span>
       </div>
 
       {selectedHotspot && (
-        <aside className="absolute bottom-4 right-4 top-auto z-10 w-[min(420px,calc(100%-2rem))] rounded-[22px] border border-[var(--border)] bg-[color-mix(in_oklab,var(--surface)_92%,transparent)] p-3 shadow-[var(--shadow)] backdrop-blur-xl md:bottom-6 md:right-6 md:top-6 md:w-[420px]">
-          <div className="mb-3 flex items-center justify-between gap-3 px-1">
-            <div>
-              <div className="mono text-[0.66rem]" style={{ color: 'var(--text-faint)' }}>
-                selected object
-              </div>
-              <h2 className="m-0 text-[1.1rem] font-bold leading-tight tracking-[-0.02em]" style={{ color: 'var(--text)' }}>
-                {HOTSPOTS[selectedHotspot].label}
-              </h2>
-            </div>
+        <aside className="absolute bottom-4 right-4 top-auto z-10 w-[min(420px,calc(100%-2rem))] rounded-[28px] border border-white/10 bg-[color-mix(in_oklab,var(--surface)_88%,transparent)] p-2 shadow-[var(--shadow)] backdrop-blur-xl md:bottom-6 md:right-6 md:top-6 md:w-[420px] md:p-3">
+          <div className="mb-2 flex justify-end px-1">
             <button type="button" className="pill h-8" onClick={() => sceneSelectRef.current?.(null)}>
               닫기
             </button>
@@ -1153,8 +1154,8 @@ function PhoneResumeApp({
 
 function MacbookPanel({ projects }: { projects: typeof portfolioProjects }) {
   return (
-    <div className="overflow-hidden rounded-[18px] border border-[var(--border)] bg-[var(--surface)]">
-      <div className="flex items-center gap-2 border-b border-[var(--border)] px-4 py-3">
+    <div className="overflow-hidden rounded-[24px] border border-white/10 bg-[color-mix(in_oklab,var(--surface)_86%,transparent)]">
+      <div className="flex items-center gap-2 border-b border-white/10 px-4 py-3">
         <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
         <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
         <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
@@ -1162,7 +1163,7 @@ function MacbookPanel({ projects }: { projects: typeof portfolioProjects }) {
       </div>
       <div className="space-y-3 p-4">
         {projects.slice(0, 4).map((project) => (
-          <a key={project.slug} href={`/about/${project.slug}`} className="block rounded-[14px] border border-[var(--border)] p-3 transition hover:border-[var(--border-strong)]">
+          <a key={project.slug} href={`/about/${project.slug}`} className="block rounded-[20px] border border-white/10 bg-[color-mix(in_oklab,var(--bg)_35%,transparent)] p-3 transition hover:border-[var(--border-strong)] hover:bg-[color-mix(in_oklab,var(--surface)_72%,transparent)]">
             <div className="mono text-[0.66rem]" style={{ color: 'var(--text-faint)' }}>
               {project.period}
             </div>
