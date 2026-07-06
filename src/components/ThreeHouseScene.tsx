@@ -53,8 +53,8 @@ const FOCUS_CAMERA: Record<HotspotId | 'idle', { position: THREE.Vector3; target
     target: new THREE.Vector3(0.92, 1.38, -0.52)
   },
   macbook: {
-    position: new THREE.Vector3(-0.78, 2.04, 2.75),
-    target: new THREE.Vector3(-0.78, 1.72, -1.04)
+    position: new THREE.Vector3(-0.78, 2.1, 2.95),
+    target: new THREE.Vector3(-0.78, 1.76, -1.06)
   },
   notebook: {
     position: new THREE.Vector3(2.85, 2.05, 2.5),
@@ -618,32 +618,37 @@ export default function ThreeHouseScene() {
     macbook.name = 'macbook hotspot';
     macbook.position.set(-0.78, 1.16, -0.78);
     deskGroup.add(macbook);
-    const macBase = createRoundedBox(1.62, 0.06, 1.04, 0.055, metalMaterial, [0, 0, 0.2], [-0.05, 0, 0]);
-    const trackpad = createRoundedBox(0.42, 0.012, 0.32, 0.025, makeMaterial(0xdce2e8, { metalness: 0.35 }), [0, 0.04, 0.42], [-0.05, 0, 0]);
+    const macBaseMaterial = makeMaterial(0x6f7680, { roughness: 0.38, metalness: 0.62 });
+    const keyboardMaterial = makeMaterial(0x090b10, { roughness: 0.5, metalness: 0.18 });
+    const trackpadMaterial = makeMaterial(0xb8c0c8, { roughness: 0.34, metalness: 0.5 });
+    const macBase = createRoundedBox(2.28, 0.045, 1.24, 0.07, macBaseMaterial, [0, 0, 0.24], [-0.045, 0, 0]);
+    const baseLip = createRoundedBox(1.02, 0.018, 0.05, 0.018, makeMaterial(0x2b3038, { roughness: 0.45, metalness: 0.5 }), [0, 0.035, 0.84], [-0.045, 0, 0]);
+    const trackpad = createRoundedBox(0.62, 0.01, 0.34, 0.035, trackpadMaterial, [0, 0.036, 0.52], [-0.045, 0, 0]);
     const screenHitMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0, depthWrite: false });
-    const macScreenHitArea = createRoundedBox(2.05, 1.16, 0.062, 0.065, screenHitMaterial, [0, 0.7, -0.34], [-0.18, 0, 0]);
+    const macScreenHitArea = createRoundedBox(2.48, 1.42, 0.052, 0.075, screenHitMaterial, [0, 0.82, -0.43], [-0.17, 0, 0]);
     macScreenHitArea.castShadow = false;
     macScreenHitArea.receiveShadow = false;
     const macScreenFrame = new THREE.Group();
-    macScreenFrame.position.set(0, 0.7, -0.34);
-    macScreenFrame.rotation.x = -0.18;
-    macScreenFrame.add(createRoundedBox(2.08, 0.13, 0.076, 0.045, darkMaterial, [0, 0.54, 0]));
-    macScreenFrame.add(createRoundedBox(2.08, 0.13, 0.076, 0.045, darkMaterial, [0, -0.54, 0]));
-    macScreenFrame.add(createRoundedBox(0.13, 1.16, 0.076, 0.045, darkMaterial, [-0.98, 0, 0]));
-    macScreenFrame.add(createRoundedBox(0.13, 1.16, 0.076, 0.045, darkMaterial, [0.98, 0, 0]));
+    macScreenFrame.position.set(0, 0.82, -0.43);
+    macScreenFrame.rotation.x = -0.17;
+    macScreenFrame.add(createRoundedBox(2.5, 0.07, 0.07, 0.035, darkMaterial, [0, 0.685, 0]));
+    macScreenFrame.add(createRoundedBox(2.5, 0.08, 0.07, 0.035, darkMaterial, [0, -0.675, 0]));
+    macScreenFrame.add(createRoundedBox(0.075, 1.42, 0.07, 0.035, darkMaterial, [-1.215, 0, 0]));
+    macScreenFrame.add(createRoundedBox(0.075, 1.42, 0.07, 0.035, darkMaterial, [1.215, 0, 0]));
+    macScreenFrame.add(createRoundedBox(0.24, 0.035, 0.072, 0.018, blackMaterial, [0, 0.665, 0.003]));
     const screenTexture = makeScreenTexture('macbook');
     const macScreenPlane = new THREE.Mesh(
-      new THREE.PlaneGeometry(1.84, 0.94),
+      new THREE.PlaneGeometry(2.26, 1.16),
       new THREE.MeshBasicMaterial({ map: screenTexture, toneMapped: false, transparent: true, opacity: 0.035 })
     );
-    macScreenPlane.position.set(0, 0.72, -0.304);
-    macScreenPlane.rotation.x = -0.18;
+    macScreenPlane.position.set(0, 0.82, -0.392);
+    macScreenPlane.rotation.x = -0.17;
     const monitorElement = document.createElement('div');
     Object.assign(monitorElement.style, {
-      width: '920px',
-      height: '470px',
+      width: '1120px',
+      height: '575px',
       overflow: 'hidden',
-      borderRadius: '22px',
+      borderRadius: '18px',
       background: '#05070a',
       border: '1px solid rgba(148, 163, 184, 0.28)',
       filter: 'brightness(1.12) contrast(1.06) saturate(1.04)',
@@ -667,18 +672,21 @@ export default function ThreeHouseScene() {
     });
     monitorElement.appendChild(monitorIframe);
     const monitorObject = new CSS3DObject(monitorElement);
-    monitorObject.position.set(0, 0.72, -0.3);
-    monitorObject.rotation.x = -0.18;
+    monitorObject.position.set(0, 0.82, -0.388);
+    monitorObject.rotation.x = -0.17;
     monitorObject.scale.setScalar(0.002);
     addHotspotMesh('macbook', macBase);
     addHotspotMesh('macbook', macScreenHitArea);
-    macbook.add(macBase, trackpad, macScreenHitArea, macScreenFrame, macScreenPlane, monitorObject);
+    macbook.add(macBase, baseLip, trackpad, macScreenHitArea, macScreenFrame, macScreenPlane, monitorObject);
     const monitorGlow = new THREE.PointLight(0x77ddff, 3.8, 3.4);
-    monitorGlow.position.set(-0.78, 1.92, -0.32);
+    monitorGlow.position.set(-0.78, 2.08, -0.38);
     scene.add(monitorGlow);
-    for (let row = 0; row < 3; row += 1) {
-      for (let col = 0; col < 8; col += 1) {
-        macbook.add(createRoundedBox(0.105, 0.01, 0.045, 0.012, darkMaterial, [-0.48 + col * 0.14, 0.048, 0.03 + row * 0.105], [-0.05, 0, 0]));
+    const hinge = createCylinder(0.032, 0.032, 1.64, makeMaterial(0x1d222a, { roughness: 0.36, metalness: 0.48 }), [0, 0.095, -0.34], [0, 0, Math.PI / 2], 24);
+    macbook.add(hinge);
+    for (let row = 0; row < 4; row += 1) {
+      for (let col = 0; col < 10; col += 1) {
+        const keyWidth = col === 0 || col === 9 ? 0.095 : 0.105;
+        macbook.add(createRoundedBox(keyWidth, 0.01, 0.043, 0.011, keyboardMaterial, [-0.61 + col * 0.136, 0.04, -0.03 + row * 0.087], [-0.045, 0, 0]));
       }
     }
 
@@ -825,10 +833,10 @@ export default function ThreeHouseScene() {
 
     const monitorSamples = [
       new THREE.Vector3(0, 0, 0),
-      new THREE.Vector3(-360, 160, 0),
-      new THREE.Vector3(360, 160, 0),
-      new THREE.Vector3(-360, -160, 0),
-      new THREE.Vector3(360, -160, 0)
+      new THREE.Vector3(-445, 205, 0),
+      new THREE.Vector3(445, 205, 0),
+      new THREE.Vector3(-445, -205, 0),
+      new THREE.Vector3(445, -205, 0)
     ];
 
     const isDescendantOf = (object: THREE.Object3D, parent: THREE.Object3D) => {
