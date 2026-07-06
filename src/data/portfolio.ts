@@ -853,6 +853,130 @@ export const portfolioProjects: PortfolioProject[] = [
       { label: 'WebGL/비용 해결 과정', href: '/blog/구글지도-api-비용-120만원-청산' },
       { label: '팀 협업 회고', href: '/blog/코드의-옳고-그름보다-중요한-것-팀의-속도를-높이는-팔로워십' }
     ]
+  },
+  {
+    slug: 'raise-developer',
+    title: 'Raise Developer',
+    eyebrow: 'Android Pixel Raising Game',
+    period: '2022.05 ~ 2022.09',
+    quote: 'AI 이미지 생성이 없던 시절, 작은 도트 하나까지 직접 찍어 개발자의 성장 루프를 만들었습니다.',
+    summary:
+      'GitHub Contribution을 게임 재화와 성장으로 연결한 Android 키우기 게임입니다. 상점, 인벤토리, 레벨업, Firestore 저장 흐름을 구현하고 캐릭터/아이템/버튼 도트 에셋을 직접 제작해 레트로 게임 톤을 만들었습니다.',
+    role: 'Android UI, 상점/인벤토리/레벨업 로직, 도트 에셋 제작',
+    team: 'Android 4명',
+    contribution: '상점·인벤토리·레벨업·에셋 제작 담당',
+    image: '/images/projects/raise-developer-shop.gif',
+    imageAlt: 'Raise Developer 상점 UI와 캐릭터 애니메이션 화면',
+    imageWidth: 376,
+    imageHeight: 668,
+    gallery: [
+      {
+        src: '/images/projects/raise-developer-login.gif',
+        alt: 'Raise Developer 로그인 화면',
+        caption: 'GitHub 로그인',
+        width: 376,
+        height: 624
+      },
+      {
+        src: '/images/projects/raise-developer-start-quiz.gif',
+        alt: 'Raise Developer 시작 화면과 퀴즈 화면',
+        caption: '시작 화면 & 퀴즈',
+        width: 376,
+        height: 624
+      },
+      {
+        src: '/images/projects/raise-developer-grass-harvest.gif',
+        alt: 'Raise Developer 잔디 수확 화면',
+        caption: 'Contribution 잔디 수확',
+        width: 376,
+        height: 668
+      },
+      {
+        src: '/images/projects/raise-developer-shop.gif',
+        alt: 'Raise Developer 상점 화면',
+        caption: '상점 UI & 애니메이션',
+        width: 376,
+        height: 668
+      },
+      {
+        src: '/images/projects/raise-developer-inventory-level.gif',
+        alt: 'Raise Developer 인벤토리와 레벨업 화면',
+        caption: '인벤토리 & 레벨업',
+        width: 376,
+        height: 668
+      },
+      {
+        src: '/images/projects/raise-developer-ranking.gif',
+        alt: 'Raise Developer 랭킹 화면',
+        caption: '랭킹 시스템',
+        width: 376,
+        height: 668
+      },
+      {
+        src: '/images/projects/raise-developer-info-load.gif',
+        alt: 'Raise Developer 정보 불러오기 화면',
+        caption: '계정 정보 복원',
+        width: 376,
+        height: 668
+      },
+      {
+        src: '/images/projects/raise-developer-level-shop-algorithm.gif',
+        alt: 'Raise Developer 레벨업과 상점 알고리즘 화면',
+        caption: '레벨업 & 상점 알고리즘',
+        width: 376,
+        height: 668
+      }
+    ],
+    visualMode: 'phone',
+    accent: '#65a30d',
+    metrics: [
+      { value: '107개', label: '이미지 리소스', detail: '캐릭터, 아이템, 버튼, 숫자, 잔디 에셋을 Android 리소스로 구성' },
+      { value: '19종', label: '직원 캐릭터', detail: '직접 제작한 도트 캐릭터를 고용/레벨업 조건에 연결' },
+      { value: '100단계', label: '레벨업 가격표', detail: '레벨별 비용과 조건을 데이터 테이블로 관리' }
+    ],
+    highlights: [
+      'GitHub Contribution 데이터를 GraphQL로 가져와 게임 내 잔디와 재화 보상으로 연결',
+      'ShopDialog, InventoryDialog, PreferenceInventory로 구매, 보유 표시, 상태 복원 흐름 구현',
+      '직원/아이템/가격/레벨업 조건을 DataBase에 모아 상점과 레벨업 UI가 같은 데이터를 보게 설계',
+      'Firebase Auth/Firestore에 money, level, inventory JSON을 저장해 계정 기반 복원과 랭킹 흐름 구성',
+      'AI 생성 이미지 없이 캐릭터, 시계, 카트, 버튼, 잔디, 숫자 도트 에셋을 직접 제작'
+    ],
+    contributions: [
+      '상점 카테고리 전환, 구매 완료 표시, 직원 레벨업, 보유 아이템 복원까지 이어지는 상점 상태 흐름을 만들었습니다.',
+      'SharedPreferences에 item/employ JSON을 저장하고 Gson으로 복원해 앱을 다시 열어도 인벤토리 상태가 유지되게 했습니다.',
+      '100단계 레벨업 가격표와 10개 조건 묶음을 만들고, 직원 보유/레벨 조건을 레벨업 UI에 연결했습니다.',
+      'Firestore read/update와 coroutine 흐름으로 유저 money, level, inventory 데이터를 계정 단위로 저장/복원했습니다.',
+      '작은 모바일 화면에서도 톤이 깨지지 않도록 mdpi/xhdpi/xxxhdpi 리소스에 직접 찍은 픽셀 PNG를 배치했습니다.'
+    ],
+    results: [
+      { label: '성장 루프', before: '단순 클릭 재화', after: 'GitHub 잔디 + 상점 + 레벨업', effect: '활동 기반 게임성 확보' },
+      { label: '구매 상태', before: '메모리 상태 중심', after: 'SharedPreferences JSON 복원', effect: '앱 재실행 후 상태 유지' },
+      { label: '레벨업 조건', before: '단일 비용 처리', after: '직원 보유/레벨 조건 + 비용 테이블', effect: '장기 목표 생성' },
+      { label: '유저 데이터', before: '로컬 중심', after: 'Firestore 동기화', effect: '계정 기반 복원과 랭킹 가능' },
+      { label: '시각 자산', before: '기본 Android 리소스', after: '직접 제작한 도트 에셋', effect: '제품 정체성 확보' }
+    ],
+    techStack: [
+      'Kotlin',
+      'Android',
+      'Firebase Auth',
+      'Firestore',
+      'GitHub GraphQL API',
+      'Apollo GraphQL',
+      'SharedPreferences',
+      'Coroutine',
+      'XML Layout',
+      'Pixel Art'
+    ],
+    problem:
+      'GitHub 활동은 개발자에게 의미 있는 지표지만 모바일 게임의 즉각적인 보상 루프로는 잘 이어지지 않습니다. 또한 Android 프로젝트에서 구매 상태, 레벨 조건, 유저 데이터가 흩어지면 작은 키우기 게임도 금방 복잡해집니다.',
+    approach: [
+      'GitHub Contribution을 잔디와 재화로 바꾸고, 터치 수당, 연봉, 퀴즈, 레벨업을 하나의 성장 루프로 묶었습니다.',
+      '상점/인벤토리/레벨업 상태는 JSON으로 저장해 구매, 보유, 레벨 조건을 앱 재실행 후에도 유지했습니다.',
+      '직원, 아이템, 가격, 레벨업 조건을 DataBase로 모아 UI와 게임 밸런스가 같은 테이블을 바라보게 했습니다.',
+      'Firestore와 coroutine을 사용해 유저 money, level, inventory를 계정 단위로 읽고 저장했습니다.',
+      '캐릭터와 아이템 도트 에셋을 직접 제작하고 Android density resource로 배치해 레트로 게임의 손맛을 유지했습니다.'
+    ],
+    links: [{ label: 'GitHub 저장소', href: 'https://github.com/manNomi/raise_developer', external: true }]
   }
 ];
 
