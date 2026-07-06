@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { CSS3DObject, CSS3DRenderer } from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 import { portfolioProfile, portfolioProjects, resumeExperiences, resumeFeatureProject } from '../data/portfolio';
 
@@ -284,6 +285,43 @@ const createBox = (
   return mesh;
 };
 
+const createRoundedBox = (
+  width: number,
+  height: number,
+  depth: number,
+  radius: number,
+  material: THREE.Material,
+  position: [number, number, number],
+  rotation: [number, number, number] = [0, 0, 0],
+  segments = 4
+) => {
+  const mesh = new THREE.Mesh(new RoundedBoxGeometry(width, height, depth, segments, radius), material);
+  mesh.position.set(...position);
+  mesh.rotation.set(...rotation);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+
+  return mesh;
+};
+
+const createCylinder = (
+  radiusTop: number,
+  radiusBottom: number,
+  height: number,
+  material: THREE.Material,
+  position: [number, number, number],
+  rotation: [number, number, number] = [0, 0, 0],
+  radialSegments = 32
+) => {
+  const mesh = new THREE.Mesh(new THREE.CylinderGeometry(radiusTop, radiusBottom, height, radialSegments), material);
+  mesh.position.set(...position);
+  mesh.rotation.set(...rotation);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+
+  return mesh;
+};
+
 export default function ThreeHouseScene() {
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const [selectedHotspot, setSelectedHotspot] = useState<HotspotId | null>(null);
@@ -330,7 +368,7 @@ export default function ThreeHouseScene() {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 0.88;
+    renderer.toneMappingExposure = 1.04;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.domElement.style.display = 'block';
@@ -348,7 +386,7 @@ export default function ThreeHouseScene() {
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x090a0f);
-    scene.fog = new THREE.Fog(0x090a0f, 4.8, 11);
+    scene.fog = new THREE.Fog(0x090a0f, 5.6, 13.2);
 
     const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 80);
     camera.position.copy(FOCUS_CAMERA.idle.position);
@@ -383,9 +421,9 @@ export default function ThreeHouseScene() {
         ...options
       });
 
-    const wallMaterial = makeMaterial(0x23242c, { roughness: 0.9 });
-    const floorMaterial = makeMaterial(0x17151a, { roughness: 0.86 });
-    const woodMaterial = makeMaterial(0x563826, { roughness: 0.74 });
+    const wallMaterial = makeMaterial(0x2b2a31, { roughness: 0.9 });
+    const floorMaterial = makeMaterial(0x201a18, { roughness: 0.86 });
+    const woodMaterial = makeMaterial(0x6a472f, { roughness: 0.7 });
     const darkMaterial = makeMaterial(0x17191f, { roughness: 0.44, metalness: 0.25 });
     const metalMaterial = makeMaterial(0x6b7280, { roughness: 0.42, metalness: 0.55 });
     const paperMaterial = makeMaterial(0xc9b98e, { roughness: 0.95 });
@@ -401,6 +439,8 @@ export default function ThreeHouseScene() {
     const blackMaterial = makeMaterial(0x08090d, { roughness: 0.56, metalness: 0.12 });
     const linenMaterial = makeMaterial(0xd8d4ca, { roughness: 0.96 });
     const cabinetMaterial = makeMaterial(0x2a2c33, { roughness: 0.82 });
+    const softGrayMaterial = makeMaterial(0x8d8d93, { roughness: 0.98 });
+    const warmFabricMaterial = makeMaterial(0xbeb4a4, { roughness: 0.98 });
     const room = new THREE.Group();
     scene.add(room);
 
@@ -434,42 +474,52 @@ export default function ThreeHouseScene() {
     const bed = new THREE.Group();
     bed.position.set(-2.35, 0.18, 0.88);
     room.add(bed);
-    bed.add(createBox(1.58, 0.24, 2.04, blackMaterial, [0, 0.2, 0.12]));
-    bed.add(createBox(1.46, 0.14, 1.82, makeMaterial(0x494a50, { roughness: 0.86 }), [0, 0.42, 0.12]));
-    bed.add(createBox(1.36, 0.13, 1.1, linenMaterial, [0, 0.54, 0.38]));
-    bed.add(createBox(0.6, 0.11, 0.32, makeMaterial(0xf1eee6, { roughness: 0.97 }), [-0.38, 0.6, -0.62]));
-    bed.add(createBox(0.6, 0.11, 0.32, makeMaterial(0xf1eee6, { roughness: 0.97 }), [0.36, 0.6, -0.62]));
-    bed.add(createBox(0.82, 0.16, 0.42, makeMaterial(0x85858b, { roughness: 0.98 }), [0.08, 0.72, -0.2], [0, 0.06, 0]));
-    bed.add(createBox(1.2, 0.1, 0.76, makeMaterial(0xb9b2a4, { roughness: 0.98 }), [0, 0.67, 0.54], [0.05, 0, 0]));
-    bed.add(createBox(1.68, 0.78, 0.12, blackMaterial, [0, 0.62, -0.94]));
+    bed.add(createRoundedBox(1.62, 0.24, 2.08, 0.08, blackMaterial, [0, 0.2, 0.12]));
+    bed.add(createRoundedBox(1.5, 0.18, 1.86, 0.08, makeMaterial(0x515158, { roughness: 0.9 }), [0, 0.42, 0.12]));
+    bed.add(createRoundedBox(1.38, 0.15, 1.16, 0.1, linenMaterial, [0, 0.56, 0.38], [0.02, 0, 0]));
+    bed.add(createRoundedBox(0.62, 0.13, 0.34, 0.09, makeMaterial(0xf1eee6, { roughness: 0.97 }), [-0.38, 0.62, -0.62], [0.02, -0.08, 0.04]));
+    bed.add(createRoundedBox(0.62, 0.13, 0.34, 0.09, makeMaterial(0xf1eee6, { roughness: 0.97 }), [0.36, 0.62, -0.62], [0.02, 0.06, -0.03]));
+    bed.add(createRoundedBox(0.86, 0.18, 0.44, 0.12, softGrayMaterial, [0.08, 0.74, -0.2], [0, 0.06, 0.01]));
+    bed.add(createRoundedBox(1.22, 0.11, 0.78, 0.09, warmFabricMaterial, [0, 0.68, 0.54], [0.05, 0, 0]));
+    bed.add(createCylinder(0.045, 0.045, 1.34, makeMaterial(0xd7d0c6, { roughness: 0.98 }), [0, 0.75, -0.1], [0, 0, Math.PI / 2], 24));
+    bed.add(createRoundedBox(1.7, 0.78, 0.12, 0.06, blackMaterial, [0, 0.62, -0.94]));
 
     const sideDrawer = new THREE.Group();
     sideDrawer.position.set(-1.2, 0.15, -0.75);
     room.add(sideDrawer);
-    sideDrawer.add(createBox(0.42, 0.86, 0.52, cabinetMaterial, [0, 0.43, 0]));
+    sideDrawer.add(createRoundedBox(0.44, 0.88, 0.54, 0.04, cabinetMaterial, [0, 0.43, 0]));
     for (let index = 0; index < 3; index += 1) {
-      sideDrawer.add(createBox(0.36, 0.018, 0.42, metalMaterial, [0, 0.22 + index * 0.22, 0.27]));
+      sideDrawer.add(createRoundedBox(0.3, 0.024, 0.035, 0.012, metalMaterial, [0, 0.22 + index * 0.22, 0.29]));
     }
 
     const bedsideLamp = new THREE.Group();
     bedsideLamp.position.set(-1.2, 1.02, -0.74);
     room.add(bedsideLamp);
     const lampBulb = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.13, 0.13, 0.26, 24),
-      new THREE.MeshBasicMaterial({ color: 0xffe8bc, transparent: true, opacity: 0.92 })
+      new THREE.SphereGeometry(0.16, 32, 16),
+      new THREE.MeshBasicMaterial({ color: 0xffe2a6, transparent: true, opacity: 0.96 })
     );
     lampBulb.position.set(0.22, 0.1, 0);
     bedsideLamp.add(lampBulb);
-    const bedsideGlow = new THREE.PointLight(0xffd08a, 2.9, 2.5);
+    const lampHalo = new THREE.Mesh(
+      new THREE.SphereGeometry(0.31, 32, 16),
+      new THREE.MeshBasicMaterial({ color: 0xffc879, transparent: true, opacity: 0.18, depthWrite: false })
+    );
+    lampHalo.position.copy(lampBulb.position);
+    bedsideLamp.add(lampHalo);
+    bedsideLamp.add(createCylinder(0.16, 0.2, 0.1, makeMaterial(0x4b3322, { roughness: 0.65 }), [0.22, -0.09, 0], [0, 0, 0], 32));
+    const bedsideGlow = new THREE.PointLight(0xffd08a, 5.8, 3.7);
     bedsideGlow.position.set(-0.98, 1.22, -0.72);
+    bedsideGlow.castShadow = true;
+    bedsideGlow.shadow.mapSize.set(512, 512);
     scene.add(bedsideGlow);
 
     const wallShelf = new THREE.Group();
     wallShelf.position.set(-2.55, 2.3, -2.46);
     room.add(wallShelf);
-    wallShelf.add(createBox(1.1, 0.065, 0.28, makeMaterial(0xd8d3ca, { roughness: 0.78 }), [0, 0, 0]));
+    wallShelf.add(createRoundedBox(1.1, 0.07, 0.28, 0.025, makeMaterial(0xd8d3ca, { roughness: 0.78 }), [0, 0, 0]));
     for (let index = 0; index < 5; index += 1) {
-      wallShelf.add(createBox(0.09, 0.34, 0.18, makeMaterial([0x334155, 0x1f2937, 0x64748b, 0x374151, 0x475569][index] ?? 0x334155), [-0.38 + index * 0.13, 0.23, 0.02]));
+      wallShelf.add(createRoundedBox(0.09, 0.34, 0.18, 0.02, makeMaterial([0x334155, 0x1f2937, 0x64748b, 0x374151, 0x475569][index] ?? 0x334155), [-0.38 + index * 0.13, 0.23, 0.02]));
     }
 
     const digitalClock = new THREE.Mesh(
@@ -482,43 +532,45 @@ export default function ThreeHouseScene() {
     const wallStand = new THREE.Group();
     wallStand.position.set(2.6, 2.3, -2.46);
     room.add(wallStand);
-    wallStand.add(createBox(0.72, 0.045, 0.045, blackMaterial, [0, 0, 0], [0, 0, -0.28]));
-    wallStand.add(createBox(0.045, 0.54, 0.045, blackMaterial, [0.3, -0.26, 0]));
+    wallStand.add(createCylinder(0.026, 0.026, 0.72, blackMaterial, [0, 0, 0], [0, 0, Math.PI / 2 - 0.28], 18));
+    wallStand.add(createCylinder(0.024, 0.024, 0.54, blackMaterial, [0.3, -0.26, 0], [0, 0, 0], 18));
     const wallShade = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.2, 28), makeMaterial(0xe5e7eb, { roughness: 0.55 }));
     wallShade.position.set(-0.42, -0.12, 0);
     wallShade.rotation.set(Math.PI * 0.72, 0, -0.28);
     wallShade.castShadow = true;
     wallStand.add(wallShade);
-    const wallLight = new THREE.SpotLight(0xfff1cc, 4.8, 5.5, Math.PI * 0.22, 0.58, 1.2);
+    const wallLight = new THREE.SpotLight(0xfff1cc, 7.2, 6.8, Math.PI * 0.28, 0.62, 1.0);
     wallLight.position.set(2.18, 2.18, -2.2);
     wallLight.target.position.set(1.0, 1.05, -0.55);
+    wallLight.castShadow = true;
+    wallLight.shadow.mapSize.set(768, 768);
     scene.add(wallLight);
     scene.add(wallLight.target);
 
     const shelfDivider = new THREE.Group();
     shelfDivider.position.set(2.95, 0.1, 0.62);
     room.add(shelfDivider);
-    [-0.36, 0.36].forEach((x) => shelfDivider.add(createBox(0.055, 1.55, 0.055, blackMaterial, [x, 0.82, 0])));
+    [-0.36, 0.36].forEach((x) => shelfDivider.add(createCylinder(0.028, 0.028, 1.55, blackMaterial, [x, 0.82, 0], [0, 0, 0], 18)));
     for (let index = 0; index < 4; index += 1) {
-      shelfDivider.add(createBox(0.86, 0.045, 0.54, makeMaterial(0x2f3137, { roughness: 0.76 }), [0, 0.24 + index * 0.38, 0]));
+      shelfDivider.add(createRoundedBox(0.86, 0.045, 0.54, 0.025, makeMaterial(0x34363d, { roughness: 0.76 }), [0, 0.24 + index * 0.38, 0]));
     }
 
-    const bigRug = createBox(2.75, 0.026, 2.05, makeMaterial(0x34343a, { roughness: 0.94 }), [-0.95, 0.055, 0.92]);
+    const bigRug = createRoundedBox(2.75, 0.032, 2.05, 0.08, makeMaterial(0x414148, { roughness: 0.96 }), [-0.95, 0.055, 0.92]);
     room.add(bigRug);
     for (let index = 0; index < 12; index += 1) {
-      room.add(createBox(2.55, 0.006, 0.018, makeMaterial(index % 2 === 0 ? 0x4a4a50 : 0x26262b, { roughness: 0.9 }), [-0.95, 0.073, 0.02 + index * 0.15]));
+      room.add(createRoundedBox(2.55, 0.008, 0.018, 0.006, makeMaterial(index % 2 === 0 ? 0x5a5a62 : 0x303036, { roughness: 0.9 }), [-0.95, 0.075, 0.02 + index * 0.15]));
     }
 
     const curtainMaterial = makeMaterial(0x5f7080, { roughness: 0.94 });
     for (let index = 0; index < 7; index += 1) {
-      room.add(createBox(0.08, 1.85, 0.045, curtainMaterial, [3.38 + Math.sin(index) * 0.02, 1.54, -2.3 + index * 0.035]));
+      room.add(createCylinder(0.042, 0.042, 1.88, curtainMaterial, [3.38 + Math.sin(index) * 0.02, 1.54, -2.3 + index * 0.04], [0, 0, 0], 18));
     }
 
-    const cork = createBox(1.85, 1.02, 0.07, makeMaterial(0x5f432d, { roughness: 0.84 }), [1.78, 1.92, -2.55]);
+    const cork = createRoundedBox(1.85, 1.02, 0.07, 0.045, makeMaterial(0x68472d, { roughness: 0.84 }), [1.78, 1.92, -2.55]);
     room.add(cork);
     const noteColors = [0xfff0b3, 0xc7d2fe, 0xfbcfe8, 0xbbf7d0, 0xfed7aa] as const;
     for (let index = 0; index < 5; index += 1) {
-      const note = createBox(0.34, 0.2, 0.025, makeMaterial(noteColors[index] ?? noteColors[0]), [
+      const note = createRoundedBox(0.34, 0.2, 0.025, 0.012, makeMaterial(noteColors[index] ?? noteColors[0]), [
         1.15 + (index % 3) * 0.43,
         1.72 + Math.floor(index / 3) * 0.28,
         -2.5
@@ -526,12 +578,12 @@ export default function ThreeHouseScene() {
       room.add(note);
     }
 
-    const shelf = createBox(1.8, 0.1, 0.42, woodMaterial, [-1.92, 2.22, -2.38]);
+    const shelf = createRoundedBox(1.8, 0.1, 0.42, 0.035, woodMaterial, [-1.92, 2.22, -2.38]);
     room.add(shelf);
     const bookColors = [0x334155, 0x475569, 0x94a3b8] as const;
     for (let index = 0; index < 6; index += 1) {
       room.add(
-        createBox(0.12, 0.48 + (index % 2) * 0.08, 0.28, makeMaterial(bookColors[index % bookColors.length] ?? bookColors[0]), [
+        createRoundedBox(0.12, 0.48 + (index % 2) * 0.08, 0.28, 0.018, makeMaterial(bookColors[index % bookColors.length] ?? bookColors[0]), [
           -2.62 + index * 0.18,
           2.52,
           -2.38
@@ -542,8 +594,8 @@ export default function ThreeHouseScene() {
     const deskGroup = new THREE.Group();
     deskGroup.name = 'desk hotspot';
     room.add(deskGroup);
-    const tabletop = createBox(4.25, 0.18, 1.45, woodMaterial, [0, 1.02, -0.7]);
-    const frontPanel = createBox(4.1, 0.32, 0.08, makeMaterial(0x342116), [0, 0.78, 0.01]);
+    const tabletop = createRoundedBox(4.25, 0.18, 1.45, 0.08, woodMaterial, [0, 1.02, -0.7]);
+    const frontPanel = createRoundedBox(4.1, 0.32, 0.08, 0.035, makeMaterial(0x3b2718), [0, 0.78, 0.01]);
     addHotspotMesh('desk', tabletop);
     addHotspotMesh('desk', frontPanel);
     deskGroup.add(tabletop, frontPanel);
@@ -552,15 +604,15 @@ export default function ThreeHouseScene() {
       [1.85, 0.46, -1.25],
       [-1.85, 0.46, -0.13],
       [1.85, 0.46, -0.13]
-    ].forEach((position) => deskGroup.add(createBox(0.18, 1.0, 0.18, woodMaterial, position as [number, number, number])));
+    ].forEach((position) => deskGroup.add(createCylinder(0.085, 0.085, 1.0, woodMaterial, position as [number, number, number], [0, 0, 0], 24)));
 
     const macbook = new THREE.Group();
     macbook.name = 'macbook hotspot';
     macbook.position.set(-0.78, 1.16, -0.78);
     deskGroup.add(macbook);
-    const macBase = createBox(1.62, 0.06, 1.04, metalMaterial, [0, 0, 0.2], [-0.05, 0, 0]);
-    const trackpad = createBox(0.42, 0.012, 0.32, makeMaterial(0xdce2e8, { metalness: 0.35 }), [0, 0.04, 0.42], [-0.05, 0, 0]);
-    const macScreen = createBox(2.05, 1.16, 0.062, darkMaterial, [0, 0.7, -0.34], [-0.18, 0, 0]);
+    const macBase = createRoundedBox(1.62, 0.06, 1.04, 0.055, metalMaterial, [0, 0, 0.2], [-0.05, 0, 0]);
+    const trackpad = createRoundedBox(0.42, 0.012, 0.32, 0.025, makeMaterial(0xdce2e8, { metalness: 0.35 }), [0, 0.04, 0.42], [-0.05, 0, 0]);
+    const macScreen = createRoundedBox(2.05, 1.16, 0.062, 0.065, darkMaterial, [0, 0.7, -0.34], [-0.18, 0, 0]);
     const screenTexture = makeScreenTexture('macbook');
     const macScreenPlane = new THREE.Mesh(
       new THREE.PlaneGeometry(1.84, 0.94),
@@ -606,7 +658,7 @@ export default function ThreeHouseScene() {
     scene.add(monitorGlow);
     for (let row = 0; row < 3; row += 1) {
       for (let col = 0; col < 8; col += 1) {
-        macbook.add(createBox(0.105, 0.01, 0.045, darkMaterial, [-0.48 + col * 0.14, 0.048, 0.03 + row * 0.105], [-0.05, 0, 0]));
+        macbook.add(createRoundedBox(0.105, 0.01, 0.045, 0.012, darkMaterial, [-0.48 + col * 0.14, 0.048, 0.03 + row * 0.105], [-0.05, 0, 0]));
       }
     }
 
@@ -615,15 +667,15 @@ export default function ThreeHouseScene() {
     iphone.position.set(0.95, 1.32, -0.5);
     iphone.rotation.set(-0.06, -0.24, 0.03);
     deskGroup.add(iphone);
-    const phoneBody = createBox(0.48, 0.86, 0.055, darkMaterial, [0, 0.14, 0]);
+    const phoneBody = createRoundedBox(0.48, 0.86, 0.055, 0.055, darkMaterial, [0, 0.14, 0]);
     const phoneScreenTexture = makeScreenTexture('phone');
     const phoneScreen = new THREE.Mesh(
       new THREE.PlaneGeometry(0.39, 0.68),
       new THREE.MeshBasicMaterial({ map: phoneScreenTexture, toneMapped: false })
     );
     phoneScreen.position.set(0, 0.15, 0.031);
-    const phoneStand = createBox(0.62, 0.05, 0.26, metalMaterial, [0, -0.32, -0.08]);
-    const phoneStem = createBox(0.08, 0.36, 0.08, metalMaterial, [0, -0.16, -0.08]);
+    const phoneStand = createRoundedBox(0.62, 0.05, 0.26, 0.035, metalMaterial, [0, -0.32, -0.08]);
+    const phoneStem = createCylinder(0.04, 0.04, 0.36, metalMaterial, [0, -0.16, -0.08], [0, 0, 0], 20);
     addHotspotMesh('iphone', phoneBody);
     addHotspotMesh('iphone', phoneStand);
     iphone.add(phoneBody, phoneScreen, phoneStand, phoneStem);
@@ -633,7 +685,7 @@ export default function ThreeHouseScene() {
     notebook.position.set(1.74, 1.12, -0.55);
     notebook.rotation.y = -0.2;
     deskGroup.add(notebook);
-    const notebookBase = createBox(0.92, 0.055, 0.68, paperMaterial, [0, 0.03, 0]);
+    const notebookBase = createRoundedBox(0.92, 0.055, 0.68, 0.035, paperMaterial, [0, 0.03, 0]);
     const notebookCover = new THREE.Mesh(
       new THREE.PlaneGeometry(0.82, 0.56),
       new THREE.MeshBasicMaterial({ map: makeNotebookTexture(), toneMapped: false })
@@ -675,15 +727,40 @@ export default function ThreeHouseScene() {
     const lamp = new THREE.Group();
     lamp.position.set(2.42, 1.16, -1.0);
     deskGroup.add(lamp);
-    lamp.add(createBox(0.09, 0.78, 0.09, darkMaterial, [0, 0.27, 0]));
-    const shade = new THREE.Mesh(new THREE.ConeGeometry(0.32, 0.28, 32), makeMaterial(0xddd6c8, { roughness: 0.58 }));
+    lamp.add(createCylinder(0.045, 0.045, 0.78, darkMaterial, [0, 0.27, 0], [0, 0, 0], 24));
+    lamp.add(createCylinder(0.2, 0.24, 0.08, blackMaterial, [0, -0.14, 0], [0, 0, 0], 32));
+    const shade = new THREE.Mesh(
+      new THREE.ConeGeometry(0.34, 0.3, 40),
+      makeMaterial(0xffeed8, { roughness: 0.5, emissive: 0xffb765, emissiveIntensity: 0.22 })
+    );
     shade.position.set(0, 0.78, 0);
     shade.rotation.x = Math.PI;
     shade.castShadow = true;
     lamp.add(shade);
-    const lampLight = new THREE.PointLight(0xffb86b, 5.8, 4.2);
-    lampLight.position.set(2.42, 2.0, -1.0);
+    const deskBulb = new THREE.Mesh(
+      new THREE.SphereGeometry(0.105, 32, 16),
+      new THREE.MeshBasicMaterial({ color: 0xffd08a, transparent: true, opacity: 0.98 })
+    );
+    deskBulb.position.set(0, 0.66, 0);
+    lamp.add(deskBulb);
+    const deskHalo = new THREE.Mesh(
+      new THREE.SphereGeometry(0.31, 32, 16),
+      new THREE.MeshBasicMaterial({ color: 0xffad5f, transparent: true, opacity: 0.15, depthWrite: false })
+    );
+    deskHalo.position.copy(deskBulb.position);
+    lamp.add(deskHalo);
+    const lampLight = new THREE.PointLight(0xffbd76, 12.4, 5.8);
+    lampLight.position.set(2.42, 1.88, -1.0);
+    lampLight.castShadow = true;
+    lampLight.shadow.mapSize.set(768, 768);
     scene.add(lampLight);
+    const lightPool = new THREE.Mesh(
+      new THREE.CircleGeometry(0.82, 48),
+      new THREE.MeshBasicMaterial({ color: 0xffb86b, transparent: true, opacity: 0.16, depthWrite: false })
+    );
+    lightPool.position.set(2.03, 1.122, -0.72);
+    lightPool.rotation.x = -Math.PI / 2;
+    deskGroup.add(lightPool);
 
     const hotspotDots = new Map<HotspotId, THREE.Mesh>();
     const dotGeometry = new THREE.SphereGeometry(0.06, 24, 12);
@@ -709,9 +786,9 @@ export default function ThreeHouseScene() {
       scene.add(dot);
     });
 
-    const hemisphere = new THREE.HemisphereLight(0x526174, 0x120e0c, 0.72);
+    const hemisphere = new THREE.HemisphereLight(0x758299, 0x1a120e, 0.92);
     scene.add(hemisphere);
-    const sun = new THREE.DirectionalLight(0xaecbff, 1.15);
+    const sun = new THREE.DirectionalLight(0xbfd4ff, 1.05);
     sun.position.set(-3.2, 5.5, 3.5);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
@@ -722,9 +799,12 @@ export default function ThreeHouseScene() {
     sun.shadow.camera.top = 5;
     sun.shadow.camera.bottom = -5;
     scene.add(sun);
-    const fill = new THREE.PointLight(0x5e7ce2, 1.15, 7);
+    const fill = new THREE.PointLight(0x6f8cf5, 1.55, 8);
     fill.position.set(2.5, 2.4, 2.6);
     scene.add(fill);
+    const warmBounce = new THREE.PointLight(0xffc88a, 1.35, 5.8);
+    warmBounce.position.set(-1.15, 1.6, 0.18);
+    scene.add(warmBounce);
 
     const setRendererSize = () => {
       const rect = viewport.getBoundingClientRect();
@@ -907,7 +987,7 @@ export default function ThreeHouseScene() {
   return (
     <div className="relative min-h-[680px] overflow-hidden rounded-[24px] border border-[var(--border)] bg-[#07080c] shadow-[var(--shadow)] md:min-h-[720px]">
       <div ref={viewportRef} className="absolute inset-0" aria-label="3D 포트폴리오 방" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_34%_26%,rgba(125,211,252,0.16),transparent_24%),radial-gradient(circle_at_72%_38%,rgba(255,184,107,0.13),transparent_22%),linear-gradient(180deg,rgba(0,0,0,0.06)_0%,rgba(0,0,0,0.68)_100%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_34%_26%,rgba(125,211,252,0.14),transparent_25%),radial-gradient(circle_at_72%_38%,rgba(255,184,107,0.22),transparent_25%),linear-gradient(180deg,rgba(0,0,0,0.02)_0%,rgba(0,0,0,0.44)_100%)]" />
 
       <div className="absolute left-4 top-4 flex max-w-[calc(100%-2rem)] flex-wrap gap-2 md:left-6 md:top-6">
         {(Object.keys(HOTSPOTS) as HotspotId[]).map((hotspot) => (
