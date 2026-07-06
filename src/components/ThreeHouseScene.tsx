@@ -1,20 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { CSS3DObject, CSS3DRenderer } from 'three/examples/jsm/renderers/CSS3DRenderer.js';
-import { portfolioProfile, portfolioProjects, resumeExperiences, resumeFeatureProject } from '../data/portfolio';
+import { portfolioProfile } from '../data/portfolio';
 
 type HotspotId = 'iphone' | 'macbook' | 'notebook' | 'desk';
-type PhoneAppId = 'career' | 'projects' | 'demos';
-
-type DemoApp = {
-  id: string;
-  title: string;
-  caption: string;
-  src: string;
-  href: string;
-};
 
 const HOTSPOTS: Record<HotspotId, { label: string; detail: string; tone: string }> = {
   iphone: {
@@ -65,30 +56,6 @@ const FOCUS_CAMERA: Record<HotspotId | 'idle', { position: THREE.Vector3; target
     target: new THREE.Vector3(0, 1.05, -0.58)
   }
 };
-
-const demoApps: DemoApp[] = [
-  {
-    id: 'football',
-    title: 'FootballSquare',
-    caption: '매치 생성, 브래킷, floating chat mock',
-    src: '/demos/football-square-demo.html',
-    href: '/about/football-square'
-  },
-  {
-    id: 'bus',
-    title: 'BusLive',
-    caption: '실시간 위치, 정류장 채팅, 도착 예측 mock',
-    src: '/demos/bus-live-demo.html',
-    href: '/about/incheon-bus'
-  },
-  {
-    id: 'dmap',
-    title: 'DMap',
-    caption: '지도 썸네일, 동적 지도 전환 mock',
-    src: '/demos/portfolio-dmap-demo.html',
-    href: '/about/dmap-map-grid'
-  }
-];
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
@@ -330,16 +297,9 @@ export default function ThreeHouseScene() {
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const [selectedHotspot, setSelectedHotspot] = useState<HotspotId | null>(null);
   const [hoveredHotspot, setHoveredHotspot] = useState<HotspotId | null>(null);
-  const [activePhoneApp, setActivePhoneApp] = useState<PhoneAppId>('career');
-  const [activeDemo, setActiveDemo] = useState<DemoApp>(demoApps[0]);
   const selectedRef = useRef<HotspotId | null>(null);
   const hoveredRef = useRef<HotspotId | null>(null);
   const sceneSelectRef = useRef<((hotspot: HotspotId | null) => void) | null>(null);
-
-  const featuredProjects = useMemo(
-    () => portfolioProjects.filter((project) => ['i18nexus', 'solid-connection', 'football-square', 'incheon-bus', 'dmap-map-grid'].includes(project.slug)),
-    []
-  );
 
   useEffect(() => {
     selectedRef.current = selectedHotspot;
@@ -1100,211 +1060,6 @@ export default function ThreeHouseScene() {
               : 'Desktop 화면을 클릭해 3D 소개를 엽니다.'}
         </span>
       </div>
-
-      {selectedHotspot && (
-        <aside className="absolute bottom-4 right-4 top-auto z-10 w-[min(420px,calc(100%-2rem))] rounded-[28px] border border-white/10 bg-[color-mix(in_oklab,var(--surface)_88%,transparent)] p-2 shadow-[var(--shadow)] backdrop-blur-xl md:bottom-6 md:right-6 md:top-6 md:w-[420px] md:p-3">
-          <div className="mb-2 flex justify-end px-1">
-            <button type="button" className="pill h-8" onClick={() => sceneSelectRef.current?.(null)}>
-              닫기
-            </button>
-          </div>
-
-          {selectedHotspot === 'iphone' && (
-            <PhoneResumeApp
-              activeApp={activePhoneApp}
-              setActiveApp={setActivePhoneApp}
-              activeDemo={activeDemo}
-              setActiveDemo={setActiveDemo}
-              featuredProjects={featuredProjects}
-            />
-          )}
-
-          {selectedHotspot === 'macbook' && <MacbookPanel projects={featuredProjects} />}
-          {selectedHotspot === 'notebook' && <NotebookPanel />}
-          {selectedHotspot === 'desk' && <DeskPanel />}
-        </aside>
-      )}
-    </div>
-  );
-}
-
-function PhoneResumeApp({
-  activeApp,
-  setActiveApp,
-  activeDemo,
-  setActiveDemo,
-  featuredProjects
-}: {
-  activeApp: PhoneAppId;
-  setActiveApp: (app: PhoneAppId) => void;
-  activeDemo: DemoApp;
-  setActiveDemo: (demo: DemoApp) => void;
-  featuredProjects: typeof portfolioProjects;
-}) {
-  return (
-    <div className="mx-auto w-full max-w-[330px] overflow-hidden rounded-[34px] border-[10px] border-[#15171b] bg-[#0b0d10] shadow-2xl">
-      <div className="mx-auto mt-2 h-5 w-24 rounded-full bg-[#15171b]" />
-      <div className="m-3 overflow-hidden rounded-[24px] bg-[#f5f5f0] text-zinc-950">
-        <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-3">
-          <div>
-            <div className="text-[0.62rem] uppercase tracking-[0.16em] text-zinc-500">resume os</div>
-            <strong className="text-sm">{portfolioProfile.name}</strong>
-          </div>
-          <span className="rounded-full bg-zinc-950 px-2 py-1 text-[0.62rem] text-white">FE</span>
-        </div>
-
-        <div className="grid grid-cols-3 gap-2 p-3">
-          {[
-            { id: 'career', label: '경력', mark: 'EX' },
-            { id: 'projects', label: '프로젝트', mark: 'PR' },
-            { id: 'demos', label: '데모', mark: 'DM' }
-          ].map((app) => (
-            <button
-              key={app.id}
-              type="button"
-              className={`rounded-[18px] border p-2 text-left transition ${activeApp === app.id ? 'border-zinc-950 bg-zinc-950 text-white' : 'border-zinc-200 bg-white text-zinc-800'}`}
-              onClick={() => setActiveApp(app.id as PhoneAppId)}
-            >
-              <span className="mb-2 grid h-9 w-9 place-items-center rounded-[12px] bg-sky-100 text-[0.68rem] font-bold text-sky-900">{app.mark}</span>
-              <span className="block text-[0.72rem] font-semibold">{app.label}</span>
-            </button>
-          ))}
-        </div>
-
-        <div className="max-h-[420px] overflow-auto border-t border-zinc-200 bg-white p-3">
-          {activeApp === 'career' && (
-            <div className="space-y-2">
-              {resumeExperiences.map((experience) => (
-                <a key={experience.slug} href={`/about/${experience.slug}`} className="block rounded-[16px] border border-zinc-200 p-3 transition hover:border-zinc-400">
-                  <div className="text-[0.68rem] text-zinc-500">{experience.period}</div>
-                  <strong className="mt-1 block text-sm leading-tight">{experience.company}</strong>
-                  <p className="mt-1 line-clamp-2 text-[0.72rem] leading-[1.45] text-zinc-600">{experience.highlights[0]?.metric || experience.role}</p>
-                </a>
-              ))}
-            </div>
-          )}
-
-          {activeApp === 'projects' && (
-            <div className="space-y-2">
-              {featuredProjects.map((project) => (
-                <a key={project.slug} href={`/about/${project.slug}`} className="block rounded-[16px] border border-zinc-200 p-3 transition hover:border-zinc-400">
-                  <div className="text-[0.68rem] text-zinc-500">{project.eyebrow}</div>
-                  <strong className="mt-1 block text-sm leading-tight">{project.title}</strong>
-                  <p className="mt-1 line-clamp-2 text-[0.72rem] leading-[1.45] text-zinc-600">{project.metrics[0]?.value} · {project.metrics[0]?.label}</p>
-                </a>
-              ))}
-            </div>
-          )}
-
-          {activeApp === 'demos' && (
-            <div className="space-y-3">
-              <div className="grid grid-cols-3 gap-1.5">
-                {demoApps.map((demo) => (
-                  <button
-                    key={demo.id}
-                    type="button"
-                    className={`rounded-[14px] border px-2 py-2 text-[0.62rem] font-semibold leading-tight ${activeDemo.id === demo.id ? 'border-zinc-950 bg-zinc-950 text-white' : 'border-zinc-200 bg-zinc-50 text-zinc-700'}`}
-                    onClick={() => setActiveDemo(demo)}
-                  >
-                    {demo.title}
-                  </button>
-                ))}
-              </div>
-              <div className="overflow-hidden rounded-[18px] border border-zinc-200 bg-zinc-100">
-                <div className="flex items-center justify-between gap-2 border-b border-zinc-200 bg-white px-3 py-2">
-                  <div>
-                    <strong className="block text-[0.72rem] leading-tight">{activeDemo.title}</strong>
-                    <span className="block text-[0.6rem] text-zinc-500">{activeDemo.caption}</span>
-                  </div>
-                  <a href={activeDemo.href} className="shrink-0 rounded-full bg-zinc-950 px-2 py-1 text-[0.6rem] text-white">
-                    상세
-                  </a>
-                </div>
-                <iframe
-                  key={activeDemo.id}
-                  src={activeDemo.src}
-                  title={`${activeDemo.title} 데모 앱`}
-                  className="h-[360px] w-full bg-white"
-                  loading="lazy"
-                  sandbox="allow-scripts allow-same-origin allow-forms"
-                />
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function MacbookPanel({ projects }: { projects: typeof portfolioProjects }) {
-  return (
-    <div className="overflow-hidden rounded-[24px] border border-white/10 bg-[color-mix(in_oklab,var(--surface)_86%,transparent)]">
-      <div className="flex items-center gap-2 border-b border-white/10 px-4 py-3">
-        <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
-        <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
-        <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
-      </div>
-      <div className="space-y-3 p-4">
-        {projects.slice(0, 4).map((project) => (
-          <a key={project.slug} href={`/about/${project.slug}`} className="block rounded-[20px] border border-white/10 bg-[color-mix(in_oklab,var(--bg)_35%,transparent)] p-3 transition hover:border-[var(--border-strong)] hover:bg-[color-mix(in_oklab,var(--surface)_72%,transparent)]">
-            <div className="mono text-[0.66rem]" style={{ color: 'var(--text-faint)' }}>
-              {project.period}
-            </div>
-            <strong className="mt-1 block text-[0.95rem]" style={{ color: 'var(--text)' }}>
-              {project.title}
-            </strong>
-            <p className="mt-1 line-clamp-2 text-[0.78rem] leading-[1.55]" style={{ color: 'var(--text-dim)' }}>
-              {project.summary}
-            </p>
-          </a>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function NotebookPanel() {
-  return (
-    <div className="rounded-[18px] border border-[var(--border)] bg-[var(--surface)] p-4">
-      <div className="mono mb-3 text-[0.68rem]" style={{ color: 'var(--text-faint)' }}>
-        selected notes
-      </div>
-      <div className="space-y-2.5">
-        {resumeFeatureProject.links.map((link) => (
-          <a key={link.href} href={link.href} className="block rounded-[14px] border border-[var(--border)] p-3 transition hover:border-[var(--border-strong)]">
-            <strong className="text-[0.9rem]" style={{ color: 'var(--text)' }}>
-              {link.label}
-            </strong>
-            <p className="mt-1 text-[0.76rem] leading-[1.5]" style={{ color: 'var(--text-dim)' }}>
-              I18Nexus와 프론트엔드 문제 해결을 글 단위로 확인합니다.
-            </p>
-          </a>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function DeskPanel() {
-  return (
-    <div className="rounded-[18px] border border-[var(--border)] bg-[var(--surface)] p-4">
-      <div className="mono mb-3 text-[0.68rem]" style={{ color: 'var(--text-faint)' }}>
-        profile snapshot
-      </div>
-      <h3 className="m-0 text-[1.1rem] font-bold leading-tight tracking-[-0.02em]" style={{ color: 'var(--text)' }}>
-        {portfolioProfile.headline}
-      </h3>
-      <div className="mt-4 flex flex-wrap gap-2">
-        {portfolioProfile.focus.map((item) => (
-          <span key={item} className="pill">
-            {item}
-          </span>
-        ))}
-      </div>
-      <a href="/about" className="pill mt-5 h-9" style={{ color: 'var(--text)', borderColor: 'var(--border-strong)' }}>
-        소개 페이지 →
-      </a>
     </div>
   );
 }
