@@ -59,6 +59,34 @@ function richTextToPlainText(richText = []) {
     .trim();
 }
 
+function richTextToCodeText(richText = []) {
+  if (!Array.isArray(richText)) {
+    return '';
+  }
+
+  return richText.map((item) => item?.plain_text || item?.text?.content || '').join('');
+}
+
+function normalizeCodeLanguage(language) {
+  const value = typeof language === 'string' ? language.trim().toLowerCase() : '';
+  if (value === 'mermaid') {
+    return 'mermaid';
+  }
+  return value;
+}
+
+function createMarkdownCodeFence(code, language = '') {
+  const normalizedCode = String(code ?? '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const longestBacktickRun = Math.max(
+    2,
+    ...Array.from(normalizedCode.matchAll(/`+/g), (match) => match[0].length)
+  );
+  const fence = '`'.repeat(longestBacktickRun + 1);
+  const info = language ? language.replace(/[\s`]+/g, '-') : '';
+
+  return `${fence}${info}\n${normalizedCode.replace(/\n*$/, '')}\n${fence}`;
+}
+
 function normalizeExternalUrl(url) {
   if (typeof url !== 'string') {
     return '';
@@ -242,6 +270,28 @@ n2m.setCustomTransformer('table', async (block) => {
   }
 
   return `\n${tableMarkdown}\n`;
+});
+
+// 커스텀 변환기 설정 - Mermaid 코드 블록 지원
+n2m.setCustomTransformer('code', async (block) => {
+  if (block?.type !== 'code') {
+    return false;
+  }
+
+  const language = normalizeCodeLanguage(block.code?.language);
+  if (language !== 'mermaid') {
+    return false;
+  }
+
+  const code = richTextToCodeText(block.code?.rich_text);
+  if (!code.trim()) {
+    return '';
+  }
+
+  const markdown = createMarkdownCodeFence(code, 'mermaid');
+  const caption = await richTextToMarkdown(block.code?.caption);
+
+  return caption ? `${markdown}\n\n_${caption}_` : markdown;
 });
 
 // 커스텀 변환기 설정 - URL 멘션/북마크 블록 지원
