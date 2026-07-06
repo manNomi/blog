@@ -105,14 +105,6 @@ const scoreByGrade: Record<CompatibilityGrade, { base: number; min: number; max:
   worst: { base: 32, min: 24, max: 39 }
 };
 
-const accentByGrade: Record<CompatibilityGrade, string> = {
-  best: '#8ac4ff',
-  good: '#5ee7a7',
-  mixed: '#bfe174',
-  low: '#f6c85f',
-  worst: '#f87171'
-};
-
 function hashString(value: string) {
   let hash = 0;
 
@@ -192,8 +184,15 @@ function getPairSummary(grade: CompatibilityGrade, from: Person, to: Person) {
   }
 }
 
-function getPairColor(grade: CompatibilityGrade) {
-  return accentByGrade[grade];
+function getPairColor(score: number) {
+  const normalized = clamp(score, 0, 100) / 100;
+  const color = new THREE.Color();
+  const greenBiasedHue = 132 * Math.pow(normalized, 1.72);
+  const saturation = 0.74;
+  const lightness = 0.5 + normalized * 0.08;
+  color.setHSL(greenBiasedHue / 360, saturation, lightness);
+
+  return `#${color.getHexString()}`;
 }
 
 function scorePair(from: Person, to: Person): PairScore {
@@ -210,7 +209,7 @@ function scorePair(from: Person, to: Person): PairScore {
     grade,
     label: getPairLabel(grade),
     summary: getPairSummary(grade, from, to),
-    color: getPairColor(grade)
+    color: getPairColor(finalScore)
   };
 }
 
@@ -256,6 +255,154 @@ function createLabelSprite(text: string, detail: string, active: boolean) {
   sprite.scale.set(1.62, 0.65, 1);
 
   return sprite;
+}
+
+function fillRoundedRect(context: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) {
+  const normalizedRadius = Math.min(radius, width / 2, height / 2);
+
+  context.beginPath();
+  context.moveTo(x + normalizedRadius, y);
+  context.lineTo(x + width - normalizedRadius, y);
+  context.quadraticCurveTo(x + width, y, x + width, y + normalizedRadius);
+  context.lineTo(x + width, y + height - normalizedRadius);
+  context.quadraticCurveTo(x + width, y + height, x + width - normalizedRadius, y + height);
+  context.lineTo(x + normalizedRadius, y + height);
+  context.quadraticCurveTo(x, y + height, x, y + height - normalizedRadius);
+  context.lineTo(x, y + normalizedRadius);
+  context.quadraticCurveTo(x, y, x + normalizedRadius, y);
+  context.closePath();
+  context.fill();
+}
+
+function createScoreSprite(score: number, color: string, selected: boolean) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 192;
+  canvas.height = 80;
+
+  const context = canvas.getContext('2d');
+  if (!context) return null;
+
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.shadowColor = color;
+  context.shadowBlur = selected ? 18 : 10;
+  context.fillStyle = selected ? 'rgba(12, 14, 18, 0.82)' : 'rgba(12, 14, 18, 0.64)';
+  fillRoundedRect(context, 20, 15, 152, 48, 24);
+  context.shadowBlur = 0;
+  context.strokeStyle = color;
+  context.lineWidth = selected ? 3 : 2;
+  context.beginPath();
+  context.roundRect?.(21, 16, 150, 46, 23);
+  if (!context.roundRect) {
+    context.rect(21, 16, 150, 46);
+  }
+  context.stroke();
+
+  context.fillStyle = color;
+  context.beginPath();
+  context.arc(51, 40, selected ? 7 : 6, 0, Math.PI * 2);
+  context.fill();
+
+  context.fillStyle = 'rgba(255, 255, 255, 0.94)';
+  context.font = '800 27px Noto Sans KR, Apple SD Gothic Neo, sans-serif';
+  context.textAlign = 'left';
+  context.textBaseline = 'middle';
+  context.fillText(`${score}점`, 68, 40);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+
+  const material = new THREE.SpriteMaterial({
+    map: texture,
+    transparent: true,
+    opacity: selected ? 0.98 : 0.76,
+    depthTest: false,
+    depthWrite: false
+  });
+
+  const sprite = new THREE.Sprite(material);
+  sprite.renderOrder = selected ? 30 : 20;
+  sprite.scale.set(selected ? 0.9 : 0.7, selected ? 0.38 : 0.3, 1);
+
+  return sprite;
+}
+
+function createAxisLabelSprite(text: string, color: string) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 192;
+  canvas.height = 72;
+
+  const context = canvas.getContext('2d');
+  if (!context) return null;
+
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.fillStyle = 'rgba(8, 10, 14, 0.68)';
+  fillRoundedRect(context, 18, 16, 156, 40, 20);
+  context.fillStyle = color;
+  context.font = '800 24px Noto Sans KR, Apple SD Gothic Neo, sans-serif';
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  context.fillText(text, 96, 37);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+
+  const material = new THREE.SpriteMaterial({
+    map: texture,
+    transparent: true,
+    opacity: 0.88,
+    depthTest: false,
+    depthWrite: false
+  });
+
+  const sprite = new THREE.Sprite(material);
+  sprite.renderOrder = 40;
+  sprite.scale.set(0.72, 0.27, 1);
+
+  return sprite;
+}
+
+function createAxisGuide() {
+  const group = new THREE.Group();
+  group.position.set(3.28, 1.78, 0.15);
+  group.scale.setScalar(1.02);
+
+  const axes = [
+    { name: 'X', color: '#94a3b8', points: [new THREE.Vector3(-1.05, 0, 0), new THREE.Vector3(1.05, 0, 0)], label: new THREE.Vector3(1.25, 0, 0) },
+    { name: 'Y', color: '#94a3b8', points: [new THREE.Vector3(0, -1.05, 0), new THREE.Vector3(0, 1.05, 0)], label: new THREE.Vector3(0, 1.25, 0) },
+    { name: 'Z축', color: '#22c55e', points: [new THREE.Vector3(0, 0, -1.05), new THREE.Vector3(0, 0, 1.25)], label: new THREE.Vector3(0.06, 0.08, 1.55) }
+  ];
+
+  axes.forEach((axis) => {
+    const geometry = new THREE.BufferGeometry().setFromPoints(axis.points);
+    const material = new THREE.LineBasicMaterial({
+      color: new THREE.Color(axis.color),
+      transparent: true,
+      opacity: axis.name === 'Z축' ? 0.88 : 0.42,
+      depthWrite: false
+    });
+    const line = new THREE.Line(geometry, material);
+    group.add(line);
+
+    const label = createAxisLabelSprite(axis.name, axis.color);
+    if (label) {
+      label.position.copy(axis.label);
+      group.add(label);
+    }
+  });
+
+  const zHead = new THREE.ConeGeometry(0.08, 0.22, 18);
+  const zHeadMaterial = new THREE.MeshBasicMaterial({
+    color: new THREE.Color('#22c55e'),
+    transparent: true,
+    opacity: 0.9,
+    depthWrite: false
+  });
+  const zArrow = new THREE.Mesh(zHead, zHeadMaterial);
+  zArrow.position.set(0, 0, 1.34);
+  zArrow.rotation.x = Math.PI / 2;
+  group.add(zArrow);
+
+  return group;
 }
 
 function createGlowSprite() {
@@ -392,6 +539,8 @@ function ConstellationCanvas({
       root.add(glow);
     }
 
+    root.add(createAxisGuide());
+
     const starCount = 180;
     const starPositions = new Float32Array(starCount * 3);
     const starColors = new Float32Array(starCount * 3);
@@ -434,20 +583,29 @@ function ConstellationCanvas({
 
       const selected = pair.from.id === selectedPersonId || pair.to.id === selectedPersonId;
       const mid = from.clone().add(to).multiplyScalar(0.5);
-      mid.z += 0.34 + pair.score / 340;
+      mid.z += 0.28 + pair.score / 300;
 
       const curve = new THREE.CatmullRomCurve3([from, mid, to]);
-      const geometry = new THREE.TubeGeometry(curve, 28, selected ? 0.026 : 0.012 + pair.score / 6200, 8, false);
+      const geometry = new THREE.TubeGeometry(curve, 30, selected ? 0.03 : 0.014 + pair.score / 5600, 8, false);
       const material = new THREE.MeshBasicMaterial({
         color: new THREE.Color(pair.color),
         transparent: true,
-        opacity: selected ? 0.84 : 0.2 + pair.score / 520,
+        opacity: selected ? 0.9 : 0.28 + pair.score / 460,
         blending: THREE.AdditiveBlending,
         depthWrite: false
       });
 
       const line = new THREE.Mesh(geometry, material);
+      line.renderOrder = selected ? 14 : 8;
       root.add(line);
+
+      const scoreLabel = createScoreSprite(pair.score, pair.color, selected);
+      if (scoreLabel) {
+        const labelPosition = curve.getPoint(0.5);
+        labelPosition.z += selected ? 0.2 : 0.12;
+        scoreLabel.position.copy(labelPosition);
+        root.add(scoreLabel);
+      }
     });
 
     nodeItems.forEach(({ person, position }, index) => {
@@ -813,6 +971,17 @@ export default function CompatibilityConstellation() {
           {people.length > 0 && (
             <div className="pointer-events-none absolute left-3 top-3 rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs text-[var(--text-dim)] shadow-soft">
               별을 눌러 궁합 보기
+            </div>
+          )}
+
+          {people.length > 0 && (
+            <div className="pointer-events-none absolute right-4 top-4 h-20 w-28 text-[var(--text-dim)]" aria-hidden="true">
+              <span className="mono absolute right-0 top-0 rounded-full border border-emerald-300/40 bg-[var(--surface)] px-2 py-1 text-[10px] text-emerald-300 shadow-soft">
+                Z축
+              </span>
+              <span className="absolute right-7 top-10 h-[2px] w-20 origin-right -rotate-[28deg] rounded-full bg-emerald-300/80 shadow-[0_0_14px_rgba(52,211,153,0.45)]" />
+              <span className="absolute right-[18px] top-[30px] h-2.5 w-2.5 rounded-full bg-emerald-200 shadow-[0_0_16px_rgba(52,211,153,0.75)]" />
+              <span className="absolute right-[94px] top-[60px] h-1.5 w-1.5 rounded-full bg-emerald-500/60" />
             </div>
           )}
 
