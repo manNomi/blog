@@ -361,6 +361,10 @@ export default function ThreeHouseScene() {
     const raycaster = new THREE.Raycaster();
     const occlusionRaycaster = new THREE.Raycaster();
     const occlusionDirection = new THREE.Vector3();
+    const monitorWorldPosition = new THREE.Vector3();
+    const monitorWorldNormal = new THREE.Vector3();
+    const monitorWorldQuaternion = new THREE.Quaternion();
+    const monitorViewDirection = new THREE.Vector3();
     const desiredCamera = {
       position: FOCUS_CAMERA.idle.position.clone(),
       target: FOCUS_CAMERA.idle.target.clone()
@@ -636,6 +640,8 @@ export default function ThreeHouseScene() {
     macScreenFrame.add(createRoundedBox(0.075, 1.42, 0.07, 0.035, darkMaterial, [-1.215, 0, 0]));
     macScreenFrame.add(createRoundedBox(0.075, 1.42, 0.07, 0.035, darkMaterial, [1.215, 0, 0]));
     macScreenFrame.add(createRoundedBox(0.24, 0.035, 0.072, 0.018, blackMaterial, [0, 0.665, 0.003]));
+    const macScreenBack = createRoundedBox(2.5, 1.42, 0.052, 0.075, macBaseMaterial, [0, 0.82, -0.462], [-0.17, 0, 0]);
+    const macBackLogo = createRoundedBox(0.24, 0.19, 0.01, 0.04, makeMaterial(0x1c2027, { roughness: 0.42, metalness: 0.36 }), [0, 0.84, -0.494], [-0.17, 0, 0]);
     const screenTexture = makeScreenTexture('macbook');
     const macScreenPlane = new THREE.Mesh(
       new THREE.PlaneGeometry(2.26, 1.16),
@@ -677,7 +683,7 @@ export default function ThreeHouseScene() {
     monitorObject.scale.setScalar(0.002);
     addHotspotMesh('macbook', macBase);
     addHotspotMesh('macbook', macScreenHitArea);
-    macbook.add(macBase, baseLip, trackpad, macScreenHitArea, macScreenFrame, macScreenPlane, monitorObject);
+    macbook.add(macBase, baseLip, trackpad, macScreenHitArea, macScreenBack, macBackLogo, macScreenFrame, macScreenPlane, monitorObject);
     const monitorGlow = new THREE.PointLight(0x77ddff, 3.8, 3.4);
     monitorGlow.position.set(-0.78, 2.08, -0.38);
     scene.add(monitorGlow);
@@ -874,6 +880,15 @@ export default function ThreeHouseScene() {
       return blockedCount / monitorSamples.length;
     };
 
+    const isMonitorBackFacingCamera = () => {
+      monitorObject.getWorldPosition(monitorWorldPosition);
+      monitorObject.getWorldQuaternion(monitorWorldQuaternion);
+      monitorWorldNormal.set(0, 0, 1).applyQuaternion(monitorWorldQuaternion).normalize();
+      monitorViewDirection.subVectors(camera.position, monitorWorldPosition).normalize();
+
+      return monitorWorldNormal.dot(monitorViewDirection) <= 0.08;
+    };
+
     const setRendererSize = () => {
       const rect = viewport.getBoundingClientRect();
       const width = Math.max(320, Math.floor(rect.width));
@@ -1003,8 +1018,9 @@ export default function ThreeHouseScene() {
         material.opacity = active ? 0.95 : hover ? 0.82 : 0.58;
         dot.scale.setScalar(active ? 1.45 : hover ? 1.22 : 1 + Math.sin(elapsedTime * 2.2 + id.length) * 0.04);
       });
-      const monitorOcclusionRatio = getMonitorOcclusionRatio();
-      const monitorIsHidden = monitorOcclusionRatio >= 0.6;
+      const monitorBackFacing = isMonitorBackFacingCamera();
+      const monitorOcclusionRatio = monitorBackFacing ? 1 : getMonitorOcclusionRatio();
+      const monitorIsHidden = monitorBackFacing || monitorOcclusionRatio >= 0.6;
       monitorElement.style.opacity = monitorIsHidden ? '0' : String(1 - monitorOcclusionRatio * 0.42);
       monitorElement.style.pointerEvents = selected === 'macbook' && !monitorIsHidden ? 'auto' : 'none';
 
