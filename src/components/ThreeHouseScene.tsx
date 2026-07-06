@@ -359,6 +359,8 @@ export default function ThreeHouseScene() {
     const hotspotMaterials = new Map<HotspotId, THREE.MeshStandardMaterial[]>();
     const pointer = new THREE.Vector2(10, 10);
     const raycaster = new THREE.Raycaster();
+    const occlusionRaycaster = new THREE.Raycaster();
+    const occlusionDirection = new THREE.Vector3();
     const desiredCamera = {
       position: FOCUS_CAMERA.idle.position.clone(),
       target: FOCUS_CAMERA.idle.target.clone()
@@ -385,6 +387,7 @@ export default function ThreeHouseScene() {
     cssRenderer.domElement.style.inset = '0';
     cssRenderer.domElement.style.pointerEvents = 'none';
     cssRenderer.domElement.style.height = '100%';
+    cssRenderer.domElement.style.overflow = 'hidden';
     cssRenderer.domElement.style.width = '100%';
     viewport.appendChild(cssRenderer.domElement);
 
@@ -617,11 +620,21 @@ export default function ThreeHouseScene() {
     deskGroup.add(macbook);
     const macBase = createRoundedBox(1.62, 0.06, 1.04, 0.055, metalMaterial, [0, 0, 0.2], [-0.05, 0, 0]);
     const trackpad = createRoundedBox(0.42, 0.012, 0.32, 0.025, makeMaterial(0xdce2e8, { metalness: 0.35 }), [0, 0.04, 0.42], [-0.05, 0, 0]);
-    const macScreen = createRoundedBox(2.05, 1.16, 0.062, 0.065, darkMaterial, [0, 0.7, -0.34], [-0.18, 0, 0]);
+    const screenHitMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0, depthWrite: false });
+    const macScreenHitArea = createRoundedBox(2.05, 1.16, 0.062, 0.065, screenHitMaterial, [0, 0.7, -0.34], [-0.18, 0, 0]);
+    macScreenHitArea.castShadow = false;
+    macScreenHitArea.receiveShadow = false;
+    const macScreenFrame = new THREE.Group();
+    macScreenFrame.position.set(0, 0.7, -0.34);
+    macScreenFrame.rotation.x = -0.18;
+    macScreenFrame.add(createRoundedBox(2.08, 0.13, 0.076, 0.045, darkMaterial, [0, 0.54, 0]));
+    macScreenFrame.add(createRoundedBox(2.08, 0.13, 0.076, 0.045, darkMaterial, [0, -0.54, 0]));
+    macScreenFrame.add(createRoundedBox(0.13, 1.16, 0.076, 0.045, darkMaterial, [-0.98, 0, 0]));
+    macScreenFrame.add(createRoundedBox(0.13, 1.16, 0.076, 0.045, darkMaterial, [0.98, 0, 0]));
     const screenTexture = makeScreenTexture('macbook');
     const macScreenPlane = new THREE.Mesh(
       new THREE.PlaneGeometry(1.84, 0.94),
-      new THREE.MeshBasicMaterial({ map: screenTexture, toneMapped: false, transparent: true, opacity: 0.24 })
+      new THREE.MeshBasicMaterial({ map: screenTexture, toneMapped: false, transparent: true, opacity: 0.035 })
     );
     macScreenPlane.position.set(0, 0.72, -0.304);
     macScreenPlane.rotation.x = -0.18;
@@ -633,8 +646,10 @@ export default function ThreeHouseScene() {
       borderRadius: '22px',
       background: '#05070a',
       border: '1px solid rgba(148, 163, 184, 0.28)',
+      filter: 'brightness(1.12) contrast(1.06) saturate(1.04)',
       boxShadow: '0 0 34px rgba(125, 211, 252, 0.24), inset 0 0 28px rgba(255, 255, 255, 0.06)',
       pointerEvents: 'none',
+      transition: 'opacity 160ms ease',
       userSelect: 'none'
     });
     const monitorIframe = document.createElement('iframe');
@@ -656,8 +671,8 @@ export default function ThreeHouseScene() {
     monitorObject.rotation.x = -0.18;
     monitorObject.scale.setScalar(0.002);
     addHotspotMesh('macbook', macBase);
-    addHotspotMesh('macbook', macScreen);
-    macbook.add(macBase, trackpad, macScreen, macScreenPlane, monitorObject);
+    addHotspotMesh('macbook', macScreenHitArea);
+    macbook.add(macBase, trackpad, macScreenHitArea, macScreenFrame, macScreenPlane, monitorObject);
     const monitorGlow = new THREE.PointLight(0x77ddff, 3.8, 3.4);
     monitorGlow.position.set(-0.78, 1.92, -0.32);
     scene.add(monitorGlow);
@@ -808,6 +823,49 @@ export default function ThreeHouseScene() {
     warmBounce.position.set(-1.15, 1.6, 0.18);
     scene.add(warmBounce);
 
+    const monitorSamples = [
+      new THREE.Vector3(0, 0, 0),
+      new THREE.Vector3(-360, 160, 0),
+      new THREE.Vector3(360, 160, 0),
+      new THREE.Vector3(-360, -160, 0),
+      new THREE.Vector3(360, -160, 0)
+    ];
+
+    const isDescendantOf = (object: THREE.Object3D, parent: THREE.Object3D) => {
+      let current: THREE.Object3D | null = object;
+      while (current) {
+        if (current === parent) return true;
+        current = current.parent;
+      }
+
+      return false;
+    };
+
+    const isOccludingObject = (object: THREE.Object3D) => {
+      if (!(object instanceof THREE.Mesh)) return false;
+      if (isDescendantOf(object, macbook)) return false;
+
+      const material = object.material;
+      const materials = Array.isArray(material) ? material : [material];
+
+      return materials.some((item) => !(item.transparent && item.opacity <= 0.05));
+    };
+
+    const getMonitorOcclusionRatio = () => {
+      const blockedCount = monitorSamples.reduce((count, sample) => {
+        const worldPoint = monitorObject.localToWorld(sample.clone());
+        const distance = camera.position.distanceTo(worldPoint);
+        occlusionDirection.subVectors(worldPoint, camera.position).normalize();
+        occlusionRaycaster.set(camera.position, occlusionDirection);
+        occlusionRaycaster.far = Math.max(0.1, distance - 0.06);
+        const isBlocked = occlusionRaycaster.intersectObjects(room.children, true).some((entry) => isOccludingObject(entry.object));
+
+        return count + (isBlocked ? 1 : 0);
+      }, 0);
+
+      return blockedCount / monitorSamples.length;
+    };
+
     const setRendererSize = () => {
       const rect = viewport.getBoundingClientRect();
       const width = Math.max(320, Math.floor(rect.width));
@@ -937,7 +995,10 @@ export default function ThreeHouseScene() {
         material.opacity = active ? 0.95 : hover ? 0.82 : 0.58;
         dot.scale.setScalar(active ? 1.45 : hover ? 1.22 : 1 + Math.sin(elapsedTime * 2.2 + id.length) * 0.04);
       });
-      monitorElement.style.pointerEvents = selected === 'macbook' ? 'auto' : 'none';
+      const monitorOcclusionRatio = getMonitorOcclusionRatio();
+      const monitorIsHidden = monitorOcclusionRatio >= 0.6;
+      monitorElement.style.opacity = monitorIsHidden ? '0' : String(1 - monitorOcclusionRatio * 0.42);
+      monitorElement.style.pointerEvents = selected === 'macbook' && !monitorIsHidden ? 'auto' : 'none';
 
       controls.update();
       renderer.render(scene, camera);
