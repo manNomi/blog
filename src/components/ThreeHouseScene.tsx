@@ -239,33 +239,30 @@ const makeClockTexture = () =>
     ctx.stroke();
   });
 
-const makeAppleLogoTexture = (fillStyle = 'rgba(255,255,255,0.72)') =>
+const makeAppleMarkTexture = () =>
   createCanvasTexture((ctx, size) => {
     ctx.clearRect(0, 0, size, size);
-    ctx.fillStyle = fillStyle;
+    ctx.fillStyle = 'rgba(226,232,240,0.82)';
+
+    ctx.save();
+    ctx.translate(size * 0.5, size * 0.55);
     ctx.beginPath();
-    ctx.moveTo(size * 0.5, size * 0.24);
-    ctx.bezierCurveTo(size * 0.41, size * 0.12, size * 0.26, size * 0.19, size * 0.22, size * 0.33);
-    ctx.bezierCurveTo(size * 0.16, size * 0.53, size * 0.31, size * 0.78, size * 0.43, size * 0.78);
-    ctx.bezierCurveTo(size * 0.47, size * 0.78, size * 0.49, size * 0.74, size * 0.53, size * 0.74);
-    ctx.bezierCurveTo(size * 0.58, size * 0.74, size * 0.6, size * 0.78, size * 0.65, size * 0.78);
-    ctx.bezierCurveTo(size * 0.77, size * 0.78, size * 0.9, size * 0.55, size * 0.83, size * 0.36);
-    ctx.bezierCurveTo(size * 0.78, size * 0.2, size * 0.62, size * 0.15, size * 0.53, size * 0.26);
-    ctx.bezierCurveTo(size * 0.52, size * 0.27, size * 0.51, size * 0.26, size * 0.5, size * 0.24);
-    ctx.closePath();
+    ctx.ellipse(-size * 0.09, size * 0.03, size * 0.18, size * 0.24, -0.28, 0, Math.PI * 2);
+    ctx.ellipse(size * 0.09, size * 0.03, size * 0.18, size * 0.24, 0.28, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.globalCompositeOperation = 'destination-out';
     ctx.beginPath();
-    ctx.arc(size * 0.79, size * 0.36, size * 0.1, 0, Math.PI * 2);
+    ctx.arc(size * 0.22, -size * 0.06, size * 0.075, 0, Math.PI * 2);
     ctx.fill();
-    ctx.globalCompositeOperation = 'source-over';
+    ctx.restore();
 
+    ctx.globalCompositeOperation = 'source-over';
     ctx.save();
-    ctx.translate(size * 0.57, size * 0.13);
-    ctx.rotate(-0.62);
+    ctx.translate(size * 0.55, size * 0.22);
+    ctx.rotate(-0.52);
     ctx.beginPath();
-    ctx.ellipse(0, 0, size * 0.13, size * 0.06, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, 0, size * 0.06, size * 0.14, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   });
@@ -349,8 +346,6 @@ export default function ThreeHouseScene() {
     const clickableMeshes: THREE.Mesh[] = [];
     const hotspotMaterials = new Map<HotspotId, THREE.MeshStandardMaterial[]>();
     const pointer = new THREE.Vector2(10, 10);
-    const pointerDownPosition = new THREE.Vector2();
-    const pointerCurrentPosition = new THREE.Vector2();
     const raycaster = new THREE.Raycaster();
     const occlusionRaycaster = new THREE.Raycaster();
     const occlusionDirection = new THREE.Vector3();
@@ -362,9 +357,7 @@ export default function ThreeHouseScene() {
       position: FOCUS_CAMERA.idle.position.clone(),
       target: FOCUS_CAMERA.idle.target.clone()
     };
-    let pointerIsDown = false;
-    let didPointerDrag = false;
-    let shouldEaseCamera = false;
+    let cameraAutoMove = false;
 
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -637,17 +630,7 @@ export default function ThreeHouseScene() {
     macScreenFrame.add(createRoundedBox(0.075, 1.42, 0.07, 0.035, darkMaterial, [1.215, 0, 0]));
     macScreenFrame.add(createRoundedBox(0.24, 0.035, 0.072, 0.018, blackMaterial, [0, 0.665, 0.003]));
     const macScreenBack = createRoundedBox(2.5, 1.42, 0.052, 0.075, macBaseMaterial, [0, 0.82, -0.462], [-0.17, 0, 0]);
-    const macBackLogo = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.22, 0.24),
-      new THREE.MeshBasicMaterial({
-        map: makeAppleLogoTexture('rgba(14,18,24,0.74)'),
-        transparent: true,
-        toneMapped: false,
-        side: THREE.DoubleSide
-      })
-    );
-    macBackLogo.position.set(0, 0.84, -0.494);
-    macBackLogo.rotation.x = -0.17;
+    const macBackLogo = createRoundedBox(0.24, 0.19, 0.01, 0.04, makeMaterial(0x1c2027, { roughness: 0.42, metalness: 0.36 }), [0, 0.84, -0.494], [-0.17, 0, 0]);
     const screenTexture = makeScreenTexture('macbook');
     const macScreenPlane = new THREE.Mesh(
       new THREE.PlaneGeometry(2.26, 1.16),
@@ -705,77 +688,75 @@ export default function ThreeHouseScene() {
     const iphone = new THREE.Group();
     iphone.name = 'iphone hotspot';
     iphone.position.set(0.95, 1.32, -0.5);
-    iphone.rotation.set(-0.06, -0.24, 0.03);
+    iphone.rotation.set(-0.06, -0.32, 0.03);
     deskGroup.add(iphone);
-    const phoneTitaniumMaterial = makeMaterial(0x2b3138, { roughness: 0.32, metalness: 0.74 });
-    const phoneBackMaterial = makeMaterial(0x171a20, { roughness: 0.54, metalness: 0.28 });
-    const phoneLensMaterial = new THREE.MeshStandardMaterial({ color: 0x03050a, roughness: 0.22, metalness: 0.52 });
-    const phoneBody = createRoundedBox(0.54, 0.94, 0.062, 0.078, phoneTitaniumMaterial, [0, 0.14, 0]);
-    const phoneBack = createRoundedBox(0.49, 0.89, 0.018, 0.07, phoneBackMaterial, [0, 0.14, -0.042]);
-    const phoneScreenFrame = createRoundedBox(0.48, 0.88, 0.022, 0.07, blackMaterial, [0, 0.14, 0.036]);
+    const phoneTitaniumMaterial = makeMaterial(0x8b929b, { roughness: 0.32, metalness: 0.72 });
+    const phoneBackMaterial = makeMaterial(0x1e2430, { roughness: 0.42, metalness: 0.38 });
+    const phoneGlassMaterial = new THREE.MeshStandardMaterial({
+      color: 0xdbeafe,
+      roughness: 0.04,
+      metalness: 0.02,
+      transparent: true,
+      opacity: 0.22
+    });
+    const phoneBody = createRoundedBox(0.54, 0.96, 0.082, 0.078, phoneTitaniumMaterial, [0, 0.14, 0]);
+    const phoneBack = createRoundedBox(0.49, 0.9, 0.018, 0.065, phoneBackMaterial, [0, 0.14, -0.048]);
+    const phoneBezel = createRoundedBox(0.49, 0.9, 0.024, 0.066, blackMaterial, [0, 0.14, 0.044]);
     const phoneScreenTexture = makeScreenTexture('phone');
     const phoneScreen = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.42, 0.78),
+      new THREE.PlaneGeometry(0.425, 0.78),
       new THREE.MeshBasicMaterial({ map: phoneScreenTexture, toneMapped: false })
     );
-    phoneScreen.position.set(0, 0.14, 0.052);
-    const dynamicIsland = createRoundedBox(0.15, 0.038, 0.014, 0.02, blackMaterial, [0, 0.47, 0.061]);
-    const frontCamera = new THREE.Mesh(new THREE.SphereGeometry(0.011, 16, 8), new THREE.MeshBasicMaterial({ color: 0x111827 }));
-    frontCamera.position.set(0.055, 0.47, 0.07);
-    const sideButtonLeft = createRoundedBox(0.012, 0.17, 0.024, 0.006, phoneTitaniumMaterial, [-0.282, 0.27, 0.01]);
-    const sideButtonRight = createRoundedBox(0.012, 0.24, 0.024, 0.006, phoneTitaniumMaterial, [0.282, 0.18, 0.01]);
-    const cameraIsland = createRoundedBox(0.18, 0.24, 0.032, 0.045, phoneTitaniumMaterial, [-0.12, 0.43, -0.07]);
-    const phoneBackLogo = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.15, 0.17),
-      new THREE.MeshBasicMaterial({
-        map: makeAppleLogoTexture('rgba(240,245,255,0.42)'),
-        transparent: true,
-        toneMapped: false,
-        side: THREE.DoubleSide
-      })
+    phoneScreen.position.set(0, 0.14, 0.058);
+    const phoneGlass = createRoundedBox(0.45, 0.82, 0.009, 0.058, phoneGlassMaterial, [0, 0.14, 0.064]);
+    phoneGlass.castShadow = false;
+    const dynamicIsland = createRoundedBox(0.16, 0.038, 0.013, 0.019, blackMaterial, [0, 0.502, 0.073]);
+    const frontCamera = createCylinder(0.009, 0.009, 0.012, makeMaterial(0x111827, { roughness: 0.28, metalness: 0.1 }), [0.058, 0.502, 0.08], [Math.PI / 2, 0, 0], 20);
+    const homeIndicator = createRoundedBox(0.13, 0.008, 0.012, 0.004, makeMaterial(0xe5e7eb, { roughness: 0.4, metalness: 0.08 }), [0, -0.236, 0.074]);
+    const muteButton = createRoundedBox(0.012, 0.095, 0.028, 0.006, phoneTitaniumMaterial, [-0.28, 0.36, 0.004]);
+    const volumeUp = createRoundedBox(0.012, 0.15, 0.028, 0.006, phoneTitaniumMaterial, [-0.28, 0.2, 0.004]);
+    const sideButton = createRoundedBox(0.012, 0.19, 0.028, 0.006, phoneTitaniumMaterial, [0.28, 0.25, 0.004]);
+    const cameraIsland = createRoundedBox(0.19, 0.2, 0.026, 0.045, phoneBackMaterial, [-0.13, 0.455, -0.075]);
+    const lensMaterial = makeMaterial(0x05070b, { roughness: 0.24, metalness: 0.18 });
+    const lensRingMaterial = makeMaterial(0xc7d2fe, { roughness: 0.22, metalness: 0.72 });
+    const cameraLenses = [
+      [-0.165, 0.505],
+      [-0.095, 0.45],
+      [-0.165, 0.385]
+    ].flatMap(([x, y]) => [
+      createCylinder(0.031, 0.031, 0.014, lensRingMaterial, [x, y, -0.092], [Math.PI / 2, 0, 0], 30),
+      createCylinder(0.021, 0.021, 0.017, lensMaterial, [x, y, -0.101], [Math.PI / 2, 0, 0], 30)
+    ]);
+    const flash = createCylinder(0.012, 0.012, 0.014, makeMaterial(0xfff7d6, { roughness: 0.18, metalness: 0.08 }), [-0.095, 0.512, -0.101], [Math.PI / 2, 0, 0], 18);
+    const appleMark = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.13, 0.15),
+      new THREE.MeshBasicMaterial({ map: makeAppleMarkTexture(), transparent: true, toneMapped: false, side: THREE.DoubleSide })
     );
-    phoneBackLogo.position.set(0, 0.12, -0.056);
-    [
-      [-0.155, 0.475],
-      [-0.085, 0.415],
-      [-0.155, 0.355]
-    ].forEach(([x, y]) => {
-      const lens = new THREE.Mesh(new THREE.CircleGeometry(0.032, 28), phoneLensMaterial);
-      lens.position.set(x, y, -0.09);
-      lens.rotation.y = Math.PI;
-      iphone.add(lens);
-      const lensGlint = new THREE.Mesh(
-        new THREE.CircleGeometry(0.011, 16),
-        new THREE.MeshBasicMaterial({ color: 0x93c5fd, transparent: true, opacity: 0.42, side: THREE.DoubleSide })
-      );
-      lensGlint.position.set(x + 0.008, y + 0.009, -0.092);
-      lensGlint.rotation.y = Math.PI;
-      iphone.add(lensGlint);
-    });
-    const flash = new THREE.Mesh(
-      new THREE.CircleGeometry(0.014, 18),
-      new THREE.MeshBasicMaterial({ color: 0xfff3c4, transparent: true, opacity: 0.85, side: THREE.DoubleSide })
-    );
-    flash.position.set(-0.082, 0.482, -0.091);
-    flash.rotation.y = Math.PI;
-    iphone.add(flash);
-    const phoneStand = createRoundedBox(0.62, 0.05, 0.26, 0.035, metalMaterial, [0, -0.36, -0.08]);
-    const phoneStem = createCylinder(0.04, 0.04, 0.38, metalMaterial, [0, -0.18, -0.08], [0, 0, 0], 20);
+    appleMark.position.set(0, 0.08, -0.104);
+    const phoneStand = createRoundedBox(0.66, 0.05, 0.28, 0.035, metalMaterial, [0, -0.34, -0.09]);
+    const phoneStem = createCylinder(0.04, 0.04, 0.38, metalMaterial, [0, -0.17, -0.09], [0, 0, 0], 20);
+    const magsafePad = createCylinder(0.17, 0.17, 0.018, makeMaterial(0x9ca3af, { roughness: 0.36, metalness: 0.54 }), [0, -0.03, -0.088], [Math.PI / 2, 0, 0], 36);
     addHotspotMesh('iphone', phoneBody);
     addHotspotMesh('iphone', phoneStand);
     iphone.add(
       phoneBody,
       phoneBack,
-      phoneScreenFrame,
+      phoneBezel,
       phoneScreen,
+      phoneGlass,
       dynamicIsland,
       frontCamera,
-      sideButtonLeft,
-      sideButtonRight,
+      homeIndicator,
+      muteButton,
+      volumeUp,
+      sideButton,
       cameraIsland,
-      phoneBackLogo,
+      ...cameraLenses,
+      flash,
+      appleMark,
       phoneStand,
-      phoneStem
+      phoneStem,
+      magsafePad
     );
 
     const notebook = new THREE.Group();
@@ -998,7 +979,7 @@ export default function ThreeHouseScene() {
       const focus = FOCUS_CAMERA[hotspot ?? 'idle'];
       desiredCamera.position.copy(focus.position);
       desiredCamera.target.copy(focus.target);
-      shouldEaseCamera = true;
+      cameraAutoMove = true;
       setSelectedHotspot(hotspot);
     };
     sceneSelectRef.current = selectHotspot;
@@ -1019,10 +1000,6 @@ export default function ThreeHouseScene() {
     };
 
     const handlePointerMove = (event: PointerEvent) => {
-      pointerCurrentPosition.set(event.clientX, event.clientY);
-      if (pointerIsDown && pointerDownPosition.distanceTo(pointerCurrentPosition) > 7) {
-        didPointerDrag = true;
-      }
       updatePointer(event);
       const nextHotspot = getHotspotFromPointer();
       if (nextHotspot !== hoveredRef.current) {
@@ -1038,32 +1015,28 @@ export default function ThreeHouseScene() {
       renderer.domElement.style.cursor = 'grab';
     };
 
-    const handlePointerDown = (event: PointerEvent) => {
-      pointerIsDown = true;
-      didPointerDrag = false;
-      pointerDownPosition.set(event.clientX, event.clientY);
+    const handlePointerDown = () => {
       renderer.domElement.style.cursor = 'grabbing';
     };
 
     const handlePointerUp = (event: PointerEvent) => {
       updatePointer(event);
       const nextHotspot = getHotspotFromPointer();
-      pointerCurrentPosition.set(event.clientX, event.clientY);
-      const isClick = !didPointerDrag && pointerDownPosition.distanceTo(pointerCurrentPosition) <= 7;
-      pointerIsDown = false;
       renderer.domElement.style.cursor = nextHotspot ? 'pointer' : 'grab';
-      if (!isClick) return;
-      if (nextHotspot) {
-        selectHotspot(selectedRef.current === nextHotspot ? null : nextHotspot);
-        return;
+      if (nextHotspot) selectHotspot(selectedRef.current === nextHotspot ? null : nextHotspot);
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && selectedRef.current) {
+        selectHotspot(null);
       }
-      if (selectedRef.current) selectHotspot(null);
     };
 
     renderer.domElement.addEventListener('pointermove', handlePointerMove);
     renderer.domElement.addEventListener('pointerleave', handlePointerLeave);
     renderer.domElement.addEventListener('pointerdown', handlePointerDown);
     renderer.domElement.addEventListener('pointerup', handlePointerUp);
+    window.addEventListener('keydown', handleKeyDown);
 
     let previousFrame = performance.now();
     let elapsedTime = 0;
@@ -1077,11 +1050,13 @@ export default function ThreeHouseScene() {
       const cameraLerp = clamp01(delta * 2.8);
       const targetLerp = clamp01(delta * 3.2);
 
-      if (shouldEaseCamera) {
+      if (selected || cameraAutoMove) {
         camera.position.lerp(desiredCamera.position, cameraLerp);
         controls.target.lerp(desiredCamera.target, targetLerp);
-        if (camera.position.distanceTo(desiredCamera.position) < 0.01 && controls.target.distanceTo(desiredCamera.target) < 0.01) {
-          shouldEaseCamera = false;
+        if (!selected && camera.position.distanceTo(desiredCamera.position) < 0.01 && controls.target.distanceTo(desiredCamera.target) < 0.01) {
+          camera.position.copy(desiredCamera.position);
+          controls.target.copy(desiredCamera.target);
+          cameraAutoMove = false;
         }
       }
 
@@ -1121,6 +1096,7 @@ export default function ThreeHouseScene() {
       renderer.domElement.removeEventListener('pointerleave', handlePointerLeave);
       renderer.domElement.removeEventListener('pointerdown', handlePointerDown);
       renderer.domElement.removeEventListener('pointerup', handlePointerUp);
+      window.removeEventListener('keydown', handleKeyDown);
       resizeObserver.disconnect();
       monitorIframe.removeEventListener('load', syncMonitorTheme);
       window.removeEventListener('themechange', syncMonitorTheme);
@@ -1151,7 +1127,7 @@ export default function ThreeHouseScene() {
     };
   }, []);
 
-  const toggleHotspotFromUi = (hotspot: HotspotId) => {
+  const selectHotspotFromUi = (hotspot: HotspotId) => {
     sceneSelectRef.current?.(selectedHotspot === hotspot ? null : hotspot);
   };
 
@@ -1167,7 +1143,7 @@ export default function ThreeHouseScene() {
             type="button"
             className="pill bg-[color-mix(in_oklab,var(--bg)_68%,transparent)] backdrop-blur-md"
             data-active={selectedHotspot === hotspot ? 'true' : undefined}
-            onClick={() => toggleHotspotFromUi(hotspot)}
+            onClick={() => selectHotspotFromUi(hotspot)}
           >
             {HOTSPOTS[hotspot].label}
           </button>
@@ -1179,7 +1155,7 @@ export default function ThreeHouseScene() {
           {hoveredHotspot
             ? HOTSPOTS[hoveredHotspot].detail
             : selectedHotspot
-              ? '실제 포트폴리오 화면을 클릭해 탐색할 수 있습니다.'
+              ? '다시 클릭하거나 Esc로 선택을 해제할 수 있습니다.'
               : 'Desktop 화면을 클릭해 3D 소개를 엽니다.'}
         </span>
       </div>
