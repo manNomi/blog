@@ -239,6 +239,37 @@ const makeClockTexture = () =>
     ctx.stroke();
   });
 
+const makeAppleLogoTexture = (fillStyle = 'rgba(255,255,255,0.72)') =>
+  createCanvasTexture((ctx, size) => {
+    ctx.clearRect(0, 0, size, size);
+    ctx.fillStyle = fillStyle;
+    ctx.beginPath();
+    ctx.moveTo(size * 0.5, size * 0.24);
+    ctx.bezierCurveTo(size * 0.41, size * 0.12, size * 0.26, size * 0.19, size * 0.22, size * 0.33);
+    ctx.bezierCurveTo(size * 0.16, size * 0.53, size * 0.31, size * 0.78, size * 0.43, size * 0.78);
+    ctx.bezierCurveTo(size * 0.47, size * 0.78, size * 0.49, size * 0.74, size * 0.53, size * 0.74);
+    ctx.bezierCurveTo(size * 0.58, size * 0.74, size * 0.6, size * 0.78, size * 0.65, size * 0.78);
+    ctx.bezierCurveTo(size * 0.77, size * 0.78, size * 0.9, size * 0.55, size * 0.83, size * 0.36);
+    ctx.bezierCurveTo(size * 0.78, size * 0.2, size * 0.62, size * 0.15, size * 0.53, size * 0.26);
+    ctx.bezierCurveTo(size * 0.52, size * 0.27, size * 0.51, size * 0.26, size * 0.5, size * 0.24);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+    ctx.arc(size * 0.79, size * 0.36, size * 0.1, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+
+    ctx.save();
+    ctx.translate(size * 0.57, size * 0.13);
+    ctx.rotate(-0.62);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, size * 0.13, size * 0.06, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  });
+
 const createBox = (
   width: number,
   height: number,
@@ -318,6 +349,8 @@ export default function ThreeHouseScene() {
     const clickableMeshes: THREE.Mesh[] = [];
     const hotspotMaterials = new Map<HotspotId, THREE.MeshStandardMaterial[]>();
     const pointer = new THREE.Vector2(10, 10);
+    const pointerDownPosition = new THREE.Vector2();
+    const pointerCurrentPosition = new THREE.Vector2();
     const raycaster = new THREE.Raycaster();
     const occlusionRaycaster = new THREE.Raycaster();
     const occlusionDirection = new THREE.Vector3();
@@ -329,6 +362,9 @@ export default function ThreeHouseScene() {
       position: FOCUS_CAMERA.idle.position.clone(),
       target: FOCUS_CAMERA.idle.target.clone()
     };
+    let pointerIsDown = false;
+    let didPointerDrag = false;
+    let shouldEaseCamera = false;
 
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -601,7 +637,17 @@ export default function ThreeHouseScene() {
     macScreenFrame.add(createRoundedBox(0.075, 1.42, 0.07, 0.035, darkMaterial, [1.215, 0, 0]));
     macScreenFrame.add(createRoundedBox(0.24, 0.035, 0.072, 0.018, blackMaterial, [0, 0.665, 0.003]));
     const macScreenBack = createRoundedBox(2.5, 1.42, 0.052, 0.075, macBaseMaterial, [0, 0.82, -0.462], [-0.17, 0, 0]);
-    const macBackLogo = createRoundedBox(0.24, 0.19, 0.01, 0.04, makeMaterial(0x1c2027, { roughness: 0.42, metalness: 0.36 }), [0, 0.84, -0.494], [-0.17, 0, 0]);
+    const macBackLogo = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.22, 0.24),
+      new THREE.MeshBasicMaterial({
+        map: makeAppleLogoTexture('rgba(14,18,24,0.74)'),
+        transparent: true,
+        toneMapped: false,
+        side: THREE.DoubleSide
+      })
+    );
+    macBackLogo.position.set(0, 0.84, -0.494);
+    macBackLogo.rotation.x = -0.17;
     const screenTexture = makeScreenTexture('macbook');
     const macScreenPlane = new THREE.Mesh(
       new THREE.PlaneGeometry(2.26, 1.16),
@@ -661,18 +707,76 @@ export default function ThreeHouseScene() {
     iphone.position.set(0.95, 1.32, -0.5);
     iphone.rotation.set(-0.06, -0.24, 0.03);
     deskGroup.add(iphone);
-    const phoneBody = createRoundedBox(0.48, 0.86, 0.055, 0.055, darkMaterial, [0, 0.14, 0]);
+    const phoneTitaniumMaterial = makeMaterial(0x2b3138, { roughness: 0.32, metalness: 0.74 });
+    const phoneBackMaterial = makeMaterial(0x171a20, { roughness: 0.54, metalness: 0.28 });
+    const phoneLensMaterial = new THREE.MeshStandardMaterial({ color: 0x03050a, roughness: 0.22, metalness: 0.52 });
+    const phoneBody = createRoundedBox(0.54, 0.94, 0.062, 0.078, phoneTitaniumMaterial, [0, 0.14, 0]);
+    const phoneBack = createRoundedBox(0.49, 0.89, 0.018, 0.07, phoneBackMaterial, [0, 0.14, -0.042]);
+    const phoneScreenFrame = createRoundedBox(0.48, 0.88, 0.022, 0.07, blackMaterial, [0, 0.14, 0.036]);
     const phoneScreenTexture = makeScreenTexture('phone');
     const phoneScreen = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.39, 0.68),
+      new THREE.PlaneGeometry(0.42, 0.78),
       new THREE.MeshBasicMaterial({ map: phoneScreenTexture, toneMapped: false })
     );
-    phoneScreen.position.set(0, 0.15, 0.031);
-    const phoneStand = createRoundedBox(0.62, 0.05, 0.26, 0.035, metalMaterial, [0, -0.32, -0.08]);
-    const phoneStem = createCylinder(0.04, 0.04, 0.36, metalMaterial, [0, -0.16, -0.08], [0, 0, 0], 20);
+    phoneScreen.position.set(0, 0.14, 0.052);
+    const dynamicIsland = createRoundedBox(0.15, 0.038, 0.014, 0.02, blackMaterial, [0, 0.47, 0.061]);
+    const frontCamera = new THREE.Mesh(new THREE.SphereGeometry(0.011, 16, 8), new THREE.MeshBasicMaterial({ color: 0x111827 }));
+    frontCamera.position.set(0.055, 0.47, 0.07);
+    const sideButtonLeft = createRoundedBox(0.012, 0.17, 0.024, 0.006, phoneTitaniumMaterial, [-0.282, 0.27, 0.01]);
+    const sideButtonRight = createRoundedBox(0.012, 0.24, 0.024, 0.006, phoneTitaniumMaterial, [0.282, 0.18, 0.01]);
+    const cameraIsland = createRoundedBox(0.18, 0.24, 0.032, 0.045, phoneTitaniumMaterial, [-0.12, 0.43, -0.07]);
+    const phoneBackLogo = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.15, 0.17),
+      new THREE.MeshBasicMaterial({
+        map: makeAppleLogoTexture('rgba(240,245,255,0.42)'),
+        transparent: true,
+        toneMapped: false,
+        side: THREE.DoubleSide
+      })
+    );
+    phoneBackLogo.position.set(0, 0.12, -0.056);
+    [
+      [-0.155, 0.475],
+      [-0.085, 0.415],
+      [-0.155, 0.355]
+    ].forEach(([x, y]) => {
+      const lens = new THREE.Mesh(new THREE.CircleGeometry(0.032, 28), phoneLensMaterial);
+      lens.position.set(x, y, -0.09);
+      lens.rotation.y = Math.PI;
+      iphone.add(lens);
+      const lensGlint = new THREE.Mesh(
+        new THREE.CircleGeometry(0.011, 16),
+        new THREE.MeshBasicMaterial({ color: 0x93c5fd, transparent: true, opacity: 0.42, side: THREE.DoubleSide })
+      );
+      lensGlint.position.set(x + 0.008, y + 0.009, -0.092);
+      lensGlint.rotation.y = Math.PI;
+      iphone.add(lensGlint);
+    });
+    const flash = new THREE.Mesh(
+      new THREE.CircleGeometry(0.014, 18),
+      new THREE.MeshBasicMaterial({ color: 0xfff3c4, transparent: true, opacity: 0.85, side: THREE.DoubleSide })
+    );
+    flash.position.set(-0.082, 0.482, -0.091);
+    flash.rotation.y = Math.PI;
+    iphone.add(flash);
+    const phoneStand = createRoundedBox(0.62, 0.05, 0.26, 0.035, metalMaterial, [0, -0.36, -0.08]);
+    const phoneStem = createCylinder(0.04, 0.04, 0.38, metalMaterial, [0, -0.18, -0.08], [0, 0, 0], 20);
     addHotspotMesh('iphone', phoneBody);
     addHotspotMesh('iphone', phoneStand);
-    iphone.add(phoneBody, phoneScreen, phoneStand, phoneStem);
+    iphone.add(
+      phoneBody,
+      phoneBack,
+      phoneScreenFrame,
+      phoneScreen,
+      dynamicIsland,
+      frontCamera,
+      sideButtonLeft,
+      sideButtonRight,
+      cameraIsland,
+      phoneBackLogo,
+      phoneStand,
+      phoneStem
+    );
 
     const notebook = new THREE.Group();
     notebook.name = 'notebook hotspot';
@@ -894,6 +998,7 @@ export default function ThreeHouseScene() {
       const focus = FOCUS_CAMERA[hotspot ?? 'idle'];
       desiredCamera.position.copy(focus.position);
       desiredCamera.target.copy(focus.target);
+      shouldEaseCamera = true;
       setSelectedHotspot(hotspot);
     };
     sceneSelectRef.current = selectHotspot;
@@ -914,6 +1019,10 @@ export default function ThreeHouseScene() {
     };
 
     const handlePointerMove = (event: PointerEvent) => {
+      pointerCurrentPosition.set(event.clientX, event.clientY);
+      if (pointerIsDown && pointerDownPosition.distanceTo(pointerCurrentPosition) > 7) {
+        didPointerDrag = true;
+      }
       updatePointer(event);
       const nextHotspot = getHotspotFromPointer();
       if (nextHotspot !== hoveredRef.current) {
@@ -929,15 +1038,26 @@ export default function ThreeHouseScene() {
       renderer.domElement.style.cursor = 'grab';
     };
 
-    const handlePointerDown = () => {
+    const handlePointerDown = (event: PointerEvent) => {
+      pointerIsDown = true;
+      didPointerDrag = false;
+      pointerDownPosition.set(event.clientX, event.clientY);
       renderer.domElement.style.cursor = 'grabbing';
     };
 
     const handlePointerUp = (event: PointerEvent) => {
       updatePointer(event);
       const nextHotspot = getHotspotFromPointer();
+      pointerCurrentPosition.set(event.clientX, event.clientY);
+      const isClick = !didPointerDrag && pointerDownPosition.distanceTo(pointerCurrentPosition) <= 7;
+      pointerIsDown = false;
       renderer.domElement.style.cursor = nextHotspot ? 'pointer' : 'grab';
-      if (nextHotspot) selectHotspot(nextHotspot);
+      if (!isClick) return;
+      if (nextHotspot) {
+        selectHotspot(selectedRef.current === nextHotspot ? null : nextHotspot);
+        return;
+      }
+      if (selectedRef.current) selectHotspot(null);
     };
 
     renderer.domElement.addEventListener('pointermove', handlePointerMove);
@@ -957,9 +1077,12 @@ export default function ThreeHouseScene() {
       const cameraLerp = clamp01(delta * 2.8);
       const targetLerp = clamp01(delta * 3.2);
 
-      if (selected) {
+      if (shouldEaseCamera) {
         camera.position.lerp(desiredCamera.position, cameraLerp);
         controls.target.lerp(desiredCamera.target, targetLerp);
+        if (camera.position.distanceTo(desiredCamera.position) < 0.01 && controls.target.distanceTo(desiredCamera.target) < 0.01) {
+          shouldEaseCamera = false;
+        }
       }
 
       hotspotMaterials.forEach((materials, id) => {
@@ -1028,8 +1151,8 @@ export default function ThreeHouseScene() {
     };
   }, []);
 
-  const selectHotspotFromUi = (hotspot: HotspotId) => {
-    sceneSelectRef.current?.(hotspot);
+  const toggleHotspotFromUi = (hotspot: HotspotId) => {
+    sceneSelectRef.current?.(selectedHotspot === hotspot ? null : hotspot);
   };
 
   return (
@@ -1044,7 +1167,7 @@ export default function ThreeHouseScene() {
             type="button"
             className="pill bg-[color-mix(in_oklab,var(--bg)_68%,transparent)] backdrop-blur-md"
             data-active={selectedHotspot === hotspot ? 'true' : undefined}
-            onClick={() => selectHotspotFromUi(hotspot)}
+            onClick={() => toggleHotspotFromUi(hotspot)}
           >
             {HOTSPOTS[hotspot].label}
           </button>
