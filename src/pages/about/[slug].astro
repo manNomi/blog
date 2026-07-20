@@ -53,7 +53,7 @@ const imageWidth = project?.imageWidth ?? 1200;
 const imageHeight = project?.imageHeight ?? 630;
 const phoneBezelImage = '/images/ui/iphone-bezel.png';
 const title = project
-  ? `${project.title} | 한만욱 포트폴리오`
+  ? `${project.title} | 한만욱 프로젝트`
   : `${experience?.company} | 한만욱 경력`;
 const description = project
   ? `${project.summary} ${project.metrics.map((metric) => `${metric.label} ${metric.value}`).join(', ')}`
@@ -86,8 +86,9 @@ const projectGithubLinks = project?.links.filter(isGithubLink) ?? [];
 const projectReferenceLinks = project?.links.filter((link) => !isGithubLink(link) && !projectPackageLinks.has(link.href)) ?? [];
 const hasProjectPackages = Boolean(project?.packages?.length);
 const hasProjectResponsiveDemo = Boolean(project?.responsiveDemo);
+const hasProjectClientDemo = Boolean(project?.clientDemo);
 const hasProjectRouteDemo = Boolean(
-  project && (project.slug === 'incheon-bus' || project.slug === 'dmap-map-grid' || hasProjectResponsiveDemo)
+  project && (project.slug === 'incheon-bus' || project.slug === 'dmap-map-grid' || hasProjectResponsiveDemo || hasProjectClientDemo)
 );
 const demoStepLabel = hasProjectPackages ? '05' : '04';
 const resultsStepLabel = String(4 + Number(hasProjectPackages) + Number(hasProjectRouteDemo)).padStart(2, '0');
@@ -179,6 +180,23 @@ const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProje
                 />
               </div>
             </div>
+          ) : hasProjectImage && project.deviceShowcase ? (
+            <div class="client-browser client-browser--cover mb-2">
+              <div class="client-browser__bar" aria-hidden="true">
+                <span></span><span></span><span></span>
+                <strong>{project.title}</strong>
+              </div>
+              <div class="client-browser__viewport">
+                <img
+                  src={project.image}
+                  alt={project.imageAlt}
+                  width={project.imageWidth}
+                  height={project.imageHeight}
+                  loading="eager"
+                  decoding="async"
+                />
+              </div>
+            </div>
           ) : hasProjectImage ? (
             <img
               src={project.image}
@@ -197,26 +215,39 @@ const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProje
             <section class="py-8">
               <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
                 <div>
-                  <div class="mono mb-1.5" style="color: var(--text-faint);">README assets</div>
+                  <div class="mono mb-1.5" style="color: var(--text-faint);">
+                    {project.deviceShowcase ? 'Selected screens' : 'README assets'}
+                  </div>
                   <h2 class="m-0 text-[1.25rem] font-bold tracking-[-0.02em]" style="color: var(--text);">프로젝트 화면</h2>
                 </div>
                 <span class="mono" style="color: var(--text-faint);">{project.gallery.length} images</span>
               </div>
 
-              <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div class={`project-screen-grid ${project.deviceShowcase ? 'project-screen-grid--devices' : ''}`}>
                 {project.gallery.map((item) => (
-                  <figure class="m-0 overflow-hidden rounded-[16px] border p-3" style="border-color: var(--border); background: var(--surface);">
-                    <div class="grid min-h-[260px] place-items-center rounded-[12px]" style="background: var(--bg-soft);">
-                      <img
-                        src={item.src}
-                        alt={item.alt}
-                        width={item.width}
-                        height={item.height}
-                        class="max-h-[420px] w-full object-contain"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                    </div>
+                  <figure class={`project-screen ${item.device ? `project-screen--${item.device}` : ''}`}>
+                    {project.deviceShowcase && item.device === 'mobile' ? (
+                      <div class="phone-frame phone-frame--client-gallery">
+                        <img src={phoneBezelImage} alt="" class="phone-frame__bezel" loading="lazy" decoding="async" aria-hidden="true" />
+                        <div class="phone-frame__screen">
+                        <img src={item.src} alt={item.alt} width={item.width} height={item.height} class="phone-frame__image" loading="eager" decoding="async" />
+                        </div>
+                      </div>
+                    ) : project.deviceShowcase ? (
+                      <div class="client-browser client-browser--gallery">
+                        <div class="client-browser__bar" aria-hidden="true">
+                          <span></span><span></span><span></span>
+                          <strong>{item.caption}</strong>
+                        </div>
+                        <div class="client-browser__viewport">
+                          <img src={item.src} alt={item.alt} width={item.width} height={item.height} loading="eager" decoding="async" />
+                        </div>
+                      </div>
+                    ) : (
+                      <div class="project-screen__plain">
+                        <img src={item.src} alt={item.alt} width={item.width} height={item.height} loading="lazy" decoding="async" />
+                      </div>
+                    )}
                     <figcaption class="mono mt-3 text-[0.72rem]" style="color: var(--text-faint);">{item.caption}</figcaption>
                   </figure>
                 ))}
@@ -301,9 +332,11 @@ const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProje
               <p class="m-0 max-w-[62ch] text-[1.02rem] leading-[1.7]" style="color: var(--text-dim);">
                 {[project.role, project.team, project.contribution].filter(Boolean).join(' · ')}
               </p>
-              <div class="mt-4 flex flex-wrap gap-2">
-                {project.techStack.map((tech) => <span class="pill cursor-default">{tech}</span>)}
-              </div>
+              {project.techStack.length > 0 && (
+                <div class="mt-4 flex flex-wrap gap-2">
+                  {project.techStack.map((tech) => <span class="pill cursor-default">{tech}</span>)}
+                </div>
+              )}
             </div>
           </section>
 
@@ -365,8 +398,12 @@ const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProje
           {hasProjectRouteDemo && (
             <section class="flow-row demo-section">
               <div>
-                <div class="mono mb-1.5" style="color: var(--text-faint);">{demoStepLabel} · Demo</div>
-                <h2 class="m-0 text-[1.25rem] font-bold tracking-[-0.02em]" style="color: var(--text);">동작 데모</h2>
+                <div class="mono mb-1.5" style="color: var(--text-faint);">
+                  {demoStepLabel} · {project.clientDemo ? 'Service' : 'Demo'}
+                </div>
+                <h2 class="m-0 text-[1.25rem] font-bold tracking-[-0.02em]" style="color: var(--text);">
+                  {project.clientDemo ? '서비스 화면' : '동작 데모'}
+                </h2>
               </div>
 
               {project.responsiveDemo ? (
@@ -440,6 +477,32 @@ const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProje
                         </p>
                       </div>
                     </aside>
+                  </div>
+                </div>
+              ) : project.clientDemo ? (
+                <div class="client-demo-panel">
+                  <div class="client-demo-panel__head">
+                    <div>
+                      <div class="mono route-demo-kicker">{project.clientDemo.label}</div>
+                      <p>{project.clientDemo.description}</p>
+                    </div>
+                    <a href={project.clientDemo.url} target="_blank" rel="noopener noreferrer" class="pill h-8">
+                      새 창으로 열기 →
+                    </a>
+                  </div>
+                  <div class="client-browser client-browser--demo">
+                    <div class="client-browser__bar" aria-hidden="true">
+                      <span></span><span></span><span></span>
+                      <strong>{project.clientDemo.label}</strong>
+                    </div>
+                    <div class="client-browser__viewport">
+                      <iframe
+                        src={project.clientDemo.url}
+                        title={`${project.title} 서비스 화면`}
+                        loading="eager"
+                        sandbox="allow-scripts allow-same-origin allow-forms"
+                      ></iframe>
+                    </div>
                   </div>
                 </div>
               ) : project.slug === 'incheon-bus' ? (
