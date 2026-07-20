@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import * as CANNON from 'cannon-es';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
@@ -19,7 +20,15 @@ type LadderTrace = {
   points: LadderPoint[];
 };
 
-const MIN_PLAYERS = 3;
+type WaterDrop = {
+  body: CANNON.Body;
+  mesh: THREE.Mesh;
+  lag: number;
+  lateralOffset: THREE.Vector3;
+  spilled: boolean;
+};
+
+const MIN_PLAYERS = 2;
 const MAX_PLAYERS = 6;
 const TOP_Y = 7;
 const BOTTOM_Y = -7;
@@ -30,6 +39,7 @@ const PATH_COLOR = '#f8f4e8';
 const RUNG_COLOR = '#d3b17a';
 const RAIL_COLOR = '#8ba6ff';
 const RESULT_COLOR = '#f06c64';
+const WATER_COLOR = '#62d8ff';
 
 export default function LadderGamePage() {
   const [playerCount, setPlayerCount] = useState(4);
@@ -37,6 +47,8 @@ export default function LadderGamePage() {
   const [results, setResults] = useState(() => DEFAULT_RESULTS.slice(0, 4));
   const [seed, setSeed] = useState(20260625);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [isStarted, setIsStarted] = useState(false);
+  const [runKey, setRunKey] = useState(0);
 
   const rungs = useMemo(() => buildRungs(playerCount, seed), [playerCount, seed]);
   const trace = useMemo(() => (selectedIndex === null ? null : traceLadder(selectedIndex, rungs, playerCount)), [playerCount, rungs, selectedIndex]);
@@ -49,16 +61,33 @@ export default function LadderGamePage() {
     setPlayers((current) => resizeList(current, safeCount, (index) => DEFAULT_PLAYERS[index] ?? `참가자 ${index + 1}`));
     setResults((current) => resizeList(current, safeCount, (index) => DEFAULT_RESULTS[index] ?? `결과 ${index + 1}`));
     setSelectedIndex(null);
+    setIsStarted(false);
     setSeed(Date.now());
   };
 
-  const shuffleLadder = () => {
+  const startLadder = () => {
     setSelectedIndex(null);
+    setIsStarted(true);
+    setRunKey((current) => current + 1);
     setSeed(Date.now());
+  };
+
+  const resetLadder = () => {
+    setSelectedIndex(null);
+    setIsStarted(false);
+    setRunKey((current) => current + 1);
   };
 
   const pickRandomStart = () => {
+    if (!isStarted) return;
     setSelectedIndex(Math.floor(Math.random() * playerCount));
+    setRunKey((current) => current + 1);
+  };
+
+  const selectStart = (index: number) => {
+    if (!isStarted) return;
+    setSelectedIndex(index);
+    setRunKey((current) => current + 1);
   };
 
   return (
@@ -69,7 +98,7 @@ export default function LadderGamePage() {
             <p className="eyebrow">3D Ladder Game</p>
             <h1 className="mt-3 text-[32px] font-semibold leading-[1.08] tracking-[-0.04em] md:text-[52px]">사다리타기</h1>
             <p className="mt-4 max-w-[690px] text-[15px] leading-[1.7] text-[var(--text-dim)] md:text-[17px]">
-              참가자와 결과를 입력하고, 명화풍 배경 위의 입체 사다리 경로를 따라갑니다. 캔버스를 드래그하면 z축 깊이까지 돌려볼 수 있습니다.
+              참가자와 결과를 입력한 뒤 시작하면 사다리가 열립니다. 참가자를 클릭하면 물방울이 배수로를 따라 떨어지듯 물리 엔진으로 결과까지 흘러갑니다.
             </p>
           </div>
 
@@ -80,7 +109,7 @@ export default function LadderGamePage() {
                 {selectedPlayer} → {resultText}
               </strong>
             ) : (
-              <span className="leading-[1.55] text-[var(--text-dim)]">참가자를 선택하면 경로와 결과가 표시됩니다.</span>
+              <span className="leading-[1.55] text-[var(--text-dim)]">{isStarted ? '참가자를 선택하면 물길과 결과가 표시됩니다.' : '시작을 누르기 전에는 사다리가 가려집니다.'}</span>
             )}
           </div>
         </div>
@@ -138,19 +167,23 @@ export default function LadderGamePage() {
             </div>
 
             <div className="flex flex-col gap-2 sm:flex-row">
-              <button type="button" onClick={shuffleLadder} className="btn-pill-dark h-11 flex-1 transition-transform duration-200 hover:-translate-y-0.5">
-                새 사다리
+              <button type="button" onClick={startLadder} className="btn-pill-dark h-11 flex-1 transition-transform duration-200 hover:-translate-y-0.5">
+                {isStarted ? '새로 시작' : '시작'}
               </button>
-              <button type="button" onClick={pickRandomStart} className="btn-pill-soft h-11 flex-1 transition-transform duration-200 hover:-translate-y-0.5">
-                랜덤 시작
+              <button type="button" onClick={resetLadder} className="btn-pill-soft h-11 flex-1 transition-transform duration-200 hover:-translate-y-0.5">
+                가리기
               </button>
             </div>
+            <button type="button" onClick={pickRandomStart} disabled={!isStarted} className="btn-pill-soft h-11 transition-transform duration-200 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-45">
+              랜덤 시작
+            </button>
           </section>
 
           <section className="saju-card grid gap-3 px-5 py-5 md:px-6 md:py-6">
             <div>
               <p className="eyebrow">Start</p>
               <h2 className="mt-2 text-[22px] font-semibold tracking-[-0.02em]">누가 출발할까요?</h2>
+              {!isStarted && <p className="mt-2 text-sm leading-[1.6] text-[var(--text-dim)]">먼저 시작을 누르면 사다리와 배수로가 나타납니다.</p>}
             </div>
 
             <div className="grid gap-2">
@@ -163,9 +196,10 @@ export default function LadderGamePage() {
                     key={index}
                     type="button"
                     aria-pressed={active}
+                    disabled={!isStarted}
                     data-active={active ? 'true' : undefined}
-                    onClick={() => setSelectedIndex(index)}
-                    className="saju-choice flex min-h-[48px] items-center justify-between px-4 py-3 text-left"
+                    onClick={() => selectStart(index)}
+                    className="saju-choice flex min-h-[48px] items-center justify-between px-4 py-3 text-left disabled:cursor-not-allowed disabled:opacity-45"
                   >
                     <span className="truncate font-semibold">{label}</span>
                     <span className="mono">{active ? 'selected' : `#${index + 1}`}</span>
@@ -185,6 +219,8 @@ export default function LadderGamePage() {
             trace={trace}
             selectedIndex={selectedIndex}
             seed={seed}
+            isStarted={isStarted}
+            runKey={runKey}
           />
         </section>
       </section>
@@ -199,7 +235,9 @@ function LadderStage({
   rungs,
   trace,
   selectedIndex,
-  seed
+  seed,
+  isStarted,
+  runKey
 }: {
   count: number;
   players: string[];
@@ -208,22 +246,27 @@ function LadderStage({
   trace: LadderTrace | null;
   selectedIndex: number | null;
   seed: number;
+  isStarted: boolean;
+  runKey: number;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const configKey = JSON.stringify({ count, players, results, rungs, trace, selectedIndex, seed });
+  const configKey = JSON.stringify({ count, players, results, rungs, trace, selectedIndex, seed, isStarted, runKey });
 
   useEffect(() => {
     const root = containerRef.current;
     if (!root) return undefined;
     const rootElement = root;
+    if (!isStarted) return undefined;
 
     let animationId = 0;
+    let previousFrame = performance.now();
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 1000);
     camera.position.set(8.4, 7.6, 15.2);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.shadowMap.enabled = true;
     renderer.domElement.style.display = 'block';
     renderer.domElement.style.touchAction = 'none';
     renderer.domElement.setAttribute('aria-label', '3D 사다리타기 캔버스');
@@ -241,8 +284,25 @@ function LadderStage({
     const keyLight = new THREE.DirectionalLight('#fff7dd', 1.4);
     const rimLight = new THREE.DirectionalLight('#9fb8ff', 0.9);
     keyLight.position.set(4, 10, 8);
+    keyLight.castShadow = true;
     rimLight.position.set(-8, 5, -6);
     scene.add(ambientLight, keyLight, rimLight);
+
+    const world = new CANNON.World({
+      gravity: new CANNON.Vec3(0, -9.82, 0)
+    });
+    world.allowSleep = true;
+    const solver = world.solver as CANNON.GSSolver;
+    solver.iterations = 12;
+    solver.tolerance = 0.002;
+    const waterPhysicsMaterial = new CANNON.Material('water');
+    const drainPhysicsMaterial = new CANNON.Material('drain');
+    world.addContactMaterial(
+      new CANNON.ContactMaterial(waterPhysicsMaterial, drainPhysicsMaterial, {
+        friction: 0.02,
+        restitution: 0.32
+      })
+    );
 
     const backdropTexture = createPaintingTexture(seed);
     const backdrop = new THREE.Mesh(
@@ -259,6 +319,11 @@ function LadderStage({
     floor.rotation.x = -Math.PI / 2;
     floor.position.y = BOTTOM_Y - 1.28;
     scene.add(floor);
+    const floorBody = new CANNON.Body({ mass: 0, material: drainPhysicsMaterial });
+    floorBody.addShape(new CANNON.Plane());
+    floorBody.position.set(0, BOTTOM_Y - 1.18, 0);
+    floorBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    world.addBody(floorBody);
 
     const railMaterial = new THREE.MeshStandardMaterial({
       color: RAIL_COLOR,
@@ -293,6 +358,29 @@ function LadderStage({
       emissive: '#6d1c1a',
       emissiveIntensity: 0.46
     });
+    const gutterSideMaterial = new THREE.MeshStandardMaterial({
+      color: '#89f0ff',
+      roughness: 0.18,
+      metalness: 0.18,
+      emissive: '#166880',
+      emissiveIntensity: 0.55
+    });
+    const waterPathMaterial = new THREE.MeshStandardMaterial({
+      color: WATER_COLOR,
+      roughness: 0.08,
+      metalness: 0.02,
+      transparent: true,
+      opacity: 0.72,
+      emissive: '#1fb7ff',
+      emissiveIntensity: 0.82
+    });
+    const basinMaterial = new THREE.MeshStandardMaterial({
+      color: '#111827',
+      roughness: 0.44,
+      metalness: 0.2,
+      emissive: '#082f49',
+      emissiveIntensity: 0.2
+    });
 
     for (let column = 0; column < count; column += 1) {
       const top = positionForColumn(column, count, TOP_Y);
@@ -308,6 +396,14 @@ function LadderStage({
       const bottomLabel = createTextSprite(getSafeLabel(results, column, `결과 ${column + 1}`), trace?.resultIndex === column ? '#fff7e8' : '#c7c9d1');
       bottomLabel.position.set(bottom.x, BOTTOM_Y - 0.72, bottom.z);
       scene.add(bottomLabel);
+
+      const basin = createDrainBasin(bottom, trace?.resultIndex === column ? WATER_COLOR : '#334155', basinMaterial);
+      scene.add(basin);
+      addStaticBox(world, [bottom.x, BOTTOM_Y - 1.15, bottom.z], [0.62, 0.08, 0.58], drainPhysicsMaterial);
+      addStaticBox(world, [bottom.x - 0.68, BOTTOM_Y - 0.82, bottom.z], [0.08, 0.54, 0.58], drainPhysicsMaterial);
+      addStaticBox(world, [bottom.x + 0.68, BOTTOM_Y - 0.82, bottom.z], [0.08, 0.54, 0.58], drainPhysicsMaterial);
+      addStaticBox(world, [bottom.x, BOTTOM_Y - 0.82, bottom.z - 0.62], [0.62, 0.54, 0.08], drainPhysicsMaterial);
+      addStaticBox(world, [bottom.x, BOTTOM_Y - 0.82, bottom.z + 0.62], [0.62, 0.54, 0.08], drainPhysicsMaterial);
     }
 
     for (const rung of rungs) {
@@ -320,6 +416,8 @@ function LadderStage({
     if (pathVectors.length > 1) {
       for (let index = 0; index < pathVectors.length - 1; index += 1) {
         scene.add(createCylinderBetween(pathVectors[index], pathVectors[index + 1], 0.105, pathMaterial));
+        const segment = createWaterChannel(pathVectors[index], pathVectors[index + 1], gutterSideMaterial, waterPathMaterial);
+        scene.add(segment);
       }
 
       for (const point of pathVectors) {
@@ -327,8 +425,11 @@ function LadderStage({
       }
     }
 
-    const runner = pathVectors.length > 1 ? createSphere(pathVectors[0], 0.24, resultMaterial) : null;
-    if (runner) scene.add(runner);
+    const pathLengths = getPathLengths(pathVectors);
+    const waterDrops = pathVectors.length > 1 ? createWaterDrops(pathVectors[0], runKey, world, waterPhysicsMaterial) : [];
+    waterDrops.forEach((drop) => scene.add(drop.mesh));
+    const waterHead = pathVectors.length > 1 ? createSphere(pathVectors[0], 0.19, resultMaterial) : null;
+    if (waterHead) scene.add(waterHead);
 
     const axes = new THREE.AxesHelper(2.8);
     axes.position.set(-8.7, BOTTOM_Y - 0.82, 4.2);
@@ -344,16 +445,20 @@ function LadderStage({
     resize();
 
     const animationStartedAt = performance.now();
-    const pathLengths = getPathLengths(pathVectors);
 
     const animate = () => {
       animationId = window.requestAnimationFrame(animate);
+      const now = performance.now();
+      const delta = Math.min(0.034, Math.max(0.001, (now - previousFrame) / 1000));
+      previousFrame = now;
       controls.update();
+      world.step(1 / 60, delta, 4);
 
-      if (runner && pathLengths.total > 0) {
-        const elapsedSeconds = (performance.now() - animationStartedAt) / 1000;
-        const distance = (elapsedSeconds * 2.4) % pathLengths.total;
-        runner.position.copy(getPointAtDistance(pathVectors, pathLengths.cumulative, distance));
+      if (pathVectors.length > 1 && pathLengths.total > 0) {
+        const elapsedSeconds = (now - animationStartedAt) / 1000;
+        const headDistance = Math.min(pathLengths.total, elapsedSeconds * 3.15);
+        waterHead?.position.copy(getPointAtDistance(pathVectors, pathLengths.cumulative, headDistance));
+        updateWaterDrops(waterDrops, pathVectors, pathLengths.cumulative, pathLengths.total, elapsedSeconds);
       }
 
       renderer.render(scene, camera);
@@ -368,6 +473,7 @@ function LadderStage({
       disposeObject(scene);
       renderer.dispose();
       renderer.domElement.remove();
+      world.bodies.slice().forEach((body) => world.removeBody(body));
     };
 
     function resize() {
@@ -377,9 +483,13 @@ function LadderStage({
       if (width < 560) {
         camera.position.set(4.8, 7.4, 20.5);
         camera.fov = 47;
+        axes.visible = false;
+        hint.visible = false;
       } else {
         camera.position.set(8.4, 7.6, 15.2);
         camera.fov = 42;
+        axes.visible = true;
+        hint.visible = true;
       }
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
@@ -390,9 +500,20 @@ function LadderStage({
   return (
     <div className="relative min-h-[540px] overflow-hidden rounded-[16px] border border-[var(--border)] bg-[var(--bg)] sm:min-h-[620px]">
       <div ref={containerRef} className="absolute inset-0" />
-      <div className="pointer-events-none absolute left-3 top-3 rounded-full border border-white/15 bg-black/35 px-3 py-1.5 text-xs font-medium text-white/80 shadow-soft backdrop-blur">
-        3D view
-      </div>
+      {!isStarted && (
+        <div className="absolute inset-0 grid place-items-center bg-[radial-gradient(circle_at_50%_34%,rgba(98,216,255,0.18),transparent_32%),linear-gradient(145deg,rgba(7,9,13,0.98),rgba(15,23,42,0.94))] px-6 text-center">
+          <div className="max-w-[420px] rounded-[22px] border border-white/10 bg-black/28 px-5 py-6 shadow-soft backdrop-blur">
+            <p className="eyebrow">Hidden Ladder</p>
+            <h3 className="mt-3 text-[24px] font-semibold tracking-[-0.03em] text-white">아직 사다리는 잠겨 있어요</h3>
+            <p className="mt-3 text-sm leading-[1.7] text-white/65">참가자와 결과를 정한 뒤 왼쪽의 시작 버튼을 누르면 배수로가 열리고 사다리가 나타납니다.</p>
+          </div>
+        </div>
+      )}
+      {isStarted && (
+        <div className="pointer-events-none absolute left-3 top-3 rounded-full border border-white/15 bg-black/35 px-3 py-1.5 text-xs font-medium text-white/80 shadow-soft backdrop-blur">
+          {trace ? 'physics water flow' : 'choose a player'}
+        </div>
+      )}
     </div>
   );
 }
@@ -457,6 +578,120 @@ function createSphere(position: THREE.Vector3, radius: number, material: THREE.M
   const mesh = new THREE.Mesh(new THREE.SphereGeometry(radius, 24, 16), material);
   mesh.position.copy(position);
   return mesh;
+}
+
+function createDrainBasin(position: THREE.Vector3, accentColor: string, material: THREE.Material) {
+  const group = new THREE.Group();
+  group.position.set(position.x, BOTTOM_Y - 1.08, position.z);
+  const base = new THREE.Mesh(new THREE.BoxGeometry(1.28, 0.14, 1.08), material);
+  const leftWall = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.54, 1.1), material);
+  const rightWall = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.54, 1.1), material);
+  const backWall = new THREE.Mesh(new THREE.BoxGeometry(1.28, 0.54, 0.1), material);
+  const frontWall = new THREE.Mesh(new THREE.BoxGeometry(1.28, 0.34, 0.1), material);
+  const water = new THREE.Mesh(
+    new THREE.CircleGeometry(0.42, 34),
+    new THREE.MeshBasicMaterial({ color: accentColor, transparent: true, opacity: 0.26, side: THREE.DoubleSide })
+  );
+  leftWall.position.set(-0.66, 0.29, 0);
+  rightWall.position.set(0.66, 0.29, 0);
+  backWall.position.set(0, 0.29, -0.54);
+  frontWall.position.set(0, 0.19, 0.54);
+  water.rotation.x = -Math.PI / 2;
+  water.position.y = 0.19;
+  group.add(base, leftWall, rightWall, backWall, frontWall, water);
+  return group;
+}
+
+function createWaterChannel(start: THREE.Vector3, end: THREE.Vector3, sideMaterial: THREE.Material, waterMaterial: THREE.Material) {
+  const group = new THREE.Group();
+  const direction = new THREE.Vector3().subVectors(end, start).normalize();
+  const sideOffset = new THREE.Vector3(-direction.z, 0, direction.x);
+  if (sideOffset.lengthSq() < 0.001) sideOffset.set(1, 0, 0);
+  sideOffset.normalize().multiplyScalar(0.19);
+  const lift = new THREE.Vector3(0, 0.035, 0);
+  group.add(createCylinderBetween(start.clone().add(sideOffset).add(lift), end.clone().add(sideOffset).add(lift), 0.03, sideMaterial));
+  group.add(createCylinderBetween(start.clone().sub(sideOffset).add(lift), end.clone().sub(sideOffset).add(lift), 0.03, sideMaterial));
+  group.add(createCylinderBetween(start.clone().add(lift), end.clone().add(lift), 0.05, waterMaterial));
+  return group;
+}
+
+function addStaticBox(world: CANNON.World, position: [number, number, number], size: [number, number, number], material: CANNON.Material) {
+  const body = new CANNON.Body({ mass: 0, material });
+  body.addShape(new CANNON.Box(new CANNON.Vec3(size[0] / 2, size[1] / 2, size[2] / 2)));
+  body.position.set(...position);
+  world.addBody(body);
+  return body;
+}
+
+function createWaterDrops(start: THREE.Vector3, seed: number, world: CANNON.World, material: CANNON.Material): WaterDrop[] {
+  const random = mulberry32(seed + 5007);
+  const waterMaterial = new THREE.MeshStandardMaterial({
+    color: WATER_COLOR,
+    roughness: 0.04,
+    metalness: 0.02,
+    transparent: true,
+    opacity: 0.78,
+    emissive: '#0ea5e9',
+    emissiveIntensity: 0.42
+  });
+
+  const drops = Array.from({ length: 34 }, (_, index) => {
+    const radius = 0.065 + random() * 0.045;
+    const body = new CANNON.Body({
+      mass: 0.055 + random() * 0.04,
+      material,
+      shape: new CANNON.Sphere(radius),
+      linearDamping: 0.22,
+      angularDamping: 0.45
+    });
+    body.position.set(start.x + (random() - 0.5) * 0.2, start.y + 0.14 + random() * 0.26, start.z + (random() - 0.5) * 0.2);
+    body.velocity.set((random() - 0.5) * 0.4, -0.45 - random() * 0.5, (random() - 0.5) * 0.4);
+    world.addBody(body);
+
+    const mesh = new THREE.Mesh(new THREE.SphereGeometry(radius, 18, 14), waterMaterial.clone());
+    mesh.position.copy(start);
+
+    return {
+      body,
+      mesh,
+      lag: index * 0.105 + random() * 0.18,
+      lateralOffset: new THREE.Vector3((random() - 0.5) * 0.12, random() * 0.05, (random() - 0.5) * 0.12),
+      spilled: false
+    };
+  });
+  waterMaterial.dispose();
+  return drops;
+}
+
+function updateWaterDrops(drops: WaterDrop[], points: THREE.Vector3[], cumulative: number[], totalDistance: number, elapsedSeconds: number) {
+  drops.forEach((drop, index) => {
+    const travel = elapsedSeconds * 3.35 - drop.lag;
+    const meshPosition = drop.mesh.position;
+
+    if (travel <= 0) {
+      meshPosition.set(drop.body.position.x, drop.body.position.y, drop.body.position.z);
+      return;
+    }
+
+    if (travel < totalDistance) {
+      const target = getPointAtDistance(points, cumulative, travel).add(drop.lateralOffset);
+      const bodyPosition = new THREE.Vector3(drop.body.position.x, drop.body.position.y, drop.body.position.z);
+      const toTarget = target.sub(bodyPosition);
+      const desiredVelocity = toTarget.multiplyScalar(8.8);
+      drop.body.velocity.x += (desiredVelocity.x - drop.body.velocity.x) * 0.22;
+      drop.body.velocity.y += (desiredVelocity.y - drop.body.velocity.y) * 0.22 - 0.02;
+      drop.body.velocity.z += (desiredVelocity.z - drop.body.velocity.z) * 0.22;
+    } else if (!drop.spilled) {
+      const randomAngle = ((index * 97) % 360) * (Math.PI / 180);
+      drop.body.velocity.set(Math.cos(randomAngle) * 1.1, 1.1 + (index % 5) * 0.12, Math.sin(randomAngle) * 1.1);
+      drop.body.angularVelocity.set(2 + (index % 3), 1.6, -1.2);
+      drop.spilled = true;
+    }
+
+    meshPosition.set(drop.body.position.x, drop.body.position.y, drop.body.position.z);
+    const pulse = 1 + Math.sin(elapsedSeconds * 8 + index) * 0.08;
+    drop.mesh.scale.setScalar(pulse);
+  });
 }
 
 function createTextSprite(text: string, color = '#eef0f5', width = 360, height = 120) {
