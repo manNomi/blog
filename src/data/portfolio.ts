@@ -467,94 +467,6 @@ export const portfolioStrengths = [
 
 export const portfolioProjects: PortfolioProject[] = [
   {
-    slug: 'soundlog',
-    title: 'Soundlog',
-    eyebrow: 'Location-based Music App',
-    period: '2026.07',
-    quote: '여행의 장소와 감정을 음악으로 다시 꺼내볼 수 있다면 어떨까?',
-    summary:
-      '사용자의 위치, 분위기, 순간 기록, 음악 취향을 바탕으로 장소와 감정에 어울리는 음악 경험을 제공하는 서비스입니다. React Native/Expo 모바일 앱부터 Express API, Prisma/PostgreSQL 데이터 모델, Vercel·EC2·EAS 배포 구성까지 직접 설계하고 구현했습니다.',
-    role: '제품 기획, 모바일 앱, API 서버, DB 모델링, 배포·인프라 구현',
-    team: '개인 프로젝트',
-    contribution: '기획·구현 100%',
-    image: '/images/projects/soundlog-map.png',
-    imageAlt: 'Soundlog iOS 앱 여행 모드 지도 화면',
-    imageWidth: 782,
-    imageHeight: 1700,
-    gallery: [
-      {
-        src: '/images/projects/soundlog-map.png',
-        alt: 'Soundlog 여행 모드 지도 화면',
-        caption: '여행 모드 지도',
-        width: 782,
-        height: 1700
-      },
-      {
-        src: '/images/projects/soundlog-playlist.png',
-        alt: 'Soundlog 장소 기반 플레이리스트 화면',
-        caption: '음악 추천',
-        width: 782,
-        height: 1700
-      },
-      {
-        src: '/images/projects/soundlog-recap.png',
-        alt: 'Soundlog 여행 사운드로그 리캡 화면',
-        caption: '여행 Recap',
-        width: 782,
-        height: 1700
-      }
-    ],
-    visualMode: 'phone',
-    accent: '#b7e628',
-    metrics: [
-      { value: 'Full-stack', label: '앱·서버·인프라 구현', detail: 'React Native 앱, Express API, DB, 배포 환경을 직접 연결' },
-      { value: 'OpenAPI', label: 'API 계약 검증', detail: '프론트 API facade와 서버 스펙을 비교해 mock 의존성 제거' },
-      { value: 'EAS/Vercel', label: '배포·릴리즈 기준', detail: 'HTTPS API proxy, EAS env, 릴리즈 검증 스크립트 구성' }
-    ],
-    highlights: [
-      '위치 기반 추천, 여행 세션, 순간 로그, Recap 도메인을 하나의 제품 흐름으로 설계',
-      'React Native/Expo 앱에서 지도, 음악 추천, 바텀시트, 카메라/저장 흐름 구현',
-      'Express, Prisma, PostgreSQL 기반 API 서버와 OpenAPI 계약 검증 체계 구축',
-      'Vercel rewrite proxy와 EC2 API origin을 연결해 웹/네이티브 API 기준 통일',
-      'EAS production profile, 환경변수, 릴리즈 검증 스크립트까지 배포 조건 정리'
-    ],
-    contributions: [
-      '위치 기반 음악 추천, 여행 모드, 순간 기록, Recap 공유 흐름을 React Native/Expo 앱으로 구현했습니다.',
-      '인증, 추천, 여행방, Recap, 커뮤니티 API를 Express 서버와 Prisma 모델로 분리하고 프론트 API layer와 연결했습니다.',
-      'soundlog.shop HTTPS API proxy, EC2 API origin, EAS 빌드 환경, 서버 계약 검증 스크립트를 구성해 배포 가능한 상태로 정리했습니다.'
-    ],
-    results: [
-      { label: '제품화 범위', before: '앱 화면 중심', after: '앱·서버·DB·배포 연결', effect: '실서비스 구조 확보' },
-      { label: 'API 연동', before: '로컬 데이터 기준', after: '서버 API facade + 계약 검증', effect: '회귀 위험 감소' },
-      { label: '배포 구조', before: '직접 API origin 호출', after: 'soundlog.shop HTTPS proxy', effect: '웹/네이티브 기준 통일' },
-      { label: '릴리즈 준비', before: '환경 설정 수동 확인', after: 'EAS/Vercel 검증 스크립트', effect: '배포 실수 방지' }
-    ],
-    techStack: [
-      'React Native',
-      'Expo',
-      'TypeScript',
-      'Zustand',
-      'React Query',
-      'Express',
-      'Prisma',
-      'PostgreSQL',
-      'Docker',
-      'EC2',
-      'Vercel',
-      'EAS',
-      'OpenAPI'
-    ],
-    problem:
-      '위치 기반 음악 추천은 화면만 만들면 끝나는 기능처럼 보이지만, 실제 서비스로 만들려면 위치 권한, 추천 데이터, 여행 세션, Recap 저장, 인증, 배포 환경이 모두 같은 계약으로 맞물려야 했습니다. 개인 프로젝트라도 앱 UI를 넘어 서버와 인프라까지 제품 완성도를 끌어올리는 것이 목표였습니다.',
-    approach: [
-      '지도, 음악 추천, 여행 세션, Recap을 별도 화면 기능이 아니라 하나의 도메인 흐름으로 보고 상태 모델과 API 경계를 먼저 정리했습니다.',
-      'React Native 앱은 Expo Router, Zustand, React Query 기반으로 구성하고, 지도·카메라·파일·공유처럼 네이티브 권한이 필요한 흐름을 분리했습니다.',
-      '서버는 Express, Prisma, PostgreSQL로 구성하고 OpenAPI 문서와 프론트 API facade를 비교하는 검증 스크립트로 계약 이탈을 막았습니다.',
-      '배포는 Vercel rewrite proxy, EC2 API origin, Docker/PostgreSQL, EAS profile을 연결해 웹과 네이티브가 같은 HTTPS API 기준을 사용하도록 맞췄습니다.'
-    ],
-    links: []
-  },
-  {
     slug: 'i18nexus',
     title: 'I18Nexus',
     eyebrow: 'i18n Automation Toolkit',
@@ -712,6 +624,93 @@ export const portfolioProjects: PortfolioProject[] = [
       { label: 'Bruno codegen', href: '/blog/bruno-api용-codegen-을-만들자' },
       { label: '운영 인스펙터', href: '/blog/qa를-필요한-사람이-하게-하자' }
     ]
+  },
+  {
+    slug: 'soundlog',
+    title: 'Soundlog',
+    eyebrow: 'Location-based Music App',
+    period: '2026.07',
+    quote: '여행의 장소와 감정을 음악으로 다시 꺼내볼 수 있다면 어떨까?',
+    summary:
+      '사용자의 위치, 분위기, 순간 기록, 음악 취향을 바탕으로 장소와 감정에 어울리는 음악 경험을 제공하는 서비스입니다. React Native/Expo 모바일 앱부터 Express API, Prisma/PostgreSQL 데이터 모델, Vercel·EC2·EAS 배포 구성까지 직접 설계하고 구현했습니다.',
+    role: '제품 기획, 모바일 앱, API 서버, DB 모델링, 배포·인프라 구현',
+    team: '개인 프로젝트',
+    contribution: '기획·구현 100%',
+    image: '/images/projects/soundlog-map.png',
+    imageAlt: 'Soundlog iOS 앱 여행 모드 지도 화면',
+    imageWidth: 782,
+    imageHeight: 1700,
+    gallery: [
+      {
+        src: '/images/projects/soundlog-map.png',
+        alt: 'Soundlog 여행 모드 지도 화면',
+        caption: '여행 모드 지도',
+        width: 782,
+        height: 1700
+      },
+      {
+        src: '/images/projects/soundlog-playlist.png',
+        alt: 'Soundlog 장소 기반 플레이리스트 화면',
+        caption: '음악 추천',
+        width: 782,
+        height: 1700
+      },
+      {
+        src: '/images/projects/soundlog-recap.png',
+        alt: 'Soundlog 여행 사운드로그 리캡 화면',
+        caption: '여행 Recap',
+        width: 782,
+        height: 1700
+      }
+    ],
+    visualMode: 'phone',
+    accent: '#b7e628',
+    metrics: [
+      { value: 'Full-stack', label: '앱·서버·인프라 구현', detail: 'React Native 앱, Express API, DB, 배포 환경을 직접 연결' },
+      { value: 'Server API', label: '추천·여행 데이터 연동', detail: '음악 추천, 여행 세션, Recap 데이터를 서버 저장 흐름에 연결' },
+      { value: 'EAS/Vercel', label: '배포·릴리즈 기준', detail: 'HTTPS API proxy, EAS env, 릴리즈 체크 스크립트 구성' }
+    ],
+    highlights: [
+      '위치 기반 추천, 여행 세션, 순간 로그, Recap 도메인을 하나의 제품 흐름으로 설계',
+      'React Native/Expo 앱에서 지도, 음악 추천, 바텀시트, 카메라/저장 흐름 구현',
+      'Express, Prisma, PostgreSQL 기반 API 서버와 앱 연동 구조 구축',
+      'Vercel rewrite proxy와 EC2 API origin을 연결해 웹/네이티브 API 기준 통일',
+      'EAS production profile, 환경변수, 릴리즈 체크 스크립트까지 배포 조건 정리'
+    ],
+    contributions: [
+      '위치 기반 음악 추천, 여행 모드, 순간 기록, Recap 공유 흐름을 React Native/Expo 앱으로 구현했습니다.',
+      '인증, 추천, 여행방, Recap, 커뮤니티 API를 Express 서버와 Prisma 모델로 분리하고 앱의 서버 연동 코드와 연결했습니다.',
+      'soundlog.shop HTTPS API proxy, EC2 API origin, EAS 빌드 환경, 릴리즈 체크 스크립트를 구성해 배포 가능한 상태로 정리했습니다.'
+    ],
+    results: [
+      { label: '제품화 범위', before: '앱 화면 중심', after: '앱·서버·DB·배포 연결', effect: '실서비스 구조 확보' },
+      { label: 'API 연동', before: '로컬 데이터 기준', after: '서버 API 연동', effect: '실데이터 흐름 확보' },
+      { label: '배포 구조', before: '직접 API origin 호출', after: 'soundlog.shop HTTPS proxy', effect: '웹/네이티브 기준 통일' },
+      { label: '릴리즈 준비', before: '환경 설정 수동 확인', after: 'EAS/Vercel 체크 스크립트', effect: '배포 실수 방지' }
+    ],
+    techStack: [
+      'React Native',
+      'Expo',
+      'TypeScript',
+      'Zustand',
+      'React Query',
+      'Express',
+      'Prisma',
+      'PostgreSQL',
+      'Docker',
+      'EC2',
+      'Vercel',
+      'EAS'
+    ],
+    problem:
+      '위치 기반 음악 추천은 화면만 만들면 끝나는 기능처럼 보이지만, 실제 서비스로 만들려면 위치 권한, 추천 데이터, 여행 세션, Recap 저장, 인증, 배포 환경이 하나의 데이터 흐름으로 맞물려야 했습니다. 개인 프로젝트라도 앱 UI를 넘어 서버와 인프라까지 제품 완성도를 끌어올리는 것이 목표였습니다.',
+    approach: [
+      '지도, 음악 추천, 여행 세션, Recap을 별도 화면 기능이 아니라 하나의 도메인 흐름으로 보고 상태 모델과 서버 연동 범위를 먼저 정리했습니다.',
+      'React Native 앱은 Expo Router, Zustand, React Query 기반으로 구성하고, 지도·카메라·파일·공유처럼 네이티브 권한이 필요한 흐름을 분리했습니다.',
+      '서버는 Express, Prisma, PostgreSQL로 구성하고 앱에서 쓰는 추천·여행·Recap 데이터를 실제 저장/조회 흐름으로 연결했습니다.',
+      '배포는 Vercel rewrite proxy, EC2 API origin, Docker/PostgreSQL, EAS profile을 연결해 웹과 네이티브가 같은 HTTPS API 기준을 사용하도록 맞췄습니다.'
+    ],
+    links: []
   },
   {
     slug: 'football-square',
