@@ -418,6 +418,40 @@ export const resumeClientWorkGroups: ResumeOpenSourceGroup[] = [
 
 export const resumeOpenSourceGroups: ResumeOpenSourceGroup[] = [
   {
+    title: 'Node.js Core [nodejs/node]',
+    subtitle: 'Node.js core의 QUIC 런타임 버그와 개발 문서 품질을 다룬 upstream 기여',
+    period: '2026.07',
+    links: [
+      { label: 'GitHub 저장소', href: 'https://github.com/nodejs/node', external: true },
+      { label: 'PR #64489', href: 'https://github.com/nodejs/node/pull/64489', external: true },
+      { label: 'PR #64577', href: 'https://github.com/nodejs/node/pull/64577', external: true },
+      { label: 'PR #64459', href: 'https://github.com/nodejs/node/pull/64459', external: true }
+    ],
+    bullets: [
+      {
+        title: 'QUIC 세션 종료 후 통계 누락 수정',
+        metric: 'nodejs/node #64489 · MERGED',
+        description:
+          '세션 종료 시 stream count 기준으로 잘못 slice하던 통계 스냅샷을 session count 기준으로 보정해 cwnd, streamsIdleTimedOut 등 종료 후 통계가 undefined로 빠지는 회귀를 막았습니다.',
+        href: 'https://github.com/nodejs/node/pull/64489'
+      },
+      {
+        title: 'QUIC stream resetCode JSON 직렬화 수정',
+        metric: 'nodejs/node #64577 · OPEN',
+        description:
+          'QuicStreamState.toJSON()의 resetCode가 BigInt로 반환되어 toString()과 JSON.stringify()에서 실패하던 문제를 문자열 직렬화로 바꾸고 회귀 assertion을 추가했습니다.',
+        href: 'https://github.com/nodejs/node/pull/64577'
+      },
+      {
+        title: 'devcontainer 가이드 문서 오타 수정',
+        metric: 'nodejs/node #64459 · MERGED',
+        description:
+          'Node.js 개발 컨테이너 가이드의 pre-genreated 오타를 pre-generated로 바로잡은 documentation-only 기여입니다.',
+        href: 'https://github.com/nodejs/node/pull/64459'
+      }
+    ]
+  },
+  {
     title: 'DefinitelyTyped [relay-runtime]',
     subtitle: 'Relay Activity Crash 해결 과정에서 누락된 타입 정의 기여',
     links: [
