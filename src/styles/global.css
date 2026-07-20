@@ -831,14 +831,38 @@ body {
 }
 
 .client-work-case {
-  padding: clamp(26px, 4vw, 42px) 4px;
   border-bottom: 1px solid var(--border);
+}
+
+.client-work-case__link {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(360px, 1.1fr);
+  gap: clamp(24px, 4vw, 56px);
+  min-width: 0;
+  padding: clamp(28px, 4vw, 46px) 4px 30px;
+  color: inherit;
+  transition: background 0.22s ease, padding 0.22s ease;
+}
+
+.client-work-case__link:hover {
+  padding-inline: 14px;
+  background: color-mix(in oklab, var(--surface) 56%, transparent);
+}
+
+.client-work-case__link:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 4px;
+}
+
+.client-work-case__intro {
+  align-self: center;
+  min-width: 0;
 }
 
 .client-work-case__head {
   display: grid;
-  grid-template-columns: 92px minmax(0, 1fr) auto;
-  gap: 20px;
+  grid-template-columns: max-content minmax(0, 1fr) auto;
+  gap: 16px;
   align-items: center;
 }
 
@@ -850,7 +874,7 @@ body {
   gap: 10px;
 }
 
-.client-work-case__title a {
+.client-work-case__title strong {
   color: var(--text);
   font-size: clamp(1.4rem, 3vw, 2rem);
   font-weight: 780;
@@ -862,24 +886,79 @@ body {
   transition: transform 0.22s ease, color 0.22s ease;
 }
 
-.client-work-case:hover .client-work-case__head > .pj-arrow {
+.client-work-case__link:hover .client-work-case__head > .pj-arrow {
   color: var(--text);
   transform: translateX(4px);
 }
 
 .client-work-case__summary {
-  max-width: 68ch;
-  margin: 16px 0 0 112px;
+  max-width: 46ch;
+  margin: 18px 0 0;
   color: var(--text-dim);
   font-size: 1rem;
   line-height: 1.7;
 }
 
+.client-work-case__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+  color: var(--text);
+  font-family: var(--font-mono-ref);
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+}
+
+.client-work-case__cta span {
+  transition: transform 0.22s ease;
+}
+
+.client-work-case__link:hover .client-work-case__cta span {
+  transform: translateX(4px);
+}
+
+.client-work-thumbnail {
+  min-width: 0;
+  align-self: center;
+  padding: clamp(12px, 1.6vw, 20px);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: color-mix(in oklab, var(--surface-2) 68%, var(--bg));
+}
+
+.client-browser--client-work {
+  grid-template-rows: 32px minmax(0, 1fr);
+  border-radius: 8px;
+  box-shadow: 0 20px 48px oklch(0 0 0 / 0.26);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+}
+
+.client-browser--client-work .client-browser__bar {
+  padding-inline: 11px;
+}
+
+.client-browser--client-work .client-browser__bar span {
+  width: 7px;
+  height: 7px;
+}
+
+.client-browser--client-work .client-browser__viewport {
+  aspect-ratio: 16 / 9;
+}
+
+.client-work-case__link:hover .client-browser--client-work {
+  transform: translateY(-4px);
+  box-shadow: 0 26px 58px oklch(0 0 0 / 0.34);
+}
+
 .client-work-case__outcomes {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-column: 1 / -1;
   gap: 0;
-  margin: 28px 0 0 112px;
+  margin-top: 0;
   border-top: 1px solid var(--border);
 }
 
@@ -911,7 +990,7 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin: 24px 0 0 112px;
+  padding: 0 4px 28px;
 }
 
 .open-source-folder-list {
@@ -2258,6 +2337,17 @@ body {
     max-width: 680px;
   }
 
+  .client-work-case__link,
+  .client-work-case__link:hover {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+    padding-inline: 4px !important;
+  }
+
+  .client-work-thumbnail {
+    width: min(100%, 760px);
+  }
+
   .client-work-case__outcomes {
     grid-template-columns: 1fr !important;
   }
@@ -2450,6 +2540,21 @@ body {
 
   .client-work-case__summary {
     margin-top: 14px !important;
+  }
+
+  .client-work-case__link,
+  .client-work-case__link:hover {
+    gap: 20px !important;
+    padding: 26px 0 22px !important;
+  }
+
+  .client-work-thumbnail {
+    padding: 10px;
+    border-radius: 10px;
+  }
+
+  .client-work-case__actions {
+    padding: 0 0 24px !important;
   }
 
   .client-browser {

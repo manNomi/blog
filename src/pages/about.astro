@@ -95,40 +95,75 @@ const caseStudyProjects = portfolioProjects.filter((project) => !project.deviceS
         </div>
 
         <div class="client-work-list mt-6">
-          {resumeClientWorkGroups.map((group, index) => (
-            <article class="client-work-case">
-              <div class="client-work-case__head">
-                <span class="mono">WORK {String(index + 1).padStart(2, '0')}</span>
-                <div class="client-work-case__title">
-                  <a href={group.links?.[0]?.href ?? '#'}>{group.title}</a>
-                  {group.period && <span class="mono">{group.period}</span>}
-                </div>
-                <a href={group.links?.[0]?.href ?? '#'} class="pj-arrow text-2xl" aria-label={`${group.title} 프로젝트 보기`}>↗</a>
-              </div>
+          {resumeClientWorkGroups.map((group, index) => {
+            const detailHref = group.links?.[0]?.href ?? '#';
+            const clientProject = portfolioProjects.find((project) => project.title === group.title);
+            const serviceLinks = group.links?.slice(1) ?? [];
 
-              <p class="client-work-case__summary">{group.subtitle}</p>
+            return (
+              <article class="client-work-case">
+                <a href={detailHref} class="client-work-case__link" aria-label={`${group.title} 프로젝트 상세 보기`}>
+                  <div class="client-work-case__intro">
+                    <div class="client-work-case__head">
+                      <span class="mono">WORK {String(index + 1).padStart(2, '0')}</span>
+                      <div class="client-work-case__title">
+                        <strong>{group.title}</strong>
+                        {group.period && <span class="mono">{group.period}</span>}
+                      </div>
+                      <span class="pj-arrow text-2xl" aria-hidden="true">↗</span>
+                    </div>
 
-              <div class="client-work-case__outcomes">
-                {group.bullets.map((bullet) => (
-                  <div class="client-work-outcome">
-                    <span class="mono">{bullet.metric}</span>
-                    <h3>{bullet.title}</h3>
-                    <p>{bullet.description}</p>
+                    <p class="client-work-case__summary">{group.subtitle}</p>
+
+                    <span class="client-work-case__cta">
+                      프로젝트 상세 보기 <span aria-hidden="true">→</span>
+                    </span>
                   </div>
-                ))}
-              </div>
 
-              {group.links && group.links.length > 0 && (
-                <div class="client-work-case__actions">
-                  {group.links.map((link) => (
-                    <a href={link.href} class="pill h-8" style="color: var(--text); border-color: var(--border-strong);">
-                      {link.label} →
-                    </a>
-                  ))}
-                </div>
-              )}
-            </article>
-          ))}
+                  {clientProject && (
+                    <div class="client-work-thumbnail">
+                      <div class="client-browser client-browser--client-work">
+                        <div class="client-browser__bar" aria-hidden="true">
+                          <span></span><span></span><span></span>
+                          <strong>{clientProject.title}</strong>
+                        </div>
+                        <div class="client-browser__viewport">
+                          <img
+                            src={clientProject.image}
+                            alt={clientProject.imageAlt}
+                            width={clientProject.imageWidth}
+                            height={clientProject.imageHeight}
+                            loading="eager"
+                            decoding="async"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div class="client-work-case__outcomes">
+                    {group.bullets.map((bullet) => (
+                      <div class="client-work-outcome">
+                        <span class="mono">{bullet.metric}</span>
+                        <h3>{bullet.title}</h3>
+                        <p>{bullet.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                </a>
+
+                {serviceLinks.length > 0 && (
+                  <div class="client-work-case__actions">
+                    {serviceLinks.map((link) => (
+                      <a href={link.href} class="pill h-8" style="color: var(--text); border-color: var(--border-strong);">
+                        {link.label} →
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </article>
+            );
+          })}
         </div>
       </section>
 
