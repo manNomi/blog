@@ -52,6 +52,23 @@ const phoneBezelImage = '/images/ui/iphone-bezel.png';
         />
       </div>
     </div>
+  ) : hasProjectImage && project.deviceShowcase ? (
+    <div class="client-browser client-browser--card" role="img" aria-label={project.imageAlt}>
+      <div class="client-browser__bar" aria-hidden="true">
+        <span></span><span></span><span></span>
+        <strong>{project.title}</strong>
+      </div>
+      <div class="client-browser__viewport">
+        <img
+          src={project.image}
+          alt=""
+          width={project.imageWidth}
+          height={project.imageHeight}
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+    </div>
   ) : hasProjectImage ? (
     <img
       src={project.image}

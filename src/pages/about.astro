@@ -3,9 +3,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import ProjectCard from '../components/ProjectCard.astro';
-import { portfolioProfile, portfolioProjects, resumeExperiences, resumeOpenSourceGroups } from '../data/portfolio';
+import {
+  portfolioProfile,
+  portfolioProjects,
+  resumeClientWorkGroups,
+  resumeExperiences,
+  resumeOpenSourceGroups
+} from '../data/portfolio';
 
 const openSourceContributionCount = resumeOpenSourceGroups.reduce((total, group) => total + group.bullets.length, 0);
+const clientWorkCount = resumeClientWorkGroups.length;
+const caseStudyProjects = portfolioProjects.filter((project) => !project.deviceShowcase);
 ---
 
 <BaseLayout title="소개 | 한만욱" description={portfolioProfile.intro}>
@@ -68,12 +76,94 @@ const openSourceContributionCount = resumeOpenSourceGroups.reduce((total, group)
             <div class="eyebrow mb-2">Case studies</div>
             <h2 class="section-title">프로젝트</h2>
           </div>
-          <span class="mono">{portfolioProjects.length} projects</span>
+          <span class="mono">{caseStudyProjects.length} projects</span>
         </div>
 
         <div class="mt-5">
-          {portfolioProjects.map((project, index) => <ProjectCard project={project} index={index} />)}
+          {caseStudyProjects.map((project, index) => <ProjectCard project={project} index={index} />)}
           <hr class="rule" />
+        </div>
+      </section>
+
+      <section id="client-work" class="mt-16 scroll-mt-24">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow mb-2">Client Work</div>
+            <h2 class="section-title">외주 프로젝트</h2>
+          </div>
+          <span class="mono">{clientWorkCount} engagement</span>
+        </div>
+
+        <div class="client-work-list mt-6">
+          {resumeClientWorkGroups.map((group, index) => {
+            const detailHref = group.links?.[0]?.href ?? '#';
+            const clientProject = portfolioProjects.find((project) => project.title === group.title);
+            const serviceLinks = group.links?.slice(1) ?? [];
+
+            return (
+              <article class="client-work-case">
+                <a href={detailHref} class="client-work-case__link" aria-label={`${group.title} 프로젝트 상세 보기`}>
+                  <div class="client-work-case__intro">
+                    <div class="client-work-case__head">
+                      <span class="mono">WORK {String(index + 1).padStart(2, '0')}</span>
+                      <div class="client-work-case__title">
+                        <strong>{group.title}</strong>
+                        {group.period && <span class="mono">{group.period}</span>}
+                      </div>
+                      <span class="pj-arrow text-2xl" aria-hidden="true">↗</span>
+                    </div>
+
+                    <p class="client-work-case__summary">{group.subtitle}</p>
+
+                    <span class="client-work-case__cta">
+                      프로젝트 상세 보기 <span aria-hidden="true">→</span>
+                    </span>
+                  </div>
+
+                  {clientProject && (
+                    <div class="client-work-thumbnail">
+                      <div class="client-browser client-browser--client-work">
+                        <div class="client-browser__bar" aria-hidden="true">
+                          <span></span><span></span><span></span>
+                          <strong>{clientProject.title}</strong>
+                        </div>
+                        <div class="client-browser__viewport">
+                          <img
+                            src={clientProject.image}
+                            alt={clientProject.imageAlt}
+                            width={clientProject.imageWidth}
+                            height={clientProject.imageHeight}
+                            loading="eager"
+                            decoding="async"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div class="client-work-case__outcomes">
+                    {group.bullets.map((bullet) => (
+                      <div class="client-work-outcome">
+                        <span class="mono">{bullet.metric}</span>
+                        <h3>{bullet.title}</h3>
+                        <p>{bullet.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                </a>
+
+                {serviceLinks.length > 0 && (
+                  <div class="client-work-case__actions">
+                    {serviceLinks.map((link) => (
+                      <a href={link.href} class="pill h-8" style="color: var(--text); border-color: var(--border-strong);">
+                        {link.label} →
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </article>
+            );
+          })}
         </div>
       </section>
 

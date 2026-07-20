@@ -23,6 +23,16 @@ export type PortfolioGalleryImage = {
   caption: string;
   width: number;
   height: number;
+  device?: 'desktop' | 'mobile';
+};
+
+export type PortfolioScreenshot = {
+  label: string;
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+  orientation?: 'desktop' | 'mobile';
 };
 
 export type PortfolioLivePreview = {
@@ -47,6 +57,12 @@ export type PortfolioResponsiveDemo = {
   description: string;
 };
 
+export type PortfolioClientDemo = {
+  url: string;
+  label: string;
+  description: string;
+};
+
 export type PortfolioProject = {
   slug: string;
   title: string;
@@ -63,9 +79,14 @@ export type PortfolioProject = {
   imageHeight: number;
   gallery?: PortfolioGalleryImage[];
   visualMode?: 'phone';
+  deviceShowcase?: boolean;
   livePreview?: PortfolioLivePreview;
   packages?: PortfolioPackage[];
   responsiveDemo?: PortfolioResponsiveDemo;
+  clientDemo?: PortfolioClientDemo;
+  demoUrl?: string;
+  demoLabel?: string;
+  screenshots?: PortfolioScreenshot[];
   accent: string;
   metrics: PortfolioMetric[];
   highlights: string[];
@@ -74,6 +95,7 @@ export type PortfolioProject = {
   techStack: string[];
   problem: string;
   approach: string[];
+  takeaway?: string;
   links: PortfolioLink[];
 };
 
@@ -361,6 +383,39 @@ export const resumeFeatureProject: ResumeFeatureProject = {
   ]
 };
 
+export const resumeClientWorkGroups: ResumeOpenSourceGroup[] = [
+  {
+    title: 'Wakeup Web',
+    subtitle:
+      '운행 전 기사 준비 여부를 한곳에서 확인하고, 관리자가 미확인 인원에 바로 대응할 수 있도록 정리한 배차 운영 서비스',
+    period: '2026.06',
+    links: [
+      { label: '프로젝트 보기', href: '/about/wakeup-web' },
+      { label: '서비스 살펴보기', href: '/demos/wakeup/index.html#/login' }
+    ],
+    bullets: [
+      {
+        title: '운행 전 확인 절차 통합',
+        metric: '기사·관리자',
+        description:
+          '기사는 다음 운행까지 남은 시간과 준비 항목을 확인하고, 관리자는 같은 상태를 배차 현황에서 바로 볼 수 있도록 흐름을 연결했습니다.'
+      },
+      {
+        title: '미확인 기사 우선 대응',
+        metric: '즉시 확인',
+        description:
+          '확인이 필요한 기사부터 빠르게 찾고 연락 요청과 지각 처리를 이어갈 수 있어, 운행 직전 대응 순서를 분명하게 만들었습니다.'
+      },
+      {
+        title: '역할에 맞춘 화면 구성',
+        metric: '모바일·데스크톱',
+        description:
+          '기사는 이동 중에도 짧게 확인할 수 있는 모바일 화면으로, 관리자는 여러 배차를 비교하기 쉬운 데스크톱 화면으로 구성했습니다.'
+      }
+    ]
+  }
+];
+
 export const resumeOpenSourceGroups: ResumeOpenSourceGroup[] = [
   {
     title: 'DefinitelyTyped [relay-runtime]',
@@ -466,6 +521,116 @@ export const portfolioStrengths = [
 ] as const;
 
 export const portfolioProjects: PortfolioProject[] = [
+  {
+    slug: 'wakeup-web',
+    title: 'Wakeup Web',
+    eyebrow: 'Client Operations',
+    period: '2026.06',
+    quote: '운행 직전의 불확실성을, 기사와 관리자가 함께 확인할 수 있는 상태로 바꿨습니다.',
+    summary:
+      '버스 운행 전 기사 준비 여부를 개별 연락으로 확인하던 과정을 기사용 확인 화면과 관리자용 현황판으로 정리했습니다. 미확인 인원을 빠르게 찾고 필요한 대응까지 한 흐름에서 이어갈 수 있도록 설계했습니다.',
+    role: '사용자 흐름 설계 및 웹 서비스 구현',
+    team: '클라이언트 협업',
+    contribution: '기획·디자인·구현',
+    image: '/images/wakeup/admin-desktop.png',
+    imageAlt: '관리자가 기사별 기상 확인과 배차 준비 상태를 확인하는 Wakeup Web 화면',
+    imageWidth: 1248,
+    imageHeight: 720,
+    deviceShowcase: true,
+    clientDemo: {
+      url: '/demos/wakeup/index.html#/login',
+      label: 'Wakeup Web',
+      description:
+        '기사와 관리자 역할을 선택해 운행 준비 확인, 체크리스트, 배차 현황, 미확인 기사 대응 흐름을 직접 살펴볼 수 있습니다.'
+    },
+    demoUrl: '/demos/wakeup/index.html#/login',
+    demoLabel: 'Wakeup Web 서비스 화면',
+    gallery: [
+      {
+        src: '/images/wakeup/admin-desktop.png',
+        alt: '관리자가 기사별 준비 상태와 배차 일정을 확인하는 화면',
+        caption: '관리자 배차 현황',
+        width: 1248,
+        height: 720,
+        device: 'desktop'
+      },
+      {
+        src: '/images/wakeup/crew-mobile.png',
+        alt: '기사가 다음 운행까지 남은 시간과 준비 항목을 확인하는 화면',
+        caption: '기사 운행 준비',
+        width: 390,
+        height: 844,
+        device: 'mobile'
+      },
+      {
+        src: '/images/wakeup/login-desktop.png',
+        alt: '기사와 관리자 역할을 선택해 Wakeup Web에 진입하는 화면',
+        caption: '역할 선택',
+        width: 1248,
+        height: 720,
+        device: 'desktop'
+      }
+    ],
+    screenshots: [
+      {
+        label: '관리자 배차 현황',
+        src: '/images/wakeup/admin-desktop.png',
+        alt: '관리자가 기사별 준비 상태와 배차 일정을 확인하는 화면',
+        width: 1248,
+        height: 720,
+        orientation: 'desktop'
+      },
+      {
+        label: '기사 운행 준비',
+        src: '/images/wakeup/crew-mobile.png',
+        alt: '기사가 다음 운행까지 남은 시간과 준비 항목을 확인하는 화면',
+        width: 390,
+        height: 844,
+        orientation: 'mobile'
+      },
+      {
+        label: '역할 선택',
+        src: '/images/wakeup/login-desktop.png',
+        alt: '기사와 관리자 역할을 선택해 Wakeup Web에 진입하는 화면',
+        width: 1248,
+        height: 720,
+        orientation: 'desktop'
+      }
+    ],
+    accent: '#64748b',
+    metrics: [
+      { value: '2개 역할', label: '기사·관리자', detail: '각 역할의 핵심 업무에 맞춘 화면 구성' },
+      { value: '3일', label: '배차 일정', detail: '오늘부터 모레까지 운행 계획을 연속해서 확인' },
+      { value: '1개 현황판', label: '준비 상태', detail: '확인 여부와 필요한 대응을 한 화면에 통합' }
+    ],
+    highlights: [
+      '기사의 남은 시간, 기상 확인, 준비 체크리스트를 짧은 모바일 흐름으로 구성',
+      '관리자가 미확인 기사를 먼저 찾고 연락 요청과 지각 처리를 이어가도록 대응 순서 정리',
+      '오늘, 내일, 모레 배차를 연속해서 확인할 수 있도록 일정 탐색 범위 확장'
+    ],
+    contributions: [
+      '기사와 관리자가 운행 준비 상태를 서로 다르게 확인하던 과정을 하나의 서비스 흐름으로 정리했습니다.',
+      '기사 화면은 빠른 확인에, 관리자 화면은 여러 배차의 비교와 예외 대응에 초점을 맞춰 정보 우선순위를 설계했습니다.',
+      '기사 상세, 연락 요청, 지각 처리까지 관리자의 후속 행동이 끊기지 않도록 화면 간 이동을 구성했습니다.'
+    ],
+    results: [
+      { label: '준비 확인', before: '개별 연락에 의존', after: '기사 직접 확인', effect: '확인 절차 단순화' },
+      { label: '관리자 대응', before: '상태 파악 지연', after: '미확인 인원 우선 노출', effect: '대응 순서 명확화' },
+      { label: '배차 조회', before: '당일 정보 중심', after: '3일 일정 통합', effect: '사전 준비 가능' },
+      { label: '업무 화면', before: '역할별 요구 혼재', after: '기사·관리자 화면 분리', effect: '핵심 업무 집중' }
+    ],
+    techStack: [],
+    problem:
+      '운행 전 기사들이 제시간에 준비됐는지 관리자가 개별 연락으로 확인해야 했습니다. 확인이 늦거나 누락되면 대체 인력과 배차 조정이 지연될 수 있고, 기사 역시 남은 시간과 준비 항목을 한눈에 파악하기 어려웠습니다.',
+    approach: [
+      '기사 첫 화면에 다음 운행까지 남은 시간, 기상 확인, 준비 체크리스트를 모아 짧은 확인만으로 준비를 마칠 수 있게 했습니다.',
+      '관리자 현황판에서는 전체 배차 중 미확인 인원을 먼저 드러내고, 상세 확인과 연락 요청, 지각 처리를 바로 이어갈 수 있게 했습니다.',
+      '기사에게는 이동 중 사용하기 쉬운 모바일 화면을, 관리자에게는 여러 일정을 비교하기 쉬운 데스크톱 화면을 제공했습니다.'
+    ],
+    takeaway:
+      '개별 연락으로 흩어져 있던 확인 절차를 양쪽이 공유하는 상태로 바꾸면서, 운행 전 준비와 예외 대응의 기준을 분명하게 만들었습니다.',
+    links: [{ label: '서비스 화면 열기', href: '/demos/wakeup/index.html#/login' }]
+  },
   {
     slug: 'i18nexus',
     title: 'I18Nexus',
