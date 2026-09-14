@@ -652,6 +652,21 @@ const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProje
             </div>
             <p class="mt-5 max-w-[42ch] text-[1.2rem] font-medium leading-[1.5] tracking-[-0.02em]" style="color: var(--text);">{experience.team}</p>
             <p class="mt-5 max-w-[60ch] text-[1.02rem] leading-[1.7]" style="color: var(--text-dim);">{experience.description}</p>
+            {experience.links && experience.links.length > 0 && (
+              <div class="mt-7 flex flex-wrap gap-2.5">
+                {experience.links.map((link) => (
+                  <a
+                    href={link.href}
+                    target={link.external ? '_blank' : undefined}
+                    rel={link.external ? 'noopener noreferrer' : undefined}
+                    class="pill h-8"
+                    style="color: var(--text); border-color: var(--border-strong);"
+                  >
+                    {link.label} →
+                  </a>
+                ))}
+              </div>
+            )}
             <div class="mt-6 flex flex-wrap gap-6">
               <div>
                 <div class="mono mb-1" style="color: var(--text-faint);">역할</div>

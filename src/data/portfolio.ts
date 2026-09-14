@@ -118,13 +118,14 @@ export type CompanyLogo = {
   alt: string;
   width: number;
   height: number;
-  shape: 'mark' | 'wide';
+  shape: 'mark' | 'square' | 'wide';
 };
 
 export type ResumeExperience = {
   slug: string;
   company: string;
   logo?: CompanyLogo;
+  links?: PortfolioLink[];
   team: string;
   role: string;
   period: string;
@@ -229,6 +230,13 @@ export const resumeExperiences: ResumeExperience[] = [
   {
     slug: 'class101-platform-infra',
     company: 'Class101 Platform/Infra 팀',
+    logo: {
+      src: '/images/companies/class101-logo.jpg',
+      alt: '클래스101 로고',
+      width: 200,
+      height: 200,
+      shape: 'square'
+    },
     team: '지식과 경험을 콘텐츠로 만들고 판매하며 유저를 연결하는 글로벌 크리에이터 플랫폼',
     role: 'Frontend Engineer Intern',
     period: '2026.08 - 현재',
@@ -259,11 +267,25 @@ export const resumeExperiences: ResumeExperience[] = [
   {
     slug: 'neulbom-mind',
     company: '늘봄마인드 기업 웹사이트',
-    team: '콘텐츠 수정부터 검수와 운영 반영까지 이어지는 한영 반응형 기업 웹사이트',
+    logo: {
+      src: '/images/companies/neulbommind-logo.svg',
+      alt: '늘봄마인드 로고',
+      width: 354,
+      height: 41,
+      shape: 'wide'
+    },
+    links: [
+      {
+        label: '늘봄마인드 웹사이트',
+        href: 'https://neulbommind.com/',
+        external: true
+      }
+    ],
+    team: '아이와 어른이 삶의 각 단계에서 자기 마음을 이해하고 건강하게 돌보도록 돕는 정서교육 및 리트릿 컴퍼니',
     role: 'Freelance Frontend Developer',
     period: '2026.07 - 2026.08',
     description:
-      'Figma 디자인을 Next.js와 TypeScript로 구현하고 Notion 번역 동기화, PR별 프리뷰, S3와 CloudFront 배포까지 운영 흐름을 구성했습니다.',
+      '한영 반응형 기업 웹사이트를 Next.js와 TypeScript로 구현하고, 비개발자도 콘텐츠 수정부터 검수와 운영 반영까지 이어갈 수 있도록 Notion 동기화와 PR 프리뷰 및 배포 흐름을 구성했습니다.',
     highlights: [
       {
         title: '한영 반응형 웹 구현',

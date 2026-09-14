@@ -1241,6 +1241,14 @@ body {
   transform: translateY(-6px);
 }
 
+.company-logo--square.company-logo--list img {
+  width: 72%;
+}
+
+.company-logo--square.company-logo--hero img {
+  width: 74%;
+}
+
 .detail-body {
   padding: 0 4px 34px calc(160px + clamp(16px, 4vw, 56px));
 }
