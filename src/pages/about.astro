@@ -4,16 +4,21 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import ProjectCard from '../components/ProjectCard.astro';
 import {
+  portfolioMetrics,
   portfolioProfile,
   portfolioProjects,
-  resumeClientWorkGroups,
+  resumeActivities,
+  resumeEducation,
   resumeExperiences,
-  resumeOpenSourceGroups
+  resumeOpenSourceGroups,
+  resumeSkillGroups
 } from '../data/portfolio';
 
+const featuredProjectSlugs = new Set(['i18nexus', 'solid-connection']);
+const featuredProjects = portfolioProjects.filter((project) => featuredProjectSlugs.has(project.slug));
+const otherProjects = portfolioProjects.filter((project) => !featuredProjectSlugs.has(project.slug));
 const openSourceContributionCount = resumeOpenSourceGroups.reduce((total, group) => total + group.bullets.length, 0);
-const clientWorkCount = resumeClientWorkGroups.length;
-const caseStudyProjects = portfolioProjects.filter((project) => !project.deviceShowcase);
+const currentExperience = resumeExperiences.find((experience) => experience.current);
 ---
 
 <BaseLayout title="소개 | 한만욱" description={portfolioProfile.intro}>
@@ -21,32 +26,75 @@ const caseStudyProjects = portfolioProjects.filter((project) => !project.deviceS
 
   <main class="site-main about-page">
     <div class="wrap">
-      <header class="page-head rise">
-        <div class="eyebrow mb-[18px]">About</div>
-        <h1>{portfolioProfile.name}</h1>
-        <p>{portfolioProfile.headline}</p>
-      </header>
+      <header class="about-hero rise">
+        <div class="about-hero__copy">
+          {currentExperience && (
+            <p class="about-current-line">
+              <span class="about-current-dot" aria-hidden="true"></span>
+              <span>현재 {currentExperience.company}에서 일하고 있습니다.</span>
+            </p>
+          )}
 
-      <p class="m-0 max-w-[62ch] text-[1.05rem] leading-[1.75]" style="color: var(--text-dim);">{portfolioProfile.intro}</p>
-      <div class="focus-row mt-6">
-        {portfolioProfile.focus.map((item) => <span class="focus-chip">{item}</span>)}
-      </div>
+          <h1>{portfolioProfile.headline}</h1>
+          <p class="about-hero__intro">{portfolioProfile.intro}</p>
 
-      <section id="experience" class="mt-16 scroll-mt-24">
-        <div class="section-head">
-          <div>
-            <div class="eyebrow mb-2">Experience</div>
-            <h2 class="section-title">경력</h2>
+          <div class="about-hero__actions" aria-label="연락처와 외부 링크">
+            <a href={`mailto:${portfolioProfile.email}`} class="about-primary-link">이메일 보내기</a>
+            <a href={portfolioProfile.github} target="_blank" rel="noopener noreferrer" class="about-text-link">GitHub</a>
+            <a href={portfolioProfile.blog} class="about-text-link">기술 글</a>
           </div>
-          <span class="mono">{resumeExperiences.length} roles</span>
         </div>
 
-        {resumeExperiences.map((experience, index) => (
-          <a href={`/about/${experience.slug}`} class="detail-card detail-card-link" id={`experience-${index + 1}`}>
-            <span class="detail-summary">
-              <span class="mono pt-1" style="color: var(--text-faint);">{experience.period}</span>
-              <span class="min-w-0">
-                <span class="experience-company-line">
+        {currentExperience && (
+          <aside class="about-now" aria-label="현재 경력">
+            <span class="about-now__label">NOW</span>
+            <strong>{currentExperience.company}</strong>
+            <span>{currentExperience.role}</span>
+            <span class="mono">{currentExperience.period}</span>
+          </aside>
+        )}
+      </header>
+
+      <nav class="about-index" aria-label="소개 페이지 목차">
+        <a href="#experience">경력</a>
+        <a href="#projects">프로젝트</a>
+        <a href="#open-source">오픈소스</a>
+        <a href="#background">활동과 학력</a>
+      </nav>
+
+      <section class="about-impact" aria-labelledby="impact-title">
+        <div class="about-section-heading">
+          <h2 id="impact-title">대표 임팩트</h2>
+          <p>사용자 경험과 팀의 개발 흐름에서 실제로 달라진 결과입니다.</p>
+        </div>
+
+        <div class="about-impact__grid">
+          {portfolioMetrics.map((metric) => (
+            <article class="about-impact__item">
+              <strong>{metric.value}</strong>
+              <h3>{metric.label}</h3>
+              <p>{metric.detail}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section id="experience" class="about-section scroll-mt-24">
+        <div class="about-section-heading">
+          <h2>경력</h2>
+          <p>문제를 재현하고 측정한 뒤 팀이 다시 사용할 수 있는 구조로 남겼습니다.</p>
+        </div>
+
+        <div class="about-experience-list">
+          {resumeExperiences.map((experience) => (
+            <a
+              href={`/about/${experience.slug}`}
+              class:list={['about-experience-row', { 'about-experience-row--current': experience.current }]}
+            >
+              <span class="about-experience-row__period mono">{experience.period}</span>
+
+              <span class="about-experience-row__content">
+                <span class="about-experience-row__title">
                   {experience.logo && (
                     <span class={`company-logo company-logo--list company-logo--${experience.logo.shape}`} aria-hidden="true">
                       <img
@@ -59,205 +107,139 @@ const caseStudyProjects = portfolioProjects.filter((project) => !project.deviceS
                       />
                     </span>
                   )}
-                  <span class="m-0 block text-[1.15rem] font-bold tracking-[-0.02em]" style="color: var(--text);">{experience.company}</span>
+                  <span>
+                    <strong>{experience.company}</strong>
+                    {experience.current && <small>재직 중</small>}
+                  </span>
                 </span>
-                <span class="my-1 block text-[0.9rem]" style="color: var(--text-dim);">{experience.role}</span>
-                <span class="m-0 block max-w-[64ch] text-[0.95rem] leading-[1.6]" style="color: var(--text-dim);">{experience.description}</span>
+
+                <span class="about-experience-row__role">{experience.role}</span>
+                <span class="about-experience-row__description">{experience.description}</span>
+
+                <span class="about-experience-row__highlights">
+                  {experience.highlights.slice(0, 3).map((highlight) => (
+                    <span>
+                      <b>{highlight.title}</b>
+                      {highlight.metric && <small>{highlight.metric}</small>}
+                    </span>
+                  ))}
+                </span>
               </span>
-              <span class="pj-arrow text-2xl" aria-hidden="true">↗</span>
-            </span>
-          </a>
-        ))}
-      </section>
 
-      <section id="projects" class="mt-16 scroll-mt-24">
-        <div class="section-head">
-          <div>
-            <div class="eyebrow mb-2">Case studies</div>
-            <h2 class="section-title">프로젝트</h2>
-          </div>
-          <span class="mono">{caseStudyProjects.length} projects</span>
-        </div>
-
-        <div class="mt-5">
-          {caseStudyProjects.map((project, index) => <ProjectCard project={project} index={index} />)}
-          <hr class="rule" />
+              <span class="about-row-action">상세 보기</span>
+            </a>
+          ))}
         </div>
       </section>
 
-      <section id="client-work" class="mt-16 scroll-mt-24">
-        <div class="section-head">
-          <div>
-            <div class="eyebrow mb-2">Client Work</div>
-            <h2 class="section-title">외주 프로젝트</h2>
-          </div>
-          <span class="mono">{clientWorkCount} engagement</span>
+      <section id="projects" class="about-section scroll-mt-24">
+        <div class="about-section-heading">
+          <h2>대표 프로젝트</h2>
+          <p>직접 운영하며 성능과 개발 생산성을 수치로 확인한 작업입니다.</p>
         </div>
 
-        <div class="client-work-list mt-6">
-          {resumeClientWorkGroups.map((group, index) => {
-            const detailHref = group.links?.[0]?.href ?? '#';
-            const clientProject = portfolioProjects.find((project) => project.title === group.title);
-            const serviceLinks = group.links?.slice(1) ?? [];
+        <div class="about-featured-projects">
+          {featuredProjects.map((project, index) => <ProjectCard project={project} index={index} />)}
+        </div>
+
+        <div class="about-project-archive">
+          <h3>그 밖의 프로젝트</h3>
+          <div>
+            {otherProjects.map((project) => (
+              <a href={`/about/${project.slug}`}>
+                <span>
+                  <strong>{project.title}</strong>
+                  <small>{project.summary}</small>
+                </span>
+                <span class="mono">{project.period}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="open-source" class="about-section scroll-mt-24">
+        <div class="about-section-heading">
+          <h2>오픈소스</h2>
+          <p>{resumeOpenSourceGroups.length}개 저장소에 {openSourceContributionCount}개의 변경을 제안했습니다.</p>
+        </div>
+
+        <div class="about-open-source-list">
+          {resumeOpenSourceGroups.map((group) => {
+            const repositoryLink = group.links?.find((link) => link.label.includes('저장소'));
 
             return (
-              <article class="client-work-case">
-                <a href={detailHref} class="client-work-case__link" aria-label={`${group.title} 프로젝트 상세 보기`}>
-                  <div class="client-work-case__intro">
-                    <div class="client-work-case__head">
-                      <span class="mono">WORK {String(index + 1).padStart(2, '0')}</span>
-                      <div class="client-work-case__title">
-                        <strong>{group.title}</strong>
-                        {group.period && <span class="mono">{group.period}</span>}
-                      </div>
-                      <span class="pj-arrow text-2xl" aria-hidden="true">↗</span>
-                    </div>
-
-                    <p class="client-work-case__summary">{group.subtitle}</p>
-
-                    <span class="client-work-case__cta">
-                      프로젝트 상세 보기 <span aria-hidden="true">→</span>
-                    </span>
+              <article class="about-open-source-group">
+                <header>
+                  <div>
+                    <h3>{group.title}</h3>
+                    <p>{group.subtitle}</p>
                   </div>
-
-                  {clientProject && (
-                    <div class="client-work-thumbnail">
-                      <div class="client-browser client-browser--client-work">
-                        <div class="client-browser__bar" aria-hidden="true">
-                          <span></span><span></span><span></span>
-                          <strong>{clientProject.title}</strong>
-                        </div>
-                        <div class="client-browser__viewport">
-                          <img
-                            src={clientProject.image}
-                            alt={clientProject.imageAlt}
-                            width={clientProject.imageWidth}
-                            height={clientProject.imageHeight}
-                            loading="eager"
-                            decoding="async"
-                          />
-                        </div>
-                      </div>
-                    </div>
+                  {repositoryLink && (
+                    <a href={repositoryLink.href} target="_blank" rel="noopener noreferrer">저장소 보기</a>
                   )}
+                </header>
 
-                  <div class="client-work-case__outcomes">
-                    {group.bullets.map((bullet) => (
-                      <div class="client-work-outcome">
-                        <span class="mono">{bullet.metric}</span>
-                        <h3>{bullet.title}</h3>
-                        <p>{bullet.description}</p>
-                      </div>
-                    ))}
-                  </div>
-                </a>
-
-                {serviceLinks.length > 0 && (
-                  <div class="client-work-case__actions">
-                    {serviceLinks.map((link) => (
-                      <a href={link.href} class="pill h-8" style="color: var(--text); border-color: var(--border-strong);">
-                        {link.label} →
-                      </a>
-                    ))}
-                  </div>
-                )}
+                <div class="about-open-source-prs">
+                  {group.bullets.map((item) => (
+                    <a href={item.href ?? repositoryLink?.href ?? '#'} target="_blank" rel="noopener noreferrer">
+                      <span>
+                        <strong>{item.title}</strong>
+                        <small>{item.description}</small>
+                      </span>
+                      <span class="mono">{item.metric ?? 'PR'}</span>
+                    </a>
+                  ))}
+                </div>
               </article>
             );
           })}
         </div>
       </section>
 
-      <section id="open-source" class="mt-16 scroll-mt-24">
-        <div class="section-head">
-          <div>
-            <div class="eyebrow mb-2">Open Source</div>
-            <h2 class="section-title">오픈소스</h2>
-          </div>
-          <span class="mono">{resumeOpenSourceGroups.length} folders · {openSourceContributionCount} PRs</span>
+      <section id="background" class="about-section about-background scroll-mt-24">
+        <div class="about-section-heading">
+          <h2>활동과 학력</h2>
+          <p>제품 개발 밖에서도 연구와 오픈소스 활동을 이어가고 있습니다.</p>
         </div>
 
-        <div class="open-source-folder-list mt-6">
-          {resumeOpenSourceGroups.map((group) => {
-            const repositoryLink = group.links?.find((link) => link.label.includes('저장소'));
+        <div class="about-background__grid">
+          <section>
+            <h3>활동</h3>
+            <ul>
+              {resumeActivities.map((activity) => <li>{activity}</li>)}
+            </ul>
+          </section>
 
-            return (
-              <div class="open-source-folder">
-                <div class="open-source-folder-summary">
-                  <span class="open-source-folder-copy">
-                    <span class="open-source-folder-title">{group.title}</span>
-                    <span class="open-source-folder-description">{group.subtitle}</span>
-                  </span>
-                  <span class="open-source-folder-meta">
-                    <span class="mono">{group.bullets.length} PRs</span>
-                    {repositoryLink && (
-                      <button
-                        type="button"
-                        class="pill open-source-link-button"
-                        data-open-source-link
-                        data-href={repositoryLink.href}
-                        data-external={repositoryLink.external ? 'true' : 'false'}
-                        aria-label={`${group.title} ${repositoryLink.label} 열기`}
-                    >
-                      {repositoryLink.label} ↗
-                    </button>
-                  )}
-                  </span>
+          <section>
+            <h3>학력</h3>
+            <strong>{resumeEducation.school}</strong>
+            <p>{resumeEducation.major}</p>
+            <span class="mono">{resumeEducation.period} / {resumeEducation.detail}</span>
+          </section>
+
+          <section>
+            <h3>기술</h3>
+            <div class="about-skill-groups">
+              {resumeSkillGroups.map((group) => (
+                <div>
+                  <span class="mono">{group.title}</span>
+                  <p>{group.items.join(', ')}</p>
                 </div>
-
-                <div class="open-source-folder-body">
-                  {group.bullets.map((item, index) => {
-                    const prHref = item.href ?? repositoryLink?.href ?? '#';
-                    const prLabel = item.metric?.match(/#\d+/)?.[0] ?? 'PR';
-
-                    return (
-                      <a
-                        href={prHref}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="detail-card detail-card-link open-source-card"
-                      >
-                        <span class="detail-summary open-source-summary">
-                          <span class="mono pt-1" style="color: var(--text-faint);">PR {String(index + 1).padStart(2, '0')}</span>
-                          <span class="open-source-copy">
-                            <span class="open-source-title-line">
-                              <span class="m-0 block text-[1.15rem] font-bold tracking-[-0.02em]" style="color: var(--text);">{item.title}</span>
-                              {item.metric && <span class="mono opacity-60">{item.metric}</span>}
-                            </span>
-                            <span class="open-source-contribution">
-                              <span>{item.description}</span>
-                            </span>
-                          </span>
-                          <span class="open-source-actions" aria-label={`${item.title} GitHub 링크`}>
-                            {item.href && (
-                              <button
-                                type="button"
-                                class="pill open-source-link-button"
-                                data-open-source-link
-                                data-href={item.href}
-                                data-external={item.href.startsWith('http') ? 'true' : 'false'}
-                                aria-label={`${item.title} ${prLabel} 열기`}
-                              >
-                                {prLabel} ↗
-                              </button>
-                            )}
-                            <span class="pj-arrow text-2xl" aria-hidden="true">↗</span>
-                          </span>
-                        </span>
-                      </a>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
+              ))}
+            </div>
+          </section>
         </div>
       </section>
 
-      <section class="mt-16">
-        <div class="eyebrow mb-[18px]">Contact</div>
-        <div class="flex flex-wrap gap-3">
-          <a href={`mailto:${portfolioProfile.email}`} class="pill h-9" style="color: var(--text); border-color: var(--border-strong);">{portfolioProfile.email}</a>
-          <a href={portfolioProfile.github} target="_blank" rel="noopener noreferrer" class="pill h-9" style="color: var(--text); border-color: var(--border-strong);">GitHub ↗</a>
+      <section class="about-contact">
+        <div>
+          <h2>같이 풀어볼 문제가 있다면 연락해주세요.</h2>
+          <p>제품 지표와 프론트엔드 구조를 함께 보는 일을 좋아합니다.</p>
+        </div>
+        <div>
+          <a href={`mailto:${portfolioProfile.email}`} class="about-primary-link">{portfolioProfile.email}</a>
+          <a href={portfolioProfile.github} target="_blank" rel="noopener noreferrer" class="about-text-link">GitHub</a>
         </div>
       </section>
     </div>
@@ -265,23 +247,3 @@ const caseStudyProjects = portfolioProjects.filter((project) => !project.deviceS
 
   <Footer />
 </BaseLayout>
-
-<script>
-  document.querySelectorAll<HTMLButtonElement>('[data-open-source-link]').forEach((button) => {
-    button.addEventListener('click', (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-
-      const href = button.dataset.href;
-      if (!href) return;
-
-      if (button.dataset.external === 'true') {
-        const opened = window.open(href, '_blank', 'noopener,noreferrer');
-        if (opened) opened.opener = null;
-        return;
-      }
-
-      window.location.assign(href);
-    });
-  });
-</script>
