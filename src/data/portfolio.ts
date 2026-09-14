@@ -128,6 +128,7 @@ export type ResumeExperience = {
   team: string;
   role: string;
   period: string;
+  current?: boolean;
   description: string;
   highlights: ResumeHighlight[];
 };
@@ -156,32 +157,32 @@ export const portfolioProfile = {
   email: 'hanmw110@naver.com',
   github: 'https://github.com/manNomi',
   blog: '/',
-  headline: '대규모 제품의 UX 결함과 성능 병목을 끝까지 추적하는 프론트엔드 개발자입니다.',
+  headline: '사용자 행동 데이터의 정확성과 웹 성능을 함께 다루는 프론트엔드 개발자입니다.',
   intro:
-    'MAU 800만 서비스의 Android 백버튼 UX, 초기 로딩, React Activity 크래시, 오버레이 아키텍처를 다뤘고, Babel AST 기반 i18n 자동화 라이브러리와 오픈소스 기여까지 이어가고 있습니다.',
-  focus: ['Product Frontend', 'Performance', 'Architecture Debugging', 'DX Automation']
+    '제품에서 반복되는 검증을 팀이 사용하는 도구와 공통 구조로 바꿉니다. Class101에서는 이벤트 로그 검수 도구와 번들 추적 파이프라인을 구축했고, 당근 부동산에서는 네비게이션과 렌더링 및 메모리 문제를 해결했습니다.',
+  focus: ['Product Analytics', 'Web Performance', 'Frontend Architecture', 'DX Automation']
 } as const;
 
 export const portfolioMetrics: PortfolioMetric[] = [
   {
-    value: 'MAU 800만',
-    label: '당근마켓 부동산 홈',
-    detail: '생활밀착형 부동산 거래 플랫폼의 핵심 UX와 성능 병목을 개선했습니다.'
+    value: 'v1.0.0x',
+    label: '이벤트 검수 도구 배포',
+    detail: '요청 수집과 상태 저장을 결합한 Chrome 확장을 FE 챕터에 배포했습니다.'
   },
   {
-    value: 'LCP 50%',
-    label: '초기 로딩 개선',
-    detail: '지도 모듈 lazy loading과 청크 최적화로 홈 초기 로딩 지연을 줄였습니다.'
-  },
-  {
-    value: '13,000+',
+    value: '18,000+',
     label: 'I18Nexus 다운로드',
-    detail: '다국어 추출, 타입 생성, Google Sheets 협업 흐름을 자동화했습니다.'
+    detail: 'AST 기반 다국어 자동화 라이브러리의 실제 사용성을 검증했습니다.'
   },
   {
     value: '91.2%',
-    label: '솔리드 커넥션 LCP 단축',
-    detail: '오픈소스 서비스에서 LCP 1.3초 단축과 이탈률 개선을 만들었습니다.'
+    label: '솔리드 커넥션 LCP 개선',
+    detail: '동일한 WebPageTest 조건에서 LCP를 9.961초에서 0.874초로 줄였습니다.'
+  },
+  {
+    value: '50%+',
+    label: '당근 부동산 홈 LCP 개선',
+    detail: '지도 모듈 지연 로딩과 청크 최적화로 초기 로딩 병목을 완화했습니다.'
   }
 ];
 
@@ -199,7 +200,7 @@ export const resumeImpactMetrics: ResumeImpactMetric[] = [
     tone: 'bg-blue-50 text-blue-800 border-blue-200'
   },
   {
-    value: '13,000+',
+    value: '18,000+',
     label: 'I18Nexus 다운로드',
     detail: '다국어 자동화 라이브러리 누적 다운로드',
     tone: 'bg-violet-50 text-violet-800 border-violet-200'
@@ -225,6 +226,62 @@ export const resumeImpactMetrics: ResumeImpactMetric[] = [
 ];
 
 export const resumeExperiences: ResumeExperience[] = [
+  {
+    slug: 'class101-platform-infra',
+    company: 'Class101 Platform/Infra 팀',
+    team: '지식과 경험을 콘텐츠로 만들고 판매하며 유저를 연결하는 글로벌 크리에이터 플랫폼',
+    role: 'Frontend Engineer Intern',
+    period: '2026.08 - 현재',
+    current: true,
+    description:
+      '사용자 행동 데이터의 신뢰도와 프론트엔드 배포 품질을 높이는 내부 도구를 만들고, 구매 직전 가입 퍼널을 줄이는 제품 실험을 설계하고 있습니다.',
+    highlights: [
+      {
+        title: '이벤트 payload 검수 도구 재구축',
+        metric: 'Chrome Extension v1.0.0x',
+        description:
+          '화면을 가리던 검수 도구를 chrome.webRequest, React, IndexedDB 기반 확장 프로그램으로 재구축하고 설계와 운영 방식을 FE 챕터에 공유했습니다.'
+      },
+      {
+        title: '번들 추적과 AI 셀프리뷰 파이프라인',
+        metric: '병합 단위 추적',
+        description:
+          'main 병합마다 번들 크기와 패키지별 기여도를 기록하고 대시보드, Slack, GitHub 코멘트로 연결해 의도치 않은 코드 증가와 지연 로딩 누락을 확인할 수 있게 했습니다.'
+      },
+      {
+        title: '구매 전 회원가입 퍼널 단축',
+        metric: 'A/B 실험 연결',
+        description:
+          '구매 직전에 가입하는 사용자 흐름을 바탕으로 프로필 설정을 가입 이후로 분리하는 PRD를 기획하고 닉네임 확인, 유도 바텀시트, 저장 로직과 이벤트 측정을 구현했습니다.'
+      }
+    ]
+  },
+  {
+    slug: 'neulbom-mind',
+    company: '늘봄마인드 기업 웹사이트',
+    team: '콘텐츠 수정부터 검수와 운영 반영까지 이어지는 한영 반응형 기업 웹사이트',
+    role: 'Freelance Frontend Developer',
+    period: '2026.07 - 2026.08',
+    description:
+      'Figma 디자인을 Next.js와 TypeScript로 구현하고 Notion 번역 동기화, PR별 프리뷰, S3와 CloudFront 배포까지 운영 흐름을 구성했습니다.',
+    highlights: [
+      {
+        title: '한영 반응형 웹 구현',
+        metric: 'Figma to Web',
+        description: '화면별 반응형 동작과 다국어 콘텐츠를 Next.js와 TypeScript로 구현했습니다.'
+      },
+      {
+        title: '콘텐츠 운영 흐름 자동화',
+        metric: 'Notion Sync',
+        description: 'Notion의 번역 콘텐츠가 웹에 반영되고 PR별 프리뷰로 검수되도록 작업 흐름을 연결했습니다.'
+      },
+      {
+        title: '배포 환경 구성',
+        metric: 'S3 + CloudFront',
+        description: '정적 자산 배포와 캐시를 구성해 운영 반영 경로를 안정화했습니다.'
+      }
+    ]
+  },
   {
     slug: 'daangn-real-estate',
     company: '당근마켓 부동산팀',
@@ -346,10 +403,10 @@ export const resumeFeatureProject: ResumeFeatureProject = {
     { label: 'Rust 이식 기록', href: '/blog/react-생태계-도구를-rust로-옮기며-배운-것들' }
   ],
   summary:
-    '13,000+ 다운로드를 기록한 다국어 작업 자동화 라이브러리입니다. Babel AST 기반 코드 분석으로 번역 키 추출, t 메서드 래핑, 타입 생성을 자동화해 번역 누락을 줄입니다.',
+    '18,000+ 다운로드를 기록한 다국어 작업 자동화 라이브러리입니다. Babel AST 기반 코드 분석으로 번역 키 추출, t 메서드 래핑, 타입 생성을 자동화해 번역 누락을 줄입니다.',
   metrics: [
     {
-      value: '13,000+',
+      value: '18,000+',
       label: 'downloads',
       detail: '라이브러리와 CLI 생태계 누적 다운로드',
       tone: 'bg-zinc-950 text-white border-zinc-950'
@@ -503,6 +560,25 @@ export const resumeOpenSourceGroups: ResumeOpenSourceGroup[] = [
         href: 'https://github.com/cloudflare/vinext/pull/1626'
       }
     ]
+  },
+  {
+    title: 'React [facebook/react]',
+    subtitle: 'React 내부 동작을 재현하고 개선안을 제안한 upstream 기여',
+    period: '2026',
+    links: [
+      { label: 'GitHub 저장소', href: 'https://github.com/facebook/react', external: true },
+      { label: 'Issue #35105', href: 'https://github.com/facebook/react/issues/35105', external: true },
+      { label: 'PR #35124', href: 'https://github.com/facebook/react/pull/35124', external: true }
+    ],
+    bullets: [
+      {
+        title: '재현 사례를 개선안으로 연결',
+        metric: 'facebook/react #35124',
+        description:
+          'Issue #35105에서 확인한 동작을 재현하고 원인을 좁힌 뒤 코드 수준의 개선안과 검증을 PR로 제안했습니다.',
+        href: 'https://github.com/facebook/react/pull/35124'
+      }
+    ]
   }
 ];
 
@@ -510,10 +586,12 @@ export const resumeEducation = {
   school: '인하대학교',
   major: '컴퓨터공학과 학사',
   period: '2021.03 ~',
-  detail: '7 / 8'
+  detail: '8 / 8'
 } as const;
 
 export const resumeActivities = [
+  '2026 오픈소스 컨트리뷰션 아카데미 참여형 Node.js 멘티 2026.07',
+  'DNS LAB Research Intern 2026.05',
   '객체지향 프로그래밍 수업 학부생 조교 2025.03',
   'INCOM 해커톤 1등(대상) 2024.11',
   '인하대 활동우수상 2021.06',
@@ -527,7 +605,7 @@ export const resumeSkillGroups = [
   },
   {
     title: 'Strength',
-    items: ['Performance', 'WebView', 'React Activity', 'Relay', 'AST Tooling', 'i18n Automation']
+    items: ['Product Analytics', 'Performance', 'WebView', 'React Activity', 'Relay', 'AST Tooling']
   },
   {
     title: 'Product',
@@ -672,7 +750,7 @@ export const portfolioProjects: PortfolioProject[] = [
     period: '2025.09 ~',
     quote: 'i18n의 병목은 t() 호출이 아니라, 번역 키와 코드와 협업 문서가 서로 어긋나는 순간에 생겼습니다.',
     summary:
-      '하드코딩 문자열, JSON 리소스, 번역 시트, 타입 정의가 따로 움직이던 i18n 작업을 AST 기반 CLI와 type-safe runtime으로 묶은 자동화 툴킷입니다. 13,000+ 다운로드와 Google Sheets 동기화로 실제 사용성을 검증했습니다.',
+      '하드코딩 문자열, JSON 리소스, 번역 시트, 타입 정의가 따로 움직이던 i18n 작업을 AST 기반 CLI와 type-safe runtime으로 묶은 자동화 툴킷입니다. 18,000+ 다운로드와 Google Sheets 동기화로 실제 사용성을 검증했습니다.',
     role: '라이브러리 설계, AST 변환, CLI/DX 자동화',
     team: '개인 오픈소스',
     contribution: '기획·구현 100%',
@@ -687,7 +765,7 @@ export const portfolioProjects: PortfolioProject[] = [
     },
     accent: '#71717a',
     metrics: [
-      { value: '13,000+', label: '누적 다운로드', detail: '런타임과 CLI 도구 생태계 다운로드' },
+      { value: '18,000+', label: '누적 다운로드', detail: '런타임과 CLI 도구 생태계 다운로드' },
       { value: '80%', label: '작업 시간 감축', detail: '수동 래핑, 추출, 동기화 반복 작업 자동화' },
       { value: '0건', label: '번역 키 휴먼 에러', detail: 'generated type으로 누락과 오타를 빌드 단계에서 감지' }
     ],
@@ -704,7 +782,7 @@ export const portfolioProjects: PortfolioProject[] = [
       'TypeScript/Babel 구현을 Rust로 옮겨보며 대규모 코드베이스에서 병목이 되는 파싱 비용을 검토했습니다.'
     ],
     results: [
-      { label: '누적 다운로드', after: '13,000+', effect: '외부 사용 검증' },
+      { label: '누적 다운로드', after: '18,000+', effect: '외부 사용 검증' },
       { label: '반복 작업 시간', before: '수동 래핑/추출', after: '자동 변환', effect: '80% 감축' },
       { label: '번역 키 검증', before: '런타임 확인', after: '타입 검증', effect: '휴먼 에러 감소' },
       { label: '협업 방식', before: '개발자 중심 JSON 수정', after: 'Google Sheets 동기화', effect: '비개발자 협업 가능' },
@@ -764,7 +842,7 @@ export const portfolioProjects: PortfolioProject[] = [
     period: '2025.06 ~',
     quote: '성능 개선은 초를 줄이는 일이 아니라, 사용자가 가치에 도달하는 경로를 짧게 만드는 일이었습니다.',
     summary:
-      '교환학생 플랫폼에서 홈 성능, 커뮤니티 퍼널, 대학 catalog 배포 경계, React 19/Next 16 업그레이드, 운영 자동화를 제품 지표와 배포 책임 기준으로 정리했습니다. LCP 91.2% 개선, 이탈률 21% → 16%, SSG 대상 188개 → 35개 분리를 만들었습니다.',
+      '총 사용자 5,000명 이상과 MAU 400명 이상의 교환학생 플랫폼에서 홈 성능, 커뮤니티 퍼널, 대학 catalog 배포 경계, React 19/Next 16 업그레이드, 운영 자동화를 제품 지표와 배포 책임 기준으로 정리했습니다. LCP 91.2% 개선, 이탈률 21%에서 16%, SSG 대상 188개에서 35개 분리를 만들었습니다.',
     role: '프론트엔드 성능 개선, 운영 자동화, 배포 경계 설계',
     team: '오픈소스/사이드 프로젝트',
     contribution: '성능·DX 개선 주도',
@@ -779,6 +857,7 @@ export const portfolioProjects: PortfolioProject[] = [
     },
     accent: '#52525b',
     metrics: [
+      { value: '5,000+', label: '총 사용자', detail: 'MAU 400명 이상의 교환학생 정보 플랫폼 운영' },
       { value: '91.2%', label: '홈 LCP 개선', detail: '9.961s → 0.874s로 핵심 렌더링 지표 개선' },
       { value: '21% → 16%', label: '이탈률 개선', detail: '홈 유입 이후 이탈을 성능과 흐름 관점에서 개선' },
       { value: '188 → 35', label: 'SSG 대상 분리', detail: '대학 catalog를 멀티존으로 분리해 main web 배포 부담 축소' },
