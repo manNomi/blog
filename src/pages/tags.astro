@@ -1,4 +1,5 @@
 ---
+import { sitePath } from '../utils/sitePath';
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
@@ -33,7 +34,7 @@ const tagCounts = allTags.reduce((acc, tag) => {
       <section class="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-0" aria-label="Tag cards">
         {allTags.map((tag) => (
           <a
-            href={`/tags?tag=${encodeURIComponent(tag)}`}
+            href={sitePath(`/tags?tag=${encodeURIComponent(tag)}`)}
             class="tag-card flex items-baseline justify-between border-b py-[26px] pr-[18px] transition-[padding-left]"
             data-tag-card={tag}
             style="border-color: var(--border); color: var(--text);"
@@ -50,7 +51,7 @@ const tagCounts = allTags.reduce((acc, tag) => {
             <div class="eyebrow mb-2">Selected topic</div>
             <h2 class="section-title" data-tag-title>전체</h2>
           </div>
-          <a href="/tags" class="mono whitespace-nowrap" style="color: var(--text-dim);">전체 태그 →</a>
+          <a href={sitePath('/tags')} class="mono whitespace-nowrap" style="color: var(--text-dim);">전체 태그 →</a>
         </div>
 
         <hr class="rule" />

@@ -1,10 +1,10 @@
 import type { APIRoute } from 'astro';
-import type { LoveJobInput } from '../../../lib/saju/love-job-types';
-import { consumeRateLimit } from '../../../lib/saju/server/rate-limit';
-import { verifyTurnstileToken } from '../../../lib/saju/server/turnstile';
-import { createLoveJobWithToken } from '../../../lib/saju/server/love-job-service';
-import { getFirestoreBackendMode } from '../../../lib/saju/server/firestore-repo';
-import { logEvent } from '../../../lib/saju/server/monitoring';
+import type { LoveJobInput } from '../../lib/saju/love-job-types';
+import { consumeRateLimit } from '../../lib/saju/server/rate-limit';
+import { verifyTurnstileToken } from '../../lib/saju/server/turnstile';
+import { createLoveJobWithToken } from '../../lib/saju/server/love-job-service';
+import { getFirestoreBackendMode } from '../../lib/saju/server/firestore-repo';
+import { logEvent } from '../../lib/saju/server/monitoring';
 
 export const prerender = false;
 

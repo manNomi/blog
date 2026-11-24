@@ -8,7 +8,8 @@ Notion을 CMS로 활용한 정적 기술 블로그입니다.
 
 - Astro
 - Notion API
-- Vercel (배포)
+- GitHub Pages (블로그 배포)
+- Vercel (서버 기능이 필요한 빌드 지원)
 
 ## 주요 기능
 
@@ -178,10 +179,11 @@ npm run trend:once
 
 ### GitHub Actions 동기화
 
-- `Deploy to Production` 워크플로우는 빌드/배포만 수행합니다.
+- `Deploy to GitHub Pages` 워크플로우는 `main`에 푸시하면 실행됩니다. 수동으로도 실행할 수 있습니다.
 - `Sync Notion Content (Manual)` 워크플로우를 수동 실행해서 동기화합니다.
   - 기본: edit 체크된 글만 동기화
   - `full_sync=true`: Published 전체 동기화
+  - `main`에 콘텐츠 변경이 푸시되면 같은 실행에서 GitHub Pages 배포를 시작합니다.
 
 ### PR 작성 규칙
 
@@ -189,6 +191,17 @@ npm run trend:once
 - PR 본문 포맷은 `.github/pull_request_template.md`를 사용합니다.
 
 ## 배포
+
+공개 블로그는 [GitHub Pages](https://mannomi.github.io/blog/)에서 제공됩니다. Pages에서는 서버가 필요한 조회수와 이메일 운세 리포트가 제공되지 않습니다.
+
+로컬에서 Pages 배포 결과물을 만들려면 다음 명령을 실행합니다.
+
+```bash
+DEPLOY_TARGET=github-pages npx astro check
+DEPLOY_TARGET=github-pages npx astro build
+```
+
+서버 기능이 포함된 Vercel용 빌드는 다음과 같이 실행합니다.
 
 ```bash
 npm run build

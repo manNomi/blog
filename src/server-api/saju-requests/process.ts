@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
-import { processLoveJobsBatch } from '../../../lib/saju/server/love-job-service';
-import { logEvent } from '../../../lib/saju/server/monitoring';
+import { processLoveJobsBatch } from '../../lib/saju/server/love-job-service';
+import { logEvent } from '../../lib/saju/server/monitoring';
 
 export const prerender = false;
 

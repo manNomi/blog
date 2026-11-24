@@ -1,5 +1,7 @@
 ---
-const pathname = Astro.url.pathname;
+import { sitePath } from '../utils/sitePath';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const pathname = Astro.url.pathname.slice(base.length) || '/';
 const navItems = [
   { href: '/', label: '글', match: (path: string) => path === '/' || path.startsWith('/blog') || path.startsWith('/posts') },
   { href: '/about', label: '소개', match: (path: string) => path.startsWith('/about') },
@@ -12,14 +14,14 @@ const navItems = [
 
 <header class="site-header">
   <div class="wrap site-header__inner">
-    <a class="site-header__brand" href="/" aria-label="한만욱 홈">
+    <a class="site-header__brand" href={sitePath('/')} aria-label="한만욱 홈">
       <span class="text-[1.02rem]">한만욱</span>
       <span class="mono hd-sub text-[0.66rem]">frontend</span>
     </a>
 
     <nav class="site-header__nav" aria-label="Primary">
       {navItems.map((item) => (
-        <a class="site-header__link" href={item.href} data-active={item.match(pathname) ? 'true' : undefined}>
+        <a class="site-header__link" href={sitePath(item.href)} data-active={item.match(pathname) ? 'true' : undefined}>
           {item.label}
         </a>
       ))}

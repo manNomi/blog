@@ -1,5 +1,7 @@
 ---
+import { sitePath } from '../utils/sitePath';
+
 export const prerender = false;
 
-return Astro.redirect('/game/dice', 301);
+return Astro.redirect(sitePath('/game/dice'), 301);
 ---

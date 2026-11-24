@@ -1,4 +1,5 @@
 ---
+import { sitePath } from '../utils/sitePath';
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
@@ -11,13 +12,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
         <div class="banner-photos" aria-label="AIM 축하 사진">
           <figure class="banner-photo banner-photo-main">
-            <img src="/images/aim/aim-cheer-1.png" alt="레고 F1 자동차 선물을 든 김용준" />
+            <img src={sitePath('/images/aim/aim-cheer-1.png')} alt="레고 F1 자동차 선물을 든 김용준" />
           </figure>
           <figure class="banner-photo">
-            <img src="/images/aim/aim-cheer-2.png" alt="김용준과 문승재의 셀피" />
+            <img src={sitePath('/images/aim/aim-cheer-2.png')} alt="김용준과 문승재의 셀피" />
           </figure>
           <figure class="banner-photo banner-photo-mono">
-            <img src="/images/aim/aim-cheer-3.png" alt="문승재 프로필 사진" />
+            <img src={sitePath('/images/aim/aim-cheer-3.png')} alt="문승재 프로필 사진" />
           </figure>
         </div>
 

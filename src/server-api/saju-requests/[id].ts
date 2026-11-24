@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
-import { getAuthorizedLoveJob, sanitizeLoveJob } from '../../../lib/saju/server/love-job-service';
-import { logEvent } from '../../../lib/saju/server/monitoring';
+import { getAuthorizedLoveJob, sanitizeLoveJob } from '../../lib/saju/server/love-job-service';
+import { logEvent } from '../../lib/saju/server/monitoring';
 
 export const prerender = false;
 

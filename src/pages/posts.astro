@@ -1,4 +1,5 @@
 ---
+import { sitePath } from '../utils/sitePath';
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
@@ -27,9 +28,9 @@ const tagCounts = allTags.reduce((acc, tag) => {
 
       <div class="my-2 mb-6 flex flex-wrap items-center justify-between gap-4">
         <div class="flex flex-wrap gap-2">
-          <a href="/posts" class="pill" data-active="true">전체 <span class="opacity-60">{posts.length}</span></a>
+          <a href={sitePath('/posts')} class="pill" data-active="true">전체 <span class="opacity-60">{posts.length}</span></a>
           {allTags.map((tag) => (
-            <a href={`/tags?tag=${encodeURIComponent(tag)}`} class="pill">{tag} <span class="opacity-60">{tagCounts[tag]}</span></a>
+            <a href={sitePath(`/tags?tag=${encodeURIComponent(tag)}`)} class="pill">{tag} <span class="opacity-60">{tagCounts[tag]}</span></a>
           ))}
         </div>
       </div>

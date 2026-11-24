@@ -1,4 +1,5 @@
 ---
+import { sitePath } from '../utils/sitePath';
 import '../styles/global.css';
 import CodexPet from '../components/CodexPet.astro';
 
@@ -27,7 +28,7 @@ const {
   imageAlt = '프론트엔드 개발자 한만욱의 이모저모 공유 이미지',
   imageWidth = 1200,
   imageHeight = 630,
-  canonicalURL = Astro.url.pathname,
+  canonicalURL,
   ogType = 'website',
   robots = 'index, follow',
   jsonLd,
@@ -47,8 +48,8 @@ const defaultKeywords = [
 ];
 const metaKeywords = Array.from(new Set([...defaultKeywords, ...keywords]));
 const siteURL = Astro.site || Astro.url.origin;
-const fullURL = new URL(canonicalURL, siteURL).href;
-const ogImage = new URL(image, siteURL).href;
+const fullURL = new URL(canonicalURL ? sitePath(canonicalURL) : Astro.url.pathname, siteURL).href;
+const ogImage = new URL(sitePath(image), siteURL).href;
 const jsonLdPayload = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : undefined;
 const themeInitScript = `
 (() => {
@@ -87,8 +88,8 @@ const themeInitScript = `
     <meta name="robots" content={robots} />
     <link rel="canonical" href={fullURL} />
     <title>{title}</title>
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="apple-touch-icon" href="/favicon.png" />
+    <link rel="icon" type="image/png" href={sitePath('/favicon.png')} />
+    <link rel="apple-touch-icon" href={sitePath('/favicon.png')} />
     <link rel="preconnect" href="https://cdn.jsdelivr.net" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

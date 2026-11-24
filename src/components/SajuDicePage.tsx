@@ -1,3 +1,4 @@
+import { sitePath } from '../utils/sitePath';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import SajuDiceStage from './SajuDiceStage';
 import { buildDiceFortune, normalizeDiceKeyword, parseFavoriteNumbers, type DiceFortuneResult } from '../lib/saju/dice-fortune';
@@ -54,7 +55,7 @@ export default function SajuDicePage() {
               생년월일 없이 숫자와 키워드만으로 오늘의 가벼운 흐름을 확인합니다.
             </p>
           </div>
-          <a href="/game" className="pill w-fit">
+          <a href={sitePath('/game')} className="pill w-fit">
             게임 목록
           </a>
         </div>

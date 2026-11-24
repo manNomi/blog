@@ -1,4 +1,5 @@
 ---
+import { sitePath } from '../../utils/sitePath';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
@@ -44,7 +45,7 @@ const nextProject =
   project && currentProjectIndex >= 0 ? portfolioProjects[(currentProjectIndex + 1) % portfolioProjects.length] : undefined;
 const siteURL = Astro.site || Astro.url.origin;
 const canonicalPath = `/about/${project?.slug ?? experience?.slug}`;
-const detailURL = new URL(canonicalPath, siteURL).href;
+const detailURL = new URL(sitePath(canonicalPath), siteURL).href;
 const hasProjectImage = Boolean(project && !project.image.includes('portfolio-case-placeholder'));
 const ogImage =
   project && project.image.endsWith('.svg') ? '/og-image.png' : project?.image ?? '/og-image.png';
@@ -79,7 +80,7 @@ const jsonLd = {
   }
 };
 const experienceMetrics = experience?.highlights.filter((highlight) => highlight.metric).slice(0, 3) ?? [];
-const experienceLinks = experience?.highlights.filter((highlight) => highlight.href) ?? [];
+const experienceLinks = experience?.highlights.flatMap(({ href, title }) => href ? [{ href, title }] : []) ?? [];
 const isGithubLink = (link: PortfolioLink) => /github|저장소/i.test(link.label);
 const projectPackageLinks = new Set(project?.packages?.map((item) => item.href) ?? []);
 const projectGithubLinks = project?.links.filter(isGithubLink) ?? [];
@@ -112,7 +113,7 @@ const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProje
     <div class="wrap">
       <div class="pt-7">
         <a
-          href={project ? '/about#projects' : '/about#experience'}
+          href={sitePath(project ? '/about#projects' : '/about#experience')}
           class="mono inline-flex items-center gap-2 py-2 transition-colors hover:!text-[var(--text)]"
           style="color: var(--text-dim);"
         >
@@ -134,7 +135,7 @@ const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProje
               <div class="mt-7 flex flex-wrap gap-2.5">
                 {projectGithubLinks.map((link) => (
                   <a
-                    href={link.href}
+                    href={sitePath(link.href)}
                     target={link.external ? '_blank' : undefined}
                     rel={link.external ? 'noopener noreferrer' : undefined}
                     class="pill h-8"
@@ -167,10 +168,10 @@ const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProje
 
           {hasProjectImage && project.visualMode === 'phone' ? (
             <div class="phone-frame phone-frame--cover mb-2">
-              <img src={phoneBezelImage} alt="" class="phone-frame__bezel" loading="eager" decoding="async" aria-hidden="true" />
+              <img src={sitePath(phoneBezelImage)} alt="" class="phone-frame__bezel" loading="eager" decoding="async" aria-hidden="true" />
               <div class="phone-frame__screen">
                 <img
-                  src={project.image}
+                  src={sitePath(project.image)}
                   alt={project.imageAlt}
                   width={project.imageWidth}
                   height={project.imageHeight}
@@ -188,7 +189,7 @@ const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProje
               </div>
               <div class="client-browser__viewport">
                 <img
-                  src={project.image}
+                  src={sitePath(project.image)}
                   alt={project.imageAlt}
                   width={project.imageWidth}
                   height={project.imageHeight}
@@ -199,7 +200,7 @@ const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProje
             </div>
           ) : hasProjectImage ? (
             <img
-              src={project.image}
+              src={sitePath(project.image)}
               alt={project.imageAlt}
               width={project.imageWidth}
               height={project.imageHeight}
@@ -228,9 +229,9 @@ const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProje
                   <figure class={`project-screen ${item.device ? `project-screen--${item.device}` : ''}`}>
                     {project.deviceShowcase && item.device === 'mobile' ? (
                       <div class="phone-frame phone-frame--client-gallery">
-                        <img src={phoneBezelImage} alt="" class="phone-frame__bezel" loading="lazy" decoding="async" aria-hidden="true" />
+                        <img src={sitePath(phoneBezelImage)} alt="" class="phone-frame__bezel" loading="lazy" decoding="async" aria-hidden="true" />
                         <div class="phone-frame__screen">
-                        <img src={item.src} alt={item.alt} width={item.width} height={item.height} class="phone-frame__image" loading="eager" decoding="async" />
+                        <img src={sitePath(item.src)} alt={item.alt} width={item.width} height={item.height} class="phone-frame__image" loading="eager" decoding="async" />
                         </div>
                       </div>
                     ) : project.deviceShowcase ? (
@@ -240,12 +241,12 @@ const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProje
                           <strong>{item.caption}</strong>
                         </div>
                         <div class="client-browser__viewport">
-                          <img src={item.src} alt={item.alt} width={item.width} height={item.height} loading="eager" decoding="async" />
+                          <img src={sitePath(item.src)} alt={item.alt} width={item.width} height={item.height} loading="eager" decoding="async" />
                         </div>
                       </div>
                     ) : (
                       <div class="project-screen__plain">
-                        <img src={item.src} alt={item.alt} width={item.width} height={item.height} loading="lazy" decoding="async" />
+                        <img src={sitePath(item.src)} alt={item.alt} width={item.width} height={item.height} loading="lazy" decoding="async" />
                       </div>
                     )}
                     <figcaption class="mono mt-3 text-[0.72rem]" style="color: var(--text-faint);">{item.caption}</figcaption>
@@ -263,7 +264,7 @@ const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProje
                   <h2 class="section-title">실제 서비스 화면</h2>
                 </div>
                 <a
-                  href={project.livePreview.url}
+                  href={sitePath(project.livePreview.url)}
                   target="_blank"
                   rel="noopener noreferrer"
                   class="mono whitespace-nowrap"
@@ -274,10 +275,10 @@ const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProje
               </div>
               <div class="live-preview-wrap">
                 <div class="phone-frame phone-frame--iframe">
-                  <img src={phoneBezelImage} alt="" class="phone-frame__bezel" loading="lazy" decoding="async" aria-hidden="true" />
+                  <img src={sitePath(phoneBezelImage)} alt="" class="phone-frame__bezel" loading="lazy" decoding="async" aria-hidden="true" />
                   <div class="phone-frame__screen">
                     <iframe
-                      src={project.livePreview.url}
+                      src={sitePath(project.livePreview.url)}
                       title={`${project.title} 실제 서비스 미리보기`}
                       class="live-preview-iframe"
                       loading="lazy"
@@ -290,7 +291,7 @@ const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProje
                   <p>{project.livePreview.description}</p>
                   <div class="flex flex-wrap gap-2.5">
                     <a
-                      href={project.livePreview.url}
+                      href={sitePath(project.livePreview.url)}
                       target="_blank"
                       rel="noopener noreferrer"
                       class="pill h-8"
@@ -381,7 +382,7 @@ const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProje
                       </ul>
                     </div>
                     <a
-                      href={item.href}
+                      href={sitePath(item.href)}
                       target="_blank"
                       rel="noopener noreferrer"
                       class="pill h-8 package-card-action"
@@ -427,10 +428,10 @@ const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProje
                     <div class="responsive-demo-stage">
                       <div class="responsive-demo-view responsive-demo-view--mobile" data-demo-view="mobile">
                         <div class="phone-frame phone-frame--football-demo">
-                          <img src={phoneBezelImage} alt="" class="phone-frame__bezel" loading="lazy" decoding="async" aria-hidden="true" />
+                          <img src={sitePath(phoneBezelImage)} alt="" class="phone-frame__bezel" loading="lazy" decoding="async" aria-hidden="true" />
                           <div class="phone-frame__screen">
                             <iframe
-                              src={project.responsiveDemo.url}
+                              src={sitePath(project.responsiveDemo.url)}
                               title={`${project.title} 모바일 데모`}
                               class="responsive-demo-iframe"
                               loading="eager"
@@ -449,7 +450,7 @@ const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProje
                             <strong>{project.responsiveDemo.label}</strong>
                           </div>
                           <iframe
-                            src={project.responsiveDemo.url}
+                            src={sitePath(project.responsiveDemo.url)}
                             title={`${project.title} 데스크톱 데모`}
                             class="responsive-demo-iframe"
                             loading="eager"
@@ -486,7 +487,7 @@ const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProje
                       <div class="mono route-demo-kicker">{project.clientDemo.label}</div>
                       <p>{project.clientDemo.description}</p>
                     </div>
-                    <a href={project.clientDemo.url} target="_blank" rel="noopener noreferrer" class="pill h-8">
+                    <a href={sitePath(project.clientDemo.url)} target="_blank" rel="noopener noreferrer" class="pill h-8">
                       새 창으로 열기 →
                     </a>
                   </div>
@@ -497,7 +498,7 @@ const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProje
                     </div>
                     <div class="client-browser__viewport">
                       <iframe
-                        src={project.clientDemo.url}
+                        src={sitePath(project.clientDemo.url)}
                         title={`${project.title} 서비스 화면`}
                         loading="eager"
                         sandbox="allow-scripts allow-same-origin allow-forms"
@@ -508,10 +509,10 @@ const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProje
               ) : project.slug === 'incheon-bus' ? (
                 <div class="route-demo-panel" data-route-demo="bus">
                   <div class="phone-frame phone-frame--bus-live">
-                    <img src={phoneBezelImage} alt="" class="phone-frame__bezel" loading="lazy" decoding="async" aria-hidden="true" />
+                    <img src={sitePath(phoneBezelImage)} alt="" class="phone-frame__bezel" loading="lazy" decoding="async" aria-hidden="true" />
                     <div class="phone-frame__screen">
                       <iframe
-                        src="/demos/bus-live-demo.html"
+                        src={sitePath('/demos/bus-live-demo.html')}
                         title="BusLive 실제 동작 데모"
                         class="demo-iframe"
                         loading="eager"
@@ -541,10 +542,10 @@ const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProje
               ) : (
                 <div class="route-demo-panel" data-route-demo="dmap">
                   <div class="phone-frame phone-frame--dmap-live">
-                    <img src={phoneBezelImage} alt="" class="phone-frame__bezel" loading="lazy" decoding="async" aria-hidden="true" />
+                    <img src={sitePath(phoneBezelImage)} alt="" class="phone-frame__bezel" loading="lazy" decoding="async" aria-hidden="true" />
                     <div class="phone-frame__screen">
                       <iframe
-                        src="/demos/portfolio-dmap-demo.html"
+                        src={sitePath('/demos/portfolio-dmap-demo.html')}
                         title="DMap 실제 동작 데모"
                         class="demo-iframe"
                         loading="eager"
@@ -603,7 +604,7 @@ const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProje
               <div class="flex flex-wrap gap-2.5">
                 {projectReferenceLinks.map((link) => (
                   <a
-                    href={link.href}
+                    href={sitePath(link.href)}
                     target={link.external ? '_blank' : undefined}
                     rel={link.external ? 'noopener noreferrer' : undefined}
                     class="pill h-8"
@@ -619,7 +620,7 @@ const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProje
           <hr class="rule" />
 
           {nextProject && (
-            <a href={`/about/${nextProject.slug}`} class="flex items-center justify-between gap-5 px-1 pt-8">
+            <a href={sitePath(`/about/${nextProject.slug}`)} class="flex items-center justify-between gap-5 px-1 pt-8">
               <div>
                 <div class="mono mb-1.5" style="color: var(--text-faint);">다음 프로젝트</div>
                 <h3 class="m-0 text-2xl font-bold tracking-[-0.03em] transition-opacity hover:opacity-60" style="color: var(--text);">{nextProject.title}</h3>
@@ -639,7 +640,7 @@ const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProje
               {experience.logo && (
                 <span class={`company-logo company-logo--hero company-logo--${experience.logo.shape}`} aria-hidden="true">
                   <img
-                    src={experience.logo.src}
+                    src={sitePath(experience.logo.src)}
                     alt=""
                     width={experience.logo.width}
                     height={experience.logo.height}
@@ -656,7 +657,7 @@ const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProje
               <div class="mt-7 flex flex-wrap gap-2.5">
                 {experience.links.map((link) => (
                   <a
-                    href={link.href}
+                    href={sitePath(link.href)}
                     target={link.external ? '_blank' : undefined}
                     rel={link.external ? 'noopener noreferrer' : undefined}
                     class="pill h-8"
@@ -722,7 +723,7 @@ const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProje
                   </div>
                   <p class="m-0 text-[0.95rem] leading-[1.65]" style="color: var(--text-dim);">{highlight.description}</p>
                   {highlight.href && (
-                    <a href={highlight.href} class="mono detail-link" style="color: var(--text);">관련 글 →</a>
+                    <a href={sitePath(highlight.href)} class="mono detail-link" style="color: var(--text);">관련 글 →</a>
                   )}
                 </article>
               ))}
@@ -737,7 +738,7 @@ const recordsStepLabel = String(5 + Number(hasProjectPackages) + Number(hasProje
               </div>
               <div class="flex flex-wrap gap-2.5">
                 {experienceLinks.map((highlight) => (
-                  <a href={highlight.href} class="pill h-8" style="color: var(--text); border-color: var(--border-strong);">
+                  <a href={sitePath(highlight.href)} class="pill h-8" style="color: var(--text); border-color: var(--border-strong);">
                     {highlight.title} →
                   </a>
                 ))}

@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { logEvent } from '../../lib/saju/server/monitoring';
+import { logEvent } from '../lib/saju/server/monitoring';
 
 export const prerender = false;
 
