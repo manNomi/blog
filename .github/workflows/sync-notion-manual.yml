@@ -12,6 +12,10 @@ on:
 jobs:
   sync-notion:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      synced_ref: ${{ steps.push.outputs.ref }}
 
     steps:
       - name: Checkout
@@ -43,8 +47,25 @@ jobs:
           fi
 
       - name: Commit and push synced content
+        id: push
         run: |
           git config --local user.email "hanmw110@naver.com"
           git config --local user.name "manNomi"
           git add src/content/blog/ public/images/ .notion-sync-manifest.json
-          git diff --staged --quiet || (git commit -m "chore: sync content from Notion [skip ci]" && git push)
+          if git diff --staged --quiet; then
+            exit 0
+          fi
+          git commit -m "chore: sync content from Notion"
+          git push
+          echo "ref=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && needs.sync-notion.outputs.synced_ref != ''
+    needs: sync-notion
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy.yml
+    with:
+      ref: ${{ needs.sync-notion.outputs.synced_ref }}

@@ -1,4 +1,5 @@
 ---
+import { sitePath } from '../utils/sitePath';
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
@@ -57,6 +58,7 @@ const homeJsonLd = [
 ---
 
 <BaseLayout
+  canonicalURL="/"
   title="한만욱의 이모저모 | 프론트엔드 개발자"
   description={homeDescription}
   imageAlt="프론트엔드 개발자 한만욱의 이모저모 홈 화면"
@@ -79,10 +81,10 @@ const homeJsonLd = [
         </div>
 
         {featuredPost && (
-          <a href={`/blog/${featuredPost.slug}`} class="feat-card">
+          <a href={sitePath(`/blog/${featuredPost.slug}`)} class="feat-card">
             {featuredPostImage ? (
               <img
-                src={featuredPostImage}
+                src={sitePath(featuredPostImage)}
                 alt={`${featuredPost.data.title} 대표 이미지`}
                 class="featured-image"
                 loading="eager"
@@ -116,7 +118,7 @@ const homeJsonLd = [
             <div class="eyebrow mb-2">All writing · {restPosts.length}</div>
             <h2 class="section-title">글</h2>
           </div>
-          <a href="/tags" class="mono whitespace-nowrap" style="color: var(--text-dim);">태그 전체 →</a>
+          <a href={sitePath('/tags')} class="mono whitespace-nowrap" style="color: var(--text-dim);">태그 전체 →</a>
         </div>
 
         <div class="my-5 flex flex-wrap gap-2" data-home-tag-filter>
@@ -132,7 +134,7 @@ const homeJsonLd = [
             const postImage = getPostImage(post);
             return (
             <a
-              href={`/blog/${post.slug}`}
+              href={sitePath(`/blog/${post.slug}`)}
               class={`post-card ${defaultVisible ? '' : 'hidden'}`}
               data-home-post
               data-default-visible={defaultVisible ? 'true' : 'false'}
@@ -140,7 +142,7 @@ const homeJsonLd = [
             >
               {postImage ? (
                 <img
-                  src={postImage}
+                  src={sitePath(postImage)}
                   alt={`${post.data.title} 썸네일`}
                   class="post-card-image rounded-2xl"
                   loading="lazy"

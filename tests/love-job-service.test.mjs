@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { validateLoveInput } from '../src/lib/saju/server/love-job-service.ts';
-import { mapCreateErrorToMessage } from '../src/pages/api/saju-requests/index.ts';
+import { mapCreateErrorToMessage } from '../src/server-api/saju-requests/index.ts';
 
 function legacyLoveInput(overrides = {}) {
   return {

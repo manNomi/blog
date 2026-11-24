@@ -1,4 +1,5 @@
 ---
+import { sitePath } from '../utils/sitePath';
 interface Props {
   title: string;
   description?: string;
@@ -21,7 +22,7 @@ const formattedDate = new Intl.DateTimeFormat('ko-KR', {
   .replaceAll(' ', '');
 ---
 
-<a href={`/blog/${slug}`} class="post-row">
+<a href={sitePath(`/blog/${slug}`)} class="post-row">
   <span class="mono pt-1">{formattedDate}</span>
 
   <span>

@@ -1,5 +1,7 @@
 ---
+import { sitePath } from '../../utils/sitePath';
+
 export const prerender = false;
 
-return Astro.redirect('/game/compatibility', 301);
+return Astro.redirect(sitePath('/game/compatibility'), 301);
 ---

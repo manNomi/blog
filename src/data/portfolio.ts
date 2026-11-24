@@ -325,7 +325,7 @@ export const resumeExperiences: ResumeExperience[] = [
         metric: '이탈 문제 15%p 개선',
         description:
           'BottomSheet, Dialog, 페이지 이동이 섞인 Android WebView에서 백버튼이 화면을 닫지 않고 앱 이탈로 이어지는 문제를 LIFO/Priority 레이어로 정리했습니다.',
-        href: '/blog/android-백버튼-시스템-설계'
+        href: '/blog/android에서만-높은-페이지-이탈률을-해결하며'
       },
       {
         title: '부동산 홈 초기 로딩 최적화',

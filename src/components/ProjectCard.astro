@@ -1,4 +1,5 @@
 ---
+import { sitePath } from '../utils/sitePath';
 import type { PortfolioProject } from '../data/portfolio';
 
 interface Props {
@@ -12,7 +13,7 @@ const hasProjectImage = !project.image.includes('portfolio-case-placeholder');
 const phoneBezelImage = '/images/ui/iphone-bezel.png';
 ---
 
-<a href={href} class="project-card">
+<a href={sitePath(href)} class="project-card">
   <div>
     <div class="mb-3.5 flex items-center gap-3">
       <span class="mono" style="color: var(--text-faint);">{String(index + 1).padStart(2, '0')}</span>
@@ -39,10 +40,10 @@ const phoneBezelImage = '/images/ui/iphone-bezel.png';
 
   {hasProjectImage && project.visualMode === 'phone' ? (
     <div class="phone-frame phone-frame--card" role="img" aria-label={project.imageAlt}>
-      <img src={phoneBezelImage} alt="" class="phone-frame__bezel" loading="lazy" decoding="async" aria-hidden="true" />
+      <img src={sitePath(phoneBezelImage)} alt="" class="phone-frame__bezel" loading="lazy" decoding="async" aria-hidden="true" />
       <div class="phone-frame__screen">
         <img
-          src={project.image}
+          src={sitePath(project.image)}
           alt=""
           width={project.imageWidth}
           height={project.imageHeight}
@@ -60,7 +61,7 @@ const phoneBezelImage = '/images/ui/iphone-bezel.png';
       </div>
       <div class="client-browser__viewport">
         <img
-          src={project.image}
+          src={sitePath(project.image)}
           alt=""
           width={project.imageWidth}
           height={project.imageHeight}
@@ -71,7 +72,7 @@ const phoneBezelImage = '/images/ui/iphone-bezel.png';
     </div>
   ) : hasProjectImage ? (
     <img
-      src={project.image}
+      src={sitePath(project.image)}
       alt={project.imageAlt}
       width={project.imageWidth}
       height={project.imageHeight}

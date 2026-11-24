@@ -1,4 +1,5 @@
 ---
+import { sitePath } from '../utils/sitePath';
 import type { CollectionEntry } from 'astro:content';
 import BaseLayout from './BaseLayout.astro';
 import Header from '../components/Header.astro';
@@ -59,7 +60,7 @@ const collectionLabel = notes ? '노트 목록' : '글 목록';
   <main class="site-main">
     <div class="wrap max-w-[720px]">
       <div class="pt-7">
-        <a href={collectionPath} class="mono inline-flex items-center gap-2 py-2 transition-colors hover:!text-[var(--text)]" style="color: var(--text-dim);">← {collectionLabel}</a>
+        <a href={sitePath(collectionPath)} class="mono inline-flex items-center gap-2 py-2 transition-colors hover:!text-[var(--text)]" style="color: var(--text-dim);">← {collectionLabel}</a>
       </div>
 
       <article class="rise pt-5">
@@ -67,14 +68,14 @@ const collectionLabel = notes ? '노트 목록' : '글 목록';
           <span class="mono">{formatDate(pubDate)}</span>
           {updatedDate && <span class="mono opacity-60">· 수정 {formatDate(updatedDate)}</span>}
           <span class="mono opacity-60">· {readingTime}min read</span>
-          <ViewCounter client:load slug={slug} />
+          {!import.meta.env.PUBLIC_STATIC_BLOG && <ViewCounter client:load slug={slug} />}
         </div>
 
         <h1 class="m-0 text-[clamp(1.9rem,4.4vw,2.7rem)] font-bold leading-[1.22] tracking-[-0.035em]" style="color: var(--text);">{title}</h1>
 
         <div class="mt-[18px] flex flex-wrap gap-1.5">
-          {notes && <a href="/notes" class="mono text-[0.7rem]" style="color: var(--text-faint);">#Note</a>}
-          {tags.map((tag) => <a href={`/tags?tag=${encodeURIComponent(tag)}`} class="mono text-[0.7rem]" style="color: var(--text-faint);">#{tag}</a>)}
+          {notes && <a href={sitePath('/notes')} class="mono text-[0.7rem]" style="color: var(--text-faint);">#Note</a>}
+          {tags.map((tag) => <a href={sitePath(`/tags?tag=${encodeURIComponent(tag)}`)} class="mono text-[0.7rem]" style="color: var(--text-faint);">#{tag}</a>)}
         </div>
 
         {description && <p class="mt-6 text-[1.18rem] leading-[1.8] tracking-[-0.01em]" style="color: var(--text);">{description}</p>}
@@ -90,7 +91,7 @@ const collectionLabel = notes ? '노트 목록' : '글 목록';
 
         <div class="mt-7 flex flex-wrap items-center justify-between gap-3 border-t pt-5" style="border-color: var(--border);">
           <span class="mono">공유</span>
-          <ShareButtons title={title} url={`/blog/${slug}`} />
+          <ShareButtons title={title} url={new URL(sitePath(`/blog/${slug}`), Astro.site || Astro.url.origin).href} />
         </div>
       </article>
 
@@ -99,13 +100,13 @@ const collectionLabel = notes ? '노트 목록' : '글 목록';
           <hr class="rule" />
           <div class="grid gap-3 py-7 sm:grid-cols-2">
             {previousPost && (
-              <a href={`/blog/${previousPost.slug}`} class="rounded-xl border p-4 transition-colors hover:border-[var(--border-strong)]" style="border-color: var(--border);">
+              <a href={sitePath(`/blog/${previousPost.slug}`)} class="rounded-xl border p-4 transition-colors hover:border-[var(--border-strong)]" style="border-color: var(--border);">
                 <div class="mono mb-2">이전 글</div>
                 <strong class="text-base leading-[1.35]" style="color: var(--text);">{previousPost.title}</strong>
               </a>
             )}
             {nextPost && (
-              <a href={`/blog/${nextPost.slug}`} class="rounded-xl border p-4 transition-colors hover:border-[var(--border-strong)]" style="border-color: var(--border);">
+              <a href={sitePath(`/blog/${nextPost.slug}`)} class="rounded-xl border p-4 transition-colors hover:border-[var(--border-strong)]" style="border-color: var(--border);">
                 <div class="mono mb-2">다음 글</div>
                 <strong class="text-base leading-[1.35]" style="color: var(--text);">{nextPost.title}</strong>
               </a>
