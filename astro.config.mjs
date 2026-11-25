@@ -7,7 +7,17 @@ import { rehypePagesLinks } from "./scripts/rehype-pages-links.mjs";
 
 const pages = process.env.DEPLOY_TARGET === "github-pages";
 const pagesSite = "https://mannomi.github.io";
-const pagesBase = "/blog";
+const accountSite = process.env.GITHUB_REPOSITORY?.toLowerCase() === "mannomi/mannomi.github.io";
+const pagesBase = accountSite ? "" : "/blog";
+const legacyPaths = [
+  "/about", "/about/[slug]", "/aim", "/game", "/game/compatibility",
+  "/game/dice", "/game/fortune", "/game/ladder", "/house", "/notes",
+  "/posts", "/privacy", "/tags", "/blog/[...slug]",
+];
+const legacyRedirects = {
+  "/blog": "/",
+  ...Object.fromEntries(legacyPaths.map((path) => [`/blog${path}`, path])),
+};
 
 function serverApiRoutes() {
   const endpoints = {
@@ -48,7 +58,8 @@ const site =
 // https://astro.build/config
 export default defineConfig({
   site: pages ? pagesSite : site,
-  base: pages ? pagesBase : "/",
+  base: pages && pagesBase ? pagesBase : "/",
+  redirects: pages && accountSite ? legacyRedirects : {},
   output: pages ? "static" : "hybrid",
   adapter: pages ? undefined : vercel({ runtime: "nodejs20" }),
   vite: {

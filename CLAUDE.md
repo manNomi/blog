@@ -192,13 +192,13 @@ npm run trend:once
 
 ## 배포
 
-공개 블로그는 [GitHub Pages](https://mannomi.github.io/blog/)에서 제공됩니다. Pages에서는 서버가 필요한 조회수와 이메일 운세 리포트가 제공되지 않습니다.
+공개 블로그는 [GitHub Pages](https://mannomi.github.io/)에서 제공됩니다. Pages에서는 서버가 필요한 조회수와 이메일 운세 리포트가 제공되지 않습니다.
 
 로컬에서 Pages 배포 결과물을 만들려면 다음 명령을 실행합니다.
 
 ```bash
 DEPLOY_TARGET=github-pages npx astro check
-DEPLOY_TARGET=github-pages npx astro build
+DEPLOY_TARGET=github-pages GITHUB_REPOSITORY=manNomi/mannomi.github.io npx astro build
 ```
 
 서버 기능이 포함된 Vercel용 빌드는 다음과 같이 실행합니다.
